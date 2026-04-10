@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow — Kanban Board</title>
+    <style>
+        /* ─── DESIGN TOKENS FROM PLAY UI COMPONENT LIBRARY ─── */
+        :root {
+            /* Colors from cards.component.scss */
+            --Neutral-N-100: #ededf3;
+            --Neutral-N-200: #DADCE7;
+            --Neutral-N-1000: #292c3d;
+            --Neutral-N-1050: #14161f;
+            
+            /* Button tokens from button.component.scss */
+            --button-primary-bg-action: #3f51b5;
+            --button-primary-hover-action: #2e3f9e;
+            --button-primary-bg-active: #2e308e;
+            --button-primary-bg-subtle: rgba(63,81,181,0.08);
+            --button-primary-bg-disable: #e0e0e0;
+            --button-primary-label-action: #ffffff;
+            --button-primary-label-disable: #9e9e9e;
+            --button-primary-label-warning: #3f51b5;
+            --button-primary-bg-warning: #f59e0b;
+            --button-primary-hover-warning: #d97706;
+            --button-primary-bg-danger: #C9372C;
+            --button-primary-label-danger: #ffffff;
+            --button-primary-hover-danger: #b02a20;
+            --button-secondary-bg-bg: #ffffff;
+            --button-secondary-border-action: #858aad;
+            --button-secondary-border-disable: #e0e0e0;
+            --button-secondary-label-action: #292c3d;
+            --button-secondary-label-disable: #9e9e9e;
+            --button-secondary-label-warning: #C9372C;
+            --button-warning-hover-bg: #fff8ec;
+            --button-danger-hover-bg: #fff0ef;
+            --button-links-success: #019978;
+            --button-links-information: #2e308e;
+            --focused-selected-ring: #3f51b5;
+            --focused-selected-bg: rgba(63,81,181,0.08);
+            
+            /* Surface tokens from sidebar.component.scss */
+            --surface: rgba(255,255,255,0.9);
+            
+            /* Text tokens */
+            --text-body: #292c3d;
+            --text-title: #14161f;
+            --text-caption: #858aad;
+            --text-disabled: #A3A7C2;
+            --text-white: #ffffff;
+            
+            /* Icon tokens */
+            --icons-neutral-icon: #858aad;
+            --icons-action: #3f51b5;
+            --icons-success: #019978;
+            --icons-warning: #f59e0b;
+            
+            /* Badge tokens from badges.component.scss */
+            --badge-text-success: #ffffff;
+            --badge-text-warning: #292c3d;
+            
+            /* Card tokens from cards.component.scss */
+            --awe-card-border-radius: 6px;
+            --awe-card-padding-small: 16px;
+            --awe-card-padding-medium: 24px;
+            --awe-card-shadow: 0 2px 4px rgba(0,0,0,0.16);
+            --awe-card-shadow-elevated: 0 8px 16px rgba(0,0,0,0.16);
+            
+            /* Toggle tokens from toggle.component.scss */
+            --round: 9999px;
+            --toggle-height: 28px;
+            
+            /* Spacing system */
+            --spacing-1x: 4px;
+            --spacing-2x: 8px;
+            --spacing-3x: 12px;
+            --spacing-4x: 16px;
+            --spacing-5x: 20px;
+            --spacing-6x: 24px;
+            --spacing-7x: 28px;
+            --spacing-8x: 32px;
+            --spacing-10x: 40px;
+            --spacing-11x: 44px;
+            --spacing-12x: 48px;
+            --spacing-14x: 56px;
+            
+            /* Font tokens from heading/labels SCSS */
+            --font-font-family-body: 'DM Sans', sans-serif;
+            --font-font-family-heading: 'DM Sans', sans-serif;
+            --font-font-family-label: 'DM Sans', sans-serif;
+            --font-font-weight-regular: 400;
+            --font-font-weight-medium: 500;
+            --font-font-weight-bold: 700;
+            --font-font-size-body: 14px;
+            --font-font-size-label: 12px;
+            --font-font-size-small: 11px;
+            --font-font-size-heading-1: 32px;
+            --font-font-size-heading-2: 24px;
+            --font-font-size-heading-3: 20px;
+            --font-font-size-heading-4: 18px;
+            --font-font-size-heading-5: 16px;
+            --font-font-size-heading-6: 14px;
+            
+            /* Border radius */
+            --border-radius: 8px;
+            --border-radius-medium: 12px;
+            --3x: 12px;
+            --4x: 16px;
+            --5x: 20px;
+            
+            /* Elevation tokens from navbar */
+            --Elevation-Light-Fill-Light-30: rgba(240,240,245,0.3);
+            --Elevation-Light-Fill-Light-60: rgba(240,240,245,0.6);
+            --gradient-light-active: linear-gradient(102deg,rgba(63,81,181,0.08) 0%,rgba(63,81,181,0.12) 100%);
+            
+            /* Progress/stepper */
+            --progress-stroke-color: #858aad;
+            --auth-container-bg: rgba(240,240,245,0.72);
+            --auth-height-lg: 32px;
+            
+            /* Kanban specific colors */
+            --kanban-todo-bg: #E3F2FD;
+            --kanban-todo-border: #90CAF9;
+            --kanban-progress-bg: #FFF3E0;
+            --kanban-progress-border: #FFCC80;
+            --kanban-done-bg: #E8F5E8;
+            --kanban-done-border: #A5D6A7;
+        }
+        
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        
+        html,body{height:100%;font-family:var(--font-font-family-body);background:var(--Neutral-N-100);color:var(--text-body);font-size:var(--font-font-size-body);line-height:1.5}
+        
+        /* ─── LAYOUT ─── */
+        #app{display:flex;height:100vh;overflow:hidden}
+        
+        /* ─── SIDEBAR (from sidebar.component.scss) ─── */
+        .sidebar-container{width:260px;flex-shrink:0;display:flex;flex-direction:row}
+        
+        .sidebar{flex:1;display:flex;flex-direction:column;height:100vh;padding:var(--spacing-7x) var(--spacing-5x) var(--spacing-7x) var(--spacing-3x);border-radius:0;border-right:0.5px solid var(--Neutral-N-200);background:var(--button-secondary-bg-bg);box-shadow:0px 2px 4px 0px rgba(0,0,0,0.16);backdrop-filter:blur(15px);overflow-y:auto}
+        
+        .sidebar-brand{display:flex;align-items:center;gap:var(--spacing-3x);padding:0 var(--spacing-3x) var(--spacing-6x);border-bottom:1px solid var(--Neutral-N-200);margin-bottom:var(--spacing-4x)}
+        
+        .brand-icon{width:34px;height:34px;background:var(--button-primary-bg-action);border-radius:var(--awe-card-border-radius);display:flex;align-items:center;justify-content:center;font-size:16px;color:#fff;font-weight:var(--font-font-weight-bold);flex-shrink:0}
+        
+        .brand-name{font-size:15px;font-weight:var(--font-font-weight-bold);color:var(--text-title);letter-spacing:-.02em}
+        
+        .brand-name span{color:var(--button-primary-bg-action)}
+        
+        .sidebar-section-label{padding:var(--spacing-4x) var(--spacing-3x) var(--spacing-2x);font-size:10px;font-weight:var(--font-font-weight-bold);letter-spacing:.1em;text-transform:uppercase;color:var(--text-caption)}
+        
+        /* sidebar ul/li from sidebar.component.scss */
+        .sidebar ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--spacing-1x);width:100%}
+        
+        .sidebar li{width:100%;display:flex;align-items:center;padding:var(--spacing-3x);gap:var(--spacing-3x);cursor:pointer;border-radius:var(--spacing-3x);transition:background-color 0.2s ease;font-size:13.5px;font-weight:var(--font-font-weight-medium);color:var(--text-caption)}
+        
+        .sidebar li:hover{background-color:var(--button-primary-bg-subtle)}
+        
+        .sidebar li.selected{background-color:var(--button-primary-bg-subtle)}
+        
+        .sidebar li.selected span{color:var(--button-primary-label-warning);font-weight:var(--font-font-weight-medium)}
+        
+        .sidebar li.selected svg{color:var(--button-primary-bg-action)}
+        
+        .nav-badge-pill{margin-left:auto;background:var(--button-primary-bg-action);color:var(--text-white);font-size:10px;font-weight:var(--font-font-weight-bold);padding:2px 7px;border-radius:var(--round)}
+        
+        .sb-footer{margin-top:auto;padding:var(--spacing-4x) var(--spacing-3x);border-top:1px solid var(--Neutral-N-200)}
+        
+        .sb-footer-text{font-size:var(--font-font-size-small);color:var(--text-caption);line-height:1.9}
+        
+        .sb-footer-text strong{color:var(--text-caption);display:block;font-weight:var(--font-font-weight-medium)}
+        
+        /* ─── MAIN ─── */
+        #main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+        
+        /* ─── HEADER (from header.component.scss) ─── */
+        .outer-box{width:100%;height:var(--spacing-14x);display:flex;justify-content:center;align-items:center;background-color:var(--text-white);box-shadow:0 2px 4px rgba(0,0,0,0.05);flex-shrink:0;padding:0 var(--spacing-6x)}
+        
+        .header-inner{width:100%;display:flex;align-items:center;justify-content:space-between;gap:var(--spacing-3x)}
+        
+        /* search from search-fields.component */
+        .search-field{display:flex;align-items:center;gap:var(--spacing-2x);flex:1;max-width:360px;background:var(--Elevation-Light-Fill-Light-30);border:1px solid var(--Neutral-N-200);border-radius:var(--awe-card-border-radius);padding:var(--spacing-2x) var(--spacing-3x);color:var(--text-caption)}
+        
+        .search-field input{border:none;background:transparent;outline:none;font-family:inherit;font-size:var(--font-font-size-label);color:var(--text-body);flex:1}
+        
+        .search-field input::placeholder{color:var(--text-caption)}
+        
+        .header-right{display:flex;align-items:center;gap:var(--spacing-3x)}
+        
+        /* icon button circular from navbar */
+        .circular-icon{width:36px;height:36px;border-radius:50%;border:0.5px solid var(--Neutral-N-200);background:var(--Elevation-Light-Fill-Light-60);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--icons-neutral-icon);transition:background 0.2s}
+        
+        .circular-icon:hover{background:var(--Neutral-N-200)}
+        
+        .notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:var(--button-primary-bg-danger);border-radius:50%;border:1.5px solid white}
+        
+        /* avatar from avatars.component.scss */
+        .avatar-container{position:relative;width:var(--spacing-12x);height:var(--spacing-12x);display:grid;place-items:center;border-radius:var(--round);background:var(--Elevation-Light-Fill-Light-60);overflow:visible;width:32px;height:32px}
+        
+        .avatar-img{width:32px;height:32px;border-radius:var(--round);background:var(--button-primary-bg-action);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:var(--font-font-weight-bold);color:var(--text-white)}
+        
+        .avatar-chip{display:flex;align-items:center;gap:var(--spacing-2x);padding:4px 10px 4px 4px;background:var(--Elevation-Light-Fill-Light-30);border:0.5px solid var(--Neutral-N-200);border-radius:var(--round);cursor:pointer}
+        
+        .avatar-chip:hover{background:var(--Neutral-N-200)}
+        
+        .avatar-chip-name{font-size:13px;font-weight:var(--font-font-weight-medium);color:var(--text-body)}
+        
+        /* ─── CONTENT ─── */
+        #content{flex:1;overflow-y:auto;background:var(--Neutral-N-100)}
+        
+        .page{display:none;padding:var(--spacing-8x)}
+        
+        .page.active{display:block}
+        
+        /* ─── PAGE HEADER ─── */
+        .page-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--spacing-6x)}
+        
+        /* heading from heading.component.scss */
+        .heading.h3{font-size:var(--font-font-size-heading-3);font-family:var(--font-font-family-heading);font-weight:var(--font-font-weight-bold);color:var(--text-title);letter-spacing:-.03em;line-height:1.2}
+        
+        .page-sub{font-size:var(--font-font-size-label);color:var(--text-caption);margin-top:4px}
+        
+        /* ─── BREADCRUMB (from breadcrumbs.component.scss) ─── */
+        .breadcrumb{list-style:none;padding:0;margin:0 0 var(--spacing-2x);display:flex;align-items:center;flex-wrap:wrap}
+        
+        .breadcrumb li{margin-right:var(--spacing-2x);font-size:var(--spacing-4x);display:flex;align-items:center;color:var(--text-caption)}
+        
+        .breadcrumb li a{text-decoration:none;color:var(--text-body);transition:color 0.3s ease;display:inline-flex}
+        
+        .breadcrumb li a:hover{color:var(--icons-success)}
+        
+        .breadcrumb li span{color:var(--button-links-success);font-weight:var(--font-font-weight-regular)}
+        
+        /* ─── KANBAN BOARD SPECIFIC STYLES ─── */
+        .kanban-container{display:flex;gap:var(--spacing-6x);height:calc(100vh - 200px);overflow-x:auto;padding:var(--spacing-4x) 0}
+        
+        .kanban-column{flex:1;min-width:320px;max-width:400px;display:flex;flex-direction:column;background:var(--button-secondary-bg-bg);border-radius:var(--border-radius-medium);box-shadow:var(--awe-card-shadow);overflow:hidden}
+        
+        .kanban-column.todo{border-top:4px solid var(--kanban-todo-border)}
+        .kanban-column.progress{border-top:4px solid var(--kanban-progress-border)}
+        .kanban-column.done{border-top:4px solid var(--kanban-done-border)}
+        
+        .column-header{padding:var(--spacing-4x) var(--spacing-5x);border-bottom:1px solid var(--Neutral-N-200);display:flex;justify-content:space-between;align-items:center}
+        
+        .column-title{font-size:var(--font-font-size-heading-6);font-weight:var(--font-font-weight-bold);color:var(--text-title);display:flex;align-items:center;gap:var(--spacing-2x)}
+        
+        .column-count{background:var(--Neutral-N-200);color:var(--text-body);font-size:var(--font-font-size-small);font-weight:var(--font-font-weight-bold);padding:2px 8px;border-radius:var(--round);min-width:20px;text-align:center}
+        
+        .column-actions{display:flex;gap:var(--spacing-2x)}
+        
+        .column-body{flex:1;padding:var(--spacing-4x);overflow-y:auto;display:flex;flex-direction:column;gap:var(--spacing-3x)}
+        
+        .task-card{background:var(--button-secondary-bg-bg);border:1px solid var(--Neutral-N-200);border-radius:var(--border-radius);padding:var(--spacing-4x);cursor:grab;transition:all 0.2s ease;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+        
+        .task-card:hover{box-shadow:var(--awe-card-shadow-elevated);transform:translateY(-1px)}
+        
+        .task-card.dragging{opacity:0.5;transform:rotate(5deg)}
+        
+        .task-title{font-size:var(--font-font-size-body);font-weight:var(--font-font-weight-medium);color:var(--text-title);margin-bottom:var(--spacing-2x);line-height:1.4}
+        
+        .task-description{font-size:var(--font-font-size-small);color:var(--text-caption);margin-bottom:var(--spacing-3x);line-height:1.5}
+        
+        .task-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-2x)}
+        
+        .task-priority{font-size:var(--font-font-size-small);font-weight:var(--font-font-weight-medium);padding:2px 6px;border-radius:var(--awe-card-border-radius)}
+        
+        .task-priority.high{background:var(--button-danger-hover-bg);color:var(--button-secondary-label-warning)}
+        .task-priority.medium{background:var(--button-warning-hover-bg);color:var(--button-primary-bg-warning)}
+        .task-priority.low{background:var(--Neutral-N-200);color:var(--text-body)}
+        
+        .task-assignee{display:flex;align-items:center;gap:var(--spacing-2x)}
+        
+        .task-avatar{width:24px;height:24px;border-radius:50%;background:var(--button-primary-bg-action);color:var(--text-white);font-size:10px;font-weight:var(--font-font-weight-bold);display:flex;align-items:center;justify-content:center}
+        
+        .task-due-date{font-size:var(--font-font-size-small);color:var(--text-caption)}
+        
+        .task-tags{display:flex;gap:var(--spacing-1x);flex-wrap:wrap;margin-top:var(--spacing-2x)}
+        
+        .task-tag{font-size:10px;font-weight:var(--font-font-weight-medium);padding:2px 6px;border-radius:var(--awe-card-border-radius);background:var(--button-primary-bg-subtle);color:var(--button-primary-bg-action)}
+        
+        .add-task-btn{width:100%;padding:var(--spacing-3x);border:2px dashed var(--Neutral-N-200);border-radius:var(--border-radius);background:transparent;color:var(--text-caption);font-size:var(--font-font-size-body);cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;justify-content:center;gap:var(--spacing-2x)}
+        
+        .add-task-btn:hover{border-color:var(--button-primary-bg-action);color:var(--button-primary-bg-action);background:var(--button-primary-bg-subtle)}
+        
+        .drop-zone{min-height:60px;border:2px dashed transparent;border-radius:var(--border-radius);transition:all 0.2s ease;display:flex;align-items:center;justify-content:center;color:var(--text-caption);font-size:var(--font-font-size-small)}
+        
+        .drop-zone.drag-over{border-color:var(--button-primary-bg-action);background:var(--button-primary-bg-subtle);color:var(--button-primary-bg-action)}
+        
+        .empty-state{text-align:center;padding:var(--spacing-8x) var(--spacing-4x);color:var(--text-caption)}
+        
+        .empty-icon{width:48px;height:48px;border-radius:50%;background:var(--Neutral-N-200);display:flex;align-items:center;justify-content:center;margin:0 auto var(--spacing-4x);font-size:20px;color:var(--text-caption)}
+        
+        .empty-title{font-size:var(--font-font-size-heading-6);font-weight:var(--font-font-weight-medium);margin-bottom:var(--spacing-2x);color:var(--text-body)}
+        
+        .empty-description{font-size:var(--font-font-size-small);line-height:1.5}
+        
+        /* ─── BUTTONS (from button.component.scss exact classes) ─── */
+        button.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--spacing-2x);border:none;cursor:pointer;transition:all 0.2s ease;position:relative;overflow:hidden;font-family:var(--font-font-family-body);white-space:nowrap;font-weight:var(--font-font-weight-medium);line-height:1.5;border-radius:var(--border-radius);text-align:center;min-width:6.25rem}
+        
+        button.btn.medium{padding:0.625rem 1.25rem;font-size:14px}
+        
+        button.btn.small{padding:0.4rem 0.875rem;font-size:12px}
+        
+        button.btn.large{padding:0.875rem 1.75rem;font-size:16px}
+        
+        button.btn.primary{background-color:var(--button-primary-bg-action);color:var(--button-primary-label-action)}
+        
+        button.btn.primary:hover{background-color:var(--button-primary-hover-action)}
+        
+        button.btn.secondary{background-color:var(--button-secondary-bg-bg);border:1px solid var(--button-secondary-border-action);color:var(--button-secondary-label-action)}
+        
+        button.btn.secondary:hover{border-color:var(--focused-selected-ring)}
+        
+        button.btn.ghost{background:transparent;border:none;color:var(--text-caption);min-width:auto;padding:var(--spacing-2x)}
+        
+        button.btn.ghost:hover{background:var(--button-primary-bg-subtle);color:var(--button-primary-bg-action)}
+        
+        /* ─── BADGES (from badges.component.scss) ─── */
+        .badge{display:flex;justify-content:center;align-items:center;text-align:center;font-family:var(--font-font-family-label);font-size:var(--font-font-size-label);font-weight:var(--font-font-weight-medium);border-radius:var(--round);padding:3px 10px;cursor:default}
+        
+        .badge-success{background:var(--icons-success);color:var(--badge-text-success)}
+        
+        .badge-warning{background:var(--icons-warning);color:var(--badge-text-warning)}
+        
+        .badge-danger{background:var(--button-secondary-label-warning);color:var(--text-white)}
+        
+        .badge-info{background:var(--button-links-information);color:var(--text-white)}
+        
+        .badge-neutral{background:var(--Neutral-N-200);color:var(--text-body)}
+        
+        .badge-primary{background:var(--button-primary-bg-subtle);color:var(--button-primary-bg-action)}
+        
+        /* ─── MODAL (from modal.component.scss) ─── */
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;visibility:hidden;transition:all 0.3s ease}
+        
+        .modal-overlay.active{opacity:1;visibility:visible}
+        
+        .modal-content{background:var(--button-secondary-bg-bg);border-radius:var(--border-radius-medium);box-shadow:var(--awe-card-shadow-elevated);max-width:500px;width:90%;max-height:90vh;overflow-y:auto;transform:scale(0.9);transition:transform 0.3s ease}
+        
+        .modal-overlay.active .modal-content{transform:scale(1)}
+        
+        .modal-header{padding:var(--spacing-6x) var(--spacing-6x) var(--spacing-4x);border-bottom:1px solid var(--Neutral-N-200);display:flex;justify-content:space-between;align-items:center}
+        
+        .modal-title{font-size:var(--font-font-size-heading-4);font-weight:var(--font-font-weight-bold);color:var(--text-title)}
+        
+        .modal-body{padding:var(--spacing-6x)}
+        
+        .modal-footer{padding:var(--spacing-4x) var(--spacing-6x) var(--spacing-6x);display:flex;gap:var(--spacing-3x);justify-content:flex-end}
+        
+        /* ─── FORM ELEMENTS ─── */
+        .form-group{margin-bottom:var(--spacing-4x)}
+        
+        .form-label{display:block;font-size:var(--font-font-size-label);font-weight:var(--font-font-weight-medium);color:var(--text-body);margin-bottom:var(--spacing-2x)}
+        
+        .form-input{width:100%;padding:var(--spacing-3x) var(--spacing-4x);border:1px solid var(--Neutral-N-200);border-radius:var(--border-radius);font-size:var(--font-font-size-body);color:var(--text-body);background:var(--button-secondary-bg-bg);transition:border-color 0.2s ease}
+        
+        .form-input:focus{outline:none;border-color:var(--button-primary-bg-action);box-shadow:0 0 0 3px var(--button-primary-bg-subtle)}
+        
+        .form-textarea{min-height:80px;resize:vertical}
+        
+        .form-select{appearance:none;background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");background-position:right 8px center;background-repeat:no-repeat;background-size:16px;padding-right:40px}
+        
+        /* ─── RESPONSIVE DESIGN ─── */
+        @media (max-width: 1023px) {
+            .kanban-container{flex-direction:column;height:auto;overflow-x:visible}
+            .kanban-column{min-width:100%;max-width:100%}
+            .sidebar-container{width:100%;position:fixed;top:0;left:-100%;z-index:999;transition:left 0.3s ease}
+            .sidebar-container.open{left:0}
+            #main{margin-left:0}
+            .mobile-menu-btn{display:block}
+        }
+        
+        @media (max-width: 767px) {
+            .page{padding:var(--spacing-4x)}
+            .kanban-container{gap:var(--spacing-4x)}
+            .column-header{padding:var(--spacing-3x) var(--spacing-4x)}
+            .column-body{padding:var(--spacing-3x)}
+            .task-card{padding:var(--spacing-3x)}
+        }
+        
+        .mobile-menu-btn{display:none;background:none;border:none;font-size:20px;color:var(--text-body);cursor:pointer;padding:var(--spacing-2x)}
+        
+        /* ─── TEAM COLLABORATION STYLES ─── */
+        .team-indicator{display:flex;align-items:center;gap:var(--spacing-1x);margin-left:auto}
+        
+        .team-avatars{display:flex;margin-left:-4px}
+        
+        .team-avatars .task-avatar{margin-left:-4px;border:2px solid var(--button-secondary-bg-bg)}
+        
+        .collaboration-badge{background:var(--icons-success);color:var(--text-white);font-size:9px;padding:1px 4px;border-radius:var(--awe-card-border-radius);margin-left:var(--spacing-2x)}
+        
+        .activity-indicator{width:8px;height:8px;background:var(--icons-success);border-radius:50%;animation:pulse 2s infinite}
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* ─── FILTER AND SEARCH ─── */
+        .board-controls{display:flex;gap:var(--spacing-3x);align-items:center;margin-bottom:var(--spacing-4x);flex-wrap:wrap}
+        
+        .filter-group{display:flex;gap:var(--spacing-2x);align-items:center}
+        
+        .filter-label{font-size:var(--font-font-size-small);color:var(--text-caption);font-weight:var(--font-font-weight-medium)}
+        
+        .filter-select{padding:var(--spacing-2x) var(--spacing-3x);border:1px solid var(--Neutral-N-200);border-radius:var(--border-radius);font-size:var(--font-font-size-small);background:var(--button-secondary-bg-bg)}
+        
+        /* ─── DRAG AND DROP VISUAL FEEDBACK ─── */
+        .drag-preview{position:fixed;pointer-events:none;z-index:1000;transform:rotate(5deg);opacity:0.8}
+        
+        .drop-indicator{height:2px;background:var(--button-primary-bg-action);border-radius:1px;margin:var(--spacing-1x) 0;opacity:0;transition:opacity 0.2s ease}
+        
+        .drop-indicator.active{opacity:1}
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar-container">
+            <nav class="sidebar">
+                <div class="sidebar-brand">
+                    <div class="brand-icon">T</div>
+                    <div class="brand-name">Task<span>Flow</span></div>
+                </div>
+                
+                <div class="sidebar-section-label">Boards</div>
+                <ul>
+                    <li class="selected" onclick="show('kanban-board', this)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+                        </svg>
+                        <span>Kanban Board</span>
+                    </li>
+                    <li onclick="show('team-board', this)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        <span>Team Board</span>
+                    </li>
+                    <li onclick="show('client-board', this)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                        </svg>
+                        <span>Client Projects</span>
+                    </li>
+                </ul>
+                
+                <div class="sidebar-section-label">Views</div>
+                <ul>
+                    <li onclick="show('mobile-view', this)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z"/>
+                        </svg>
+                        <span>Mobile View</span>
+                    </li>
+                    <li onclick="show('resource-view', this)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zm2.5-9H19V1h-2v1H7V1H5v1H4.5C3.67 2 3 2.67 3 3.5v15C3 19.33 3.67 20 4.5 20h15c.83 0 1.5-.67 1.5-1.5v-15C21 2.67 20.33 2 19.5 2z"/>
+                        </svg>
+                        <span>Resource Allocation</span>
+                    </li>
+                </ul>
+                
+                <div class="sb-footer">
+                    <div class="sb-footer-text">
+                        <strong>TaskFlow v1.2.0</strong>
+                        Agile Project Management<br>
+                        © 2024 TaskFlow Inc.
+                    </div>
+                </div>
+            </nav>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div id="main">
+            <!-- Header -->
+            <header class="outer-box">
+                <div class="header-inner">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                        ☰
+                    </button>
+                    
+                    <div class="search-field">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                        </svg>
+                        <input type="text" placeholder="Search tasks, projects, or team members...">
+                    </div>
+                    
+                    <div class="header-right">
+                        <div class="circular-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                            </svg>
+                            <div class="notif-dot"></div>
+                        </div>
+                        
+                        <div class="avatar-chip">
+                            <div class="avatar-img">SM</div>
+                            <span class="avatar-chip-name">Sarah Miller</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content Pages -->
+            <div id="content">
+                <!-- Kanban Board Page -->
+                <div id="kanban-board" class="page active">
+                    <div class="page-hdr">
+                        <div>
+                            <ul class="breadcrumb">
+                                <li><a href="#">Boards</a></li>
+                                <li>›</li>
+                                <li><span>Kanban Board</span></li>
+                            </ul>
+                            <h1 class="heading h3">Project Sprint Board</h1>
+                            <div class="page-sub">Manage tasks across development workflow stages</div>
+                        </div>
+                        <div>
+                            <button class="btn primary medium" onclick="openTaskModal()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                </svg>
+                                Add Task
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="board-controls">
+                        <div class="filter-group">
+                            <span class="filter-label">Filter by:</span>
+                            <select class="filter-select">
+                                <option>All Assignees</option>
+                                <option>Sarah Miller</option>
+                                <option>John Doe</option>
+                                <option>Jane Smith</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label">Priority:</span>
+                            <select class="filter-select">
+                                <option>All Priorities</option>
+                                <option>High</option>
+                                <option>Medium</option>
+                                <option>Low</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label">Sprint:</span>
+                            <select class="filter-select">
+                                <option>Current Sprint</option>
+                                <option>Sprint 23</option>
+                                <option>Sprint 22</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="kanban-container">
+                        <!-- To Do Column -->
+                        <div class="kanban-column todo" data-column="todo">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color: #90CAF9;">
+                                        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                                    </svg>
+                                    To Do
+                                    <span class="column-count">5</span>
+                                </div>
+                                <div class="column-actions">
+                                    <button class="btn ghost small" onclick="openTaskModal('todo')">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="column-body" ondrop="drop(event)" ondragover="allowDrop(event)">
+                                <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="1">
+                                    <div class="task-title">Implement user authentication system</div>
+                                    <div class="task-description">Create login/logout functionality with JWT tokens and password reset capability</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority high">High</span>
+                                        <span class="task-due-date">Due: Nov 15</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar">JD</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">John Doe</span>
+                                        <div class="team-indicator">
+                                            <div class="activity-indicator"></div>
+                                        </div>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Backend</span>
+                                        <span class="task-tag">Security</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="2">
+                                    <div class="task-title">Design dashboard wireframes</div>
+                                    <div class="task-description">Create low-fidelity wireframes for the main dashboard interface</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority medium">Medium</span>
+                                        <span class="task-due-date">Due: Nov 12</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar">SM</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">Sarah Miller</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Design</span>
+                                        <span class="task-tag">UX</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="3">
+                                    <div class="task-title">Set up CI/CD pipeline</div>
+                                    <div class="task-description">Configure automated testing and deployment pipeline</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority low">Low</span>
+                                        <span class="task-due-date">Due: Nov 20</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar">JS</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">Jane Smith</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">DevOps</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="add-task-btn" onclick="openTaskModal('todo')">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                    </svg>
+                                    Add a task
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- In Progress Column -->
+                        <div class="kanban-column progress" data-column="progress">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color: #FFCC80;">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                    In Progress
+                                    <span class="column-count">3</span>
+                                </div>
+                                <div class="column-actions">
+                                    <button class="btn ghost small" onclick="openTaskModal('progress')">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="column-body" ondrop="drop(event)" ondragover="allowDrop(event)">
+                                <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="4">
+                                    <div class="task-title">API endpoint development</div>
+                                    <div class="task-description">Building REST API endpoints for user management and data operations</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority high">High</span>
+                                        <span class="task-due-date">Due: Nov 10</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="team-avatars">
+                                            <div class="task-avatar">JD</div>
+                                            <div class="task-avatar">SM</div>
+                                        </div>
+                                        <span class="collaboration-badge">2</span>
+                                        <div class="team-indicator">
+                                            <div class="activity-indicator"></div>
+                                        </div>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Backend</span>
+                                        <span class="task-tag">API</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="5">
+                                    <div class="task-title">Database schema design</div>
+                                    <div class="task-description">Design and implement the database schema for the application</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority medium">Medium</span>
+                                        <span class="task-due-date">Due: Nov 14</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar">JS</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">Jane Smith</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Database</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="add-task-btn" onclick="openTaskModal('progress')">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                    </svg>
+                                    Add a task
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Done Column -->
+                        <div class="kanban-column done" data-column="done">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color: #A5D6A7;">
+                                        <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                                    </svg>
+                                    Done
+                                    <span class="column-count">4</span>
+                                </div>
+                                <div class="column-actions">
+                                    <button class="btn ghost small">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="column-body" ondrop="drop(event)" ondragover="allowDrop(event)">
+                                <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="6">
+                                    <div class="task-title">Project setup and configuration</div>
+                                    <div class="task-description">Initial project setup with build tools and dependencies</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority medium">Medium</span>
+                                        <span class="task-due-date">Completed: Nov 5</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar">JD</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">John Doe</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Setup</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" draggable="true" ondragstart="drag(event)" data-task-id="7">
+                                    <div class="task-title">User research and personas</div>
+                                    <div class="task-description">Conducted user interviews and created user personas</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority high">High</span>
+                                        <span class="task-due-date">Completed: Nov 3</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar">SM</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">Sarah Miller</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Research</span>
+                                        <span class="task-tag">UX</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Board Page -->
+                <div id="team-board" class="page">
+                    <div class="page-hdr">
+                        <div>
+                            <ul class="breadcrumb">
+                                <li><a href="#">Boards</a></li>
+                                <li>›</li>
+                                <li><span>Team Board</span></li>
+                            </ul>
+                            <h1 class="heading h3">Team Collaboration Board</h1>
+                            <div class="page-sub">Coordinate team activities and track individual progress</div>
+                        </div>
+                        <div>
+                            <button class="btn secondary medium">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                </svg>
+                                Team Settings
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="board-controls">
+                        <div class="filter-group">
+                            <span class="filter-label">Team Member:</span>
+                            <select class="filter-select">
+                                <option>All Members</option>
+                                <option>Sarah Miller (5 tasks)</option>
+                                <option>John Doe (4 tasks)</option>
+                                <option>Jane Smith (3 tasks)</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label">Workload:</span>
+                            <select class="filter-select">
+                                <option>All Levels</option>
+                                <option>Overloaded</option>
+                                <option>Balanced</option>
+                                <option>Available</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="kanban-container">
+                        <!-- Team To Do Column -->
+                        <div class="kanban-column todo">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    Team Backlog
+                                    <span class="column-count">6</span>
+                                </div>
+                            </div>
+                            <div class="column-body">
+                                <div class="task-card">
+                                    <div class="task-title">Mobile app wireframes</div>
+                                    <div class="task-description">Create wireframes for mobile application interface</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority high">High</span>
+                                        <span class="task-due-date">Due: Nov 18</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar" style="background: #f59e0b;">Unassigned</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">Available for assignment</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Mobile</span>
+                                        <span class="task-tag">Design</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card">
+                                    <div class="task-title">Performance optimization</div>
+                                    <div class="task-description">Optimize application performance and loading times</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority medium">Medium</span>
+                                        <span class="task-due-date">Due: Nov 25</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar">JD</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">John Doe</span>
+                                        <span class="badge badge-warning" style="margin-left: auto; font-size: 9px;">Overloaded</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Performance</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Team In Progress Column -->
+                        <div class="kanban-column progress">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    Active Work
+                                    <span class="column-count">4</span>
+                                </div>
+                            </div>
+                            <div class="column-body">
+                                <div class="task-card">
+                                    <div class="task-title">Frontend component library</div>
+                                    <div class="task-description">Building reusable UI components for the application</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority high">High</span>
+                                        <span class="task-due-date">Due: Nov 12</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="team-avatars">
+                                            <div class="task-avatar">SM</div>
+                                            <div class="task-avatar">JS</div>
+                                        </div>
+                                        <span class="collaboration-badge">Live</span>
+                                        <div class="team-indicator">
+                                            <div class="activity-indicator"></div>
+                                        </div>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Frontend</span>
+                                        <span class="task-tag">Components</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Team Done Column -->
+                        <div class="kanban-column done">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    Completed
+                                    <span class="column-count">8</span>
+                                </div>
+                            </div>
+                            <div class="column-body">
+                                <div class="task-card">
+                                    <div class="task-title">Team onboarding documentation</div>
+                                    <div class="task-description">Created comprehensive onboarding guide for new team members</div>
+                                    <div class="task-meta">
+                                        <span class="task-priority medium">Medium</span>
+                                        <span class="task-due-date">Completed: Nov 1</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar">SM</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">Sarah Miller</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Documentation</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Client Board Page -->
+                <div id="client-board" class="page">
+                    <div class="page-hdr">
+                        <div>
+                            <ul class="breadcrumb">
+                                <li><a href="#">Boards</a></li>
+                                <li>›</li>
+                                <li><span>Client Projects</span></li>
+                            </ul>
+                            <h1 class="heading h3">Client Project Dashboard</h1>
+                            <div class="page-sub">Client-ready project status and milestone tracking</div>
+                        </div>
+                        <div>
+                            <button class="btn primary medium">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 2 2h8c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+                                </svg>
+                                Export Report
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="board-controls">
+                        <div class="filter-group">
+                            <span class="filter-label">Client:</span>
+                            <select class="filter-select">
+                                <option>All Clients</option>
+                                <option>TechCorp Inc.</option>
+                                <option>StartupXYZ</option>
+                                <option>Enterprise Solutions</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <span class="filter-label">Status:</span>
+                            <select class="filter-select">
+                                <option>All Statuses</option>
+                                <option>On Track</option>
+                                <option>At Risk</option>
+                                <option>Delayed</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="kanban-container">
+                        <!-- Client Planning Column -->
+                        <div class="kanban-column todo">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    Planning
+                                    <span class="column-count">3</span>
+                                </div>
+                            </div>
+                            <div class="column-body">
+                                <div class="task-card">
+                                    <div class="task-title">TechCorp - Mobile App Phase 2</div>
+                                    <div class="task-description">Advanced features and integrations for the mobile application</div>
+                                    <div class="task-meta">
+                                        <span class="badge badge-info">TechCorp</span>
+                                        <span class="task-due-date">Start: Dec 1</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="team-avatars">
+                                            <div class="task-avatar">SM</div>
+                                            <div class="task-avatar">JD</div>
+                                            <div class="task-avatar">JS</div>
+                                        </div>
+                                        <span style="font-size: 12px; color: var(--text-caption); margin-left: 8px;">Full Team</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Mobile</span>
+                                        <span class="task-tag">Phase 2</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Client In Progress Column -->
+                        <div class="kanban-column progress">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    In Development
+                                    <span class="column-count">2</span>
+                                </div>
+                            </div>
+                            <div class="column-body">
+                                <div class="task-card">
+                                    <div class="task-title">StartupXYZ - MVP Development</div>
+                                    <div class="task-description">Building minimum viable product for startup launch</div>
+                                    <div class="task-meta">
+                                        <span class="badge badge-success">On Track</span>
+                                        <span class="task-due-date">Due: Nov 30</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="team-avatars">
+                                            <div class="task-avatar">JD</div>
+                                            <div class="task-avatar">JS</div>
+                                        </div>
+                                        <span style="font-size: 12px; color: var(--text-caption); margin-left: 8px;">Dev Team</span>
+                                        <div class="team-indicator">
+                                            <div class="activity-indicator"></div>
+                                        </div>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">MVP</span>
+                                        <span class="task-tag">Startup</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Client Delivered Column -->
+                        <div class="kanban-column done">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    Delivered
+                                    <span class="column-count">5</span>
+                                </div>
+                            </div>
+                            <div class="column-body">
+                                <div class="task-card">
+                                    <div class="task-title">Enterprise Solutions - Dashboard</div>
+                                    <div class="task-description">Analytics dashboard with real-time reporting capabilities</div>
+                                    <div class="task-meta">
+                                        <span class="badge badge-success">Delivered</span>
+                                        <span class="task-due-date">Completed: Oct 28</span>
+                                    </div>
+                                    <div class="task-assignee">
+                                        <div class="task-avatar">SM</div>
+                                        <span style="font-size: 12px; color: var(--text-caption);">Sarah Miller</span>
+                                    </div>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Dashboard</span>
+                                        <span class="task-tag">Analytics</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mobile View Page -->
+                <div id="mobile-view" class="page">
+                    <div class="page-hdr">
+                        <div>
+                            <ul class="breadcrumb">
+                                <li><a href="#">Views</a></li>
+                                <li>›</li>
+                                <li><span>Mobile View</span></li>
+                            </ul>
+                            <h1 class="heading h3">Mobile Kanban View</h1>
+                            <div class="page-sub">Optimized for mobile devices and touch interaction</div>
+                        </div>
+                    </div>
+                    
+                    <div style="max-width: 375px; margin: 0 auto; border: 2px solid var(--Neutral-N-200); border-radius: var(--border-radius-medium); overflow: hidden; background: var(--button-secondary-bg-bg);">
+                        <!-- Mobile Header -->
+                        <div style="padding: var(--spacing-4x); border-bottom: 1px solid var(--Neutral-N-200); background: var(--button-primary-bg-action); color: white;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3 style="margin: 0; font-size: var(--font-font-size-heading-5);">Sprint Board</h3>
+                                <button class="btn ghost small" style="color: white;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Mobile Tab Navigation -->
+                        <div style="display: flex; border-bottom: 1px solid var(--Neutral-N-200);">
+                            <button class="mobile-tab active" onclick="showMobileColumn('mobile-todo')" style="flex: 1; padding: var(--spacing-3x); border: none; background: var(--button-primary-bg-subtle); color: var(--button-primary-bg-action); font-weight: var(--font-font-weight-medium);">
+                                To Do (5)
+                            </button>
+                            <button class="mobile-tab" onclick="showMobileColumn('mobile-progress')" style="flex: 1; padding: var(--spacing-3x); border: none; background: transparent; color: var(--text-caption);">
+                                Progress (3)
+                            </button>
+                            <button class="mobile-tab" onclick="showMobileColumn('mobile-done')" style="flex: 1; padding: var(--spacing-3x); border: none; background: transparent; color: var(--text-caption);">
+                                Done (4)
+                            </button>
+                        </div>
+                        
+                        <!-- Mobile Column Content -->
+                        <div id="mobile-todo" class="mobile-column active" style="padding: var(--spacing-4x); max-height: 400px; overflow-y: auto;">
+                            <div class="task-card" style="margin-bottom: var(--spacing-3x);">
+                                <div class="task-title">Implement user authentication</div>
+                                <div class="task-description">Create login/logout functionality with JWT tokens</div>
+                                <div class="task-meta">
+                                    <span class="task-priority high">High</span>
+                                    <span class="task-due-date">Due: Nov 15</span>
+                                </div>
+                                <div class="task-assignee">
+                                    <div class="task-avatar">JD</div>
+                                    <span style="font-size: 12px; color: var(--text-caption);">John Doe</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" style="margin-bottom: var(--spacing-3x);">
+                                <div class="task-title">Design dashboard wireframes</div>
+                                <div class="task-description">Create low-fidelity wireframes for dashboard</div>
+                                <div class="task-meta">
+                                    <span class="task-priority medium">Medium</span>
+                                    <span class="task-due-date">Due: Nov 12</span>
+                                </div>
+                                <div class="task-assignee">
+                                    <div class="task-avatar">SM</div>
+                                    <span style="font-size: 12px; color: var(--text-caption);">Sarah Miller</span>
+                                </div>
+                            </div>
+                            
+                            <button class="add-task-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                </svg>
+                                Add Task
+                            </button>
+                        </div>
+                        
+                        <div id="mobile-progress" class="mobile-column" style="display: none; padding: var(--spacing-4x); max-height: 400px; overflow-y: auto;">
+                            <div class="task-card" style="margin-bottom: var(--spacing-3x);">
+                                <div class="task-title">API endpoint development</div>
+                                <div class="task-description">Building REST API endpoints for user management</div>
+                                <div class="task-meta">
+                                    <span class="task-priority high">High</span>
+                                    <span class="task-due-date">Due: Nov 10</span>
+                                </div>
+                                <div class="task-assignee">
+                                    <div class="team-avatars">
+                                        <div class="task-avatar">JD</div>
+                                        <div class="task-avatar">SM</div>
+                                    </div>
+                                    <span class="collaboration-badge">2</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="mobile-done" class="mobile-column" style="display: none; padding: var(--spacing-4x); max-height: 400px; overflow-y: auto;">
+                            <div class="task-card" style="margin-bottom: var(--spacing-3x);">
+                                <div class="task-title">Project setup and configuration</div>
+                                <div class="task-description">Initial project setup with build tools</div>
+                                <div class="task-meta">
+                                    <span class="task-priority medium">Medium</span>
+                                    <span class="task-due-date">Completed: Nov 5</span>
+                                </div>
+                                <div class="task-assignee">
+                                    <div class="task-avatar">JD</div>
+                                    <span style="font-size: 12px; color: var(--text-caption);">John Doe</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resource Allocation View -->
+                <div id="resource-view" class="page">
+                    <div class="page-hdr">
+                        <div>
+                            <ul class="breadcrumb">
+                                <li><a href="#">Views</a></li>
+                                <li>›</li>
+                                <li><span>Resource Allocation</span></li>
+                            </ul>
+                            <h1 class="heading h3">Resource Allocation Matrix</h1>
+                            <div class="page-sub">Optimize team resource allocation across projects</div>
+                        </div>
+                        <div>
+                            <button class="btn secondary medium">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                                </svg>
+                                Generate Report
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--button-secondary-bg-bg); border-radius: var(--border-radius-medium); padding: var(--spacing-6x); box-shadow: var(--awe-card-shadow);">
+                        <div style="display: grid; grid-template-columns: 200px repeat(3, 1fr); gap: var(--spacing-4x); margin-bottom: var(--spacing-6x);">
+                            <div style="font-weight: var(--font-font-weight-bold); color: var(--text-title);">Team Member</div>
+                            <div style="font-weight: var(--font-font-weight-bold); color: var(--text-title); text-align: center;">Current Load</div>
+                            <div style="font-weight: var(--font-font-weight-bold); color: var(--text-title); text-align: center;">Capacity</div>
+                            <div style="font-weight: var(--font-font-weight-bold); color: var(--text-title); text-align: center;">Status</div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 200px repeat(3, 1fr); gap: var(--spacing-4x); align-items: center; padding: var(--spacing-4x) 0; border-bottom: 1px solid var(--Neutral-N-200);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-3x);">
+                                <div class="task-avatar">SM</div>
+                                <div>
+                                    <div style="font-weight: var(--font-font-weight-medium);">Sarah Miller</div>
+                                    <div style="font-size: var(--font-font-size-small); color: var(--text-caption);">UI/UX Designer</div>
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: var(--font-font-size-heading-6); font-weight: var(--font-font-weight-bold);">7 tasks</div>
+                                <div style="font-size: var(--font-font-size-small); color: var(--text-caption);">35 hours</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: var(--font-font-size-heading-6); font-weight: var(--font-font-weight-bold);">40 hours</div>
+                                <div style="font-size: var(--font-font-size-small); color: var(--text-caption);">per week</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <span class="badge badge-success">Balanced</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 200px repeat(3, 1fr); gap: var(--spacing-4x); align-items: center; padding: var(--spacing-4x) 0; border-bottom: 1px solid var(--Neutral-N-200);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-3x);">
+                                <div class="task-avatar">JD</div>
+                                <div>
+                                    <div style="font-weight: var(--font-font-weight-medium);">John Doe</div>
+                                    <div style="font-size: var(--font-font-size-small); color: var(--text-caption);">Backend Developer</div>
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: var(--font-font-size-heading-6); font-weight: var(--font-font-weight-bold);">9 tasks</div>
+                                <div style="font-size: var(--font-font-size-small); color: var(--text-caption);">45 hours</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: var(--font-font-size-heading-6); font-weight: var(--font-font-weight-bold);">40 hours</div>
+                                <div style="font-size: var(--font-font-size-small); color: var(--text-caption);">per week</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <span class="badge badge-warning">Overloaded</span>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 200px repeat(3, 1fr); gap: var(--spacing-4x); align-items: center; padding: var(--spacing-4x) 0;">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-3x);">
+                                <div class="task-avatar">JS</div>
+                                <div>
+                                    <div style="font-weight: var(--font-font-weight-medium);">Jane Smith</div>
+                                    <div style="font-size: var(--font-font-size-small); color: var(--text-caption);">Full Stack Developer</div>
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: var(--font-font-size-heading-6); font-weight: var(--font-font-weight-bold);">4 tasks</div>
+                                <div style="font-size: var(--font-font-size-small); color: var(--text-caption);">25 hours</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: var(--font-font-size-heading-6); font-weight: var(--font-font-weight-bold);">40 hours</div>
+                                <div style="font-size: var(--font-font-size-small); color: var(--text-caption);">per week</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <span class="badge badge-info">Available</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Task Creation Modal -->
+    <div id="task-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Task</h3>
+                <button class="btn ghost small" onclick="closeTaskModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="task-form">
+                    <div class="form-group">
+                        <label class="form-label">Task Title *</label>
+                        <input type="text" class="form-input" placeholder="Enter task title" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-input form-textarea" placeholder="Describe the task details"></textarea>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-4x);">
+                        <div class="form-group">
+                            <label class="form-label">Priority</label>
+                            <select class="form-input form-select">
+                                <option>Medium</option>
+                                <option>High</option>
+                                <option>Low</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Assignee</label>
+                            <select class="form-input form-select">
+                                <option>Unassigned</option>
+                                <option>Sarah Miller</option>
+                                <option>John Doe</option>
+                                <option>Jane Smith</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-4x);">
+                        <div class="form-group">
+                            <label class="form-label">Due Date</label>
+                            <input type="date" class="form-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Column</label>
+                            <select class="form-input form-select" id="task-column">
+                                <option value="todo">To Do</option>
+                                <option value="progress">In Progress</option>
+                                <option value="done">Done</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Tags</label>
+                        <input type="text" class="form-input" placeholder="Enter tags separated by commas">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary medium" onclick="closeTaskModal()">Cancel</button>
+                <button class="btn primary medium" onclick="createTask()">Create Task</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Navigation Functions
+        function show(id, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.sidebar li').forEach(n => n.classList.remove('selected'));
+            if (el) el.classList.add('selected');
+        }
+        
+        // Mobile Functions
+        function toggleSidebar() {
+            document.querySelector('.sidebar-container').classList.toggle('open');
+        }
+        
+        function showMobileColumn(columnId) {
+            document.querySelectorAll('.mobile-column').forEach(col => col.style.display = 'none');
+            document.getElementById(columnId).style.display = 'block';
+            
+            document.querySelectorAll('.mobile-tab').forEach(tab => {
+                tab.style.background = 'transparent';
+                tab.style.color = 'var(--text-caption)';
+            });
+            
+            event.target.style.background = 'var(--button-primary-bg-subtle)';
+            event.target.style.color = 'var(--button-primary-bg-action)';
+        }
+        
+        // Modal Functions
+        function openTaskModal(column = 'todo') {
+            document.getElementById('task-modal').classList.add('active');
+            document.getElementById('task-column').value = column;
+        }
+        
+        function closeTaskModal() {
+            document.getElementById('task-modal').classList.remove('active');
+            document.getElementById('task-form').reset();
+        }
+        
+        function createTask() {
+            // In a real application, this would create the task
+            alert('Task created successfully!');
+            closeTaskModal();
+        }
+        
+        // Drag and Drop Functions
+        let draggedElement = null;
+        
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+        
+        function drag(ev) {
+            draggedElement = ev.target;
+            ev.target.classList.add('dragging');
+            ev.dataTransfer.setData('text/plain', ev.target.dataset.taskId);
+        }
+        
+        function drop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+            
+            if (draggedElement) {
+                const column = ev.currentTarget.closest('.kanban-column');
+                const columnBody = column.querySelector('.column-body');
+                const addButton = columnBody.querySelector('.add-task-btn');
+                
+                if (addButton) {
+                    columnBody.insertBefore(draggedElement, addButton);
+                } else {
+                    columnBody.appendChild(draggedElement);
+                }
+                
+                draggedElement.classList.remove('dragging');
+                draggedElement = null;
+                
+                // Update column counts
+                updateColumnCounts();
+            }
+        }
+        
+        function updateColumnCounts() {
+            document.querySelectorAll('.kanban-column').forEach(column => {
+                const tasks = column.querySelectorAll('.task-card').length;
+                const countElement = column.querySelector('.column-count');
+                if (countElement) {
+                    countElement.textContent = tasks;
+                }
+            });
+        }
+        
+        // Remove drag-over class when dragging leaves
+        document.addEventListener('dragleave', function(ev) {
+            if (ev.target.classList.contains('column-body')) {
+                ev.target.classList.remove('drag-over');
+            }
+        });
+        
+        // Close modal when clicking outside
+        document.addEventListener('click', function(ev) {
+            if (ev.target.classList.contains('modal-overlay')) {
+                closeTaskModal();
+            }
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateColumnCounts();
+        });
+    </script>
+</body>
+</html>
