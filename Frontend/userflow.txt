@@ -36,15 +36,17 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
         .description h2 {
             color: #333;
             margin-top: 0;
         }
-        .description p {
-            color: #666;
-            line-height: 1.6;
+        .flow-section {
+            margin-bottom: 15px;
+        }
+        .flow-section strong {
+            color: #2563eb;
         }
     </style>
 </head>
@@ -52,123 +54,115 @@
     <div class="container">
         <h1>Document Upload Interface - User Flow Diagram</h1>
         
-        <div class="description">
-            <h2>User Journey Overview</h2>
-            <p>This diagram illustrates the complete user journey through the document upload interface with quality validation system. The flow includes authentication, document capture with camera guidance, real-time quality validation, multi-step form processing, and upload progress tracking.</p>
-        </div>
-
         <div class="mermaid">
             flowchart TD
-                Start[User Opens Application]
-                Start --> Login[User Login]
-                Login --> Dashboard[Navigate to Dashboard]
-                Dashboard --> UploadPage[Click Upload Document]
+                Start[User Opens Document Upload Page]
+                Start --> InitSession[Initialize Form Session]
+                InitSession --> ShowHeader[Display Header with Progress]
+                ShowHeader --> Step1[Step 1 Document Upload]
                 
-                UploadPage --> InitSession[Initialize Upload Session]
-                InitSession --> CameraAccess[Request Camera Access]
+                Step1 --> CameraChoice{Choose Upload Method}
+                CameraChoice -->|Camera| RequestPermission[Request Camera Permission]
+                CameraChoice -->|File Upload| FileUpload[Select File from Device]
                 
-                CameraAccess --> CameraGranted{Camera Permission Granted?}
-                CameraGranted -->|Yes| CameraInterface[Display Camera Interface]
-                CameraGranted -->|No| FileUpload[Show File Upload Option]
+                RequestPermission --> PermissionGranted{Permission Granted}
+                PermissionGranted -->|Yes| StartCamera[Start Camera Interface]
+                PermissionGranted -->|No| ShowPermissionError[Show Permission Error]
+                ShowPermissionError --> FileUpload
                 
-                CameraInterface --> ShowOverlay[Display Document Overlay Guide]
-                ShowOverlay --> CaptureReady[User Positions Document]
-                CaptureReady --> CaptureImage[User Captures Image]
+                StartCamera --> ShowOverlay[Display Overlay Guidance]
+                ShowOverlay --> CaptureDoc[User Captures Document]
+                CaptureDoc --> ValidateQuality[Real-time Quality Validation]
                 
-                CaptureImage --> ValidateQuality[Real-time Quality Validation]
-                ValidateQuality --> QualityCheck{Quality Score > Threshold?}
+                FileUpload --> ValidateQuality
                 
-                QualityCheck -->|No| ShowSuggestions[Display Improvement Suggestions]
-                ShowSuggestions --> RetakeOption[Show Retake Option]
-                RetakeOption --> CaptureReady
+                ValidateQuality --> QualityCheck{Quality Assessment}
+                QualityCheck -->|Pass| ShowPreview[Show Document Preview]
+                QualityCheck -->|Fail| ShowSuggestions[Show Improvement Suggestions]
                 
-                QualityCheck -->|Yes| QualityApproved[Quality Approved]
-                QualityApproved --> DocumentPreview[Show Document Preview]
+                ShowSuggestions --> RetakeChoice{User Choice}
+                RetakeChoice -->|Retake| CaptureDoc
+                RetakeChoice -->|Edit| EditDocument[Edit Document]
+                RetakeChoice -->|Continue| ShowPreview
                 
-                DocumentPreview --> EditOptions{User Wants to Edit?}
-                EditOptions -->|Yes| EditDocument[Open Editing Tools]
-                EditDocument --> DocumentPreview
-                EditOptions -->|No| ProceedForm[Proceed to Form]
+                EditDocument --> ValidateQuality
                 
-                FileUpload --> FileSelected[User Selects File]
-                FileSelected --> ValidateFile[Validate File Format]
-                ValidateFile --> FileValid{File Valid?}
-                FileValid -->|No| FileError[Show File Error]
-                FileError --> FileUpload
-                FileValid -->|Yes| ProceedForm
+                ShowPreview --> SaveProgress[Save Step Progress]
+                SaveProgress --> Step2[Step 2 Personal Information]
                 
-                ProceedForm --> MultiStepForm[Display Multi-Step Form]
-                MultiStepForm --> FormStep1[Step 1 Document Details]
-                FormStep1 --> ValidateStep1[Validate Step 1]
-                ValidateStep1 --> Step1Valid{Step 1 Valid?}
+                Step2 --> FillPersonalInfo[Fill Personal Details]
+                FillPersonalInfo --> ValidatePersonalInfo[Validate Personal Information]
+                ValidatePersonalInfo --> PersonalInfoValid{Validation Result}
+                PersonalInfoValid -->|Invalid| ShowValidationErrors[Show Validation Errors]
+                ShowValidationErrors --> FillPersonalInfo
+                PersonalInfoValid -->|Valid| SavePersonalInfo[Save Personal Info Progress]
                 
-                Step1Valid -->|No| ShowErrors1[Show Validation Errors]
-                ShowErrors1 --> FormStep1
-                Step1Valid -->|Yes| SaveProgress1[Save Progress]
-                SaveProgress1 --> FormStep2[Step 2 Personal Information]
+                SavePersonalInfo --> Step3[Step 3 Review Information]
+                Step3 --> ReviewData[Review All Information]
+                ReviewData --> ReviewChoice{User Review Decision}
+                ReviewChoice -->|Edit| EditChoice{Choose What to Edit}
+                EditChoice -->|Document| Step1
+                EditChoice -->|Personal Info| Step2
+                ReviewChoice -->|Confirm| Step4[Step 4 Final Submission]
                 
-                FormStep2 --> ValidateStep2[Validate Step 2]
-                ValidateStep2 --> Step2Valid{Step 2 Valid?}
-                Step2Valid -->|No| ShowErrors2[Show Validation Errors]
-                ShowErrors2 --> FormStep2
-                Step2Valid -->|Yes| SaveProgress2[Save Progress]
+                Step4 --> UploadDocument[Upload Document to Server]
+                UploadDocument --> UploadStatus{Upload Status}
+                UploadStatus -->|Success| ShowSuccess[Show Success Message]
+                UploadStatus -->|Failed| ShowUploadError[Show Upload Error]
                 
-                SaveProgress2 --> FormStep3[Step 3 Review and Confirm]
-                FormStep3 --> ReviewData[User Reviews All Data]
-                ReviewData --> ConfirmSubmit{User Confirms Submission?}
+                ShowUploadError --> RetryUpload{Retry Upload}
+                RetryUpload -->|Yes| UploadDocument
+                RetryUpload -->|No| SaveDraft[Save as Draft]
                 
-                ConfirmSubmit -->|No| EditPrevious[Edit Previous Steps]
-                EditPrevious --> MultiStepForm
-                ConfirmSubmit -->|Yes| StartUpload[Start Document Upload]
+                ShowSuccess --> UploadMore{Upload More Documents}
+                UploadMore -->|Yes| Start
+                UploadMore -->|No| Complete[Process Complete]
                 
-                StartUpload --> CompressDocument[Compress Document]
-                CompressDocument --> UploadProgress[Show Upload Progress]
-                UploadProgress --> UploadStatus{Upload Status}
+                SaveDraft --> Complete
                 
-                UploadStatus -->|In Progress| UpdateProgress[Update Progress Bar]
-                UpdateProgress --> UploadProgress
-                UploadStatus -->|Error| UploadError[Show Upload Error]
-                UploadError --> RetryUpload[Retry Upload Option]
-                RetryUpload --> StartUpload
-                UploadStatus -->|Success| UploadComplete[Upload Complete]
-                
-                UploadComplete --> ProcessDocument[Process Document]
-                ProcessDocument --> SendNotification[Send Success Notification]
-                SendNotification --> ShowSuccess[Show Success Message]
-                ShowSuccess --> ReturnDashboard[Return to Dashboard]
-                
-                ReturnDashboard --> End[End of Flow]
-                
-                %% Error Handling Flows
-                InitSession --> SessionError{Session Creation Failed?}
-                SessionError -->|Yes| SessionRetry[Retry Session Creation]
-                SessionRetry --> InitSession
-                SessionError -->|No| CameraAccess
-                
-                ValidateQuality --> ValidationError{Validation API Error?}
-                ValidationError -->|Yes| OfflineMode[Switch to Offline Mode]
-                OfflineMode --> QualityApproved
-                ValidationError -->|No| QualityCheck
-                
-                SaveProgress1 --> SaveError1{Save Failed?}
-                SaveError1 -->|Yes| AutoRetry1[Auto Retry Save]
-                AutoRetry1 --> SaveProgress1
-                SaveError1 -->|No| FormStep2
-                
-                SaveProgress2 --> SaveError2{Save Failed?}
-                SaveError2 -->|Yes| AutoRetry2[Auto Retry Save]
-                AutoRetry2 --> SaveProgress2
-                SaveError2 -->|No| FormStep3
+                Step1 --> NavigateBack[Navigate to Previous Step]
+                Step2 --> NavigateBack
+                Step3 --> NavigateBack
+                NavigateBack --> PreviousStep[Return to Previous Step]
         </div>
         
         <div class="description">
-            <h2>Key User Interactions</h2>
-            <p><strong>Authentication Flow:</strong> Users begin by logging into the application and navigating to the document upload interface.</p>
-            <p><strong>Document Capture:</strong> Users can capture documents using the camera interface with overlay guidance or upload files directly.</p>
-            <p><strong>Quality Validation:</strong> Real-time quality validation provides immediate feedback and suggestions for improvement.</p>
-            <p><strong>Multi-Step Form:</strong> Users complete a progressive form with validation at each step and automatic progress saving.</p>
-            <p><strong>Upload Process:</strong> Documents are compressed and uploaded with real-time progress tracking and error recovery options.</p>
-            <p><strong>Error Handling:</strong> Comprehensive error handling ensures users can recover from failures at any point in the process.</p>
+            <h2>User Flow Description</h2>
+            
+            <div class="flow-section">
+                <strong>1. Session Initialization:</strong>
+                User opens the document upload page, system initializes a new form session and displays the header with progress tracking.
+            </div>
+            
+            <div class="flow-section">
+                <strong>2. Document Capture/Upload:</strong>
+                User can choose between camera capture or file upload. Camera option requires permission and provides overlay guidance for proper document positioning.
+            </div>
+            
+            <div class="flow-section">
+                <strong>3. Quality Validation:</strong>
+                System performs real-time quality assessment of the captured/uploaded document and provides feedback with improvement suggestions if needed.
+            </div>
+            
+            <div class="flow-section">
+                <strong>4. Multi-Step Form Navigation:</strong>
+                User progresses through multiple steps (Document Upload → Personal Information → Review → Submission) with validation at each step.
+            </div>
+            
+            <div class="flow-section">
+                <strong>5. Review and Submission:</strong>
+                User reviews all information before final submission, with options to edit any section if needed.
+            </div>
+            
+            <div class="flow-section">
+                <strong>6. Error Handling:</strong>
+                System provides graceful error handling with retry options and fallback mechanisms for camera permissions and upload failures.
+            </div>
+            
+            <div class="flow-section">
+                <strong>7. Progress Tracking:</strong>
+                Throughout the process, users can navigate between completed steps and track their progress via the header progress indicator.
+            </div>
         </div>
     </div>
 </body>
