@@ -1,840 +1,703 @@
 ## UI COMPONENT SPECIFICATIONS
 
-1. INPUT REFERENCE (FROM AGENT-1)
+### 1. INPUT REFERENCE (FROM AGENT-1)
 
-Page Name: Document Upload Interface with Quality Validation System
+**Page Name:** Document Upload Interface
 
-Mapped Layout: CSS Grid (primary), Flexbox (secondary)
+**Mapped Layout:** Multi-step form with camera integration and quality validation
 
-Components from A1:
-- DocumentUploadComponent (Main Container)
-- HeaderComponent with SearchField, NotificationCenter, UserMenu
-- SidebarComponent with Brand, NavigationMenu, Footer
-- PageHeaderComponent with Breadcrumbs, PageTitle, ActionButtons
-- DocumentCaptureComponent with CameraInterface, QualityValidation, DocumentPreview
-- MultiStepFormComponent with FormProgress, FormSteps, FormSummary
-- UploadProgressComponent with ProgressBar, UploadStatus, CompressionInfo
-- SharedComponents (Loading, Error, Success, Accessibility helpers)
+**Components from A1:**
+- DocumentUploadApp (Main Container)
+- HeaderComponent with progress tracking
+- CameraInterfaceComponent with overlay guidance
+- QualityValidationComponent with real-time feedback
+- FormContainerComponent with multi-step navigation
+- DocumentPreviewComponent with editing capabilities
+- UploadZoneComponent with drag-and-drop functionality
+- NavigationControlsComponent for step management
 
-2. GLOBAL ARCHITECTURE SUMMARY
+### 2. GLOBAL ARCHITECTURE SUMMARY
 
-Layout Type: CSS Grid (primary), Flexbox (secondary)
+**Layout Type:** CSS Grid (primary), Flexbox (secondary)
 
-Main Sections:
-- Header (Search, Notifications, User Menu)
-- Sidebar (Navigation, Brand, Footer)
-- Main Content (Document Upload Interface)
-- Modals (Document Preview, Confirmation Dialogs)
+**Main Sections:**
+- Header: Application branding, progress indicator, user status
+- Main Content: Multi-step form container with document upload interface
+- Side Panel: Help content and upload guidelines (optional)
+- Footer: Legal information and accessibility options
 
-Component Strategy:
-Reused Components:
-- Button Component (Primary, Secondary, Ghost variants)
-- Card Component (Document cards with elevation)
-- Badge Component (Status badges, progress indicators)
-- Avatar Component (User avatars with status)
-- Modal Component (Document preview, confirmations)
-- Progress Component (Upload progress, step indicators)
-- Alert Component (Validation feedback, error messages)
-- Input Component (Form fields with validation)
-- Camera Component (Document capture interface)
-- Stepper Component (Multi-step navigation)
-- Tooltip Component (Guidance and help text)
-- Loading Component (Spinner and skeleton states)
+**Component Strategy:** Maximize reuse of existing UI library components
 
-New Components (if any):
-- DocumentCaptureComponent (Feature-specific)
-- QualityValidationComponent (Feature-specific)
-- CameraOverlayComponent (Feature-specific)
-- ValidationFeedbackComponent (Feature-specific)
+**Reused Components:**
+- Button Component (primary, secondary, ghost variants)
+- Input Component (text inputs with validation)
+- Card Component (document preview cards)
+- Modal Component (confirmation dialogs)
+- Progress Component (step indicators)
+- Alert Component (notifications)
+- Badge Component (status indicators)
+- Loading Component (spinners and skeleton loaders)
+- Icon Component (SVG icons)
+- Form Components (validation and containers)
 
-3. FOLDER STRUCTURE
+**New Components (if any):**
+- CameraInterfaceComponent (specialized camera functionality)
+- QualityValidationComponent (document quality assessment)
+- DocumentPreviewComponent (document display and editing)
+- OverlayGuidanceComponent (camera positioning guidance)
 
+### 3. FOLDER STRUCTURE
+
+```
 src/
- ├── pages/
- │    └── document-upload/
- │         ├── document-upload.page.tsx
- │
- ├── components/
- │    ├── layout/
- │    │    ├── header/
- │    │    └── sidebar/
- │    ├── feature/
- │    │    ├── document-capture/
- │    │    ├── quality-validation/
- │    │    ├── multi-step-form/
- │    │    └── upload-progress/
- │    ├── shared/
- │    │    ├── button/
- │    │    ├── card/
- │    │    ├── badge/
- │    │    ├── progress/
- │    │    ├── alert/
- │    │    ├── modal/
- │    │    ├── camera/
- │    │    ├── stepper/
- │    │    └── loading/
+├── pages/
+│    └── document-upload/
+│         ├── DocumentUploadPage.tsx
+│
+├── components/
+│    ├── layout/
+│    │    ├── HeaderComponent.tsx
+│    │    ├── FooterComponent.tsx
+│    │    └── SidePanelComponent.tsx
+│    ├── feature/
+│    │    ├── DocumentUploadApp.tsx
+│    │    ├── CameraInterfaceComponent.tsx
+│    │    ├── QualityValidationComponent.tsx
+│    │    ├── DocumentPreviewComponent.tsx
+│    │    ├── FormContainerComponent.tsx
+│    │    ├── StepNavigationComponent.tsx
+│    │    ├── UploadZoneComponent.tsx
+│    │    └── NavigationControlsComponent.tsx
+│    ├── shared/
+│    │    ├── LoadingOverlayComponent.tsx
+│    │    ├── ErrorBoundaryComponent.tsx
+│    │    ├── NotificationComponent.tsx
+│    │    └── ConfirmationModalComponent.tsx
+```
 
-4. COMPONENT IMPLEMENTATION
+### 4. COMPONENT IMPLEMENTATION
 
-### 4.1 DocumentUploadComponent
+#### 4.1 DocumentUploadApp
 
-Component Type: Page
+**Component Type:** Page
 
-Mapped From A1: DocumentUploadComponent (Main Container)
+**Mapped From A1:** Main application container managing entire document upload flow
 
-Purpose: Main container for document upload interface with quality validation system
+**Purpose:** Orchestrates multi-step document upload process with camera integration and quality validation
 
-Parent: App
+**Parent:** DocumentUploadPage
 
-Children:
+**Children:**
 - HeaderComponent
-- SidebarComponent
-- PageHeaderComponent
-- DocumentCaptureComponent
-- MultiStepFormComponent
-- UploadProgressComponent
+- MainContentComponent
+- FooterComponent
+- LoadingOverlayComponent
+- ErrorBoundaryComponent
 
-Dependencies:
-- React/Angular framework
-- Camera API
-- File Upload API
-- Form validation library
+**Dependencies:**
+- React hooks (useState, useEffect, useCallback)
+- Form session service
+- Document upload service
+- Quality validation service
 
-Library Components Used:
-- Card → Document container layout
-- Progress → Upload progress tracking
-- Alert → Error and success notifications
-- Loading → Loading states during processing
+**Library Components Used:**
+- Card Component → Main container wrapper
+- Loading Component → Loading states
+- Alert Component → Error notifications
 
-TypeScript Specification
+**TypeScript Specification:**
 
+```typescript
 Inputs:
 - sessionId: string
-- documentTypes: DocumentType[]
-- maxFileSize: number
-- qualityThreshold: number
-- permissions: UserPermissions
+- userId: string
+- configuration: AppConfig
+- onComplete?: (data: FormData) => void
 
 Outputs:
-- onDocumentCaptured(document: Document)
-- onValidationComplete(results: ValidationResult)
-- onUploadComplete(documents: Document[])
-- onSessionComplete(sessionData: FormSession)
+- onStepChange: (step: number) => void
+- onDocumentUpload: (document: Document) => void
+- onFormSubmit: (data: FormData) => void
+- onError: (error: Error) => void
 
 State:
 - currentStep: number
-- uploadProgress: number
+- formData: FormData
+- uploadedDocuments: Document[]
 - validationResults: ValidationResult[]
-- capturedDocuments: Document[]
-- sessionData: FormSession
-- isLoading: boolean
+- loading: boolean
 - error: string | null
+- sessionActive: boolean
 
 Methods:
-- initializeSession() → POST /forms/sessions
-- handleDocumentCapture(document: Document) → validation workflow
-- handleStepNavigation(step: number) → form progression
-- handleUploadComplete() → finalize session
+- initializeSession() → Promise<void>
+- saveProgress() → Promise<void>
+- handleStepNavigation(direction: 'next' | 'previous') → void
+- handleDocumentUpload(document: File) → Promise<void>
+- handleFormSubmission() → Promise<void>
+```
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+**HTML STRUCTURE (PSEUDO CODE ONLY):**
 
-<div class="document-upload-container">
-  <HeaderComponent [user]="currentUser" [notifications]="notifications" />
-  
-  <div class="main-layout">
-    <SidebarComponent [menuItems]="navigationItems" [activeItem]="currentRoute" />
+```html
+<div className="document-upload-app">
+  <ErrorBoundary>
+    <HeaderComponent 
+      user={user} 
+      progress={currentStep} 
+      totalSteps={4} 
+    />
     
-    <main class="content-area">
-      <PageHeaderComponent 
-        [breadcrumbs]="breadcrumbItems"
-        [title]="pageTitle"
-        [actions]="headerActions" />
-      
-      <div class="upload-interface">
-        <DocumentCaptureComponent 
-          [documentType]="selectedDocumentType"
-          [validationEnabled]="true"
-          (onCapture)="handleDocumentCapture($event)" />
+    <main className="main-content">
+      <Card className="form-container">
+        <StepNavigationComponent 
+          currentStep={currentStep}
+          totalSteps={4}
+          completedSteps={completedSteps}
+        />
         
-        <MultiStepFormComponent 
-          [formConfig]="formConfiguration"
-          [sessionData]="sessionData"
-          (onStepComplete)="handleStepComplete($event)" />
+        <div className="step-content">
+          {currentStep === 1 && (
+            <DocumentUploadStepComponent 
+              documentType={documentType}
+              onDocumentCapture={handleDocumentCapture}
+              onValidationComplete={handleValidation}
+            />
+          )}
+          {/* Other step components */}
+        </div>
         
-        <UploadProgressComponent 
-          [files]="capturedDocuments"
-          [uploadConfig]="uploadSettings"
-          (onUploadComplete)="handleUploadComplete()" />
-      </div>
+        <NavigationControlsComponent 
+          canGoBack={currentStep > 1}
+          canGoNext={isStepValid}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          onSubmit={handleSubmit}
+        />
+      </Card>
     </main>
-  </div>
+    
+    <FooterComponent />
+    
+    {loading && <LoadingOverlayComponent />}
+  </ErrorBoundary>
 </div>
+```
 
-CSS SPECIFICATION
+**CSS SPECIFICATION:**
 
+```css
 Layout:
 - display: grid
-- grid-template-areas: "header header" "sidebar content"
-- grid-template-columns: 280px 1fr
-- grid-template-rows: 64px 1fr
+- grid-template-rows: auto 1fr auto
+- min-height: 100vh
 
 Spacing:
-- padding: 24px
-- gap: 16px
+- padding: 1rem
+- gap: 1.5rem
 
 Component Styles:
-- .document-upload-container: full viewport height
-- .main-layout: grid layout for sidebar and content
-- .content-area: flex column with gap
-- .upload-interface: grid layout for upload sections
+- .document-upload-app: container styles
+- .main-content: flex-grow content area
+- .form-container: elevated card with shadow
 
 Responsive:
-- Mobile: stack sidebar below header
-- Tablet: collapse sidebar to icons
-- Desktop: full layout with expanded sidebar
+- Mobile: single column, full width
+- Tablet: centered with max-width
+- Desktop: optimized spacing and layout
+```
 
-API INTEGRATION
+**API INTEGRATION:**
 
-- initializeSession() → POST /forms/sessions → create upload session
-- validateDocument() → POST /documents/validate → real-time quality check
-- uploadDocument() → POST /documents/upload → file upload with progress
-- updateSession() → PUT /forms/sessions/{id} → save form progress
+- initializeSession() → POST /forms/sessions → Create new form session
+- saveProgress() → PUT /forms/sessions/{session_id} → Save current progress
+- handleFormSubmission() → POST /documents/upload → Final submission
 
-ERROR HANDLING
+**ERROR HANDLING:**
 
 - API failure → show error alert with retry option
-- Validation error → display inline feedback with suggestions
-- Upload failure → show progress error with resume capability
-- Session timeout → auto-save and redirect to login
+- Validation error → inline field-specific messages
+- Network error → offline mode with local storage
 
-INTERACTION FLOW
+**INTERACTION FLOW:**
 
 User Action → UI → API
 - Page load → initialize session → POST /forms/sessions
-- Document capture → quality validation → POST /documents/validate
-- Form submission → save progress → PUT /forms/sessions/{id}
-- Final upload → document upload → POST /documents/upload
+- Step completion → save progress → PUT /forms/sessions/{id}
+- Final submit → upload documents → POST /documents/upload
 
-### 4.2 CameraInterfaceComponent
+#### 4.2 CameraInterfaceComponent
 
-Component Type: Feature
+**Component Type:** Feature
 
-Mapped From A1: CameraInterfaceComponent
+**Mapped From A1:** Camera functionality with overlay guidance for document positioning
 
-Purpose: Document capture interface with overlay guidance and real-time quality validation
+**Purpose:** Provides camera access, overlay guidance, and document capture functionality
 
-Parent: DocumentCaptureComponent
+**Parent:** DocumentUploadStepComponent
 
-Children:
-- CameraOverlayComponent
-- CaptureButtonComponent
-- CameraControlsComponent
+**Children:**
+- CameraPreviewComponent
+- OverlayGuidanceComponent
+- CaptureControlsComponent
 
-Dependencies:
-- Camera API (getUserMedia)
+**Dependencies:**
+- Camera API
+- Media devices API
 - Canvas API for image processing
-- WebRTC for camera access
 
-Library Components Used:
-- Button → Capture and control buttons
-- Tooltip → Guidance and help text
-- Alert → Camera permission and error messages
-- Loading → Camera initialization spinner
+**Library Components Used:**
+- Button Component → Capture and retake buttons
+- Icon Component → Camera and control icons
+- Alert Component → Permission and error messages
 
-TypeScript Specification
+**TypeScript Specification:**
 
+```typescript
 Inputs:
 - documentType: string
-- overlayGuides: boolean
-- qualityValidation: boolean
-- cameraConstraints: MediaStreamConstraints
+- guidelines: CameraGuidelines
+- enabled: boolean
+- onCapture: (image: Blob) => void
+- onRetake: () => void
+- onPermissionDenied: () => void
 
 Outputs:
-- onCapture(imageData: Blob)
-- onRetake()
-- onCameraError(error: Error)
-- onQualityUpdate(score: number)
+- onCapture: (image: Blob) => void
+- onRetake: () => void
+- onPermissionDenied: () => void
 
 State:
 - cameraActive: boolean
-- captureMode: string
-- overlayVisible: boolean
-- stream: MediaStream | null
 - capturedImage: Blob | null
-- qualityScore: number
+- overlayVisible: boolean
+- devicePermissions: boolean
+- stream: MediaStream | null
 
 Methods:
-- initializeCamera() → request camera permissions
-- captureImage() → capture and process image
-- toggleOverlay() → show/hide guidance overlay
-- retakePhoto() → reset capture state
+- requestCameraPermission() → Promise<boolean>
+- startCamera() → Promise<void>
+- stopCamera() → void
+- captureImage() → Blob
+- retakeImage() → void
+```
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+**HTML STRUCTURE (PSEUDO CODE ONLY):**
 
-<div class="camera-interface">
-  <div class="camera-viewport">
-    <video class="camera-stream" [srcObject]="cameraStream"></video>
+```html
+<div className="camera-interface">
+  <div className="camera-container">
+    <video className="camera-preview" autoPlay playsInline />
     
-    <CameraOverlayComponent 
-      [visible]="overlayVisible"
-      [documentType]="documentType"
-      [guides]="overlayGuides" />
+    <OverlayGuidanceComponent 
+      documentType={documentType}
+      visible={overlayVisible}
+      guidelines={guidelines}
+    />
     
-    <div class="quality-indicator">
-      <div class="quality-score" [class.good]="qualityScore > 80">
-        Quality: {{qualityScore}}%
-      </div>
-    </div>
+    {!devicePermissions && (
+      <Alert type="warning">
+        Camera permission required for document capture
+      </Alert>
+    )}
   </div>
   
-  <div class="camera-controls">
+  <div className="camera-controls">
     <Button 
-      variant="primary"
-      size="large"
-      [disabled]="!cameraActive"
-      (click)="captureImage()">
-      Capture Document
+      variant="primary" 
+      onClick={captureImage}
+      disabled={!cameraActive}
+    >
+      <Icon name="camera" /> Capture
     </Button>
     
-    <Button 
-      variant="secondary"
-      (click)="retakePhoto()"
-      *ngIf="capturedImage">
-      Retake
-    </Button>
-    
-    <Button 
-      variant="ghost"
-      (click)="toggleOverlay()">
-      Toggle Guide
-    </Button>
+    {capturedImage && (
+      <Button 
+        variant="secondary" 
+        onClick={retakeImage}
+      >
+        <Icon name="refresh" /> Retake
+      </Button>
+    )}
   </div>
 </div>
+```
 
-CSS SPECIFICATION
+**CSS SPECIFICATION:**
 
+```css
 Layout:
 - display: flex
 - flex-direction: column
 - align-items: center
 
 Spacing:
-- padding: 24px
-- gap: 16px
+- gap: 1rem
+- padding: 1rem
 
 Component Styles:
-- .camera-viewport: relative positioning for overlay
-- .camera-stream: full width with aspect ratio
-- .quality-indicator: absolute positioned overlay
+- .camera-container: relative positioning for overlay
+- .camera-preview: full width with aspect ratio
 - .camera-controls: flex row with button spacing
 
 Responsive:
-- Mobile: full width camera with large capture button
-- Tablet: optimized touch targets
-- Desktop: standard camera interface
+- Mobile: full width camera preview
+- Desktop: constrained width with centered layout
+```
 
-API INTEGRATION
+**API INTEGRATION:**
 
-- validateImage() → POST /documents/validate → real-time quality assessment
-- captureDocument() → process image and trigger validation
+- No direct API calls (uses browser camera API)
+- Captured images passed to parent for validation
 
-ERROR HANDLING
+**ERROR HANDLING:**
 
-- Camera permission denied → show permission request dialog
-- Camera not available → show fallback file upload option
-- Capture failure → show error message with retry
-- Quality too low → show improvement suggestions
+- Permission denied → show alternative upload option
+- Camera not available → fallback to file upload
+- Capture failure → retry mechanism with user feedback
 
-INTERACTION FLOW
+**INTERACTION FLOW:**
 
 User Action → UI → API
-- Camera activation → request permissions → initialize camera stream
-- Image capture → process image → POST /documents/validate
-- Quality feedback → display score → suggest improvements
-- Retake action → reset interface → restart capture process
+- Enable camera → request permissions → browser camera API
+- Capture image → process image → pass to parent component
+- Retake → clear current image → restart camera preview
 
-### 4.3 QualityValidationComponent
+#### 4.3 QualityValidationComponent
 
-Component Type: Feature
+**Component Type:** Feature
 
-Mapped From A1: QualityValidationComponent
+**Mapped From A1:** Real-time document quality assessment and feedback
 
-Purpose: Real-time document quality assessment and feedback display
+**Purpose:** Validates document quality and provides improvement suggestions
 
-Parent: DocumentCaptureComponent
+**Parent:** DocumentUploadStepComponent
 
-Children:
-- ValidationFeedbackComponent
+**Children:**
+- ValidationResultsComponent
 - QualityScoreComponent
+- FeedbackMessagesComponent
 - ImprovementSuggestionsComponent
 
-Dependencies:
-- Image processing library
-- Validation service
-- Real-time API client
+**Dependencies:**
+- Quality validation service
+- Image processing utilities
 
-Library Components Used:
-- Progress → Quality score visualization
-- Alert → Validation feedback messages
-- Badge → Quality status indicators
-- Card → Feedback container
+**Library Components Used:**
+- Card Component → Validation results container
+- Progress Component → Quality score indicator
+- Badge Component → Status badges
+- Alert Component → Validation messages
 
-TypeScript Specification
+**TypeScript Specification:**
 
+```typescript
 Inputs:
-- document: Document
-- validationRules: ValidationRule[]
-- realTimeMode: boolean
-- qualityThreshold: number
+- document: File | Blob
+- documentType: string
+- validationRules: ValidationRules
+- onValidationComplete: (results: ValidationResult) => void
+- onValidationError: (error: Error) => void
 
 Outputs:
-- onValidationUpdate(results: ValidationResult)
-- onQualityImproved()
-- onValidationComplete(isValid: boolean)
+- onValidationComplete: (results: ValidationResult) => void
+- onValidationError: (error: Error) => void
 
 State:
+- validationInProgress: boolean
 - qualityScore: number
-- validationStatus: string
-- suggestions: string[]
-- isValidating: boolean
-- validationHistory: ValidationResult[]
+- validationResults: QualityCheck[]
+- suggestions: Suggestion[]
+- overallStatus: 'pass' | 'warning' | 'fail'
 
 Methods:
-- validateDocument() → POST /documents/validate
-- updateQualityScore() → calculate and display score
-- generateSuggestions() → create improvement recommendations
-- resetValidation() → clear validation state
+- validateDocument() → Promise<ValidationResult>
+- calculateQualityScore(checks: QualityCheck[]) → number
+- generateSuggestions(results: QualityCheck[]) → Suggestion[]
+- retryValidation() → Promise<void>
+```
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+**HTML STRUCTURE (PSEUDO CODE ONLY):**
 
-<div class="quality-validation">
-  <Card class="validation-container">
-    <div class="quality-header">
-      <h3>Document Quality</h3>
-      <Badge [variant]="qualityStatus" [text]="validationStatus" />
+```html
+<div className="quality-validation">
+  <Card className="validation-container">
+    <div className="validation-header">
+      <h3>Document Quality Assessment</h3>
+      
+      {validationInProgress && (
+        <Loading size="small" text="Analyzing document..." />
+      )}
     </div>
     
-    <div class="quality-score">
-      <Progress 
-        [value]="qualityScore"
-        [max]="100"
-        [color]="getScoreColor(qualityScore)"
-        [label]="qualityScore + '%'" />
-    </div>
-    
-    <div class="validation-feedback">
-      <ValidationFeedbackComponent 
-        [results]="validationResults"
-        [suggestions]="suggestions" />
-    </div>
-    
-    <div class="improvement-suggestions" *ngIf="suggestions.length > 0">
-      <h4>Suggestions for Improvement:</h4>
-      <ul class="suggestions-list">
-        <li *ngFor="let suggestion of suggestions" class="suggestion-item">
-          <Alert variant="info" [message]="suggestion" />
-        </li>
-      </ul>
-    </div>
+    {!validationInProgress && (
+      <div className="validation-results">
+        <QualityScoreComponent 
+          score={qualityScore}
+          status={overallStatus}
+        />
+        
+        <div className="quality-checks">
+          {validationResults.map(check => (
+            <div className="quality-check" key={check.id}>
+              <Badge 
+                variant={check.status} 
+                text={check.name}
+              />
+              <span className="check-result">{check.message}</span>
+            </div>
+          ))}
+        </div>
+        
+        {suggestions.length > 0 && (
+          <div className="improvement-suggestions">
+            <h4>Suggestions for Improvement:</h4>
+            {suggestions.map(suggestion => (
+              <Alert 
+                key={suggestion.id}
+                type="info"
+                message={suggestion.text}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    )}
   </Card>
 </div>
+```
 
-CSS SPECIFICATION
+**CSS SPECIFICATION:**
 
+```css
 Layout:
 - display: flex
 - flex-direction: column
-- gap: 16px
+- gap: 1rem
 
 Spacing:
-- padding: 20px
-- margin: 16px 0
+- padding: 1.5rem
+- margin: 1rem 0
 
 Component Styles:
-- .validation-container: elevated card with border radius
-- .quality-header: flex row with space between
-- .quality-score: centered progress indicator
-- .suggestions-list: styled list with spacing
+- .validation-container: elevated card with border
+- .quality-checks: grid layout for check items
+- .improvement-suggestions: highlighted section
 
 Responsive:
-- Mobile: full width with stacked layout
-- Tablet: optimized spacing and typography
-- Desktop: standard card layout
+- Mobile: stacked layout
+- Desktop: grid layout for quality checks
+```
 
-API INTEGRATION
+**API INTEGRATION:**
 
-- validateDocument() → POST /documents/validate → quality assessment
-- getValidationRules() → GET /validation/rules → validation criteria
+- validateDocument() → POST /documents/validate → Real-time quality assessment
+- retryValidation() → POST /documents/validate → Retry failed validation
 
-ERROR HANDLING
+**ERROR HANDLING:**
 
-- Validation API failure → show generic quality message
-- Invalid document format → show format error
-- Network timeout → show offline validation mode
+- Validation API failure → show retry option with error message
+- Invalid document format → clear error message with format requirements
+- Network timeout → offline validation with reduced feature set
 
-INTERACTION FLOW
+**INTERACTION FLOW:**
 
 User Action → UI → API
-- Document capture → trigger validation → POST /documents/validate
-- Quality update → display score → show suggestions
-- Improvement made → re-validate → update feedback
+- Document upload → start validation → POST /documents/validate
+- Validation complete → display results → update parent component
+- Retry validation → clear previous results → POST /documents/validate
 
-### 4.4 MultiStepFormComponent
+#### 4.4 FormContainerComponent
 
-Component Type: Feature
+**Component Type:** Layout
 
-Mapped From A1: MultiStepFormComponent
+**Mapped From A1:** Multi-step form container with progress tracking
 
-Purpose: Multi-step form with progress tracking and validation
+**Purpose:** Manages form state, validation, and step navigation
 
-Parent: DocumentUploadComponent
+**Parent:** DocumentUploadApp
 
-Children:
-- FormProgressComponent
-- FormStepComponent (multiple instances)
-- FormSummaryComponent
+**Children:**
+- StepNavigationComponent
+- StepContentComponent
+- NavigationControlsComponent
 
-Dependencies:
+**Dependencies:**
 - Form validation library
-- State management
-- Progress tracking
+- Form session service
 
-Library Components Used:
-- Stepper → Multi-step navigation
-- Input → Form fields with validation
-- Button → Navigation and submit buttons
-- Alert → Validation error messages
-- Progress → Form completion indicator
+**Library Components Used:**
+- Card Component → Form container
+- Progress Component → Step progress indicator
+- Button Component → Navigation buttons
 
-TypeScript Specification
+**TypeScript Specification:**
 
+```typescript
 Inputs:
-- formConfig: FormConfig
-- initialData: any
-- validationRules: ValidationRule[]
 - sessionId: string
+- initialData: FormData
+- validationRules: ValidationRules
+- onStepChange: (step: number) => void
+- onFormSubmit: (data: FormData) => void
 
 Outputs:
-- onStepComplete(stepData: any)
-- onFormSubmit(formData: any)
-- onStepValidation(errors: ValidationError[])
-- onProgressUpdate(percentage: number)
+- onStepChange: (step: number) => void
+- onFormSubmit: (data: FormData) => void
+- onDataChange: (data: Partial<FormData>) => void
 
 State:
 - currentStep: number
-- formData: any
-- validationErrors: ValidationError[]
-- completionPercentage: number
-- isSubmitting: boolean
-- stepHistory: any[]
+- formData: FormData
+- validationErrors: ValidationErrors
+- stepValidation: boolean[]
+- isDirty: boolean
 
 Methods:
-- navigateToStep() → change current step
-- validateStep() → validate current step data
-- saveProgress() → PUT /forms/sessions/{id}
-- submitForm() → final form submission
+- validateStep(step: number) → boolean
+- saveStepData(step: number, data: any) → void
+- navigateToStep(step: number) → void
+- submitForm() → Promise<void>
+```
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+**HTML STRUCTURE (PSEUDO CODE ONLY):**
 
-<div class="multi-step-form">
-  <div class="form-header">
-    <h2>Document Upload Form</h2>
-    <Progress [value]="completionPercentage" [label]="completionPercentage + '% Complete'" />
-  </div>
-  
-  <Stepper 
-    [steps]="formSteps"
-    [currentStep]="currentStep"
-    [completedSteps]="completedSteps"
-    (onStepChange)="navigateToStep($event)" />
-  
-  <div class="form-content">
-    <FormStepComponent 
-      [stepConfig]="currentStepConfig"
-      [data]="formData"
-      [validationErrors]="validationErrors"
-      (onDataChange)="handleDataChange($event)"
-      (onValidation)="handleStepValidation($event)" />
-  </div>
-  
-  <div class="form-navigation">
-    <Button 
-      variant="secondary"
-      [disabled]="currentStep === 0"
-      (click)="previousStep()">
-      Previous
-    </Button>
+```html
+<div className="form-container">
+  <Card className="form-card">
+    <StepNavigationComponent 
+      steps={steps}
+      currentStep={currentStep}
+      completedSteps={completedSteps}
+      onStepClick={navigateToStep}
+    />
     
-    <Button 
-      variant="primary"
-      [disabled]="!isCurrentStepValid"
-      (click)="nextStep()"
-      *ngIf="!isLastStep">
-      Next
-    </Button>
+    <div className="form-content">
+      <StepContentComponent 
+        step={currentStep}
+        data={formData}
+        validationErrors={validationErrors}
+        onDataChange={handleDataChange}
+      />
+    </div>
     
-    <Button 
-      variant="primary"
-      [loading]="isSubmitting"
-      (click)="submitForm()"
-      *ngIf="isLastStep">
-      Submit
-    </Button>
-  </div>
+    <NavigationControlsComponent 
+      currentStep={currentStep}
+      totalSteps={totalSteps}
+      canGoBack={currentStep > 1}
+      canGoNext={stepValidation[currentStep]}
+      onPrevious={handlePrevious}
+      onNext={handleNext}
+      onSubmit={submitForm}
+    />
+  </Card>
 </div>
+```
 
-CSS SPECIFICATION
+**CSS SPECIFICATION:**
 
+```css
 Layout:
 - display: flex
 - flex-direction: column
-- gap: 24px
-
-Spacing:
-- padding: 32px
-- margin: 0 auto
 - max-width: 800px
-
-Component Styles:
-- .form-header: centered with progress indicator
-- .form-content: flexible height with scroll
-- .form-navigation: flex row with space between
-
-Responsive:
-- Mobile: single column with full width buttons
-- Tablet: optimized spacing and button sizes
-- Desktop: standard form layout with side navigation
-
-API INTEGRATION
-
-- saveProgress() → PUT /forms/sessions/{session_id} → save form state
-- getFormData() → GET /forms/sessions/{session_id} → retrieve saved data
-- submitForm() → POST /forms/submit → final form submission
-
-ERROR HANDLING
-
-- Validation errors → display inline field errors
-- Save failure → show auto-save error with retry
-- Submit failure → show submission error with recovery options
-- Session timeout → auto-save and redirect
-
-INTERACTION FLOW
-
-User Action → UI → API
-- Step navigation → validate current step → save progress
-- Data input → real-time validation → update error state
-- Form submission → validate all steps → POST /forms/submit
-
-### 4.5 UploadProgressComponent
-
-Component Type: Feature
-
-Mapped From A1: UploadProgressComponent
-
-Purpose: File upload progress tracking with optimization metrics
-
-Parent: DocumentUploadComponent
-
-Children:
-- ProgressBarComponent
-- UploadStatusComponent
-- CompressionInfoComponent
-- ErrorRecoveryComponent
-
-Dependencies:
-- File upload service
-- Progress tracking
-- Compression utilities
-
-Library Components Used:
-- Progress → Upload progress bars
-- Badge → Upload status indicators
-- Alert → Error and success messages
-- Button → Cancel and retry actions
-
-TypeScript Specification
-
-Inputs:
-- files: File[]
-- compressionEnabled: boolean
-- uploadSpeed: number
-- maxRetries: number
-
-Outputs:
-- onUploadProgress(progress: number)
-- onUploadComplete()
-- onUploadError(error: Error)
-- onUploadCancel()
-
-State:
-- uploadProgress: number
-- compressionRatio: number
-- estimatedTime: number
-- uploadStatus: string
-- currentFile: File | null
-- uploadSpeed: number
-
-Methods:
-- startUpload() → initiate file upload
-- pauseUpload() → pause upload process
-- resumeUpload() → resume paused upload
-- cancelUpload() → cancel upload and cleanup
-
-HTML STRUCTURE (PSEUDO CODE ONLY)
-
-<div class="upload-progress">
-  <div class="upload-header">
-    <h3>Uploading Documents</h3>
-    <Badge [variant]="uploadStatus" [text]="getStatusText()" />
-  </div>
-  
-  <div class="progress-section">
-    <Progress 
-      [value]="uploadProgress"
-      [max]="100"
-      [label]="uploadProgress + '%'"
-      [showPercentage]="true" />
-    
-    <div class="upload-details">
-      <span class="upload-speed">{{uploadSpeed}} MB/s</span>
-      <span class="estimated-time">{{estimatedTime}} remaining</span>
-    </div>
-  </div>
-  
-  <div class="file-list">
-    <div class="file-item" *ngFor="let file of files">
-      <span class="file-name">{{file.name}}</span>
-      <span class="file-size">{{formatFileSize(file.size)}}</span>
-      <Badge [variant]="getFileStatus(file)" [text]="getFileStatusText(file)" />
-    </div>
-  </div>
-  
-  <div class="compression-info" *ngIf="compressionEnabled">
-    <Alert variant="info" [message]="'Compression ratio: ' + compressionRatio + '%'" />
-  </div>
-  
-  <div class="upload-actions">
-    <Button 
-      variant="secondary"
-      (click)="pauseUpload()"
-      *ngIf="uploadStatus === 'uploading'">
-      Pause
-    </Button>
-    
-    <Button 
-      variant="secondary"
-      (click)="resumeUpload()"
-      *ngIf="uploadStatus === 'paused'">
-      Resume
-    </Button>
-    
-    <Button 
-      variant="danger"
-      (click)="cancelUpload()">
-      Cancel
-    </Button>
-  </div>
-</div>
-
-CSS SPECIFICATION
-
-Layout:
-- display: flex
-- flex-direction: column
-- gap: 16px
+- margin: 0 auto
 
 Spacing:
-- padding: 24px
-- border-radius: 8px
-- background: card background
+- padding: 2rem
+- gap: 2rem
 
 Component Styles:
-- .upload-header: flex row with space between
-- .progress-section: progress bar with details
-- .file-list: scrollable list with file items
-- .upload-actions: flex row with button spacing
+- .form-card: elevated container with rounded corners
+- .form-content: flexible content area
 
 Responsive:
-- Mobile: stacked layout with full width progress
-- Tablet: optimized file list and button sizes
-- Desktop: standard layout with detailed metrics
+- Mobile: full width with reduced padding
+- Desktop: centered with max-width constraint
+```
 
-API INTEGRATION
+**API INTEGRATION:**
 
-- uploadFile() → POST /documents/upload → file upload with progress
-- getUploadStatus() → GET /uploads/{upload_id} → upload status check
-- cancelUpload() → DELETE /uploads/{upload_id} → cancel upload
+- saveStepData() → PUT /forms/sessions/{session_id} → Save progress
+- submitForm() → POST /forms/sessions/{session_id}/submit → Final submission
 
-ERROR HANDLING
+**ERROR HANDLING:**
 
-- Upload failure → show error with retry option
-- Network interruption → auto-resume when connection restored
-- File too large → show size limit error
-- Invalid file type → show format error
+- Validation errors → inline field-specific messages
+- Save failure → show retry option with error notification
+- Network issues → local storage backup with sync on reconnect
 
-INTERACTION FLOW
+**INTERACTION FLOW:**
 
 User Action → UI → API
-- Start upload → initialize upload → POST /documents/upload
-- Progress update → display progress → update UI state
-- Upload complete → show success → trigger completion callback
-- Error occurred → show error → provide retry/cancel options
+- Step navigation → validate current step → save if valid
+- Data change → update form state → auto-save after delay
+- Form submission → validate all steps → POST final data
 
-5. COMPONENT MAPPING SUMMARY
+### 5. COMPONENT MAPPING SUMMARY
 
 | A1 Component | Final Component | Type |
 |--------------|----------------|---------|
-| DocumentUploadComponent | DocumentUploadComponent | Page |
+| DocumentUploadApp | DocumentUploadApp | Page |
 | HeaderComponent | HeaderComponent | Layout |
-| SidebarComponent | SidebarComponent | Layout |
-| PageHeaderComponent | PageHeaderComponent | Layout |
 | CameraInterfaceComponent | CameraInterfaceComponent | Feature |
 | QualityValidationComponent | QualityValidationComponent | Feature |
-| MultiStepFormComponent | MultiStepFormComponent | Feature |
-| UploadProgressComponent | UploadProgressComponent | Feature |
+| FormContainerComponent | FormContainerComponent | Layout |
 | DocumentPreviewComponent | DocumentPreviewComponent | Feature |
-| FormProgressComponent | FormProgressComponent | Shared |
-| ValidationFeedbackComponent | ValidationFeedbackComponent | Shared |
+| UploadZoneComponent | UploadZoneComponent | Feature |
+| NavigationControlsComponent | NavigationControlsComponent | Shared |
+| StepNavigationComponent | StepNavigationComponent | Shared |
+| FooterComponent | FooterComponent | Layout |
 
-6. DATA FLOW (FROM AGENT-1)
+### 6. DATA FLOW (FROM AGENT-1)
 
-Parent → Child:
-- App → HeaderComponent (user, notifications, searchEnabled)
-- App → SidebarComponent (menuItems, activeItem, collapsed)
-- App → DocumentUploadComponent (sessionId, config, permissions)
-- DocumentUploadComponent → CameraInterfaceComponent (documentType, validationEnabled)
-- DocumentUploadComponent → QualityValidationComponent (document, validationRules)
-- DocumentUploadComponent → MultiStepFormComponent (formConfig, sessionData)
-- DocumentUploadComponent → UploadProgressComponent (files, uploadConfig)
-- CameraInterfaceComponent → CameraOverlayComponent (guides, documentType)
-- QualityValidationComponent → ValidationFeedbackComponent (results, suggestions)
-- MultiStepFormComponent → FormStepComponent (stepConfig, data, validation)
+**Parent → Child:**
+- DocumentUploadApp → HeaderComponent (user, progress, configuration)
+- DocumentUploadApp → FormContainerComponent (sessionId, formData, currentStep)
+- FormContainerComponent → StepContentComponent (stepData, validationErrors, isValid)
+- StepContentComponent → DocumentUploadStepComponent (documentType, uploadedDocs, validation)
+- DocumentUploadStepComponent → CameraInterfaceComponent (documentType, guidelines, enabled)
+- DocumentUploadStepComponent → QualityValidationComponent (document, documentType, rules)
+- DocumentUploadStepComponent → DocumentPreviewComponent (document, metadata, editOptions)
 
-7. API USAGE SUMMARY
+### 7. API USAGE SUMMARY
 
-Component → API:
-- DocumentUploadComponent → POST /forms/sessions (initialize session)
-- CameraInterfaceComponent → POST /documents/validate (real-time validation)
+**Component → API:**
+- DocumentUploadApp → POST /forms/sessions (initialize session)
+- FormContainerComponent → PUT /forms/sessions/{id} (save progress)
 - QualityValidationComponent → POST /documents/validate (quality assessment)
-- MultiStepFormComponent → PUT /forms/sessions/{id} (save progress)
-- UploadProgressComponent → POST /documents/upload (file upload)
+- DocumentPreviewComponent → POST /documents/upload (final upload)
 - HeaderComponent → GET /users/profile (user information)
-- DocumentPreviewComponent → GET /documents/{id} (document status)
+- NavigationControlsComponent → GET /forms/sessions/{id} (session state)
 
-8. NOTES & CONSTRAINTS
+### 8. NOTES & CONSTRAINTS
 
-- HTML must follow A1 structure strictly
-- Do NOT create new components unnecessarily
-- Prefer reusable library components
+**Implementation Guidelines:**
+- HTML must follow A1 structure strictly - no deviations from the defined component hierarchy
+- Do NOT create new components unnecessarily - maximize reuse of existing UI library components
+- Prefer reusable library components over custom implementations
 - HTML must be pseudo-code ONLY (NOT real framework code)
-- All components must support accessibility (WCAG 2.1 AA)
-- Mobile-first responsive design approach
-- Real-time validation requires WebSocket or polling implementation
-- Camera access requires HTTPS in production
-- File upload supports chunked upload for large files
-- Form state must be persisted across browser sessions
-- Error boundaries required for camera and upload components
-- Progressive enhancement for users without camera access
-- Compression algorithms must preserve document quality
-- Multi-language support for international users
-- Dark mode support for improved accessibility
+- CSS should include only key classes and layout rules, not full stylesheets
+- All API integrations must follow the established patterns from Agent-1
+- Maintain accessibility compliance (WCAG 2.1 AA) throughout implementation
+- Ensure mobile-first responsive design approach
+- Implement proper error boundaries and graceful degradation
+- Follow TypeScript strict mode requirements for type safety
+- Use React hooks pattern for state management
+- Implement proper loading states and user feedback
+- Ensure secure handling of sensitive document data
+- Follow established naming conventions and folder structure
+- Implement proper cleanup for camera and media resources
+- Use progressive enhancement for advanced features
+- Maintain consistent styling with design system tokens
+- Implement proper form validation and error handling
+- Ensure cross-browser compatibility for camera features
+- Follow performance best practices for image processing
+- Implement proper accessibility features for camera interface
+- Use semantic HTML elements for better screen reader support
+- Implement proper focus management for keyboard navigation
+- Follow security best practices for file upload and processing
+- Ensure proper data sanitization and validation
+- Implement proper session management and cleanup
+- Use proper error logging and monitoring integration
+- Follow established code review and testing standards
