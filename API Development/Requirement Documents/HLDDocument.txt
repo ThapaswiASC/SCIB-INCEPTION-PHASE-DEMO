@@ -10,117 +10,132 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This High-Level Design (HLD) document provides a comprehensive architectural blueprint for the Youth Account Management System, enabling parents and guardians to allocate and manage funds for their children's youth accounts while maintaining visibility and control over spending activities.
+This High-Level Design (HLD) document provides the architectural blueprint for the Youth Account Management System, enabling parents and guardians to allocate and manage funds for their children's youth accounts while maintaining visibility and control over spending activities.
 
 ### 1.2 Scope
 The system encompasses:
 - Youth account dashboard functionality
-- Fund allocation and transfer capabilities
+- Fund transfer capabilities from parent to youth accounts
 - Spending limit configuration and management
 - Transaction history and activity monitoring
-- Parent authorization and access control
+- Secure API endpoints for all operations
 
 ### 1.3 Stakeholders
-- Parents/Guardians (Primary Users)
+- Parents and Guardians (Primary Users)
 - Youth Account Holders (Secondary Users)
 - Banking Operations Team
 - Compliance and Risk Management
-- Development and Operations Teams
+- Development and Architecture Teams
 
-### 1.4 Document Structure
-This document follows enterprise architecture standards and includes architectural decisions, component design, integration patterns, and implementation guidance.
+### 1.4 References
+- SCIB-25: Parent can allocate and manage funds for a youth account
+- SCIB-26 to SCIB-30: Related API development tasks
+- Enterprise Architecture Standards
+- Banking Security Guidelines
 
 ---
 
 ## 2. System Overview
 
 ### 2.1 Business Context
-The Youth Account Management System addresses the need for financial education and controlled spending for minors while providing parents with oversight capabilities. The system integrates with existing banking infrastructure to provide seamless fund management.
+The Youth Account Management System addresses the growing need for digital financial literacy tools by providing parents with comprehensive control and visibility over their children's spending while teaching financial responsibility.
 
 ### 2.2 Key Capabilities
-- **Account Oversight**: Real-time visibility into youth account balance and activity
-- **Fund Management**: Secure transfer of funds from parent to youth accounts
-- **Spending Controls**: Configurable weekly spending limits
-- **Activity Monitoring**: Comprehensive transaction history and reporting
-- **Security & Compliance**: Multi-factor authentication and audit trails
+- **Fund Allocation**: Secure transfer of funds from parent accounts to youth accounts
+- **Spending Control**: Configurable weekly spending limits with real-time enforcement
+- **Activity Monitoring**: Comprehensive transaction history and spending pattern analysis
+- **Dashboard Management**: Centralized view of account status, balances, and recent activity
+- **Security & Compliance**: Role-based access control and audit logging
 
 ### 2.3 Success Criteria
-- Seamless integration with existing banking platform
-- Sub-500ms response times for dashboard operations
 - 99.99% system availability
-- Compliance with financial regulations (PCI-DSS, SOX)
-- Intuitive user experience across desktop and mobile platforms
+- Sub-200ms API response times
+- Zero unauthorized access incidents
+- 100% transaction audit trail coverage
 
 ---
 
 ## 3. Architecture Overview
 
-### 3.1 System Context Diagram
+### 3.1 Architectural Principles
+- **Security First**: All operations require proper authentication and authorization
+- **Scalability**: Horizontal scaling capability for growing user base
+- **Resilience**: Fault-tolerant design with graceful degradation
+- **Auditability**: Complete transaction and access logging
+- **Modularity**: Loosely coupled microservices architecture
+
+### 3.2 System Context Diagram
 ```mermaid
 C4Context
     title System Context Diagram - Youth Account Management
     
     Person(parent, "Parent/Guardian", "Primary account holder managing youth funds")
-    Person(youth, "Youth Account Holder", "Secondary user with spending access")
+    Person(youth, "Youth", "Secondary account holder with spending privileges")
     
-    System(youthSystem, "Youth Account Management System", "Enables fund allocation and spending oversight")
+    System(youthMgmt, "Youth Account Management System", "Enables fund allocation and spending control")
     
-    System_Ext(coreBank, "Core Banking System", "Primary banking platform")
-    System_Ext(paymentSvc, "Payment Processing Service", "Handles fund transfers")
-    System_Ext(authSvc, "Authentication Service", "OAuth/SSO provider")
-    System_Ext(notificationSvc, "Notification Service", "Email/SMS alerts")
+    System_Ext(bankingCore, "Core Banking System", "Handles account balances and transactions")
+    System_Ext(paymentSvc, "Payment Service", "Processes internal fund transfers")
+    System_Ext(authSvc, "Authentication Service", "Manages user authentication and authorization")
+    System_Ext(auditSvc, "Audit Service", "Logs all system activities")
     
-    Rel(parent, youthSystem, "Manages youth account", "HTTPS")
-    Rel(youth, youthSystem, "Views balance/activity", "HTTPS")
-    Rel(youthSystem, coreBank, "Account data sync", "REST API")
-    Rel(youthSystem, paymentSvc, "Fund transfers", "REST API")
-    Rel(youthSystem, authSvc, "User authentication", "OAuth 2.0")
-    Rel(youthSystem, notificationSvc, "Activity alerts", "REST API")
+    Rel(parent, youthMgmt, "Manages youth account", "HTTPS")
+    Rel(youth, youthMgmt, "Views account activity", "HTTPS")
+    Rel(youthMgmt, bankingCore, "Retrieves account data", "API")
+    Rel(youthMgmt, paymentSvc, "Initiates transfers", "API")
+    Rel(youthMgmt, authSvc, "Validates access", "API")
+    Rel(youthMgmt, auditSvc, "Logs activities", "API")
 ```
 
-### 3.2 Container Diagram
+### 3.3 Container Diagram
 ```mermaid
 C4Container
     title Container Diagram - Youth Account Management System
     
     Person(parent, "Parent/Guardian")
     
-    Container(webApp, "Web Application", "React/TypeScript", "Responsive web interface")
-    Container(mobileApp, "Mobile Application", "React Native", "iOS/Android mobile app")
-    Container(apiGateway, "API Gateway", "Kong/AWS API Gateway", "Request routing and security")
-    Container(youthService, "Youth Account Service", "Java Spring Boot", "Core business logic")
-    Container(dashboardService, "Dashboard Service", "Java Spring Boot", "Dashboard data aggregation")
-    Container(transferService, "Transfer Service", "Java Spring Boot", "Fund transfer processing")
-    Container(database, "Database", "PostgreSQL", "Youth account data storage")
-    Container(cache, "Cache Layer", "Redis", "Performance optimization")
+    Container_Boundary(youthSystem, "Youth Account Management System") {
+        Container(webApp, "Web Application", "React/TypeScript", "Provides youth account management interface")
+        Container(apiGateway, "API Gateway", "Kong/AWS API Gateway", "Routes and secures API requests")
+        Container(dashboardSvc, "Dashboard Service", "Node.js/Express", "Aggregates youth account data")
+        Container(transferSvc, "Transfer Service", "Node.js/Express", "Handles fund transfers")
+        Container(limitSvc, "Limit Service", "Node.js/Express", "Manages spending limits")
+        Container(transactionSvc, "Transaction Service", "Node.js/Express", "Retrieves transaction history")
+        Container(database, "Database", "PostgreSQL", "Stores youth account settings and metadata")
+        Container(cache, "Cache", "Redis", "Caches frequently accessed data")
+    }
     
-    System_Ext(coreBank, "Core Banking System")
+    System_Ext(bankingCore, "Core Banking System")
     System_Ext(paymentSvc, "Payment Service")
     
     Rel(parent, webApp, "Uses", "HTTPS")
-    Rel(parent, mobileApp, "Uses", "HTTPS")
-    Rel(webApp, apiGateway, "API calls", "HTTPS/REST")
-    Rel(mobileApp, apiGateway, "API calls", "HTTPS/REST")
-    Rel(apiGateway, youthService, "Routes requests", "HTTP")
-    Rel(apiGateway, dashboardService, "Routes requests", "HTTP")
-    Rel(apiGateway, transferService, "Routes requests", "HTTP")
-    Rel(youthService, database, "Reads/Writes", "JDBC")
-    Rel(dashboardService, cache, "Caches data", "Redis Protocol")
-    Rel(transferService, paymentSvc, "Initiates transfers", "REST API")
-    Rel(youthService, coreBank, "Account sync", "REST API")
+    Rel(webApp, apiGateway, "API calls", "HTTPS")
+    Rel(apiGateway, dashboardSvc, "Routes requests")
+    Rel(apiGateway, transferSvc, "Routes requests")
+    Rel(apiGateway, limitSvc, "Routes requests")
+    Rel(apiGateway, transactionSvc, "Routes requests")
+    
+    Rel(dashboardSvc, database, "Reads settings")
+    Rel(dashboardSvc, cache, "Caches data")
+    Rel(transferSvc, database, "Updates records")
+    Rel(limitSvc, database, "Stores limits")
+    
+    Rel(dashboardSvc, bankingCore, "Gets account data")
+    Rel(transferSvc, paymentSvc, "Initiates transfers")
+    Rel(transactionSvc, bankingCore, "Gets transactions")
 ```
 
-### 3.3 Deployment Diagram
+### 3.4 Deployment Diagram
 ```mermaid
 C4Deployment
     title Deployment Diagram - Youth Account Management System
     
     Deployment_Node(cdn, "CDN", "CloudFlare") {
-        Container(staticAssets, "Static Assets", "JS/CSS/Images")
+        Container(staticAssets, "Static Assets", "CSS, JS, Images")
     }
     
     Deployment_Node(loadBalancer, "Load Balancer", "AWS ALB") {
-        Container(lb, "Application Load Balancer", "Traffic distribution")
+        Container(lb, "Application Load Balancer", "Routes traffic")
     }
     
     Deployment_Node(webTier, "Web Tier", "AWS ECS Fargate") {
@@ -130,153 +145,135 @@ C4Deployment
     
     Deployment_Node(apiTier, "API Tier", "AWS ECS Fargate") {
         Container(apiGateway, "API Gateway", "Kong")
-        Container(youthSvc1, "Youth Service 1", "Spring Boot")
-        Container(youthSvc2, "Youth Service 2", "Spring Boot")
-        Container(dashSvc1, "Dashboard Service 1", "Spring Boot")
-        Container(transferSvc1, "Transfer Service 1", "Spring Boot")
+        Container(microservices, "Microservices", "Node.js Services")
     }
     
-    Deployment_Node(dataLayer, "Data Layer", "AWS RDS/ElastiCache") {
-        ContainerDb(primaryDb, "Primary Database", "PostgreSQL")
-        ContainerDb(readReplica, "Read Replica", "PostgreSQL")
-        Container(redisCache, "Redis Cache", "ElastiCache")
+    Deployment_Node(dataTier, "Data Tier", "AWS RDS/ElastiCache") {
+        Container(database, "Primary Database", "PostgreSQL")
+        Container(readReplica, "Read Replica", "PostgreSQL")
+        Container(cache, "Cache Cluster", "Redis")
     }
     
-    Rel(cdn, lb, "Serves static content")
-    Rel(lb, webApp1, "Routes traffic")
-    Rel(lb, webApp2, "Routes traffic")
-    Rel(webApp1, apiGateway, "API calls")
-    Rel(apiGateway, youthSvc1, "Routes requests")
-    Rel(apiGateway, dashSvc1, "Routes requests")
-    Rel(youthSvc1, primaryDb, "Write operations")
-    Rel(dashSvc1, readReplica, "Read operations")
-    Rel(dashSvc1, redisCache, "Cache operations")
+    Rel(cdn, loadBalancer, "Serves static content")
+    Rel(loadBalancer, webTier, "Routes requests")
+    Rel(webTier, apiTier, "API calls")
+    Rel(apiTier, dataTier, "Data operations")
 ```
 
-### 3.4 Data Model Diagram
+### 3.5 Data Model Diagram
 ```mermaid
 erDiagram
     PARENT_ACCOUNT {
-        string parent_account_id PK
-        string account_number
-        string customer_id
-        decimal balance
-        string currency
-        datetime created_date
-        datetime updated_date
+        string account_id PK
+        string parent_name
+        string email
+        datetime created_at
+        datetime updated_at
     }
     
     YOUTH_ACCOUNT {
         string youth_account_id PK
-        string account_number
         string parent_account_id FK
-        string youth_customer_id
-        decimal balance
+        string youth_name
+        decimal current_balance
         string currency
-        string status
-        datetime created_date
-        datetime updated_date
+        datetime created_at
+        datetime updated_at
     }
     
     YOUTH_ACCOUNT_SETTINGS {
         string youth_account_id PK
         decimal weekly_spending_limit
-        boolean notifications_enabled
-        string notification_preferences
+        boolean limit_enabled
         datetime updated_timestamp
     }
     
     FUND_TRANSFER {
         string transfer_id PK
         string source_account_id FK
-        string target_account_id FK
+        string youth_account_id FK
         decimal transfer_amount
         string currency
         string status
-        string transfer_type
-        datetime initiated_date
-        datetime completed_date
+        datetime transfer_date
+        datetime created_at
     }
     
-    TRANSACTION_HISTORY {
+    TRANSACTION_LOG {
         string transaction_id PK
         string youth_account_id FK
-        string merchant_name
+        string merchant
         decimal amount
         string transaction_type
-        string category
         datetime transaction_date
-        string status
-    }
-    
-    AUDIT_LOG {
-        string audit_id PK
-        string user_id
-        string action_type
-        string resource_id
-        string details
-        datetime timestamp
-        string ip_address
+        string description
     }
     
     PARENT_ACCOUNT ||--o{ YOUTH_ACCOUNT : "manages"
-    YOUTH_ACCOUNT ||--|| YOUTH_ACCOUNT_SETTINGS : "configured_by"
+    YOUTH_ACCOUNT ||--|| YOUTH_ACCOUNT_SETTINGS : "has_settings"
     PARENT_ACCOUNT ||--o{ FUND_TRANSFER : "initiates"
     YOUTH_ACCOUNT ||--o{ FUND_TRANSFER : "receives"
-    YOUTH_ACCOUNT ||--o{ TRANSACTION_HISTORY : "records"
+    YOUTH_ACCOUNT ||--o{ TRANSACTION_LOG : "generates"
 ```
 
 ---
 
 ## 4. Component Design
 
-### 4.1 Youth Account Service
-**Responsibility**: Core business logic for youth account management
-**ADR Mapping**: SCIB-26, SCIB-27, SCIB-28, SCIB-29
+### 4.1 Dashboard Service
+**Mapped to ADR**: SCIB-26 - Create API to retrieve youth account dashboard details
 
-**Key Components**:
-- Account Management Controller
-- Fund Transfer Controller
-- Spending Limit Controller
-- Transaction History Controller
-- Business Logic Layer
-- Data Access Layer
+**Responsibilities**:
+- Aggregate youth account information
+- Retrieve current balance and spending limits
+- Fetch recent transaction summaries
+- Cache frequently accessed data
 
-**Interfaces**:
-- REST API endpoints for CRUD operations
+**Key Interfaces**:
+- GET /api/youth-accounts/{youthAccountId}/dashboard
 - Integration with Core Banking System
-- Event publishing for audit and notifications
+- Integration with Cache Layer
 
-### 4.2 Dashboard Service
-**Responsibility**: Aggregates and presents youth account dashboard data
-**ADR Mapping**: SCIB-26, SCIB-195, SCIB-197
+### 4.2 Transfer Service
+**Mapped to ADR**: SCIB-27 - Create API for parent to transfer funds to youth account
 
-**Key Components**:
-- Dashboard Data Aggregator
-- Cache Manager
-- Response Formatter
-- Performance Monitor
+**Responsibilities**:
+- Validate transfer requests
+- Verify account ownership and balances
+- Initiate secure fund transfers
+- Update account balances
+- Generate transfer confirmations
 
-### 4.3 Transfer Service
-**Responsibility**: Handles secure fund transfers between accounts
-**ADR Mapping**: SCIB-27, SCIB-194
+**Key Interfaces**:
+- POST /api/youth-accounts/{youthAccountId}/fund-transfer
+- Integration with Payment Service
+- Integration with Core Banking System
 
-**Key Components**:
-- Transfer Validator
-- Payment Gateway Integration
-- Transaction Processor
-- Reconciliation Handler
+### 4.3 Limit Management Service
+**Mapped to ADR**: SCIB-28 - Create API for configuring youth spending limit
 
-### 4.4 Web Application
-**Responsibility**: User interface for parents and youth
-**ADR Mapping**: SCIB-194, SCIB-195, SCIB-196, SCIB-197
+**Responsibilities**:
+- Store and manage spending limits
+- Validate limit configurations
+- Enforce spending restrictions
+- Trigger limit breach notifications
 
-**Key Components**:
-- Dashboard Components
-- Fund Transfer Interface
-- Spending Limit Configuration
-- Transaction History View
-- Authentication Handler
+**Key Interfaces**:
+- PUT /api/youth-accounts/{youthAccountId}/spending-limit
+- GET /api/youth-accounts/{youthAccountId}/spending-limit
+
+### 4.4 Transaction Service
+**Mapped to ADR**: SCIB-29 - Create API to retrieve youth account transaction history
+
+**Responsibilities**:
+- Retrieve transaction history
+- Apply date and pagination filters
+- Format transaction data for display
+- Maintain transaction audit trails
+
+**Key Interfaces**:
+- GET /api/youth-accounts/{youthAccountId}/transactions
+- Integration with Transaction Ledger
 
 ---
 
@@ -285,299 +282,348 @@ erDiagram
 ### 5.1 Data Architecture
 - **Primary Database**: PostgreSQL for ACID compliance and complex queries
 - **Cache Layer**: Redis for session management and frequently accessed data
-- **Data Partitioning**: Transaction history partitioned by date
-- **Backup Strategy**: Daily full backups with point-in-time recovery
+- **Data Partitioning**: Transaction data partitioned by date for performance
+- **Backup Strategy**: Daily automated backups with 30-day retention
 
 ### 5.2 Data Security
-- Encryption at rest using AES-256
-- Encryption in transit using TLS 1.3
-- PII data masking in non-production environments
-- Data retention policies per regulatory requirements
+- **Encryption at Rest**: AES-256 encryption for all sensitive data
+- **Encryption in Transit**: TLS 1.3 for all data communications
+- **Data Masking**: PII masking in non-production environments
+- **Access Controls**: Role-based database access with principle of least privilege
 
-### 5.3 Data Integration
-- Real-time synchronization with Core Banking System
-- Event-driven architecture for data consistency
-- CDC (Change Data Capture) for audit trails
+### 5.3 Data Retention
+- **Transaction Data**: 7 years retention for regulatory compliance
+- **Audit Logs**: 10 years retention
+- **Session Data**: 24 hours in cache
+- **Temporary Data**: Automatic cleanup after 30 days
 
 ---
 
 ## 6. Interface Design
 
-### 6.1 API Design Principles
-- RESTful architecture following OpenAPI 3.0 specification
-- Consistent error handling and response formats
-- Versioning strategy using URI path versioning
-- Rate limiting and throttling controls
+### 6.1 User Interface Components
+**Mapped to ADRs**: SCIB-194 to SCIB-197 (UI Design subtasks)
 
-### 6.2 Authentication & Authorization
-- OAuth 2.0 with PKCE for secure authentication
-- JWT tokens with short expiration times
-- Role-based access control (RBAC)
-- Multi-factor authentication for sensitive operations
+- **Youth Account Dashboard**: Central hub displaying balance, limits, and recent activity
+- **Fund Transfer Interface**: Streamlined flow for allocating funds
+- **Spending Limit Configuration**: Intuitive controls for setting and modifying limits
+- **Transaction History View**: Filterable list of youth account activities
 
-### 6.3 User Interface Design
-- Responsive design supporting desktop, tablet, and mobile
-- Accessibility compliance (WCAG 2.1 AA)
-- Progressive Web App (PWA) capabilities
-- Consistent design system and component library
+### 6.2 API Interface Standards
+- **REST Architecture**: RESTful design principles
+- **JSON Format**: Standardized JSON request/response format
+- **HTTP Status Codes**: Proper use of HTTP status codes
+- **Error Handling**: Consistent error response structure
+- **Versioning**: API versioning strategy for backward compatibility
+
+### 6.3 Integration Interfaces
+- **Core Banking System**: Account balance and transaction APIs
+- **Payment Service**: Internal transfer processing
+- **Authentication Service**: OAuth 2.0 / JWT token validation
+- **Audit Service**: Structured logging and audit trail APIs
 
 ---
 
 ## 7. Non-Functional Aspects
 
 ### 7.1 Security
-- **Authentication**: Multi-factor authentication, OAuth 2.0
-- **Authorization**: Role-based access control, least privilege principle
-- **Data Protection**: End-to-end encryption, PII masking
-- **Security Monitoring**: Real-time threat detection, SIEM integration
-- **Vulnerability Management**: Regular security scans, penetration testing
+- **Authentication**: Multi-factor authentication for parent accounts
+- **Authorization**: Role-based access control (RBAC)
+- **Data Protection**: End-to-end encryption and secure key management
+- **Session Management**: Secure session handling with automatic timeout
+- **API Security**: Rate limiting, input validation, and SQL injection prevention
 
 ### 7.2 Compliance
-- **PCI-DSS**: Payment card industry compliance for fund transfers
-- **SOX**: Sarbanes-Oxley compliance for financial reporting
-- **GDPR**: Data privacy and protection regulations
-- **COPPA**: Children's online privacy protection
-- **Banking Regulations**: Local financial services regulations
+- **PCI-DSS**: Payment card industry compliance for financial transactions
+- **GDPR**: Data protection and privacy compliance
+- **SOX**: Financial reporting and audit trail requirements
+- **Banking Regulations**: Compliance with local banking and financial regulations
 
 ### 7.3 Performance
 - **Response Time**: < 200ms for 95% of API requests
-- **Throughput**: Support 1000 concurrent users
-- **Database Performance**: Query optimization, indexing strategy
-- **Caching Strategy**: Multi-layer caching (CDN, application, database)
+- **Throughput**: Support for 10,000 concurrent users
+- **Database Performance**: Optimized queries with sub-100ms execution time
+- **Caching Strategy**: 90% cache hit ratio for frequently accessed data
 
 ### 7.4 Scalability
-- **Horizontal Scaling**: Auto-scaling groups for API services
-- **Database Scaling**: Read replicas, connection pooling
-- **Load Balancing**: Application load balancer with health checks
-- **Microservices Architecture**: Independent service scaling
+- **Horizontal Scaling**: Auto-scaling groups for web and API tiers
+- **Database Scaling**: Read replicas and connection pooling
+- **Load Distribution**: Geographic load balancing
+- **Resource Optimization**: Container-based deployment with resource limits
 
 ### 7.5 Availability
-- **Target Uptime**: 99.99% (52.56 minutes downtime/year)
-- **Redundancy**: Multi-AZ deployment, failover mechanisms
-- **Health Monitoring**: Comprehensive health checks and alerting
-- **Circuit Breakers**: Fault tolerance patterns
+- **Uptime Target**: 99.99% availability (52.6 minutes downtime/year)
+- **Redundancy**: Multi-AZ deployment with automatic failover
+- **Health Monitoring**: Continuous health checks and alerting
+- **Graceful Degradation**: Fallback mechanisms for service failures
 
 ### 7.6 Reliability
-- **Error Handling**: Graceful degradation, retry mechanisms
-- **Data Consistency**: ACID transactions, eventual consistency patterns
-- **Backup & Recovery**: Automated backups, disaster recovery procedures
-- **Testing Strategy**: Comprehensive test coverage, chaos engineering
+- **Error Handling**: Comprehensive error handling and recovery
+- **Data Consistency**: ACID transactions for financial operations
+- **Backup and Recovery**: Automated backup with 4-hour RTO, 1-hour RPO
+- **Monitoring**: Real-time system monitoring and alerting
 
 ### 7.7 Maintainability
-- **Code Quality**: Static analysis, code reviews, documentation
-- **Monitoring**: Application performance monitoring, logging
-- **DevOps Practices**: CI/CD pipelines, infrastructure as code
-- **Documentation**: API documentation, operational runbooks
+- **Code Quality**: Automated testing with 90% code coverage
+- **Documentation**: Comprehensive API documentation and runbooks
+- **Deployment**: Automated CI/CD pipeline with blue-green deployment
+- **Monitoring**: Centralized logging and distributed tracing
 
 ### 7.8 Auditability
 - **Audit Logging**: All user actions and system events logged
-- **Compliance Reporting**: Automated compliance reports
-- **Data Lineage**: Transaction traceability and data provenance
-- **Retention Policies**: Log retention per regulatory requirements
+- **Compliance Reporting**: Automated compliance report generation
+- **Data Lineage**: Complete transaction audit trail
+- **Access Logging**: Detailed access logs with user attribution
 
 ### 7.9 Disaster Recovery
-- **RTO (Recovery Time Objective)**: < 4 hours
-- **RPO (Recovery Point Objective)**: < 1 hour
-- **Backup Strategy**: Automated daily backups, cross-region replication
-- **DR Testing**: Quarterly disaster recovery drills
+- **RTO (Recovery Time Objective)**: 4 hours maximum downtime
+- **RPO (Recovery Point Objective)**: 1 hour maximum data loss
+- **Backup Strategy**: Automated daily backups with cross-region replication
+- **DR Testing**: Quarterly disaster recovery testing
 
-### 7.10 Monitoring & Logging
-- **Application Monitoring**: APM tools, custom metrics
-- **Infrastructure Monitoring**: System metrics, alerting
+### 7.10 Backup
+- **Frequency**: Daily automated backups
+- **Retention**: 30-day backup retention with long-term archival
+- **Encryption**: All backups encrypted at rest
+- **Verification**: Automated backup integrity verification
+
+### 7.11 Monitoring
+- **Application Monitoring**: Real-time performance metrics
+- **Infrastructure Monitoring**: System resource utilization
+- **Business Metrics**: Transaction volume and success rates
+- **Alerting**: Proactive alerting for system anomalies
+
+### 7.12 Logging
 - **Centralized Logging**: ELK stack for log aggregation
-- **Real-time Dashboards**: Operational visibility and alerting
+- **Structured Logging**: JSON-formatted logs with correlation IDs
+- **Log Retention**: 90-day retention for operational logs
+- **Security Logging**: Separate security event logging
+
+### 7.13 RBAC (Role-Based Access Control)
+- **Parent Role**: Full access to owned youth accounts
+- **Youth Role**: Read-only access to own account
+- **Admin Role**: System administration capabilities
+- **Auditor Role**: Read-only access for compliance purposes
 
 ---
 
 ## 8. Integration
 
-### 8.1 Core Banking System Integration
-- **Protocol**: REST API over HTTPS
-- **Authentication**: Mutual TLS, API keys
-- **Data Synchronization**: Real-time account balance updates
-- **Error Handling**: Retry logic, circuit breaker patterns
+### 8.1 Internal Integrations
+- **Core Banking System**: Real-time account balance and transaction data
+- **Payment Processing**: Secure internal fund transfer capabilities
+- **User Authentication**: Centralized identity and access management
+- **Audit and Compliance**: Comprehensive activity logging
 
-### 8.2 Payment Processing Integration
-- **Provider**: Internal payment service
-- **Security**: PCI-DSS compliant integration
-- **Transaction Processing**: Asynchronous processing with callbacks
-- **Reconciliation**: Daily reconciliation processes
+### 8.2 Integration Patterns
+- **Synchronous APIs**: REST APIs for real-time operations
+- **Asynchronous Messaging**: Event-driven architecture for notifications
+- **Circuit Breaker**: Fault tolerance for external service calls
+- **Retry Logic**: Exponential backoff for transient failures
 
-### 8.3 Notification Service Integration
-- **Channels**: Email, SMS, push notifications
-- **Event-Driven**: Pub/sub pattern for notification triggers
-- **Templates**: Configurable message templates
-- **Delivery Tracking**: Delivery status monitoring
+### 8.3 Data Integration
+- **Real-time Sync**: Live account balance synchronization
+- **Batch Processing**: Daily reconciliation and reporting
+- **Event Streaming**: Transaction event processing
+- **Data Validation**: Cross-system data consistency checks
 
 ---
 
 ## 9. Deployment
 
-### 9.1 Environment Strategy
-- **Development**: Local development, feature branches
-- **Testing**: Integration testing, UAT environment
-- **Staging**: Production-like environment for final testing
-- **Production**: Multi-AZ deployment with blue-green deployments
+### 9.1 Deployment Architecture
+- **Container Orchestration**: AWS ECS Fargate for scalable deployment
+- **Infrastructure as Code**: Terraform for infrastructure provisioning
+- **Configuration Management**: AWS Parameter Store for secure configuration
+- **Service Discovery**: AWS Cloud Map for service registration
 
-### 9.2 Infrastructure
-- **Cloud Provider**: AWS
-- **Container Orchestration**: ECS Fargate
-- **Database**: RDS PostgreSQL with Multi-AZ
-- **Caching**: ElastiCache Redis
-- **CDN**: CloudFront for static assets
+### 9.2 Environment Strategy
+- **Development**: Feature development and unit testing
+- **Staging**: Integration testing and performance validation
+- **Production**: Live system with full monitoring and alerting
+- **DR Environment**: Standby environment for disaster recovery
 
-### 9.3 CI/CD Pipeline
-- **Source Control**: Git with feature branch workflow
-- **Build Pipeline**: Automated builds, testing, security scans
-- **Deployment**: Blue-green deployments with rollback capability
-- **Monitoring**: Post-deployment health checks and monitoring
+### 9.3 Deployment Pipeline
+- **Source Control**: Git-based version control with branch protection
+- **Build Process**: Automated build and test execution
+- **Deployment Strategy**: Blue-green deployment for zero-downtime releases
+- **Rollback Capability**: Automated rollback for deployment failures
 
 ---
 
 ## 10. Test Strategy
 
-### 10.1 Testing Pyramid
-- **Unit Tests**: 80% coverage, fast feedback
-- **Integration Tests**: API contract testing, database integration
-- **End-to-End Tests**: Critical user journeys
-- **Performance Tests**: Load testing, stress testing
+### 10.1 Testing Levels
+- **Unit Testing**: 90% code coverage requirement
+- **Integration Testing**: API contract and service integration testing
+- **System Testing**: End-to-end functional testing
+- **Performance Testing**: Load and stress testing
+- **Security Testing**: Penetration testing and vulnerability assessment
 
-### 10.2 Security Testing
-- **SAST**: Static application security testing
-- **DAST**: Dynamic application security testing
-- **Penetration Testing**: Quarterly security assessments
-- **Dependency Scanning**: Vulnerability scanning of dependencies
+### 10.2 Test Automation
+- **Automated Test Suite**: Comprehensive automated test coverage
+- **Continuous Testing**: Tests executed on every code commit
+- **Test Data Management**: Automated test data generation and cleanup
+- **Test Reporting**: Detailed test results and coverage reporting
 
-### 10.3 Test Automation
-- **Continuous Testing**: Automated test execution in CI/CD
-- **Test Data Management**: Synthetic test data generation
-- **Environment Provisioning**: Infrastructure as code for test environments
+### 10.3 Quality Gates
+- **Code Quality**: SonarQube analysis with quality gates
+- **Security Scanning**: Automated security vulnerability scanning
+- **Performance Benchmarks**: Performance regression testing
+- **Compliance Validation**: Automated compliance rule checking
 
 ---
 
 ## 11. Cross-Cutting Concerns
 
-### 11.1 Logging
-- **Structured Logging**: JSON format with correlation IDs
-- **Log Levels**: Appropriate log levels for different environments
-- **Sensitive Data**: PII masking in logs
-- **Retention**: Log retention policies per compliance requirements
+### 11.1 Logging and Monitoring
+- **Structured Logging**: Consistent log format across all services
+- **Correlation IDs**: Request tracing across service boundaries
+- **Metrics Collection**: Business and technical metrics
+- **Alerting**: Proactive monitoring with intelligent alerting
 
-### 11.2 Monitoring
-- **Application Metrics**: Business and technical metrics
-- **Infrastructure Metrics**: System health and performance
-- **Alerting**: Proactive alerting with escalation procedures
-- **Dashboards**: Real-time operational dashboards
+### 11.2 Error Handling
+- **Global Exception Handling**: Centralized error processing
+- **Error Classification**: Categorized error types and responses
+- **User-Friendly Messages**: Clear error communication to users
+- **Error Recovery**: Automatic retry and fallback mechanisms
 
 ### 11.3 Configuration Management
-- **External Configuration**: Environment-specific configurations
-- **Secret Management**: Secure storage and rotation of secrets
-- **Feature Flags**: Runtime feature toggling
-- **Configuration Validation**: Startup configuration validation
+- **External Configuration**: Environment-specific configuration
+- **Secret Management**: Secure handling of sensitive configuration
+- **Dynamic Configuration**: Runtime configuration updates
+- **Configuration Validation**: Automated configuration validation
 
 ---
 
 ## 12. Implementation Strategy
 
-### 12.1 Phase 1: Foundation (Weeks 1-4)
-- Core infrastructure setup
+### 12.1 Development Phases
+
+**Phase 1: Foundation (Weeks 1-4)**
+- Core API development (Dashboard, Transfer, Limit services)
 - Database schema implementation
 - Basic authentication and authorization
-- Core API endpoints development
+- Unit and integration testing
 
-### 12.2 Phase 2: Core Features (Weeks 5-8)
-- Youth account dashboard implementation
-- Fund transfer functionality
-- Spending limit configuration
-- Basic transaction history
-
-### 12.3 Phase 3: Enhanced Features (Weeks 9-12)
-- Advanced reporting and analytics
-- Notification system integration
-- Mobile application development
+**Phase 2: Integration (Weeks 5-8)**
+- External system integration (Core Banking, Payment Service)
+- Transaction service implementation
+- Comprehensive error handling
 - Performance optimization
 
-### 12.4 Phase 4: Production Readiness (Weeks 13-16)
+**Phase 3: User Interface (Weeks 9-12)**
+- Web application development
+- User experience optimization
+- End-to-end testing
+- Security testing and validation
+
+**Phase 4: Production Readiness (Weeks 13-16)**
+- Performance testing and tuning
 - Security hardening
-- Performance testing and optimization
-- Compliance validation
-- Production deployment and monitoring
+- Monitoring and alerting setup
+- Production deployment and go-live
+
+### 12.2 Technical Dependencies
+- **Core Banking System APIs**: Account balance and transaction APIs
+- **Payment Service**: Internal transfer processing capabilities
+- **Authentication Service**: OAuth 2.0 integration
+- **Infrastructure**: AWS cloud services and networking
+
+### 12.3 Risk Mitigation
+- **Technical Risks**: Proof of concept development for critical integrations
+- **Security Risks**: Regular security assessments and penetration testing
+- **Performance Risks**: Load testing and performance benchmarking
+- **Compliance Risks**: Regular compliance audits and validation
 
 ---
 
 ## 13. Technical Risks
 
-### 13.1 Integration Complexity
-**Risk**: Complex integration with legacy core banking system
-**Impact**: High - Could delay project delivery
-**Likelihood**: Medium
-**Mitigation**: 
-- Early integration testing
-- Fallback mechanisms
-- Dedicated integration team
-- Comprehensive API documentation
+### 13.1 High-Impact Risks
 
-### 13.2 Performance at Scale
-**Risk**: System performance degradation under high load
-**Impact**: High - Poor user experience
-**Likelihood**: Medium
-**Mitigation**:
-- Performance testing from early phases
-- Caching strategy implementation
-- Database optimization
-- Auto-scaling configuration
+**Risk: Core Banking System Integration Failure**
+- **Impact**: High - System cannot function without account data
+- **Likelihood**: Medium - Complex legacy system integration
+- **Mitigation**: 
+  - Develop comprehensive API mocking for testing
+  - Implement circuit breaker pattern
+  - Create fallback mechanisms for service degradation
+  - Establish SLA agreements with core banking team
 
-### 13.3 Security Vulnerabilities
-**Risk**: Security breaches or data exposure
-**Impact**: Critical - Regulatory and reputational damage
-**Likelihood**: Low
-**Mitigation**:
-- Security-first design approach
-- Regular security assessments
-- Penetration testing
-- Security training for development team
+**Risk: Security Breach or Data Exposure**
+- **Impact**: Critical - Regulatory penalties and customer trust loss
+- **Likelihood**: Low - With proper security controls
+- **Mitigation**:
+  - Implement defense-in-depth security architecture
+  - Regular security audits and penetration testing
+  - Comprehensive audit logging and monitoring
+  - Employee security training and access controls
 
-### 13.4 Compliance Violations
-**Risk**: Non-compliance with financial regulations
-**Impact**: Critical - Legal and financial penalties
-**Likelihood**: Low
-**Mitigation**:
-- Compliance review at each phase
-- Regular compliance audits
-- Legal team involvement
-- Automated compliance monitoring
+**Risk: Performance Degradation Under Load**
+- **Impact**: High - Poor user experience and system unavailability
+- **Likelihood**: Medium - Without proper performance testing
+- **Mitigation**:
+  - Comprehensive load testing and performance benchmarking
+  - Implement caching strategies and database optimization
+  - Auto-scaling infrastructure configuration
+  - Performance monitoring and alerting
 
-### 13.5 Data Consistency Issues
-**Risk**: Data inconsistency between systems
-**Impact**: High - Business process disruption
-**Likelihood**: Medium
-**Mitigation**:
-- Event-driven architecture
-- Compensating transactions
-- Data reconciliation processes
-- Comprehensive monitoring
+### 13.2 Medium-Impact Risks
+
+**Risk: Third-Party Service Dependencies**
+- **Impact**: Medium - Service degradation during outages
+- **Likelihood**: Medium - External service reliability
+- **Mitigation**:
+  - Implement service redundancy and failover
+  - Circuit breaker pattern for external calls
+  - Graceful degradation strategies
+  - SLA monitoring and vendor management
+
+**Risk: Regulatory Compliance Violations**
+- **Impact**: High - Legal and financial penalties
+- **Likelihood**: Low - With proper compliance framework
+- **Mitigation**:
+  - Regular compliance audits and assessments
+  - Automated compliance monitoring
+  - Legal and compliance team involvement
+  - Documentation and audit trail maintenance
 
 ---
 
 ## 14. Technical Debt
 
-### 14.1 Current Technical Debt
-- Legacy system integration complexity
-- Monolithic core banking system dependencies
-- Manual deployment processes
-- Limited test automation coverage
+### 14.1 Identified Technical Debt
 
-### 14.2 Debt Prevention Strategy
-- Code review processes
-- Automated testing requirements
-- Regular refactoring cycles
-- Architecture decision documentation
+**Legacy System Integration Complexity**
+- **Description**: Complex integration patterns required for legacy core banking system
+- **Impact**: Increased maintenance overhead and slower development velocity
+- **Remediation Plan**: 
+  - Develop abstraction layer for core banking integration
+  - Plan for API modernization in future phases
+  - Document integration patterns for team knowledge
 
-### 14.3 Debt Remediation Plan
-- Prioritize high-impact, low-effort improvements
-- Allocate 20% of sprint capacity to technical debt
-- Regular technical debt assessment
-- Stakeholder communication on technical debt impact
+**Manual Testing Processes**
+- **Description**: Some testing processes require manual intervention
+- **Impact**: Slower release cycles and potential for human error
+- **Remediation Plan**:
+  - Invest in test automation framework expansion
+  - Implement automated regression testing
+  - Train team on automated testing best practices
+
+**Monitoring and Observability Gaps**
+- **Description**: Limited visibility into system performance and user behavior
+- **Impact**: Slower issue detection and resolution
+- **Remediation Plan**:
+  - Implement comprehensive monitoring dashboard
+  - Add business metrics and user journey tracking
+  - Establish proactive alerting mechanisms
+
+### 14.2 Technical Debt Management
+- **Regular Assessment**: Quarterly technical debt review sessions
+- **Prioritization**: Impact and effort-based prioritization matrix
+- **Allocation**: 20% of development capacity allocated to technical debt
+- **Tracking**: Technical debt items tracked in project management system
 
 ---
 
@@ -585,57 +631,51 @@ erDiagram
 
 ### 15.1 ADR Mappings
 
-| ADR | Component | Decision |
-|-----|-----------|----------|
-| SCIB-25 | Parent Story | Youth account fund management requirements |
-| SCIB-26 | Dashboard API | GET /api/youth-accounts/{id}/dashboard |
-| SCIB-27 | Transfer API | POST /api/youth-accounts/{id}/fund-transfer |
-| SCIB-28 | Spending Limit API | PUT /api/youth-accounts/{id}/spending-limit |
-| SCIB-29 | Transaction History API | GET /api/youth-accounts/{id}/transactions |
-| SCIB-30 | API Documentation | OpenAPI/Swagger specification |
-| SCIB-194 | Fund Transfer UI | Transfer interaction design |
-| SCIB-195 | Dashboard UI | Dashboard layout design |
-| SCIB-196 | Spending Limit UI | Limit configuration interface |
-| SCIB-197 | Activity View UI | Transaction activity interface |
+| ADR ID | Component | HLD Section | Traceability |
+|--------|-----------|-------------|-------------|
+| SCIB-25 | Parent Story | 1.1, 2.1 | Business requirements and scope |
+| SCIB-26 | Dashboard API | 4.1, 6.2 | Dashboard service design |
+| SCIB-27 | Transfer API | 4.2, 6.2 | Transfer service design |
+| SCIB-28 | Limit API | 4.3, 6.2 | Limit management service design |
+| SCIB-29 | Transaction API | 4.4, 6.2 | Transaction service design |
+| SCIB-30 | API Specification | 6.2, 15.2 | API contract definition |
+| SCIB-194 | Transfer UI | 6.1 | User interface design |
+| SCIB-195 | Dashboard UI | 6.1 | User interface design |
+| SCIB-196 | Limit UI | 6.1 | User interface design |
+| SCIB-197 | Activity UI | 6.1 | User interface design |
 
 ### 15.2 Traceability Matrix
 
-| Requirement | Component | Test Case | ADR Reference |
-|-------------|-----------|-----------|---------------|
-| Parent dashboard access | Dashboard Service | TC-001 | SCIB-26, SCIB-195 |
-| Fund allocation | Transfer Service | TC-002 | SCIB-27, SCIB-194 |
-| Spending limit setting | Youth Account Service | TC-003 | SCIB-28, SCIB-196 |
-| Activity viewing | Dashboard Service | TC-004 | SCIB-29, SCIB-197 |
-| Insufficient balance handling | Transfer Service | TC-005 | SCIB-27 |
+| Requirement | Design Component | Implementation | Test Case |
+|-------------|------------------|----------------|----------|
+| Fund Transfer | Transfer Service | POST /fund-transfer | TC-001 |
+| Spending Limits | Limit Service | PUT /spending-limit | TC-002 |
+| Dashboard View | Dashboard Service | GET /dashboard | TC-003 |
+| Transaction History | Transaction Service | GET /transactions | TC-004 |
+| User Authentication | API Gateway | OAuth validation | TC-005 |
+| Audit Logging | Cross-cutting | All operations | TC-006 |
 
 ### 15.3 Glossary
 
-**Youth Account**: A specialized bank account for minors with parental oversight
-**Parent Account**: Primary account holder with management rights over youth accounts
-**Fund Transfer**: Movement of money between parent and youth accounts
-**Spending Limit**: Weekly maximum spending amount configured by parents
-**Dashboard**: Main interface showing account balance and recent activity
-**Transaction History**: Record of all account activities and spending
+**ADR**: Architectural Decision Record - Documents architectural decisions and rationale
+**API**: Application Programming Interface - Software interface for system interaction
+**RBAC**: Role-Based Access Control - Security model based on user roles
+**SLA**: Service Level Agreement - Commitment to service performance levels
+**OAuth**: Open Authorization - Industry standard for access delegation
+**JWT**: JSON Web Token - Compact token format for secure information transmission
+**ACID**: Atomicity, Consistency, Isolation, Durability - Database transaction properties
+**RTO**: Recovery Time Objective - Maximum acceptable downtime
+**RPO**: Recovery Point Objective - Maximum acceptable data loss
 
----
-
-**Document Approval**
-
-| Role | Name | Signature | Date |
-|------|------|-----------|------|
-| Solution Architect | [Name] | [Signature] | [Date] |
-| Technical Lead | [Name] | [Signature] | [Date] |
-| Security Architect | [Name] | [Signature] | [Date] |
-| Compliance Officer | [Name] | [Signature] | [Date] |
-
----
-
-**Document History**
+### 15.4 Document Control
 
 | Version | Date | Author | Changes |
-|---------|------|--------|----------|
-| 1.0 | 2024 | Solution Architect | Initial version |
+|---------|------|--------|---------|
+| 1.0 | 2024 | Enterprise Solution Architect | Initial version |
 
 ---
 
-*This document is confidential and proprietary. Distribution is restricted to authorized personnel only.*
+**Document Classification**: Internal
+**Review Cycle**: Quarterly
+**Next Review Date**: Q2 2024
+**Approval**: Pending Architecture Review Board
