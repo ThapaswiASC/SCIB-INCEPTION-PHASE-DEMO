@@ -1,614 +1,551 @@
 # Component Diagrams
-## Youth Account Management System
+## Document Upload Interface with Quality Validation System
 
-### Document Information
-- **Version**: 1.0
-- **Date**: 2024
-- **Project**: Youth Account Management System (SCIB-25)
-- **Generated From**: HLD Document and API Contract Outline
+### Version: 1.0
+### Date: 2024
+### Generated from: HLD Document and API Contract Outline
 
 ---
 
-## 1. System Context Component Diagram
-
-```mermaid
-C4Context
-    title Youth Account Management System - System Context
-    
-    Person(parent, "Parent/Guardian", "Manages youth account funds, spending limits, and monitors transactions")
-    Person(youth, "Youth Account Holder", "Limited access to view balance and transactions")
-    Person(admin, "System Administrator", "Manages system operations and monitoring")
-    
-    System(youthSystem, "Youth Account Management System", "Enables fund management, spending control, and transaction monitoring for youth accounts")
-    
-    System_Ext(coreBank, "Core Banking System", "Handles account operations, balance management, and fund transfers")
-    System_Ext(paymentGateway, "Payment Gateway", "Processes secure fund transfers and payment validation")
-    System_Ext(notificationService, "Notification Service", "Sends email and SMS alerts for account activities")
-    System_Ext(auditSystem, "Audit & Compliance System", "Logs all transactions and maintains regulatory compliance")
-    System_Ext(identityProvider, "Identity Provider", "OAuth 2.0 authentication and authorization service")
-    
-    Rel(parent, youthSystem, "Manages youth accounts, transfers funds, sets limits")
-    Rel(youth, youthSystem, "Views balance and transaction history")
-    Rel(admin, youthSystem, "System administration and monitoring")
-    
-    Rel(youthSystem, coreBank, "Account operations, balance queries, fund transfers", "HTTPS/REST")
-    Rel(youthSystem, paymentGateway, "Secure payment processing", "HTTPS/REST")
-    Rel(youthSystem, notificationService, "Send notifications", "HTTPS/REST")
-    Rel(youthSystem, auditSystem, "Audit logging and compliance reporting", "HTTPS/REST")
-    Rel(youthSystem, identityProvider, "Authentication and authorization", "OAuth 2.0")
-    
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
-```
-
----
-
-## 2. Container Component Diagram
-
-```mermaid
-C4Container
-    title Youth Account Management System - Container Architecture
-    
-    Person(parent, "Parent/Guardian")
-    Person(youth, "Youth Account Holder")
-    
-    Container_Boundary(clientTier, "Client Tier") {
-        Container(webApp, "Web Application", "React/TypeScript", "Responsive web interface for parents to manage youth accounts")
-        Container(mobileApp, "Mobile Application", "React Native", "Mobile app for on-the-go account management")
-    }
-    
-    Container_Boundary(apiTier, "API Tier") {
-        Container(apiGateway, "API Gateway", "Kong/AWS API Gateway", "API routing, security, rate limiting, and request/response transformation")
-        Container(authProxy, "Auth Proxy", "OAuth 2.0 Proxy", "Handles authentication and authorization for all requests")
-    }
-    
-    Container_Boundary(serviceTier, "Microservices Tier") {
-        Container(youthService, "Youth Account Service", "Java Spring Boot", "Core youth account management and dashboard data aggregation")
-        Container(transferService, "Fund Transfer Service", "Java Spring Boot", "Handles secure fund transfers between accounts")
-        Container(transactionService, "Transaction Service", "Java Spring Boot", "Transaction history management and reporting")
-        Container(limitService, "Spending Limit Service", "Java Spring Boot", "Manages and enforces spending limits")
-        Container(notificationService, "Notification Service", "Java Spring Boot", "Handles email and SMS notifications")
-        Container(bulkService, "Bulk Operations Service", "Java Spring Boot", "Processes bulk fund transfers and operations")
-    }
-    
-    Container_Boundary(dataTier, "Data Tier") {
-        ContainerDb(youthDb, "Youth Account Database", "PostgreSQL", "Stores youth account information and settings")
-        ContainerDb(transactionDb, "Transaction Database", "PostgreSQL", "Stores transaction history and audit logs")
-        ContainerDb(configDb, "Configuration Database", "PostgreSQL", "Stores spending limits and system configuration")
-        Container(cache, "Redis Cache", "Redis Cluster", "Caches frequently accessed data and session information")
-    }
-    
-    Container_Boundary(messagingTier, "Messaging Tier") {
-        Container(messageQueue, "Message Queue", "RabbitMQ", "Handles asynchronous processing and event-driven communication")
-        Container(eventStore, "Event Store", "Apache Kafka", "Stores domain events for audit and replay capabilities")
-    }
-    
-    %% Client Tier Relationships
-    Rel(parent, webApp, "Uses", "HTTPS")
-    Rel(parent, mobileApp, "Uses", "HTTPS")
-    Rel(youth, webApp, "Limited access", "HTTPS")
-    Rel(youth, mobileApp, "Limited access", "HTTPS")
-    
-    %% API Tier Relationships
-    Rel(webApp, apiGateway, "API calls", "HTTPS/REST")
-    Rel(mobileApp, apiGateway, "API calls", "HTTPS/REST")
-    Rel(apiGateway, authProxy, "Authentication", "OAuth 2.0")
-    
-    %% Service Tier Relationships
-    Rel(apiGateway, youthService, "Routes requests", "HTTP/REST")
-    Rel(apiGateway, transferService, "Routes requests", "HTTP/REST")
-    Rel(apiGateway, transactionService, "Routes requests", "HTTP/REST")
-    Rel(apiGateway, limitService, "Routes requests", "HTTP/REST")
-    Rel(apiGateway, bulkService, "Routes requests", "HTTP/REST")
-    
-    %% Inter-Service Communication
-    Rel(transferService, youthService, "Validate accounts", "HTTP/REST")
-    Rel(youthService, transactionService, "Get recent transactions", "HTTP/REST")
-    Rel(limitService, youthService, "Validate account access", "HTTP/REST")
-    
-    %% Data Tier Relationships
-    Rel(youthService, youthDb, "CRUD operations", "JDBC")
-    Rel(transferService, transactionDb, "Write transactions", "JDBC")
-    Rel(transactionService, transactionDb, "Read transactions", "JDBC")
-    Rel(limitService, configDb, "Manage limits", "JDBC")
-    
-    %% Caching Relationships
-    Rel(youthService, cache, "Cache account data", "Redis Protocol")
-    Rel(transactionService, cache, "Cache query results", "Redis Protocol")
-    Rel(limitService, cache, "Cache limit data", "Redis Protocol")
-    
-    %% Messaging Relationships
-    Rel(transferService, messageQueue, "Publish transfer events", "AMQP")
-    Rel(limitService, messageQueue, "Publish limit changes", "AMQP")
-    Rel(messageQueue, notificationService, "Consume events", "AMQP")
-    Rel(transferService, eventStore, "Store domain events", "Kafka Protocol")
-    
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
-```
-
----
-
-## 3. Youth Account Service Component Diagram
-**Mapped to**: SCIB-26 - Dashboard API
+## 1. System-Level Component Diagram
 
 ```mermaid
 C4Component
-    title Youth Account Service - Internal Components
+    title Component Diagram - Document Upload System Architecture
     
-    Container_Boundary(youthService, "Youth Account Service") {
-        Component(dashboardController, "Dashboard Controller", "Spring REST Controller", "Handles dashboard API requests and response formatting")
-        Component(accountController, "Account Controller", "Spring REST Controller", "Manages youth account CRUD operations")
-        Component(statusController, "Status Controller", "Spring REST Controller", "Handles account status changes")
-        
-        Component(dashboardService, "Dashboard Service", "Spring Service", "Aggregates dashboard data from multiple sources")
-        Component(accountService, "Account Service", "Spring Service", "Core youth account business logic")
-        Component(validationService, "Validation Service", "Spring Service", "Validates account operations and business rules")
-        
-        Component(accountRepository, "Account Repository", "Spring Data JPA", "Data access layer for youth accounts")
-        Component(settingsRepository, "Settings Repository", "Spring Data JPA", "Data access layer for account settings")
-        
-        Component(cacheManager, "Cache Manager", "Spring Cache", "Manages Redis caching for performance optimization")
-        Component(eventPublisher, "Event Publisher", "Spring Events", "Publishes domain events for async processing")
+    Container_Boundary(web, "Web Application Layer") {
+        Component(webapp, "React Web App", "React/TypeScript", "Multi-step form interface with camera integration")
+        Component(mobileapp, "Mobile App", "React Native", "Native mobile document capture")
+        Component(pwa, "Progressive Web App", "PWA", "Offline-capable web application")
     }
     
-    ContainerDb(youthDb, "Youth Account Database", "PostgreSQL")
-    Container(cache, "Redis Cache", "Redis")
-    Container(messageQueue, "Message Queue", "RabbitMQ")
-    Container(transactionService, "Transaction Service", "External Service")
+    Container_Boundary(api, "API Gateway Layer") {
+        Component(gateway, "API Gateway", "Node.js/Express", "Central API management and routing")
+        Component(ratelimit, "Rate Limiter", "Redis", "API rate limiting and throttling")
+        Component(auth_middleware, "Auth Middleware", "JWT", "Authentication and authorization")
+    }
     
-    %% Controller Layer
-    Rel(dashboardController, dashboardService, "Calls", "Method Call")
-    Rel(accountController, accountService, "Calls", "Method Call")
-    Rel(statusController, accountService, "Calls", "Method Call")
+    Container_Boundary(services, "Business Services Layer") {
+        Component(auth_service, "Authentication Service", "Node.js", "User authentication and JWT management")
+        Component(form_service, "Form Management Service", "Node.js", "Multi-step form session management")
+        Component(upload_service, "Upload Service", "Node.js", "Document upload coordination")
+        Component(validation_service, "Quality Validation Service", "Python/ML", "Real-time document quality assessment")
+        Component(component_service, "Component Library Service", "Node.js", "UI component metadata and configuration")
+        Component(user_service, "User Management Service", "Node.js", "User profile and preferences")
+        Component(notification_service, "Notification Service", "Node.js", "Real-time notifications")
+    }
     
-    %% Service Layer
-    Rel(dashboardService, accountService, "Uses", "Method Call")
-    Rel(dashboardService, transactionService, "Calls", "HTTP/REST")
-    Rel(accountService, validationService, "Validates with", "Method Call")
-    Rel(accountService, eventPublisher, "Publishes events", "Event Bus")
+    Container_Boundary(data, "Data Layer") {
+        ComponentDb(postgres, "PostgreSQL", "Database", "Primary data storage")
+        ComponentDb(redis, "Redis Cache", "Cache", "Session and performance cache")
+        ComponentDb(s3, "AWS S3", "Object Storage", "Encrypted document storage")
+        ComponentDb(elasticsearch, "Elasticsearch", "Search Engine", "Document indexing and search")
+    }
     
-    %% Repository Layer
-    Rel(accountService, accountRepository, "Uses", "JPA")
-    Rel(accountService, settingsRepository, "Uses", "JPA")
-    Rel(accountRepository, youthDb, "Queries", "JDBC")
-    Rel(settingsRepository, youthDb, "Queries", "JDBC")
+    Container_Boundary(external, "External Services") {
+        Component(ml_engine, "ML Processing Engine", "TensorFlow", "Machine learning model inference")
+        Component(ocr_service, "OCR Service", "AWS Textract", "Optical character recognition")
+        Component(audit_service, "Audit Service", "External", "Compliance and audit logging")
+        Component(kms, "Key Management", "AWS KMS", "Encryption key management")
+    }
     
-    %% Caching Layer
-    Rel(dashboardService, cacheManager, "Caches data", "Spring Cache")
-    Rel(cacheManager, cache, "Stores/Retrieves", "Redis Protocol")
+    Rel(webapp, gateway, "HTTPS API calls")
+    Rel(mobileapp, gateway, "HTTPS API calls")
+    Rel(pwa, gateway, "HTTPS API calls")
     
-    %% Event Publishing
-    Rel(eventPublisher, messageQueue, "Publishes", "AMQP")
+    Rel(gateway, ratelimit, "Rate limiting")
+    Rel(gateway, auth_middleware, "Authentication")
     
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+    Rel(gateway, auth_service, "Authentication requests")
+    Rel(gateway, form_service, "Form operations")
+    Rel(gateway, upload_service, "Upload requests")
+    Rel(gateway, validation_service, "Validation requests")
+    Rel(gateway, component_service, "Component metadata")
+    Rel(gateway, user_service, "User operations")
+    
+    Rel(auth_service, postgres, "User data")
+    Rel(auth_service, redis, "Session cache")
+    
+    Rel(form_service, postgres, "Form metadata")
+    Rel(form_service, redis, "Session data")
+    
+    Rel(upload_service, s3, "Document storage")
+    Rel(upload_service, postgres, "Metadata")
+    
+    Rel(validation_service, ml_engine, "ML inference")
+    Rel(validation_service, ocr_service, "Text extraction")
+    
+    Rel(upload_service, kms, "Encryption keys")
+    Rel(validation_service, elasticsearch, "Document indexing")
+    
+    Rel(notification_service, redis, "Message queue")
+    
+    UpdateRelStyle(webapp, gateway, $offsetY="-10", $offsetX="-40")
+    UpdateRelStyle(gateway, auth_service, $offsetY="-20", $offsetX="-60")
 ```
 
----
-
-## 4. Fund Transfer Service Component Diagram
-**Mapped to**: SCIB-27 - Fund Transfer API
+## 2. Frontend Component Architecture
 
 ```mermaid
 C4Component
-    title Fund Transfer Service - Internal Components
+    title Frontend Component Architecture
     
-    Container_Boundary(transferService, "Fund Transfer Service") {
-        Component(transferController, "Transfer Controller", "Spring REST Controller", "Handles fund transfer API requests with idempotency support")
-        Component(bulkController, "Bulk Transfer Controller", "Spring REST Controller", "Handles bulk transfer operations")
-        
-        Component(transferOrchestrator, "Transfer Orchestrator", "Spring Service", "Orchestrates the complete transfer workflow")
-        Component(validationService, "Transfer Validation Service", "Spring Service", "Validates transfer requests and business rules")
-        Component(balanceService, "Balance Service", "Spring Service", "Manages balance checks and updates")
-        Component(idempotencyService, "Idempotency Service", "Spring Service", "Handles duplicate request detection")
-        
-        Component(transferRepository, "Transfer Repository", "Spring Data JPA", "Persists transfer records and status")
-        Component(auditRepository, "Audit Repository", "Spring Data JPA", "Stores audit logs for compliance")
-        
-        Component(circuitBreaker, "Circuit Breaker", "Resilience4j", "Handles external service failures gracefully")
-        Component(retryHandler, "Retry Handler", "Spring Retry", "Implements exponential backoff for failed operations")
+    Container_Boundary(ui, "User Interface Layer") {
+        Component(app_shell, "Application Shell", "React", "Main application container and routing")
+        Component(auth_components, "Authentication Components", "React", "Login, MFA, and session management")
+        Component(form_components, "Form Components", "React", "Multi-step form interface")
+        Component(camera_components, "Camera Components", "React/WebRTC", "Document capture interface")
+        Component(upload_components, "Upload Components", "React", "File upload and progress tracking")
     }
     
-    ContainerDb(transactionDb, "Transaction Database", "PostgreSQL")
-    Container(messageQueue, "Message Queue", "RabbitMQ")
-    System_Ext(coreBank, "Core Banking System", "External")
-    System_Ext(paymentGateway, "Payment Gateway", "External")
-    Container(youthService, "Youth Account Service", "Internal Service")
+    Container_Boundary(core, "Core Component Library") {
+        Component(button_lib, "Button Components", "React", "8 states: default, hover, focus, active, disabled, loading, error, success")
+        Component(input_lib, "Input Components", "React", "Form inputs with validation")
+        Component(card_lib, "Card Components", "React", "Content containers and layouts")
+        Component(nav_lib, "Navigation Components", "React", "App navigation and breadcrumbs")
+        Component(modal_lib, "Modal Components", "React", "Dialogs and overlays")
+        Component(alert_lib, "Alert Components", "React", "Notifications and feedback")
+        Component(progress_lib, "Progress Components", "React", "Progress indicators and steppers")
+        Component(a11y_lib, "Accessibility Components", "React", "WCAG 2.1 AA compliant helpers")
+    }
     
-    %% Controller Layer
-    Rel(transferController, transferOrchestrator, "Initiates transfer", "Method Call")
-    Rel(bulkController, transferOrchestrator, "Initiates bulk transfer", "Method Call")
+    Container_Boundary(services, "Frontend Services") {
+        Component(api_client, "API Client", "Axios/TypeScript", "HTTP client with interceptors")
+        Component(state_mgmt, "State Management", "Redux Toolkit", "Application state management")
+        Component(cache_mgmt, "Cache Management", "React Query", "Server state caching")
+        Component(theme_engine, "Theme Engine", "Styled Components", "Dynamic theming and styling")
+        Component(i18n_service, "Internationalization", "React i18next", "Multi-language support")
+        Component(a11y_engine, "Accessibility Engine", "React A11y", "Accessibility enforcement")
+    }
     
-    %% Service Orchestration
-    Rel(transferOrchestrator, validationService, "Validates request", "Method Call")
-    Rel(transferOrchestrator, idempotencyService, "Checks idempotency", "Method Call")
-    Rel(transferOrchestrator, balanceService, "Checks balance", "Method Call")
+    Container_Boundary(utils, "Utility Layer") {
+        Component(validation, "Form Validation", "Yup/Formik", "Client-side validation")
+        Component(error_handler, "Error Handler", "React Error Boundary", "Global error handling")
+        Component(analytics, "Analytics", "Google Analytics", "User behavior tracking")
+        Component(offline_mgmt, "Offline Management", "Service Worker", "Offline capability")
+    }
     
-    %% External Service Integration
-    Rel(balanceService, circuitBreaker, "Calls external services", "Method Call")
-    Rel(circuitBreaker, coreBank, "Balance inquiry", "HTTPS/REST")
-    Rel(circuitBreaker, paymentGateway, "Process transfer", "HTTPS/REST")
-    Rel(circuitBreaker, retryHandler, "Retry on failure", "Method Call")
+    Rel(app_shell, auth_components, "Route to auth")
+    Rel(app_shell, form_components, "Route to forms")
+    Rel(app_shell, camera_components, "Route to camera")
+    Rel(app_shell, upload_components, "Route to upload")
     
-    %% Internal Service Communication
-    Rel(validationService, youthService, "Validate youth account", "HTTP/REST")
+    Rel(auth_components, button_lib, "Uses buttons")
+    Rel(auth_components, input_lib, "Uses inputs")
+    Rel(auth_components, alert_lib, "Shows alerts")
     
-    %% Data Persistence
-    Rel(transferOrchestrator, transferRepository, "Store transfer", "JPA")
-    Rel(transferOrchestrator, auditRepository, "Log audit events", "JPA")
-    Rel(transferRepository, transactionDb, "Persist data", "JDBC")
-    Rel(auditRepository, transactionDb, "Store audit logs", "JDBC")
+    Rel(form_components, input_lib, "Uses form inputs")
+    Rel(form_components, progress_lib, "Shows progress")
+    Rel(form_components, card_lib, "Uses cards")
     
-    %% Event Publishing
-    Rel(transferOrchestrator, messageQueue, "Publish events", "AMQP")
+    Rel(camera_components, modal_lib, "Camera overlay")
+    Rel(camera_components, alert_lib, "Quality feedback")
     
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+    Rel(upload_components, progress_lib, "Upload progress")
+    Rel(upload_components, alert_lib, "Upload status")
+    
+    Rel(api_client, state_mgmt, "Updates state")
+    Rel(api_client, cache_mgmt, "Caches responses")
+    Rel(api_client, error_handler, "Handles errors")
+    
+    Rel(theme_engine, button_lib, "Applies themes")
+    Rel(theme_engine, input_lib, "Applies themes")
+    Rel(theme_engine, card_lib, "Applies themes")
+    
+    Rel(a11y_engine, a11y_lib, "Enforces accessibility")
+    Rel(i18n_service, auth_components, "Provides translations")
+    Rel(i18n_service, form_components, "Provides translations")
 ```
 
----
-
-## 5. Transaction Service Component Diagram
-**Mapped to**: SCIB-29 - Transaction History API
+## 3. Backend Services Component Architecture
 
 ```mermaid
 C4Component
-    title Transaction Service - Internal Components
+    title Backend Services Architecture
     
-    Container_Boundary(transactionService, "Transaction Service") {
-        Component(historyController, "Transaction History Controller", "Spring REST Controller", "Handles transaction history API with pagination and filtering")
-        Component(reportController, "Report Controller", "Spring REST Controller", "Generates transaction reports and summaries")
-        
-        Component(queryService, "Query Service", "Spring Service", "Optimized query execution with caching")
-        Component(filterService, "Filter Service", "Spring Service", "Handles complex filtering and search operations")
-        Component(paginationService, "Pagination Service", "Spring Service", "Manages pagination and result set optimization")
-        Component(summaryService, "Summary Service", "Spring Service", "Calculates transaction summaries and statistics")
-        
-        Component(transactionRepository, "Transaction Repository", "Spring Data JPA", "Optimized data access with custom queries")
-        Component(indexManager, "Index Manager", "Custom Component", "Manages database indexes for query optimization")
-        
-        Component(queryCache, "Query Cache", "Spring Cache", "Caches frequent queries for performance")
-        Component(resultCache, "Result Cache", "Spring Cache", "Caches paginated results")
+    Container_Boundary(gateway, "API Gateway Layer") {
+        Component(load_balancer, "Load Balancer", "AWS ALB", "Traffic distribution and SSL termination")
+        Component(api_gateway, "API Gateway", "Express.js", "Request routing and middleware")
+        Component(auth_middleware, "Authentication Middleware", "JWT", "Token validation")
+        Component(rate_limiter, "Rate Limiter", "Express Rate Limit", "Request throttling")
+        Component(request_logger, "Request Logger", "Winston", "API request logging")
     }
     
-    ContainerDb(transactionDb, "Transaction Database", "PostgreSQL")
-    Container(cache, "Redis Cache", "Redis")
-    Container(youthService, "Youth Account Service", "Internal Service")
+    Container_Boundary(auth, "Authentication Service") {
+        Component(auth_controller, "Auth Controller", "Express", "Authentication endpoints")
+        Component(jwt_service, "JWT Service", "jsonwebtoken", "Token generation and validation")
+        Component(mfa_service, "MFA Service", "speakeasy", "Multi-factor authentication")
+        Component(password_service, "Password Service", "bcrypt", "Password hashing and validation")
+        Component(session_mgmt, "Session Management", "Redis", "User session tracking")
+    }
     
-    %% Controller Layer
-    Rel(historyController, queryService, "Execute queries", "Method Call")
-    Rel(reportController, summaryService, "Generate summaries", "Method Call")
+    Container_Boundary(forms, "Form Management Service") {
+        Component(form_controller, "Form Controller", "Express", "Form session endpoints")
+        Component(step_engine, "Step Engine", "Node.js", "Multi-step form logic")
+        Component(validation_engine, "Validation Engine", "Joi", "Form data validation")
+        Component(progress_tracker, "Progress Tracker", "Node.js", "Completion tracking")
+        Component(conditional_logic, "Conditional Logic", "Node.js", "Dynamic form behavior")
+    }
     
-    %% Service Layer Interactions
-    Rel(queryService, filterService, "Apply filters", "Method Call")
-    Rel(queryService, paginationService, "Paginate results", "Method Call")
-    Rel(queryService, queryCache, "Cache queries", "Spring Cache")
-    Rel(summaryService, transactionRepository, "Aggregate data", "JPA")
+    Container_Boundary(upload, "Document Upload Service") {
+        Component(upload_controller, "Upload Controller", "Express", "Upload endpoints")
+        Component(file_processor, "File Processor", "Multer", "File upload handling")
+        Component(virus_scanner, "Virus Scanner", "ClamAV", "Malware detection")
+        Component(compression, "Image Compression", "Sharp", "Image optimization")
+        Component(encryption, "Encryption Service", "crypto", "File encryption")
+    }
     
-    %% Authorization Check
-    Rel(queryService, youthService, "Validate access", "HTTP/REST")
+    Container_Boundary(validation, "Quality Validation Service") {
+        Component(validation_controller, "Validation Controller", "FastAPI", "Validation endpoints")
+        Component(ml_inference, "ML Inference Engine", "TensorFlow Serving", "Model inference")
+        Component(image_processor, "Image Processor", "OpenCV", "Image analysis")
+        Component(quality_analyzer, "Quality Analyzer", "scikit-image", "Quality metrics")
+        Component(feedback_generator, "Feedback Generator", "Python", "User guidance generation")
+    }
     
-    %% Data Access Layer
-    Rel(filterService, transactionRepository, "Execute filtered queries", "JPA")
-    Rel(paginationService, transactionRepository, "Execute paginated queries", "JPA")
-    Rel(transactionRepository, transactionDb, "Database queries", "JDBC")
+    Container_Boundary(components, "Component Library Service") {
+        Component(component_controller, "Component Controller", "Express", "Component metadata API")
+        Component(theme_manager, "Theme Manager", "Node.js", "Theme configuration")
+        Component(a11y_validator, "A11y Validator", "axe-core", "Accessibility validation")
+        Component(browser_compat, "Browser Compatibility", "Browserslist", "Browser support matrix")
+    }
     
-    %% Performance Optimization
-    Rel(transactionRepository, indexManager, "Optimize indexes", "Method Call")
-    Rel(indexManager, transactionDb, "Manage indexes", "SQL")
+    Rel(load_balancer, api_gateway, "Routes traffic")
+    Rel(api_gateway, auth_middleware, "Validates tokens")
+    Rel(api_gateway, rate_limiter, "Applies limits")
+    Rel(api_gateway, request_logger, "Logs requests")
     
-    %% Caching Layer
-    Rel(queryCache, cache, "Store query results", "Redis Protocol")
-    Rel(resultCache, cache, "Store paginated results", "Redis Protocol")
-    Rel(paginationService, resultCache, "Cache pages", "Spring Cache")
+    Rel(api_gateway, auth_controller, "Auth requests")
+    Rel(api_gateway, form_controller, "Form requests")
+    Rel(api_gateway, upload_controller, "Upload requests")
+    Rel(api_gateway, validation_controller, "Validation requests")
+    Rel(api_gateway, component_controller, "Component requests")
     
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+    Rel(auth_controller, jwt_service, "Token operations")
+    Rel(auth_controller, mfa_service, "MFA operations")
+    Rel(auth_controller, password_service, "Password operations")
+    Rel(auth_controller, session_mgmt, "Session operations")
+    
+    Rel(form_controller, step_engine, "Step management")
+    Rel(form_controller, validation_engine, "Data validation")
+    Rel(form_controller, progress_tracker, "Progress tracking")
+    Rel(form_controller, conditional_logic, "Dynamic behavior")
+    
+    Rel(upload_controller, file_processor, "File handling")
+    Rel(upload_controller, virus_scanner, "Security scanning")
+    Rel(upload_controller, compression, "Image optimization")
+    Rel(upload_controller, encryption, "File encryption")
+    
+    Rel(validation_controller, ml_inference, "ML predictions")
+    Rel(validation_controller, image_processor, "Image analysis")
+    Rel(validation_controller, quality_analyzer, "Quality assessment")
+    Rel(validation_controller, feedback_generator, "User feedback")
+    
+    Rel(component_controller, theme_manager, "Theme data")
+    Rel(component_controller, a11y_validator, "A11y validation")
+    Rel(component_controller, browser_compat, "Compatibility data")
 ```
 
----
-
-## 6. Spending Limit Service Component Diagram
-**Mapped to**: SCIB-28 - Spending Limit API
+## 4. Data Layer Component Architecture
 
 ```mermaid
 C4Component
-    title Spending Limit Service - Internal Components
+    title Data Layer Architecture
     
-    Container_Boundary(limitService, "Spending Limit Service") {
-        Component(limitController, "Limit Controller", "Spring REST Controller", "Handles spending limit configuration API")
-        Component(enforcementController, "Enforcement Controller", "Spring REST Controller", "Real-time limit enforcement API")
-        
-        Component(configurationService, "Configuration Service", "Spring Service", "Manages limit configuration and validation")
-        Component(enforcementService, "Enforcement Service", "Spring Service", "Real-time spending limit enforcement")
-        Component(validationService, "Validation Service", "Spring Service", "Validates limit rules and business constraints")
-        Component(notificationService, "Notification Service", "Spring Service", "Handles limit-related notifications")
-        
-        Component(limitRepository, "Limit Repository", "Spring Data JPA", "Persists spending limit configurations")
-        Component(usageRepository, "Usage Repository", "Spring Data JPA", "Tracks spending against limits")
-        
-        Component(limitCache, "Limit Cache", "Spring Cache", "Caches active limits for fast enforcement")
-        Component(usageCache, "Usage Cache", "Spring Cache", "Caches current usage for real-time checks")
+    Container_Boundary(primary, "Primary Data Storage") {
+        ComponentDb(postgres_master, "PostgreSQL Master", "Database", "Primary write database")
+        ComponentDb(postgres_replica, "PostgreSQL Read Replica", "Database", "Read-only replica for scaling")
+        Component(connection_pool, "Connection Pool", "pg-pool", "Database connection management")
+        Component(migration_engine, "Migration Engine", "Knex.js", "Database schema management")
     }
     
-    ContainerDb(configDb, "Configuration Database", "PostgreSQL")
-    Container(cache, "Redis Cache", "Redis")
-    Container(messageQueue, "Message Queue", "RabbitMQ")
-    Container(youthService, "Youth Account Service", "Internal Service")
+    Container_Boundary(cache, "Caching Layer") {
+        ComponentDb(redis_primary, "Redis Primary", "Cache", "Primary cache instance")
+        ComponentDb(redis_replica, "Redis Replica", "Cache", "Cache replica for HA")
+        Component(cache_manager, "Cache Manager", "ioredis", "Cache operations and invalidation")
+        Component(session_store, "Session Store", "connect-redis", "User session storage")
+    }
     
-    %% Controller Layer
-    Rel(limitController, configurationService, "Configure limits", "Method Call")
-    Rel(enforcementController, enforcementService, "Check limits", "Method Call")
+    Container_Boundary(storage, "Object Storage") {
+        ComponentDb(s3_primary, "S3 Primary Bucket", "Object Storage", "Encrypted document storage")
+        ComponentDb(s3_backup, "S3 Backup Bucket", "Object Storage", "Cross-region backup")
+        Component(storage_manager, "Storage Manager", "AWS SDK", "S3 operations and lifecycle")
+        Component(cdn, "CloudFront CDN", "CDN", "Global content delivery")
+    }
     
-    %% Service Layer
-    Rel(configurationService, validationService, "Validate rules", "Method Call")
-    Rel(configurationService, notificationService, "Send notifications", "Method Call")
-    Rel(enforcementService, limitCache, "Get active limits", "Spring Cache")
-    Rel(enforcementService, usageCache, "Check current usage", "Spring Cache")
+    Container_Boundary(search, "Search and Analytics") {
+        ComponentDb(elasticsearch, "Elasticsearch", "Search Engine", "Document search and indexing")
+        ComponentDb(kibana, "Kibana", "Analytics", "Search analytics and monitoring")
+        Component(search_indexer, "Search Indexer", "Node.js", "Document indexing service")
+    }
     
-    %% External Service Integration
-    Rel(configurationService, youthService, "Validate account", "HTTP/REST")
+    Container_Boundary(monitoring, "Data Monitoring") {
+        Component(db_monitor, "Database Monitor", "pg_stat_monitor", "PostgreSQL performance monitoring")
+        Component(cache_monitor, "Cache Monitor", "Redis Monitor", "Redis performance monitoring")
+        Component(storage_monitor, "Storage Monitor", "CloudWatch", "S3 usage and performance")
+        Component(backup_manager, "Backup Manager", "pg_dump", "Automated backup management")
+    }
     
-    %% Data Persistence
-    Rel(configurationService, limitRepository, "Store limits", "JPA")
-    Rel(enforcementService, usageRepository, "Track usage", "JPA")
-    Rel(limitRepository, configDb, "Persist limits", "JDBC")
-    Rel(usageRepository, configDb, "Store usage data", "JDBC")
+    Rel(connection_pool, postgres_master, "Write operations")
+    Rel(connection_pool, postgres_replica, "Read operations")
+    Rel(migration_engine, postgres_master, "Schema updates")
     
-    %% Caching Layer
-    Rel(limitCache, cache, "Cache limits", "Redis Protocol")
-    Rel(usageCache, cache, "Cache usage", "Redis Protocol")
+    Rel(cache_manager, redis_primary, "Cache operations")
+    Rel(cache_manager, redis_replica, "Read operations")
+    Rel(session_store, redis_primary, "Session data")
     
-    %% Event Publishing
-    Rel(configurationService, messageQueue, "Publish limit changes", "AMQP")
-    Rel(enforcementService, messageQueue, "Publish limit violations", "AMQP")
+    Rel(storage_manager, s3_primary, "File operations")
+    Rel(storage_manager, s3_backup, "Backup operations")
+    Rel(cdn, s3_primary, "Content delivery")
     
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+    Rel(search_indexer, elasticsearch, "Document indexing")
+    Rel(kibana, elasticsearch, "Analytics queries")
+    
+    Rel(db_monitor, postgres_master, "Monitors")
+    Rel(db_monitor, postgres_replica, "Monitors")
+    Rel(cache_monitor, redis_primary, "Monitors")
+    Rel(storage_monitor, s3_primary, "Monitors")
+    
+    Rel(backup_manager, postgres_master, "Creates backups")
+    Rel(backup_manager, s3_backup, "Stores backups")
+    
+    Rel(postgres_master, postgres_replica, "Replication")
+    Rel(redis_primary, redis_replica, "Replication")
+    Rel(s3_primary, s3_backup, "Cross-region replication")
 ```
 
----
-
-## 7. Security Component Diagram
+## 5. Security Components Architecture
 
 ```mermaid
 C4Component
-    title Security Architecture - Component View
+    title Security Architecture Components
     
-    Container_Boundary(securityLayer, "Security Layer") {
-        Component(authGateway, "Authentication Gateway", "OAuth 2.0 Provider", "Handles user authentication and token issuance")
-        Component(authzService, "Authorization Service", "Spring Security", "Role-based access control and permission management")
-        Component(tokenValidator, "Token Validator", "JWT Library", "Validates JWT tokens and extracts claims")
-        Component(mfaService, "MFA Service", "TOTP/SMS", "Multi-factor authentication for enhanced security")
-        
-        Component(rateLimiter, "Rate Limiter", "Redis-based", "Prevents API abuse with configurable limits")
-        Component(inputValidator, "Input Validator", "Spring Validation", "Validates and sanitizes all input data")
-        Component(outputFilter, "Output Filter", "Custom Filter", "Filters sensitive data from responses")
-        
-        Component(encryptionService, "Encryption Service", "AES-256", "Encrypts sensitive data at rest")
-        Component(keyManager, "Key Manager", "AWS KMS", "Manages encryption keys securely")
-        Component(auditLogger, "Audit Logger", "Structured Logging", "Logs all security events for compliance")
+    Container_Boundary(perimeter, "Security Perimeter") {
+        Component(waf, "Web Application Firewall", "AWS WAF", "Layer 7 protection")
+        Component(ddos_protection, "DDoS Protection", "AWS Shield", "Network layer protection")
+        Component(ssl_termination, "SSL Termination", "AWS ALB", "TLS 1.3 encryption")
+        Component(ip_filtering, "IP Filtering", "Security Groups", "Network access control")
     }
     
-    Container(apiGateway, "API Gateway", "Kong")
-    ContainerDb(userDb, "User Database", "PostgreSQL")
-    Container(cache, "Redis Cache", "Redis")
-    System_Ext(identityProvider, "External Identity Provider", "LDAP/AD")
+    Container_Boundary(identity, "Identity and Access Management") {
+        Component(auth_service, "Authentication Service", "OAuth 2.0/OIDC", "User authentication")
+        Component(rbac_engine, "RBAC Engine", "ABAC", "Role-based access control")
+        Component(mfa_provider, "MFA Provider", "TOTP/SMS", "Multi-factor authentication")
+        Component(identity_provider, "Identity Provider", "SAML/LDAP", "Enterprise SSO integration")
+    }
     
-    %% Authentication Flow
-    Rel(apiGateway, authGateway, "Authenticate user", "OAuth 2.0")
-    Rel(authGateway, mfaService, "MFA challenge", "HTTPS")
-    Rel(authGateway, identityProvider, "Verify credentials", "LDAP")
-    Rel(authGateway, userDb, "Store user session", "JDBC")
+    Container_Boundary(encryption, "Encryption Services") {
+        Component(kms, "Key Management Service", "AWS KMS", "Encryption key management")
+        Component(hsm, "Hardware Security Module", "AWS CloudHSM", "Hardware-based key storage")
+        Component(cert_manager, "Certificate Manager", "AWS ACM", "SSL/TLS certificate management")
+        Component(secrets_manager, "Secrets Manager", "AWS Secrets Manager", "Application secrets")
+    }
     
-    %% Authorization Flow
-    Rel(apiGateway, tokenValidator, "Validate token", "Method Call")
-    Rel(tokenValidator, authzService, "Check permissions", "Method Call")
-    Rel(authzService, userDb, "Get user roles", "JDBC")
+    Container_Boundary(monitoring, "Security Monitoring") {
+        Component(siem, "SIEM System", "Splunk/ELK", "Security information and event management")
+        Component(ids_ips, "IDS/IPS", "Suricata", "Intrusion detection and prevention")
+        Component(vulnerability_scanner, "Vulnerability Scanner", "Nessus", "Security vulnerability assessment")
+        Component(compliance_monitor, "Compliance Monitor", "AWS Config", "Regulatory compliance monitoring")
+    }
     
-    %% Security Controls
-    Rel(apiGateway, rateLimiter, "Check rate limits", "Method Call")
-    Rel(rateLimiter, cache, "Track request counts", "Redis Protocol")
-    Rel(apiGateway, inputValidator, "Validate input", "Method Call")
-    Rel(apiGateway, outputFilter, "Filter output", "Method Call")
+    Container_Boundary(data_protection, "Data Protection") {
+        Component(dlp, "Data Loss Prevention", "Symantec DLP", "Sensitive data protection")
+        Component(data_classifier, "Data Classifier", "AWS Macie", "Automatic data classification")
+        Component(backup_encryption, "Backup Encryption", "AES-256", "Encrypted backup storage")
+        Component(audit_logger, "Audit Logger", "CloudTrail", "Comprehensive audit logging")
+    }
     
-    %% Data Protection
-    Rel(encryptionService, keyManager, "Get encryption keys", "AWS KMS API")
-    Rel(userDb, encryptionService, "Encrypt sensitive data", "Method Call")
+    Container_Boundary(app_security, "Application Security") {
+        Component(input_validator, "Input Validator", "OWASP", "Input sanitization and validation")
+        Component(output_encoder, "Output Encoder", "ESAPI", "Output encoding for XSS prevention")
+        Component(csrf_protection, "CSRF Protection", "SameSite Cookies", "Cross-site request forgery protection")
+        Component(security_headers, "Security Headers", "Helmet.js", "HTTP security headers")
+    }
     
-    %% Audit Logging
-    Rel(authGateway, auditLogger, "Log auth events", "Method Call")
-    Rel(authzService, auditLogger, "Log access events", "Method Call")
-    Rel(rateLimiter, auditLogger, "Log rate limit events", "Method Call")
+    Rel(waf, ddos_protection, "Layered protection")
+    Rel(ssl_termination, waf, "Encrypted traffic")
+    Rel(ip_filtering, ssl_termination, "Network filtering")
     
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+    Rel(auth_service, rbac_engine, "Authorization")
+    Rel(auth_service, mfa_provider, "Additional verification")
+    Rel(identity_provider, auth_service, "Enterprise authentication")
+    
+    Rel(kms, hsm, "Key storage")
+    Rel(cert_manager, ssl_termination, "Certificate provisioning")
+    Rel(secrets_manager, auth_service, "Application secrets")
+    
+    Rel(siem, ids_ips, "Security events")
+    Rel(vulnerability_scanner, compliance_monitor, "Security findings")
+    Rel(audit_logger, siem, "Audit events")
+    
+    Rel(dlp, data_classifier, "Data protection policies")
+    Rel(backup_encryption, kms, "Encryption keys")
+    Rel(audit_logger, compliance_monitor, "Compliance data")
+    
+    Rel(input_validator, output_encoder, "Secure data flow")
+    Rel(csrf_protection, security_headers, "Browser security")
+    Rel(security_headers, waf, "Application protection")
 ```
 
----
-
-## 8. Data Architecture Component Diagram
-
-```mermaid
-C4Component
-    title Data Architecture - Component View
-    
-    Container_Boundary(dataLayer, "Data Management Layer") {
-        Component(connectionPool, "Connection Pool", "HikariCP", "Manages database connections efficiently")
-        Component(transactionManager, "Transaction Manager", "Spring TX", "Handles ACID transactions across services")
-        Component(dataValidator, "Data Validator", "Bean Validation", "Validates data integrity and business rules")
-        
-        Component(cacheManager, "Cache Manager", "Spring Cache", "Manages distributed caching strategy")
-        Component(cacheEviction, "Cache Eviction", "Redis Eviction", "Handles cache invalidation and cleanup")
-        
-        Component(backupManager, "Backup Manager", "pg_dump/AWS RDS", "Automated backup and recovery")
-        Component(replicationManager, "Replication Manager", "PostgreSQL Streaming", "Manages read replicas")
-        Component(archivalService, "Archival Service", "AWS S3", "Long-term data archival for compliance")
-    }
-    
-    Container_Boundary(databases, "Database Cluster") {
-        ContainerDb(primaryDb, "Primary Database", "PostgreSQL", "Master database for write operations")
-        ContainerDb(readReplica1, "Read Replica 1", "PostgreSQL", "Read-only replica for query optimization")
-        ContainerDb(readReplica2, "Read Replica 2", "PostgreSQL", "Read-only replica for geographic distribution")
-    }
-    
-    Container(cache, "Redis Cluster", "Redis")
-    Container(archiveStorage, "Archive Storage", "AWS S3")
-    
-    %% Connection Management
-    Rel(connectionPool, primaryDb, "Write operations", "JDBC")
-    Rel(connectionPool, readReplica1, "Read operations", "JDBC")
-    Rel(connectionPool, readReplica2, "Read operations", "JDBC")
-    
-    %% Transaction Management
-    Rel(transactionManager, connectionPool, "Manage transactions", "JDBC")
-    Rel(transactionManager, dataValidator, "Validate before commit", "Method Call")
-    
-    %% Caching Layer
-    Rel(cacheManager, cache, "Cache operations", "Redis Protocol")
-    Rel(cacheEviction, cache, "Evict stale data", "Redis Protocol")
-    
-    %% Replication
-    Rel(replicationManager, primaryDb, "Monitor primary", "PostgreSQL Protocol")
-    Rel(replicationManager, readReplica1, "Manage replication", "PostgreSQL Protocol")
-    Rel(replicationManager, readReplica2, "Manage replication", "PostgreSQL Protocol")
-    Rel(primaryDb, readReplica1, "Stream changes", "PostgreSQL Streaming")
-    Rel(primaryDb, readReplica2, "Stream changes", "PostgreSQL Streaming")
-    
-    %% Backup and Archival
-    Rel(backupManager, primaryDb, "Create backups", "pg_dump")
-    Rel(backupManager, archiveStorage, "Store backups", "AWS S3 API")
-    Rel(archivalService, primaryDb, "Archive old data", "SQL")
-    Rel(archivalService, archiveStorage, "Long-term storage", "AWS S3 API")
-    
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
-```
-
----
-
-## 9. Deployment Component Diagram
+## 6. Deployment Components Architecture
 
 ```mermaid
 C4Deployment
-    title Youth Account Management System - Deployment Architecture
+    title Deployment Architecture - Production Environment
     
-    Deployment_Node(cdn, "CDN", "CloudFlare") {
-        Container(staticAssets, "Static Assets", "JS/CSS/Images", "Cached static content for global distribution")
+    Deployment_Node(internet, "Internet", "Global") {
+        Deployment_Node(cdn, "Content Delivery Network", "CloudFlare/CloudFront") {
+            Container(static_assets, "Static Assets", "JS/CSS/Images")
+            Container(cached_api, "Cached API Responses", "JSON")
+        }
     }
     
-    Deployment_Node(loadBalancer, "Load Balancer", "AWS Application Load Balancer") {
-        Container(alb, "Application Load Balancer", "AWS ALB", "Distributes traffic across multiple AZs")
+    Deployment_Node(aws_cloud, "AWS Cloud", "Multi-Region") {
+        Deployment_Node(public_subnet, "Public Subnet", "DMZ") {
+            Container(alb, "Application Load Balancer", "AWS ALB")
+            Container(nat_gateway, "NAT Gateway", "AWS NAT")
+        }
+        
+        Deployment_Node(private_subnet_web, "Private Subnet - Web Tier", "10.0.1.0/24") {
+            Deployment_Node(ecs_web, "ECS Fargate Cluster", "Container Orchestration") {
+                Container(web_app, "Web Application", "React SPA")
+                Container(api_gateway, "API Gateway", "Node.js")
+            }
+        }
+        
+        Deployment_Node(private_subnet_app, "Private Subnet - App Tier", "10.0.2.0/24") {
+            Deployment_Node(ecs_app, "ECS Fargate Cluster", "Container Orchestration") {
+                Container(auth_service, "Auth Service", "Node.js")
+                Container(form_service, "Form Service", "Node.js")
+                Container(upload_service, "Upload Service", "Node.js")
+                Container(validation_service, "Validation Service", "Python")
+            }
+        }
+        
+        Deployment_Node(private_subnet_data, "Private Subnet - Data Tier", "10.0.3.0/24") {
+            Deployment_Node(rds, "RDS Multi-AZ", "Managed Database") {
+                ContainerDb(postgres_primary, "PostgreSQL Primary", "Database")
+                ContainerDb(postgres_standby, "PostgreSQL Standby", "Database")
+            }
+            
+            Deployment_Node(elasticache, "ElastiCache", "Managed Cache") {
+                ContainerDb(redis_primary, "Redis Primary", "Cache")
+                ContainerDb(redis_replica, "Redis Replica", "Cache")
+            }
+        }
+        
+        Deployment_Node(storage_tier, "Storage Tier", "Object Storage") {
+            ContainerDb(s3_documents, "S3 Documents Bucket", "Encrypted Storage")
+            ContainerDb(s3_backups, "S3 Backups Bucket", "Cross-Region")
+            ContainerDb(s3_logs, "S3 Logs Bucket", "Audit Logs")
+        }
     }
     
-    Deployment_Node(webTier, "Web Tier", "AWS ECS Fargate") {
-        Container(webApp, "Web Application", "React SPA", "Single Page Application served via Nginx")
-        Container(nginx, "Nginx", "Web Server", "Serves static content and reverse proxy")
+    Deployment_Node(monitoring, "Monitoring & Observability", "Cross-Region") {
+        Container(cloudwatch, "CloudWatch", "Metrics & Logs")
+        Container(xray, "X-Ray", "Distributed Tracing")
+        Container(elasticsearch_logs, "Elasticsearch", "Log Analytics")
+        Container(grafana, "Grafana", "Dashboards")
     }
     
-    Deployment_Node(apiTier, "API Tier", "AWS ECS Fargate - Auto Scaling Group") {
-        Container(apiGateway, "API Gateway", "Kong", "API management and security")
-        Container(youthService, "Youth Service", "Java Spring Boot", "Containerized microservice")
-        Container(transferService, "Transfer Service", "Java Spring Boot", "Containerized microservice")
-        Container(transactionService, "Transaction Service", "Java Spring Boot", "Containerized microservice")
-        Container(limitService, "Limit Service", "Java Spring Boot", "Containerized microservice")
+    Deployment_Node(security_services, "Security Services", "Global") {
+        Container(waf, "AWS WAF", "Web Application Firewall")
+        Container(shield, "AWS Shield", "DDoS Protection")
+        Container(kms, "AWS KMS", "Key Management")
+        Container(secrets_mgr, "Secrets Manager", "Secrets Storage")
     }
     
-    Deployment_Node(dataTier, "Data Tier", "AWS RDS Multi-AZ") {
-        ContainerDb(primaryRds, "Primary RDS", "PostgreSQL 14", "Multi-AZ deployment with automatic failover")
-        ContainerDb(readReplica, "Read Replica", "PostgreSQL 14", "Cross-region read replica")
-    }
+    Rel(cdn, alb, "HTTPS")
+    Rel(alb, ecs_web, "Load Balanced")
+    Rel(ecs_web, ecs_app, "Internal API")
+    Rel(ecs_app, rds, "Database Connections")
+    Rel(ecs_app, elasticache, "Cache Operations")
+    Rel(ecs_app, storage_tier, "File Operations")
     
-    Deployment_Node(cacheTier, "Cache Tier", "AWS ElastiCache") {
-        Container(redisCluster, "Redis Cluster", "Redis 7.0", "Multi-node cluster with sharding")
-    }
+    Rel(ecs_web, monitoring, "Metrics & Logs")
+    Rel(ecs_app, monitoring, "Metrics & Logs")
     
-    Deployment_Node(messagingTier, "Messaging Tier", "AWS MQ") {
-        Container(rabbitMq, "RabbitMQ", "Message Broker", "Managed message queue service")
-    }
+    Rel(alb, security_services, "Security Integration")
+    Rel(storage_tier, security_services, "Encryption")
     
-    %% Traffic Flow
-    Rel(cdn, loadBalancer, "Route traffic", "HTTPS")
-    Rel(loadBalancer, webTier, "Distribute load", "HTTPS")
-    Rel(webTier, apiTier, "API calls", "HTTPS")
-    
-    %% Service Communication
-    Rel(apiTier, dataTier, "Database operations", "PostgreSQL Protocol")
-    Rel(apiTier, cacheTier, "Cache operations", "Redis Protocol")
-    Rel(apiTier, messagingTier, "Message publishing", "AMQP")
-    
-    %% Data Replication
-    Rel(primaryRds, readReplica, "Async replication", "PostgreSQL Streaming")
-    
-    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
+    UpdateRelStyle(cdn, alb, $offsetY="-20")
+    UpdateRelStyle(ecs_web, ecs_app, $offsetX="-30")
 ```
 
 ---
 
-## Component Diagram Standards & Compliance
+## Component Architecture Patterns
 
-### Architectural Principles
-- **Microservices Architecture**: Each business capability is a separate service
-- **Single Responsibility**: Each component has a single, well-defined purpose
-- **Loose Coupling**: Services communicate via well-defined APIs
-- **High Cohesion**: Related functionality grouped within service boundaries
-- **Scalability**: Each service can be scaled independently
-- **Fault Tolerance**: Circuit breakers and retry mechanisms included
+### 1. Microservices Architecture
+- **Service Decomposition**: Each business capability as separate service
+- **API Gateway Pattern**: Centralized API management and routing
+- **Database per Service**: Independent data storage per service
+- **Event-Driven Communication**: Asynchronous service communication
 
-### Security Architecture
-- **Defense in Depth**: Multiple layers of security controls
-- **Zero Trust**: Every request is authenticated and authorized
-- **Data Protection**: Encryption at rest and in transit
-- **Audit Logging**: Complete audit trail for compliance
-- **Rate Limiting**: Protection against API abuse
-- **Input Validation**: All inputs validated and sanitized
+### 2. Layered Architecture
+- **Presentation Layer**: User interface components
+- **Business Logic Layer**: Core business services
+- **Data Access Layer**: Data persistence and caching
+- **Infrastructure Layer**: Cross-cutting concerns
 
-### Performance Architecture
-- **Caching Strategy**: Multi-level caching for optimal performance
-- **Database Optimization**: Read replicas and query optimization
-- **Connection Pooling**: Efficient database connection management
-- **Async Processing**: Non-blocking operations via message queues
-- **Load Balancing**: Traffic distribution across multiple instances
+### 3. Component Design Principles
+- **Single Responsibility**: Each component has one clear purpose
+- **Loose Coupling**: Minimal dependencies between components
+- **High Cohesion**: Related functionality grouped together
+- **Interface Segregation**: Clean, focused interfaces
 
-### Reliability Architecture
-- **Circuit Breakers**: Prevent cascade failures
-- **Retry Logic**: Exponential backoff for transient failures
-- **Health Checks**: Comprehensive service monitoring
-- **Graceful Degradation**: Non-critical features fail gracefully
-- **Data Consistency**: ACID transactions for financial operations
+### 4. Security Architecture Patterns
+- **Defense in Depth**: Multiple security layers
+- **Zero Trust**: Verify every request and user
+- **Least Privilege**: Minimal required permissions
+- **Secure by Default**: Security built into components
 
-### Compliance Architecture
-- **GDPR Compliance**: Data protection and privacy controls
-- **PCI-DSS Compliance**: Payment card data security
-- **SOX Compliance**: Financial reporting controls
-- **Audit Trail**: Complete logging for regulatory requirements
-- **Data Retention**: 7-year retention for financial data
+### 5. Scalability Patterns
+- **Horizontal Scaling**: Scale out with load balancers
+- **Auto-scaling**: Dynamic resource allocation
+- **Caching Strategy**: Multi-layer caching implementation
+- **CDN Integration**: Global content delivery
 
-### Technology Stack
-- **Frontend**: React/TypeScript with responsive design
-- **Backend**: Java Spring Boot microservices
-- **Database**: PostgreSQL with read replicas
-- **Cache**: Redis cluster for distributed caching
-- **Message Queue**: RabbitMQ for async processing
-- **API Gateway**: Kong for API management
-- **Container Platform**: AWS ECS Fargate
-- **Cloud Provider**: AWS with multi-AZ deployment
+### 6. Reliability Patterns
+- **Circuit Breaker**: Fault tolerance for service calls
+- **Bulkhead**: Isolation of critical resources
+- **Retry with Backoff**: Resilient error handling
+- **Health Checks**: Proactive service monitoring
 
 ---
 
-**Component Mappings to JIRA Requirements**
+## Component Integration Guidelines
 
-| Component | JIRA Reference | Responsibility | Performance Target |
-|-----------|----------------|----------------|-------------------|
-| Youth Account Service | SCIB-26 | Dashboard API and account management | <500ms response time |
-| Fund Transfer Service | SCIB-27 | Secure fund transfers | <2000ms response time |
-| Spending Limit Service | SCIB-28 | Limit configuration and enforcement | <300ms response time |
-| Transaction Service | SCIB-29 | Transaction history and reporting | <800ms response time |
-| API Gateway | SCIB-30 | OpenAPI specification compliance | Rate limiting: 1000/hour |
+### 1. API Design Standards
+- **RESTful APIs**: Standard HTTP methods and status codes
+- **OpenAPI Specification**: Comprehensive API documentation
+- **Versioning Strategy**: Backward compatibility maintenance
+- **Error Handling**: Consistent error response format
+
+### 2. Data Flow Patterns
+- **Request/Response**: Synchronous API communication
+- **Event Streaming**: Asynchronous data processing
+- **Batch Processing**: Bulk data operations
+- **Real-time Updates**: WebSocket connections
+
+### 3. Security Integration
+- **Authentication Flow**: JWT token-based authentication
+- **Authorization Checks**: RBAC at component boundaries
+- **Data Encryption**: End-to-end encryption implementation
+- **Audit Logging**: Comprehensive activity tracking
+
+### 4. Performance Optimization
+- **Caching Strategy**: Component-level caching
+- **Connection Pooling**: Efficient resource utilization
+- **Lazy Loading**: On-demand component loading
+- **Code Splitting**: Optimized bundle sizes
+
+### 5. Monitoring and Observability
+- **Health Endpoints**: Component health monitoring
+- **Metrics Collection**: Performance and business metrics
+- **Distributed Tracing**: End-to-end request tracking
+- **Log Aggregation**: Centralized logging strategy
 
 ---
 
-**Document Approval**
-- **Solution Architect**: [Generated from HLD Document]
-- **Security Architect**: [Security components included]
-- **Data Architect**: [Data architecture validated]
-- **DevOps Engineer**: [Deployment architecture reviewed]
-
-**Traceability**
-- **Source**: HLD Document (API Development/Requirement Documents/HLDDocument.txt)
-- **API Contract**: API Contract Outline (API Development/Requirement Documents/APIContractOutline.txt)
-- **JIRA Mappings**: SCIB-25 through SCIB-30
-- **Generated**: 2024 via Enterprise Architecture Automation
+*These component diagrams provide a comprehensive view of the Document Upload Interface with Quality Validation System architecture, showing the relationships and dependencies between all system components while maintaining enterprise standards for security, scalability, and maintainability.*

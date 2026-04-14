@@ -1,431 +1,390 @@
 # Sequence Diagrams
-## Youth Account Management System
+## Document Upload Interface with Quality Validation System
 
-### Document Information
-- **Version**: 1.0
-- **Date**: 2024
-- **Project**: Youth Account Management System (SCIB-25)
-- **Generated From**: HLD Document and API Contract Outline
+### Version: 1.0
+### Date: 2024
+### Generated from: HLD Document and API Contract Outline
 
 ---
 
-## 1. Youth Account Dashboard Sequence
-**Mapped to**: SCIB-26 - Dashboard API
+## 1. Document Upload Flow Sequence Diagram
 
 ```mermaid
 sequenceDiagram
-    participant Parent as Parent/Guardian
+    participant User as End User
     participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant YouthService as Youth Account Service
+    participant API as API Gateway
+    participant Auth as Authentication Service
+    participant FormMgr as Form Manager
+    participant Camera as Camera Interface
+    participant Validator as Quality Validator
+    participant Upload as Upload Service
+    participant Storage as Secure Storage
+    participant Audit as Audit Service
+    
+    User->>WebApp: Access document upload page
+    WebApp->>API: GET /health
+    API-->>WebApp: System status
+    
+    WebApp->>API: POST /auth/login
+    API->>Auth: Validate credentials
+    Auth-->>API: JWT token
+    API-->>WebApp: Authentication response
+    
+    WebApp->>API: POST /forms/sessions
+    API->>FormMgr: Create form session
+    FormMgr-->>API: Session ID and metadata
+    API-->>WebApp: Form session created
+    
+    WebApp->>Camera: Initialize camera interface
+    Camera->>User: Display overlay guidance
+    User->>Camera: Capture document image
+    
+    Camera->>API: POST /documents/validate
+    API->>Validator: Real-time quality check
+    Validator-->>API: Quality assessment
+    API-->>Camera: Validation results
+    
+    alt Quality Acceptable
+        Camera->>API: POST /documents/upload
+        API->>Upload: Process document upload
+        Upload->>Storage: Store encrypted document
+        Storage-->>Upload: Storage confirmation
+        Upload->>Audit: Log upload activity
+        Upload-->>API: Upload success
+        API->>FormMgr: Update session progress
+        FormMgr-->>API: Progress updated
+        API-->>WebApp: Upload completed
+        WebApp-->>User: Success notification
+    else Quality Rejected
+        Camera-->>User: Show improvement suggestions
+        User->>Camera: Retake document
+    end
+```
+
+## 2. Multi-Step Form Navigation Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant User as End User
+    participant WebApp as Web Application
+    participant API as API Gateway
+    participant FormMgr as Form Manager
+    participant Validator as Form Validator
     participant Cache as Redis Cache
-    participant Database as PostgreSQL DB
-    participant TransactionService as Transaction Service
+    participant DB as PostgreSQL
+    participant Audit as Audit Service
     
-    Parent->>WebApp: Request Dashboard
-    WebApp->>APIGateway: GET /api/youth-accounts/{id}/dashboard
-    APIGateway->>APIGateway: Validate OAuth 2.0 Token
-    APIGateway->>APIGateway: Rate Limit Check (1000/hour)
-    APIGateway->>YouthService: Forward Request
+    User->>WebApp: Start application form
+    WebApp->>API: POST /forms/sessions
+    API->>FormMgr: Initialize form session
+    FormMgr->>Cache: Store session data
+    FormMgr->>DB: Persist session metadata
+    FormMgr-->>API: Session created
+    API-->>WebApp: Form session response
     
-    YouthService->>Cache: Check Cache for Account Data
-    alt Cache Hit
-        Cache-->>YouthService: Return Cached Data
-    else Cache Miss
-        YouthService->>Database: Query Youth Account Details
-        Database-->>YouthService: Account Data
-        YouthService->>Cache: Store in Cache (TTL: 5min)
-    end
-    
-    YouthService->>TransactionService: Get Recent Transactions
-    TransactionService->>Database: Query Recent Transactions
-    Database-->>TransactionService: Transaction Data
-    TransactionService-->>YouthService: Recent Transactions
-    
-    YouthService->>YouthService: Aggregate Dashboard Data
-    YouthService-->>APIGateway: Dashboard Response (200 OK)
-    APIGateway-->>WebApp: JSON Response
-    WebApp-->>Parent: Dashboard View
-    
-    Note over Parent, Database: Target Response Time: <500ms (95th percentile)
-```
-
----
-
-## 2. Fund Transfer Sequence
-**Mapped to**: SCIB-27 - Fund Transfer API
-
-```mermaid
-sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant TransferService as Fund Transfer Service
-    participant YouthService as Youth Account Service
-    participant CoreBanking as Core Banking System
-    participant PaymentGateway as Payment Gateway
-    participant MessageQueue as Message Queue
-    participant NotificationService as Notification Service
-    participant AuditSystem as Audit System
-    
-    Parent->>WebApp: Initiate Fund Transfer
-    WebApp->>APIGateway: POST /api/youth-accounts/{id}/fund-transfer
-    APIGateway->>APIGateway: Validate OAuth 2.0 Token
-    APIGateway->>APIGateway: Check Idempotency Key
-    APIGateway->>TransferService: Forward Transfer Request
-    
-    TransferService->>TransferService: Validate Transfer Amount ($1-$500)
-    TransferService->>TransferService: Validate Business Rules
-    
-    TransferService->>CoreBanking: Check Source Account Balance
-    CoreBanking-->>TransferService: Balance Information
-    
-    alt Sufficient Funds
-        TransferService->>YouthService: Validate Youth Account
-        YouthService-->>TransferService: Account Valid
+    loop For Each Form Step
+        WebApp->>User: Display current step
+        User->>WebApp: Fill step data
+        WebApp->>API: PUT /forms/sessions/{session_id}
+        API->>Validator: Validate step data
+        Validator-->>API: Validation results
         
-        TransferService->>PaymentGateway: Process Transfer
-        PaymentGateway->>CoreBanking: Execute Transfer
-        CoreBanking-->>PaymentGateway: Transfer Confirmation
-        PaymentGateway-->>TransferService: Transfer Success
-        
-        TransferService->>TransferService: Update Account Balances
-        TransferService->>MessageQueue: Publish Transfer Event
-        
-        par Async Notifications
-            MessageQueue->>NotificationService: Transfer Notification
-            NotificationService->>NotificationService: Send Email/SMS
-        and Audit Logging
-            MessageQueue->>AuditSystem: Log Transfer Event
-            AuditSystem->>AuditSystem: Store Audit Record
-        end
-        
-        TransferService-->>APIGateway: Transfer Success (201 Created)
-        
-    else Insufficient Funds
-        TransferService-->>APIGateway: Insufficient Funds Error (402)
-        
-    else Invalid Account
-        TransferService-->>APIGateway: Account Not Found (404)
-    end
-    
-    APIGateway-->>WebApp: Transfer Response
-    WebApp-->>Parent: Transfer Result
-    
-    Note over Parent, AuditSystem: Target Response Time: <2000ms (95th percentile)
-```
-
----
-
-## 3. Spending Limit Configuration Sequence
-**Mapped to**: SCIB-28 - Spending Limit API
-
-```mermaid
-sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant LimitService as Spending Limit Service
-    participant ConfigDB as Configuration DB
-    participant YouthService as Youth Account Service
-    participant Cache as Redis Cache
-    participant MessageQueue as Message Queue
-    participant NotificationService as Notification Service
-    
-    Parent->>WebApp: Configure Spending Limits
-    WebApp->>APIGateway: PUT /api/youth-accounts/{id}/spending-limit
-    APIGateway->>APIGateway: Validate OAuth 2.0 Token
-    APIGateway->>APIGateway: Authorize Parent Access
-    APIGateway->>LimitService: Forward Limit Request
-    
-    LimitService->>LimitService: Validate Limit Values
-    LimitService->>LimitService: Check Business Rules (daily ≤ weekly/7)
-    
-    alt Valid Limits
-        LimitService->>YouthService: Validate Youth Account
-        YouthService-->>LimitService: Account Exists
-        
-        LimitService->>ConfigDB: Update Spending Limits
-        ConfigDB-->>LimitService: Update Confirmation
-        
-        LimitService->>Cache: Invalidate Cached Limits
-        Cache-->>LimitService: Cache Cleared
-        
-        LimitService->>MessageQueue: Publish Limit Change Event
-        MessageQueue->>NotificationService: Limit Update Notification
-        NotificationService->>NotificationService: Notify Parent & Youth
-        
-        LimitService-->>APIGateway: Limit Updated (200 OK)
-        
-    else Invalid Limits
-        LimitService-->>APIGateway: Validation Error (422)
-        
-    else Unauthorized
-        LimitService-->>APIGateway: Forbidden (403)
-    end
-    
-    APIGateway-->>WebApp: Limit Response
-    WebApp-->>Parent: Configuration Result
-    
-    Note over Parent, NotificationService: Target Response Time: <300ms (95th percentile)
-```
-
----
-
-## 4. Transaction History Retrieval Sequence
-**Mapped to**: SCIB-29 - Transaction History API
-
-```mermaid
-sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant TransactionService as Transaction Service
-    participant Cache as Redis Cache
-    participant TransactionDB as Transaction DB
-    participant YouthService as Youth Account Service
-    
-    Parent->>WebApp: Request Transaction History
-    WebApp->>APIGateway: GET /api/youth-accounts/{id}/transactions?page=1&pageSize=20
-    APIGateway->>APIGateway: Validate OAuth 2.0 Token
-    APIGateway->>APIGateway: Authorize Parent Access
-    APIGateway->>TransactionService: Forward Request
-    
-    TransactionService->>TransactionService: Validate Query Parameters
-    TransactionService->>TransactionService: Build Query with Filters
-    
-    TransactionService->>YouthService: Validate Youth Account Access
-    YouthService-->>TransactionService: Access Authorized
-    
-    TransactionService->>Cache: Check Cache for Query Result
-    alt Cache Hit (Recent Queries)
-        Cache-->>TransactionService: Return Cached Results
-    else Cache Miss
-        TransactionService->>TransactionDB: Execute Paginated Query
-        Note over TransactionDB: Indexed query on youth_account_id, date
-        TransactionDB-->>TransactionService: Transaction Results
-        TransactionService->>Cache: Cache Results (TTL: 2min)
-    end
-    
-    TransactionService->>TransactionService: Calculate Summary Statistics
-    TransactionService->>TransactionService: Build Pagination Metadata
-    
-    TransactionService-->>APIGateway: Transaction History (200 OK)
-    APIGateway-->>WebApp: JSON Response
-    WebApp-->>Parent: Transaction List View
-    
-    Note over Parent, TransactionDB: Target Response Time: <800ms (95th percentile)
-```
-
----
-
-## 5. Account Status Management Sequence
-
-```mermaid
-sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant YouthService as Youth Account Service
-    participant Database as PostgreSQL DB
-    participant MessageQueue as Message Queue
-    participant NotificationService as Notification Service
-    participant AuditSystem as Audit System
-    
-    Parent->>WebApp: Suspend/Reactivate Account
-    WebApp->>APIGateway: PATCH /api/youth-accounts/{id}/status
-    APIGateway->>APIGateway: Validate OAuth 2.0 Token
-    APIGateway->>APIGateway: Authorize Parent Access
-    APIGateway->>YouthService: Forward Status Change
-    
-    YouthService->>YouthService: Validate Status Transition
-    YouthService->>Database: Update Account Status
-    Database-->>YouthService: Status Updated
-    
-    YouthService->>MessageQueue: Publish Status Change Event
-    
-    par Async Processing
-        MessageQueue->>NotificationService: Status Change Notification
-        NotificationService->>NotificationService: Send Alerts
-    and Audit Logging
-        MessageQueue->>AuditSystem: Log Status Change
-        AuditSystem->>AuditSystem: Store Audit Record
-    end
-    
-    YouthService-->>APIGateway: Status Updated (200 OK)
-    APIGateway-->>WebApp: Status Response
-    WebApp-->>Parent: Status Change Confirmation
-```
-
----
-
-## 6. Bulk Fund Transfer Sequence
-
-```mermaid
-sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant BulkService as Bulk Operations Service
-    participant TransferService as Fund Transfer Service
-    participant MessageQueue as Message Queue
-    participant Database as PostgreSQL DB
-    
-    Parent->>WebApp: Initiate Bulk Transfer
-    WebApp->>APIGateway: POST /api/youth-accounts/bulk/fund-transfer
-    APIGateway->>APIGateway: Validate OAuth 2.0 Token
-    APIGateway->>BulkService: Forward Bulk Request
-    
-    BulkService->>BulkService: Validate Batch Request
-    BulkService->>BulkService: Create Batch ID
-    BulkService->>Database: Store Batch Record
-    
-    BulkService->>MessageQueue: Queue Individual Transfers
-    BulkService-->>APIGateway: Batch Accepted (202)
-    APIGateway-->>WebApp: Batch ID & Status URL
-    WebApp-->>Parent: Batch Processing Started
-    
-    loop For Each Transfer
-        MessageQueue->>TransferService: Process Individual Transfer
-        TransferService->>TransferService: Execute Transfer Logic
-        TransferService->>Database: Update Batch Status
-    end
-    
-    Note over Parent, Database: Async processing with status tracking
-```
-
----
-
-## 7. Error Handling Sequence
-
-```mermaid
-sequenceDiagram
-    participant Client as Client Application
-    participant APIGateway as API Gateway
-    participant Service as Microservice
-    participant CircuitBreaker as Circuit Breaker
-    participant ExternalSystem as External System
-    participant Logger as Centralized Logger
-    
-    Client->>APIGateway: API Request
-    APIGateway->>Service: Forward Request
-    Service->>CircuitBreaker: Call External System
-    
-    alt Circuit Breaker Open
-        CircuitBreaker-->>Service: Fail Fast
-        Service->>Logger: Log Circuit Breaker Event
-        Service-->>APIGateway: Service Unavailable (503)
-        
-    else Circuit Breaker Closed
-        CircuitBreaker->>ExternalSystem: Forward Call
-        
-        alt External System Failure
-            ExternalSystem-->>CircuitBreaker: Timeout/Error
-            CircuitBreaker->>CircuitBreaker: Record Failure
-            CircuitBreaker-->>Service: External Error
-            Service->>Service: Retry with Exponential Backoff
-            Service->>Logger: Log Retry Attempt
-            
-            alt Retry Successful
-                Service-->>APIGateway: Success Response
-            else Max Retries Exceeded
-                Service->>Logger: Log Max Retries Exceeded
-                Service-->>APIGateway: External Service Error (502)
-            end
-            
-        else External System Success
-            ExternalSystem-->>CircuitBreaker: Success Response
-            CircuitBreaker-->>Service: Success Response
-            Service-->>APIGateway: Success Response
+        alt Validation Passed
+            API->>FormMgr: Update step data
+            FormMgr->>Cache: Update cached session
+            FormMgr->>DB: Persist step data
+            FormMgr->>Audit: Log step completion
+            FormMgr-->>API: Step updated
+            API-->>WebApp: Next step available
+            WebApp-->>User: Progress to next step
+        else Validation Failed
+            API-->>WebApp: Validation errors
+            WebApp-->>User: Show error messages
         end
     end
     
-    APIGateway->>APIGateway: Add Correlation ID
-    APIGateway-->>Client: Response with Error Details
+    WebApp->>API: GET /forms/sessions/{session_id}
+    API->>FormMgr: Get complete session
+    FormMgr->>Cache: Retrieve session data
+    FormMgr-->>API: Complete form data
+    API-->>WebApp: Form summary
+    WebApp-->>User: Review and submit
 ```
 
----
-
-## 8. Authentication & Authorization Sequence
+## 3. User Authentication and Authorization Sequence Diagram
 
 ```mermaid
 sequenceDiagram
-    participant Parent as Parent/Guardian
+    participant User as End User
     participant WebApp as Web Application
-    participant AuthService as OAuth 2.0 Provider
-    participant APIGateway as API Gateway
-    participant YouthService as Youth Account Service
+    participant API as API Gateway
+    participant Auth as Authentication Service
     participant MFA as MFA Service
+    participant RBAC as Authorization Service
+    participant Cache as Redis Cache
+    participant Audit as Audit Service
     
-    Parent->>WebApp: Login Request
-    WebApp->>AuthService: OAuth 2.0 Authorization Request
-    AuthService->>MFA: Trigger MFA Challenge
-    MFA-->>Parent: Send MFA Code (SMS/Email)
-    Parent->>AuthService: Provide MFA Code
-    AuthService->>AuthService: Validate MFA
-    AuthService-->>WebApp: Authorization Code
+    User->>WebApp: Enter credentials
+    WebApp->>API: POST /auth/login
+    API->>Auth: Validate credentials
     
-    WebApp->>AuthService: Exchange Code for Token
-    AuthService-->>WebApp: JWT Access Token + Refresh Token
-    
-    WebApp->>APIGateway: API Request with Bearer Token
-    APIGateway->>APIGateway: Validate JWT Token
-    APIGateway->>APIGateway: Check Token Expiry (1 hour)
-    APIGateway->>APIGateway: Verify Scopes & Permissions
-    
-    alt Valid Token
-        APIGateway->>YouthService: Forward Authorized Request
-        YouthService->>YouthService: Check Resource Access (RBAC)
-        YouthService-->>APIGateway: Service Response
-        APIGateway-->>WebApp: API Response
+    alt Credentials Valid
+        Auth->>MFA: Trigger MFA if enabled
+        MFA-->>User: Send MFA code
+        User->>WebApp: Enter MFA code
+        WebApp->>API: Verify MFA code
+        API->>MFA: Validate MFA code
         
-    else Invalid/Expired Token
-        APIGateway-->>WebApp: Unauthorized (401)
-        WebApp->>AuthService: Refresh Token Request
-        AuthService-->>WebApp: New Access Token
+        alt MFA Valid
+            MFA->>RBAC: Get user permissions
+            RBAC-->>MFA: User roles and permissions
+            MFA->>Auth: Generate JWT token
+            Auth->>Cache: Store session data
+            Auth->>Audit: Log successful login
+            Auth-->>API: JWT token and user info
+            API-->>WebApp: Authentication success
+            WebApp-->>User: Redirect to dashboard
+        else MFA Invalid
+            MFA->>Audit: Log failed MFA attempt
+            MFA-->>API: MFA validation failed
+            API-->>WebApp: Authentication failed
+            WebApp-->>User: Show MFA error
+        end
+    else Credentials Invalid
+        Auth->>Audit: Log failed login attempt
+        Auth-->>API: Authentication failed
+        API-->>WebApp: Invalid credentials
+        WebApp-->>User: Show login error
+    end
+```
+
+## 4. Document Processing and Validation Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant API as API Gateway
+    participant Upload as Upload Service
+    participant Validator as ML Validator
+    participant OCR as OCR Service
+    participant Classifier as Document Classifier
+    participant Storage as Secure Storage
+    participant Queue as Processing Queue
+    participant Notification as Notification Service
+    participant Audit as Audit Service
+    
+    API->>Upload: Document upload request
+    Upload->>Storage: Store original document
+    Upload->>Queue: Add to processing queue
+    Upload-->>API: Upload acknowledged
+    
+    Queue->>Validator: Process document
+    Validator->>Classifier: Detect document type
+    Classifier-->>Validator: Document type identified
+    
+    Validator->>OCR: Extract text content
+    OCR-->>Validator: Extracted text
+    
+    par Quality Checks
+        Validator->>Validator: Check brightness/contrast
+    and
+        Validator->>Validator: Check blur/focus
+    and
+        Validator->>Validator: Check completeness
+    and
+        Validator->>Validator: Check document integrity
+    end
+    
+    Validator->>Storage: Update validation results
+    Validator->>Audit: Log validation activity
+    
+    alt Validation Passed
+        Validator->>Notification: Send success notification
+        Notification-->>API: Document validated
+    else Validation Failed
+        Validator->>Notification: Send rejection notification
+        Notification-->>API: Document rejected
+    end
+```
+
+## 5. Component Library Integration Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant App as Application
+    participant CompLib as Component Library
+    participant ThemeEngine as Theme Engine
+    participant A11y as Accessibility Engine
+    participant Cache as Component Cache
+    participant CDN as Content Delivery Network
+    
+    Dev->>App: Import component
+    App->>CompLib: Request component metadata
+    CompLib->>Cache: Check component cache
+    
+    alt Component Cached
+        Cache-->>CompLib: Return cached component
+    else Component Not Cached
+        CompLib->>CDN: Fetch component assets
+        CDN-->>CompLib: Component files
+        CompLib->>Cache: Cache component
+    end
+    
+    CompLib->>ThemeEngine: Apply theme variables
+    ThemeEngine-->>CompLib: Themed component
+    
+    CompLib->>A11y: Apply accessibility features
+    A11y-->>CompLib: Accessible component
+    
+    CompLib-->>App: Rendered component
+    App-->>Dev: Component displayed
+    
+    Note over CompLib,A11y: All components include WCAG 2.1 AA compliance
+    Note over ThemeEngine: Supports light/dark themes and RTL layouts
+```
+
+## 6. Error Handling and Recovery Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant User as End User
+    participant WebApp as Web Application
+    participant API as API Gateway
+    participant Service as Backend Service
+    participant Circuit as Circuit Breaker
+    participant Fallback as Fallback Service
+    participant Monitor as Monitoring
+    participant Alert as Alert System
+    
+    User->>WebApp: Perform action
+    WebApp->>API: API request
+    API->>Circuit: Check circuit state
+    
+    alt Circuit Closed (Normal)
+        Circuit->>Service: Forward request
+        Service-->>Circuit: Service error
+        Circuit->>Monitor: Log error
+        Circuit->>Circuit: Increment failure count
+        
+        alt Failure Threshold Reached
+            Circuit->>Circuit: Open circuit
+            Circuit->>Alert: Send alert
+            Circuit->>Fallback: Use fallback service
+            Fallback-->>Circuit: Fallback response
+            Circuit-->>API: Degraded response
+        else Threshold Not Reached
+            Circuit-->>API: Error response
+        end
+    else Circuit Open (Failing)
+        Circuit->>Fallback: Use fallback service
+        Fallback-->>Circuit: Fallback response
+        Circuit-->>API: Degraded response
+    else Circuit Half-Open (Testing)
+        Circuit->>Service: Test request
+        alt Service Healthy
+            Service-->>Circuit: Success response
+            Circuit->>Circuit: Close circuit
+            Circuit-->>API: Normal response
+        else Service Still Failing
+            Service-->>Circuit: Error response
+            Circuit->>Circuit: Keep circuit open
+            Circuit->>Fallback: Use fallback
+            Fallback-->>Circuit: Fallback response
+        end
+    end
+    
+    API-->>WebApp: Response (normal/degraded/error)
+    WebApp-->>User: Display result with appropriate messaging
+```
+
+## 7. Real-time Quality Validation Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Camera as Camera Interface
+    participant Preview as Live Preview
+    participant API as API Gateway
+    participant Validator as Quality Validator
+    participant ML as ML Engine
+    participant Feedback as Feedback Engine
+    participant User as End User
+    
+    Camera->>Preview: Capture frame
+    Preview->>API: POST /documents/validate (real-time)
+    API->>Validator: Process frame
+    
+    par Quality Analysis
+        Validator->>ML: Brightness analysis
+        ML-->>Validator: Brightness score
+    and
+        Validator->>ML: Contrast analysis
+        ML-->>Validator: Contrast score
+    and
+        Validator->>ML: Blur detection
+        ML-->>Validator: Blur score
+    and
+        Validator->>ML: Edge detection
+        ML-->>Validator: Completeness score
+    end
+    
+    Validator->>Feedback: Generate suggestions
+    Feedback-->>Validator: Improvement recommendations
+    
+    Validator-->>API: Quality assessment
+    API-->>Preview: Real-time feedback
+    
+    alt Quality Good
+        Preview->>Camera: Show green overlay
+        Camera-->>User: "Ready to capture" indicator
+    else Quality Poor
+        Preview->>Camera: Show improvement suggestions
+        Camera-->>User: Display guidance ("Move closer", "Improve lighting")
+    end
+    
+    loop Continuous Validation
+        Note over Camera,User: Process repeats for each frame
     end
 ```
 
 ---
 
-## Sequence Diagram Standards & Compliance
+## Sequence Diagram Conventions
 
-### Design Principles
-- **Security First**: All sequences include OAuth 2.0 authentication validation
-- **Performance Optimization**: Caching strategies clearly depicted
-- **Error Handling**: Comprehensive error scenarios included
-- **Audit Compliance**: Audit logging shown in all financial transactions
-- **Async Processing**: Message queue patterns for non-blocking operations
+### Participants
+- **End User**: The person using the application
+- **Web Application**: Frontend React application
+- **API Gateway**: Central API management layer
+- **Services**: Backend microservices (Authentication, Form Manager, etc.)
+- **Storage**: Data persistence layers (PostgreSQL, Redis, S3)
+- **External Services**: Third-party integrations
 
-### Performance Targets
-- **Dashboard API**: <500ms (95th percentile) - SCIB-26
-- **Fund Transfer API**: <2000ms (95th percentile) - SCIB-27
-- **Spending Limit API**: <300ms (95th percentile) - SCIB-28
-- **Transaction History API**: <800ms (95th percentile) - SCIB-29
+### Message Types
+- **Solid Arrow (→)**: Synchronous request
+- **Dashed Arrow (-->>)**: Response
+- **Note**: Additional context or business rules
+- **Alt/Else**: Conditional logic flows
+- **Par/And**: Parallel processing
+- **Loop**: Iterative processes
 
-### Security Features
-- **OAuth 2.0 + JWT**: Industry standard authentication
-- **Multi-Factor Authentication**: Required for parent accounts
-- **Rate Limiting**: 1000 requests/hour per user
-- **RBAC**: Role-based access control for resource protection
-- **Audit Logging**: Complete audit trail for compliance
+### Error Handling Patterns
+- Circuit breaker pattern for service failures
+- Graceful degradation with fallback services
+- Comprehensive audit logging for all operations
+- User-friendly error messaging
 
-### Reliability Patterns
-- **Circuit Breaker**: Prevents cascade failures
-- **Retry Logic**: Exponential backoff for transient failures
-- **Graceful Degradation**: Non-critical features fail gracefully
-- **Correlation IDs**: Request tracing across distributed services
+### Security Considerations
+- All API calls include JWT authentication
+- Sensitive data is encrypted in transit and at rest
+- Audit logging for all user actions
+- Rate limiting and input validation
+
+### Performance Optimizations
+- Caching strategies for frequently accessed data
+- Parallel processing where possible
+- Real-time feedback for better user experience
+- Asynchronous processing for heavy operations
 
 ---
 
-**Document Approval**
-- **Solution Architect**: [Generated from HLD Document]
-- **API Architect**: [Based on API Contract Outline]
-- **Security Architect**: [Security patterns included]
-- **Performance Engineer**: [Performance targets specified]
-
-**Traceability**
-- **Source**: HLD Document (API Development/Requirement Documents/HLDDocument.txt)
-- **API Contract**: API Contract Outline (API Development/Requirement Documents/APIContractOutline.txt)
-- **JIRA Mappings**: SCIB-25 through SCIB-30
-- **Generated**: 2024 via Enterprise Architecture Automation
+*These sequence diagrams provide comprehensive coverage of the Document Upload Interface with Quality Validation System, showing detailed interaction flows between all system components while maintaining enterprise architecture standards for security, performance, and reliability.*
