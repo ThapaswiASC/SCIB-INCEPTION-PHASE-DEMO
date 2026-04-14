@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board User Flow Diagram</title>
+    <title>Document Upload User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true });
@@ -50,119 +50,125 @@
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board Management System - User Flow Diagram</h1>
+        <h1>Document Upload Interface - User Flow Diagram</h1>
         
         <div class="description">
-            <h2>User Flow Overview</h2>
-            <p>This diagram illustrates the complete user journey through the Kanban Board Management System, showing all possible interactions from initial login to task management operations.</p>
+            <h2>User Journey Overview</h2>
+            <p>This diagram illustrates the complete user journey through the document upload interface with quality validation system. The flow includes authentication, document capture with camera guidance, real-time quality validation, multi-step form processing, and upload progress tracking.</p>
         </div>
 
         <div class="mermaid">
-flowchart TD
-    Start[User Opens Application]
-    Start --> Login[User Authentication]
-    Login --> Dashboard[Load Kanban Dashboard]
-    Dashboard --> ViewBoard[View Kanban Board]
-    
-    ViewBoard --> SearchTasks[Search Tasks]
-    ViewBoard --> FilterTasks[Apply Filters]
-    ViewBoard --> CreateTask[Click Add Task]
-    ViewBoard --> ViewTask[Click Task Card]
-    ViewBoard --> DragTask[Drag Task]
-    ViewBoard --> Notifications[Click Notifications]
-    ViewBoard --> UserMenu[Click User Menu]
-    
-    SearchTasks --> SearchResults[Display Search Results]
-    SearchResults --> ViewBoard
-    
-    FilterTasks --> FilteredView[Display Filtered Tasks]
-    FilteredView --> ViewBoard
-    
-    CreateTask --> TaskModal[Open Task Creation Modal]
-    TaskModal --> FillForm[Fill Task Details]
-    FillForm --> ValidateForm[Validate Form Data]
-    ValidateForm --> SubmitTask[Submit New Task]
-    ValidateForm --> FormErrors[Show Validation Errors]
-    FormErrors --> FillForm
-    SubmitTask --> TaskCreated[Task Added to Board]
-    TaskCreated --> ViewBoard
-    TaskModal --> CancelCreate[Cancel Task Creation]
-    CancelCreate --> ViewBoard
-    
-    ViewTask --> EditModal[Open Task Edit Modal]
-    EditModal --> UpdateForm[Update Task Details]
-    UpdateForm --> ValidateUpdate[Validate Updates]
-    ValidateUpdate --> SaveTask[Save Task Changes]
-    ValidateUpdate --> UpdateErrors[Show Validation Errors]
-    UpdateErrors --> UpdateForm
-    SaveTask --> TaskUpdated[Task Updated on Board]
-    TaskUpdated --> ViewBoard
-    EditModal --> DeleteTask[Delete Task]
-    DeleteTask --> ConfirmDelete[Confirm Deletion]
-    ConfirmDelete --> TaskDeleted[Task Removed from Board]
-    TaskDeleted --> ViewBoard
-    EditModal --> CancelEdit[Cancel Edit]
-    CancelEdit --> ViewBoard
-    
-    DragTask --> DragOver[Drag Over Column]
-    DragOver --> DropTask[Drop Task in Column]
-    DragOver --> CancelDrag[Cancel Drag Operation]
-    DropTask --> ValidateDrop[Validate Drop Action]
-    ValidateDrop --> UpdateStatus[Update Task Status]
-    ValidateDrop --> DropError[Show Drop Error]
-    UpdateStatus --> TaskMoved[Task Moved to New Column]
-    TaskMoved --> ViewBoard
-    DropError --> ViewBoard
-    CancelDrag --> ViewBoard
-    
-    Notifications --> NotificationPanel[Open Notification Panel]
-    NotificationPanel --> ViewNotification[View Notification Details]
-    NotificationPanel --> MarkRead[Mark as Read]
-    NotificationPanel --> CloseNotifications[Close Panel]
-    ViewNotification --> ViewBoard
-    MarkRead --> NotificationPanel
-    CloseNotifications --> ViewBoard
-    
-    UserMenu --> UserProfile[View Profile]
-    UserMenu --> UserSettings[Open Settings]
-    UserMenu --> Logout[Logout User]
-    UserProfile --> ViewBoard
-    UserSettings --> ViewBoard
-    Logout --> Login
-    
-    ViewBoard --> SidebarNav[Navigate via Sidebar]
-    SidebarNav --> BoardViews[Switch Board Views]
-    SidebarNav --> TeamBoards[Access Team Boards]
-    SidebarNav --> ProjectBoards[Access Project Boards]
-    BoardViews --> ViewBoard
-    TeamBoards --> ViewBoard
-    ProjectBoards --> ViewBoard
+            flowchart TD
+                Start[User Opens Application]
+                Start --> Login[User Login]
+                Login --> Dashboard[Navigate to Dashboard]
+                Dashboard --> UploadPage[Click Upload Document]
+                
+                UploadPage --> InitSession[Initialize Upload Session]
+                InitSession --> CameraAccess[Request Camera Access]
+                
+                CameraAccess --> CameraGranted{Camera Permission Granted?}
+                CameraGranted -->|Yes| CameraInterface[Display Camera Interface]
+                CameraGranted -->|No| FileUpload[Show File Upload Option]
+                
+                CameraInterface --> ShowOverlay[Display Document Overlay Guide]
+                ShowOverlay --> CaptureReady[User Positions Document]
+                CaptureReady --> CaptureImage[User Captures Image]
+                
+                CaptureImage --> ValidateQuality[Real-time Quality Validation]
+                ValidateQuality --> QualityCheck{Quality Score > Threshold?}
+                
+                QualityCheck -->|No| ShowSuggestions[Display Improvement Suggestions]
+                ShowSuggestions --> RetakeOption[Show Retake Option]
+                RetakeOption --> CaptureReady
+                
+                QualityCheck -->|Yes| QualityApproved[Quality Approved]
+                QualityApproved --> DocumentPreview[Show Document Preview]
+                
+                DocumentPreview --> EditOptions{User Wants to Edit?}
+                EditOptions -->|Yes| EditDocument[Open Editing Tools]
+                EditDocument --> DocumentPreview
+                EditOptions -->|No| ProceedForm[Proceed to Form]
+                
+                FileUpload --> FileSelected[User Selects File]
+                FileSelected --> ValidateFile[Validate File Format]
+                ValidateFile --> FileValid{File Valid?}
+                FileValid -->|No| FileError[Show File Error]
+                FileError --> FileUpload
+                FileValid -->|Yes| ProceedForm
+                
+                ProceedForm --> MultiStepForm[Display Multi-Step Form]
+                MultiStepForm --> FormStep1[Step 1 Document Details]
+                FormStep1 --> ValidateStep1[Validate Step 1]
+                ValidateStep1 --> Step1Valid{Step 1 Valid?}
+                
+                Step1Valid -->|No| ShowErrors1[Show Validation Errors]
+                ShowErrors1 --> FormStep1
+                Step1Valid -->|Yes| SaveProgress1[Save Progress]
+                SaveProgress1 --> FormStep2[Step 2 Personal Information]
+                
+                FormStep2 --> ValidateStep2[Validate Step 2]
+                ValidateStep2 --> Step2Valid{Step 2 Valid?}
+                Step2Valid -->|No| ShowErrors2[Show Validation Errors]
+                ShowErrors2 --> FormStep2
+                Step2Valid -->|Yes| SaveProgress2[Save Progress]
+                
+                SaveProgress2 --> FormStep3[Step 3 Review and Confirm]
+                FormStep3 --> ReviewData[User Reviews All Data]
+                ReviewData --> ConfirmSubmit{User Confirms Submission?}
+                
+                ConfirmSubmit -->|No| EditPrevious[Edit Previous Steps]
+                EditPrevious --> MultiStepForm
+                ConfirmSubmit -->|Yes| StartUpload[Start Document Upload]
+                
+                StartUpload --> CompressDocument[Compress Document]
+                CompressDocument --> UploadProgress[Show Upload Progress]
+                UploadProgress --> UploadStatus{Upload Status}
+                
+                UploadStatus -->|In Progress| UpdateProgress[Update Progress Bar]
+                UpdateProgress --> UploadProgress
+                UploadStatus -->|Error| UploadError[Show Upload Error]
+                UploadError --> RetryUpload[Retry Upload Option]
+                RetryUpload --> StartUpload
+                UploadStatus -->|Success| UploadComplete[Upload Complete]
+                
+                UploadComplete --> ProcessDocument[Process Document]
+                ProcessDocument --> SendNotification[Send Success Notification]
+                SendNotification --> ShowSuccess[Show Success Message]
+                ShowSuccess --> ReturnDashboard[Return to Dashboard]
+                
+                ReturnDashboard --> End[End of Flow]
+                
+                %% Error Handling Flows
+                InitSession --> SessionError{Session Creation Failed?}
+                SessionError -->|Yes| SessionRetry[Retry Session Creation]
+                SessionRetry --> InitSession
+                SessionError -->|No| CameraAccess
+                
+                ValidateQuality --> ValidationError{Validation API Error?}
+                ValidationError -->|Yes| OfflineMode[Switch to Offline Mode]
+                OfflineMode --> QualityApproved
+                ValidationError -->|No| QualityCheck
+                
+                SaveProgress1 --> SaveError1{Save Failed?}
+                SaveError1 -->|Yes| AutoRetry1[Auto Retry Save]
+                AutoRetry1 --> SaveProgress1
+                SaveError1 -->|No| FormStep2
+                
+                SaveProgress2 --> SaveError2{Save Failed?}
+                SaveError2 -->|Yes| AutoRetry2[Auto Retry Save]
+                AutoRetry2 --> SaveProgress2
+                SaveError2 -->|No| FormStep3
         </div>
         
         <div class="description">
             <h2>Key User Interactions</h2>
-            <p><strong>Primary Flows:</strong></p>
-            <ul>
-                <li><strong>Task Management:</strong> Create, edit, delete, and move tasks between columns</li>
-                <li><strong>Board Navigation:</strong> Search, filter, and view different board perspectives</li>
-                <li><strong>Drag & Drop:</strong> Move tasks between To Do, In Progress, and Done columns</li>
-                <li><strong>User Actions:</strong> Access notifications, user profile, and settings</li>
-            </ul>
-            
-            <p><strong>Error Handling:</strong></p>
-            <ul>
-                <li>Form validation errors with inline feedback</li>
-                <li>Drag and drop validation with error messages</li>
-                <li>Network error handling with retry options</li>
-            </ul>
-            
-            <p><strong>Navigation Patterns:</strong></p>
-            <ul>
-                <li>Modal-based task creation and editing</li>
-                <li>Sidebar navigation for different board views</li>
-                <li>Header actions for search, notifications, and user menu</li>
-                <li>Contextual actions on task cards and columns</li>
-            </ul>
+            <p><strong>Authentication Flow:</strong> Users begin by logging into the application and navigating to the document upload interface.</p>
+            <p><strong>Document Capture:</strong> Users can capture documents using the camera interface with overlay guidance or upload files directly.</p>
+            <p><strong>Quality Validation:</strong> Real-time quality validation provides immediate feedback and suggestions for improvement.</p>
+            <p><strong>Multi-Step Form:</strong> Users complete a progressive form with validation at each step and automatic progress saving.</p>
+            <p><strong>Upload Process:</strong> Documents are compressed and uploaded with real-time progress tracking and error recovery options.</p>
+            <p><strong>Error Handling:</strong> Comprehensive error handling ensures users can recover from failures at any point in the process.</p>
         </div>
     </div>
 </body>
