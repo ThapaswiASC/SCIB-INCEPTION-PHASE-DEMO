@@ -2,372 +2,312 @@
 # Youth Account Management System
 
 ## Overview
-This document contains sequence diagrams for the Youth Account Management System, illustrating the flow of interactions between different system components for key use cases.
+This document contains sequence diagrams for the Youth Account Management System API endpoints, illustrating the interaction flow between system components for each major operation.
 
-## 1. Youth Account Dashboard Retrieval
+## 1. Youth Account Dashboard - Sequence Diagram
+**Reference**: SCIB-26 - Dashboard API Implementation
+**Endpoint**: GET /api/youth-accounts/{youthAccountId}/dashboard
 
 ```mermaid
 sequenceDiagram
     participant Parent as Parent/Guardian
     participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as Auth Service
-    participant DashboardService as Dashboard Service
-    participant YouthService as Youth Account Service
-    participant TransactionService as Transaction Service
+    participant Gateway as API Gateway
+    participant AuthSvc as Auth Service
+    participant YouthAPI as Youth Account API
     participant Cache as Redis Cache
-    participant Database as PostgreSQL DB
-
+    participant DB as PostgreSQL DB
+    participant CoreBank as Core Banking System
+    
     Parent->>WebApp: Request dashboard view
-    WebApp->>APIGateway: GET /api/youth-accounts/{id}/dashboard
-    APIGateway->>AuthService: Validate OAuth token
-    AuthService-->>APIGateway: Token valid + permissions
-    APIGateway->>DashboardService: Forward request
+    WebApp->>Gateway: GET /api/youth-accounts/{id}/dashboard
+    Gateway->>AuthSvc: Validate JWT token
+    AuthSvc-->>Gateway: Token valid + user permissions
+    Gateway->>YouthAPI: Forward authenticated request
     
-    DashboardService->>Cache: Check cached dashboard data
+    YouthAPI->>Cache: Check cached dashboard data
     alt Cache Hit
-        Cache-->>DashboardService: Return cached data
+        Cache-->>YouthAPI: Return cached data
     else Cache Miss
-        DashboardService->>YouthService: Get account details
-        YouthService->>Database: Query youth_accounts table
-        Database-->>YouthService: Account data
-        YouthService-->>DashboardService: Account details
-        
-        DashboardService->>TransactionService: Get recent transactions
-        TransactionService->>Database: Query transaction_history
-        Database-->>TransactionService: Transaction data
-        TransactionService-->>DashboardService: Recent transactions
-        
-        DashboardService->>Cache: Store aggregated data
+        YouthAPI->>DB: Query youth account settings
+        DB-->>YouthAPI: Return account settings
+        YouthAPI->>CoreBank: Get current balance & recent transactions
+        CoreBank-->>YouthAPI: Return balance + transactions
+        YouthAPI->>Cache: Store dashboard data (TTL: 5min)
     end
     
-    DashboardService-->>APIGateway: Dashboard response
-    APIGateway-->>WebApp: JSON response
-    WebApp-->>Parent: Render dashboard
+    YouthAPI->>YouthAPI: Aggregate dashboard data
+    YouthAPI-->>Gateway: Dashboard response (200 OK)
+    Gateway-->>WebApp: Forward response
+    WebApp-->>Parent: Display dashboard
+    
+    Note over YouthAPI,CoreBank: SLA: < 500ms response time
+    Note over Cache: Cache TTL: 5 minutes
+    Note over DB: Read replica for performance
 ```
 
-## 2. Fund Transfer Process
+## 2. Fund Transfer - Sequence Diagram
+**Reference**: SCIB-27 - Fund Transfer API Implementation
+**Endpoint**: POST /api/youth-accounts/{youthAccountId}/fund-transfer
 
 ```mermaid
 sequenceDiagram
     participant Parent as Parent/Guardian
     participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as Auth Service
-    participant YouthService as Youth Account Service
-    participant PaymentGateway as Payment Gateway
-    participant CoreBanking as Core Banking System
-    participant NotificationService as Notification Service
-    participant Database as PostgreSQL DB
-    participant AuditLog as Audit Log
-
+    participant Gateway as API Gateway
+    participant AuthSvc as Auth Service
+    participant YouthAPI as Youth Account API
+    participant DB as PostgreSQL DB
+    participant PaymentSvc as Payment Service
+    participant CoreBank as Core Banking System
+    participant AuditSvc as Audit Service
+    
     Parent->>WebApp: Initiate fund transfer
-    WebApp->>APIGateway: POST /api/youth-accounts/{id}/fund-transfer
-    APIGateway->>AuthService: Validate OAuth token & permissions
-    AuthService-->>APIGateway: Authorization confirmed
-    APIGateway->>YouthService: Process transfer request
+    WebApp->>Gateway: POST /api/youth-accounts/{id}/fund-transfer
+    Gateway->>AuthSvc: Validate JWT token & permissions
+    AuthSvc-->>Gateway: Token valid + transfer permissions
+    Gateway->>YouthAPI: Forward authenticated request
     
-    YouthService->>Database: Begin transaction
-    YouthService->>Database: Validate parent-youth relationship
-    Database-->>YouthService: Relationship confirmed
+    YouthAPI->>YouthAPI: Validate transfer request
+    YouthAPI->>DB: Begin transaction
+    YouthAPI->>CoreBank: Check source account balance
+    CoreBank-->>YouthAPI: Return balance info
     
-    YouthService->>Database: Check source account balance
-    Database-->>YouthService: Balance sufficient
+    alt Sufficient Balance
+        YouthAPI->>PaymentSvc: Initiate transfer
+        PaymentSvc->>CoreBank: Execute fund transfer
+        CoreBank-->>PaymentSvc: Transfer confirmation
+        PaymentSvc-->>YouthAPI: Transfer successful
+        
+        YouthAPI->>DB: Log transfer record
+        YouthAPI->>DB: Update youth account balance
+        YouthAPI->>DB: Commit transaction
+        YouthAPI->>AuditSvc: Log transfer event
+        
+        YouthAPI-->>Gateway: Transfer success (200 OK)
+    else Insufficient Balance
+        YouthAPI->>DB: Rollback transaction
+        YouthAPI-->>Gateway: Insufficient funds error (400)
+    end
     
-    YouthService->>PaymentGateway: Initiate transfer
-    PaymentGateway->>CoreBanking: Process fund movement
-    CoreBanking-->>PaymentGateway: Transfer successful
-    PaymentGateway-->>YouthService: Transfer confirmation
+    Gateway-->>WebApp: Forward response
+    WebApp-->>Parent: Display transfer result
     
-    YouthService->>Database: Update account balances
-    YouthService->>Database: Create transaction records
-    YouthService->>Database: Commit transaction
-    
-    YouthService->>AuditLog: Log transfer activity
-    YouthService->>NotificationService: Send transfer notification
-    NotificationService-->>Parent: Transfer confirmation
-    
-    YouthService-->>APIGateway: Transfer response
-    APIGateway-->>WebApp: JSON response
-    WebApp-->>Parent: Success confirmation
+    Note over YouthAPI,PaymentSvc: Idempotent operations
+    Note over DB: ACID compliance required
+    Note over AuditSvc: Immutable audit trail
 ```
 
-## 3. Spending Limit Configuration
+## 3. Spending Limit Configuration - Sequence Diagram
+**Reference**: SCIB-28 - Spending Limit API Implementation
+**Endpoint**: PUT /api/youth-accounts/{youthAccountId}/spending-limit
 
 ```mermaid
 sequenceDiagram
     participant Parent as Parent/Guardian
     participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as Auth Service
-    participant LimitService as Spending Limit Service
-    participant YouthService as Youth Account Service
-    participant Database as PostgreSQL DB
+    participant Gateway as API Gateway
+    participant AuthSvc as Auth Service
+    participant YouthAPI as Youth Account API
     participant Cache as Redis Cache
-    participant NotificationService as Notification Service
-    participant AuditLog as Audit Log
-
+    participant DB as PostgreSQL DB
+    participant NotifySvc as Notification Service
+    participant AuditSvc as Audit Service
+    
     Parent->>WebApp: Configure spending limit
-    WebApp->>APIGateway: PUT /api/youth-accounts/{id}/spending-limit
-    APIGateway->>AuthService: Validate token & admin permissions
-    AuthService-->>APIGateway: Admin access confirmed
-    APIGateway->>LimitService: Process limit update
+    WebApp->>Gateway: PUT /api/youth-accounts/{id}/spending-limit
+    Gateway->>AuthSvc: Validate JWT token & permissions
+    AuthSvc-->>Gateway: Token valid + admin permissions
+    Gateway->>YouthAPI: Forward authenticated request
     
-    LimitService->>YouthService: Validate account ownership
-    YouthService->>Database: Check parent-youth relationship
-    Database-->>YouthService: Ownership confirmed
-    YouthService-->>LimitService: Account validation passed
+    YouthAPI->>YouthAPI: Validate limit parameters
+    alt Valid Limit
+        YouthAPI->>DB: Begin transaction
+        YouthAPI->>DB: Query current settings
+        DB-->>YouthAPI: Return current limit
+        YouthAPI->>DB: Update spending limit settings
+        YouthAPI->>DB: Commit transaction
+        
+        YouthAPI->>Cache: Invalidate cached settings
+        YouthAPI->>NotifySvc: Send limit change notification
+        YouthAPI->>AuditSvc: Log limit change event
+        
+        YouthAPI-->>Gateway: Update successful (200 OK)
+    else Invalid Limit
+        YouthAPI-->>Gateway: Validation error (422)
+    end
     
-    LimitService->>Database: Begin transaction
-    LimitService->>Database: Get current spending limits
-    Database-->>LimitService: Current limit data
+    Gateway-->>WebApp: Forward response
+    WebApp-->>Parent: Display update result
     
-    LimitService->>Database: Update youth_account_settings
-    LimitService->>Database: Create limit change audit record
-    LimitService->>Database: Commit transaction
-    
-    LimitService->>Cache: Invalidate cached limit data
-    LimitService->>AuditLog: Log limit change
-    LimitService->>NotificationService: Send limit update notification
-    NotificationService-->>Parent: Limit update confirmation
-    
-    LimitService-->>APIGateway: Update response
-    APIGateway-->>WebApp: JSON response
-    WebApp-->>Parent: Success confirmation
+    Note over YouthAPI,DB: Optimistic locking
+    Note over NotifySvc: Async notification
+    Note over Cache: Cache invalidation strategy
 ```
 
-## 4. Transaction History Retrieval
+## 4. Transaction History - Sequence Diagram
+**Reference**: SCIB-29 - Transaction History API Implementation
+**Endpoint**: GET /api/youth-accounts/{youthAccountId}/transactions
 
 ```mermaid
 sequenceDiagram
     participant Parent as Parent/Guardian
     participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as Auth Service
-    participant TransactionService as Transaction Service
-    participant Database as PostgreSQL DB
+    participant Gateway as API Gateway
+    participant AuthSvc as Auth Service
+    participant YouthAPI as Youth Account API
     participant Cache as Redis Cache
-
+    participant DB as PostgreSQL DB
+    participant CoreBank as Core Banking System
+    
     Parent->>WebApp: Request transaction history
-    WebApp->>APIGateway: GET /api/youth-accounts/{id}/transactions?page=1&limit=20
-    APIGateway->>AuthService: Validate OAuth token
-    AuthService-->>APIGateway: Token valid
-    APIGateway->>TransactionService: Forward request with filters
+    WebApp->>Gateway: GET /api/youth-accounts/{id}/transactions?params
+    Gateway->>AuthSvc: Validate JWT token & permissions
+    AuthSvc-->>Gateway: Token valid + read permissions
+    Gateway->>YouthAPI: Forward authenticated request
     
-    TransactionService->>Cache: Check cached transaction data
+    YouthAPI->>YouthAPI: Validate query parameters
+    YouthAPI->>YouthAPI: Build cache key from params
+    YouthAPI->>Cache: Check cached transaction data
+    
     alt Cache Hit
-        Cache-->>TransactionService: Return cached results
+        Cache-->>YouthAPI: Return cached transactions
     else Cache Miss
-        TransactionService->>Database: Query transaction_history with filters
-        Note over Database: SELECT * FROM transaction_history<br/>WHERE youth_account_id = ?<br/>ORDER BY transaction_date DESC<br/>LIMIT 20 OFFSET 0
-        Database-->>TransactionService: Transaction records
-        
-        TransactionService->>Database: Get total count for pagination
-        Database-->>TransactionService: Total record count
-        
-        TransactionService->>Cache: Cache results (5 min TTL)
+        YouthAPI->>DB: Query transaction history (paginated)
+        DB-->>YouthAPI: Return transaction records
+        YouthAPI->>CoreBank: Enrich with merchant details
+        CoreBank-->>YouthAPI: Return enriched data
+        YouthAPI->>Cache: Store paginated results (TTL: 10min)
     end
     
-    TransactionService-->>APIGateway: Paginated transaction response
-    APIGateway-->>WebApp: JSON response with pagination
-    WebApp-->>Parent: Render transaction list
+    YouthAPI->>YouthAPI: Format response with pagination
+    YouthAPI-->>Gateway: Transaction list (200 OK)
+    Gateway-->>WebApp: Forward response
+    WebApp-->>Parent: Display transaction history
+    
+    Note over YouthAPI,DB: Read replica optimization
+    Note over Cache: Pagination-aware caching
+    Note over CoreBank: Rate limiting applied
 ```
 
-## 5. Account Status Management
+## 5. Error Handling - Sequence Diagram
+**Scenario**: System Error During Fund Transfer
 
 ```mermaid
 sequenceDiagram
     participant Parent as Parent/Guardian
     participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as Auth Service
-    participant YouthService as Youth Account Service
-    participant Database as PostgreSQL DB
-    participant NotificationService as Notification Service
-    participant AuditLog as Audit Log
-    participant ComplianceService as Compliance Service
-
-    Parent->>WebApp: Change account status (suspend/activate)
-    WebApp->>APIGateway: PATCH /api/youth-accounts/{id}/status
-    APIGateway->>AuthService: Validate admin permissions
-    AuthService-->>APIGateway: Admin access confirmed
-    APIGateway->>YouthService: Process status change
+    participant Gateway as API Gateway
+    participant YouthAPI as Youth Account API
+    participant DB as PostgreSQL DB
+    participant PaymentSvc as Payment Service
+    participant AuditSvc as Audit Service
+    participant MonitorSvc as Monitoring Service
     
-    YouthService->>ComplianceService: Validate status change
-    ComplianceService-->>YouthService: Change approved
+    Parent->>WebApp: Initiate fund transfer
+    WebApp->>Gateway: POST /api/youth-accounts/{id}/fund-transfer
+    Gateway->>YouthAPI: Forward request
     
-    YouthService->>Database: Begin transaction
-    YouthService->>Database: Get current account status
-    Database-->>YouthService: Current status data
+    YouthAPI->>DB: Begin transaction
+    YouthAPI->>PaymentSvc: Initiate transfer
+    PaymentSvc-->>YouthAPI: Service unavailable (503)
     
-    YouthService->>Database: Update account status
-    YouthService->>Database: Create status change audit record
-    YouthService->>Database: Commit transaction
+    YouthAPI->>YouthAPI: Implement retry with backoff
+    YouthAPI->>PaymentSvc: Retry transfer (attempt 2)
+    PaymentSvc-->>YouthAPI: Timeout error
     
-    YouthService->>AuditLog: Log status change
-    YouthService->>NotificationService: Send status change notification
-    NotificationService-->>Parent: Status change confirmation
+    YouthAPI->>DB: Rollback transaction
+    YouthAPI->>AuditSvc: Log error event
+    YouthAPI->>MonitorSvc: Send error metrics
     
-    YouthService-->>APIGateway: Status update response
-    APIGateway-->>WebApp: JSON response
-    WebApp-->>Parent: Success confirmation
+    YouthAPI-->>Gateway: Service unavailable (503)
+    Gateway-->>WebApp: Forward error response
+    WebApp-->>Parent: Display retry message
+    
+    Note over YouthAPI: Circuit breaker pattern
+    Note over DB: Transaction rollback
+    Note over MonitorSvc: Real-time alerting
 ```
 
-## 6. Real-time Spending Alert Flow
+## 6. Authentication Flow - Sequence Diagram
+**Scenario**: OAuth 2.0 Token Validation
 
 ```mermaid
 sequenceDiagram
-    participant Youth as Youth Account Holder
-    participant Merchant as Merchant System
-    participant PaymentProcessor as Payment Processor
-    participant TransactionService as Transaction Service
-    participant LimitService as Spending Limit Service
-    participant NotificationService as Notification Service
-    participant Parent as Parent/Guardian
-    participant Database as PostgreSQL DB
-
-    Youth->>Merchant: Make purchase
-    Merchant->>PaymentProcessor: Process payment
-    PaymentProcessor->>TransactionService: Transaction notification
-    
-    TransactionService->>Database: Record transaction
-    TransactionService->>LimitService: Check spending limits
-    
-    LimitService->>Database: Get current spending and limits
-    Database-->>LimitService: Spending data
-    
-    alt Spending threshold reached (50%, 75%, 90%)
-        LimitService->>NotificationService: Send spending alert
-        NotificationService->>Parent: Spending threshold alert
-    end
-    
-    alt Spending limit exceeded
-        LimitService->>PaymentProcessor: Decline transaction
-        PaymentProcessor-->>Merchant: Transaction declined
-        Merchant-->>Youth: Payment declined
-        LimitService->>NotificationService: Send limit exceeded alert
-        NotificationService->>Parent: Limit exceeded notification
-    else Within limits
-        PaymentProcessor-->>Merchant: Transaction approved
-        Merchant-->>Youth: Purchase successful
-    end
-```
-
-## 7. Error Handling and Recovery Flow
-
-```mermaid
-sequenceDiagram
-    participant Client as Client Application
-    participant APIGateway as API Gateway
-    participant YouthService as Youth Account Service
-    participant Database as PostgreSQL DB
-    participant CircuitBreaker as Circuit Breaker
-    participant ErrorHandler as Error Handler
-    participant MonitoringService as Monitoring Service
-
-    Client->>APIGateway: API Request
-    APIGateway->>CircuitBreaker: Check service health
-    
-    alt Circuit Open (Service Down)
-        CircuitBreaker-->>APIGateway: Service unavailable
-        APIGateway-->>Client: 503 Service Unavailable
-    else Circuit Closed (Service Healthy)
-        CircuitBreaker->>YouthService: Forward request
-        YouthService->>Database: Database operation
-        
-        alt Database Error
-            Database-->>YouthService: Connection timeout/error
-            YouthService->>ErrorHandler: Handle database error
-            ErrorHandler->>MonitoringService: Log error metrics
-            ErrorHandler->>YouthService: Retry with backoff
-            
-            alt Retry Successful
-                YouthService->>Database: Retry operation
-                Database-->>YouthService: Success response
-                YouthService-->>APIGateway: Success response
-            else Retry Failed
-                ErrorHandler-->>YouthService: Max retries exceeded
-                YouthService-->>APIGateway: 500 Internal Server Error
-            end
-        else Database Success
-            Database-->>YouthService: Success response
-            YouthService-->>APIGateway: Success response
-        end
-        
-        APIGateway-->>Client: Response
-    end
-```
-
-## 8. Authentication and Authorization Flow
-
-```mermaid
-sequenceDiagram
-    participant Parent as Parent/Guardian
+    participant User as User
     participant WebApp as Web Application
-    participant AuthService as Auth Service
-    participant IdentityProvider as Identity Provider
-    participant APIGateway as API Gateway
-    participant YouthService as Youth Account Service
-    participant Database as PostgreSQL DB
-
-    Parent->>WebApp: Login request
-    WebApp->>AuthService: Authenticate user
-    AuthService->>IdentityProvider: OAuth 2.0 authorization
-    IdentityProvider-->>AuthService: Authorization code
-    AuthService->>IdentityProvider: Exchange code for token
-    IdentityProvider-->>AuthService: Access token + ID token
+    participant Gateway as API Gateway
+    participant AuthSvc as Auth Service
+    participant YouthAPI as Youth Account API
+    participant Cache as Redis Cache
     
-    AuthService->>Database: Validate user permissions
-    Database-->>AuthService: User roles and permissions
-    AuthService-->>WebApp: JWT token with scopes
-    WebApp-->>Parent: Login successful
+    User->>WebApp: Login request
+    WebApp->>AuthSvc: OAuth 2.0 authorization
+    AuthSvc-->>WebApp: JWT access token
+    WebApp->>WebApp: Store token securely
     
-    Note over Parent,Database: Subsequent API calls
+    User->>WebApp: API request
+    WebApp->>Gateway: API call with Bearer token
+    Gateway->>Cache: Check token cache
     
-    Parent->>WebApp: Access youth account
-    WebApp->>APIGateway: API call with JWT token
-    APIGateway->>AuthService: Validate JWT token
-    AuthService-->>APIGateway: Token valid + user context
+    alt Token Cached & Valid
+        Cache-->>Gateway: Token valid + user context
+    else Token Not Cached
+        Gateway->>AuthSvc: Validate JWT token
+        AuthSvc-->>Gateway: Token validation result
+        Gateway->>Cache: Cache token validation (TTL: 5min)
+    end
     
-    APIGateway->>YouthService: Forward request with user context
-    YouthService->>Database: Verify parent-youth relationship
-    Database-->>YouthService: Relationship authorized
-    YouthService-->>APIGateway: Authorized response
-    APIGateway-->>WebApp: API response
-    WebApp-->>Parent: Display data
+    alt Token Valid
+        Gateway->>YouthAPI: Forward authenticated request
+        YouthAPI-->>Gateway: API response
+        Gateway-->>WebApp: Forward response
+    else Token Invalid
+        Gateway-->>WebApp: Unauthorized (401)
+        WebApp->>AuthSvc: Refresh token request
+    end
+    
+    Note over Cache: Token validation caching
+    Note over AuthSvc: JWT signature verification
+    Note over Gateway: Rate limiting per user
 ```
 
-## Sequence Diagram Standards and Conventions
+## Sequence Diagram Design Principles
 
-### Naming Conventions
-- **Participants**: Use clear, descriptive names
-- **Messages**: Use verb-noun format (e.g., "Get account details")
-- **Return Messages**: Use dashed arrows for responses
+### 1. Performance Considerations
+- **Caching Strategy**: Redis cache with appropriate TTL values
+- **Database Optimization**: Read replicas for query operations
+- **Response Time SLAs**: < 500ms for dashboard, < 3s for transfers
+- **Connection Pooling**: Efficient database connection management
 
-### Error Handling
-- All diagrams include error scenarios using `alt/else` blocks
-- Timeout and retry mechanisms are explicitly shown
-- Circuit breaker patterns are documented
+### 2. Security Measures
+- **Token Validation**: JWT token validation at API Gateway
+- **Permission Checks**: Role-based access control (RBAC)
+- **Audit Logging**: Complete audit trail for all operations
+- **Input Validation**: Request validation before processing
 
-### Security Considerations
-- Authentication flows are detailed in every user-initiated sequence
-- Authorization checks are explicitly shown
-- Audit logging is included in all financial operations
+### 3. Reliability Patterns
+- **Transaction Management**: ACID compliance for financial operations
+- **Retry Logic**: Exponential backoff for transient failures
+- **Circuit Breaker**: Protection against cascading failures
+- **Idempotent Operations**: Safe retry mechanisms
 
-### Performance Optimizations
-- Caching strategies are illustrated
-- Database transaction boundaries are marked
-- Asynchronous operations are clearly indicated
+### 4. Monitoring & Observability
+- **Request Correlation**: Unique request IDs across services
+- **Performance Metrics**: Response time and throughput monitoring
+- **Error Tracking**: Comprehensive error logging and alerting
+- **Business Metrics**: Financial transaction monitoring
 
-### Compliance Requirements
-- All financial transactions include audit trails
-- Data validation steps are shown
-- Regulatory compliance checks are included where applicable
+### 5. Scalability Features
+- **Horizontal Scaling**: Stateless API design
+- **Load Balancing**: Even distribution across instances
+- **Async Processing**: Non-blocking operations where possible
+- **Resource Optimization**: Efficient resource utilization
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2024-01-15  
-**Author**: Senior Solution Architect  
-**Review Status**: Approved  
-**Compliance**: PCI-DSS, GDPR, SOX, Basel III
+**Document Version**: 1.0
+**Last Updated**: [Current Date]
+**Created By**: Senior Solution Architect
+**Compliance**: SOC2, PCI-DSS, GDPR
+**Review Date**: [Quarterly Review]
