@@ -1,1230 +1,840 @@
 ## UI COMPONENT SPECIFICATIONS
 
-### 1. INPUT REFERENCE (FROM AGENT-1)
+1. INPUT REFERENCE (FROM AGENT-1)
 
-**Page Name:** Kanban Board Management System
+Page Name: Document Upload Interface with Quality Validation System
 
-**Mapped Layout:** Three-column CSS Grid layout with responsive breakpoints
+Mapped Layout: CSS Grid (primary), Flexbox (secondary)
 
-**Components from A1:**
-- KanbanBoardComponent (Main Container)
-- HeaderComponent with SearchFieldComponent, NotificationIconComponent, AvatarChipComponent
-- SidebarComponent with BrandComponent, NavigationSectionComponent, FooterComponent
-- PageHeaderComponent with BreadcrumbComponent, HeadingComponent, ButtonComponent
-- BoardControlsComponent with FilterGroupComponent
-- KanbanContainerComponent with KanbanColumnComponent (x3)
-- TaskCardComponent with TaskTitleComponent, TaskDescriptionComponent, TaskMetaComponent
-- TaskModalComponent with ModalHeaderComponent, ModalBodyComponent, ModalFooterComponent
-- SharedComponents (LoadingComponent, ErrorStateComponent, EmptyStateComponent)
+Components from A1:
+- DocumentUploadComponent (Main Container)
+- HeaderComponent with SearchField, NotificationCenter, UserMenu
+- SidebarComponent with Brand, NavigationMenu, Footer
+- PageHeaderComponent with Breadcrumbs, PageTitle, ActionButtons
+- DocumentCaptureComponent with CameraInterface, QualityValidation, DocumentPreview
+- MultiStepFormComponent with FormProgress, FormSteps, FormSummary
+- UploadProgressComponent with ProgressBar, UploadStatus, CompressionInfo
+- SharedComponents (Loading, Error, Success, Accessibility helpers)
 
-### 2. GLOBAL ARCHITECTURE SUMMARY
+2. GLOBAL ARCHITECTURE SUMMARY
 
-**Layout Type:** CSS Grid (primary), Flexbox (secondary)
+Layout Type: CSS Grid (primary), Flexbox (secondary)
 
-**Main Sections:**
-- Header: Search field, notifications, user avatar
-- Sidebar: Brand logo, navigation sections, footer
-- Main Content: Page header, board controls, kanban container
-- Modals: Task creation/editing modal
+Main Sections:
+- Header (Search, Notifications, User Menu)
+- Sidebar (Navigation, Brand, Footer)
+- Main Content (Document Upload Interface)
+- Modals (Document Preview, Confirmation Dialogs)
 
-**Component Strategy:**
+Component Strategy:
+Reused Components:
+- Button Component (Primary, Secondary, Ghost variants)
+- Card Component (Document cards with elevation)
+- Badge Component (Status badges, progress indicators)
+- Avatar Component (User avatars with status)
+- Modal Component (Document preview, confirmations)
+- Progress Component (Upload progress, step indicators)
+- Alert Component (Validation feedback, error messages)
+- Input Component (Form fields with validation)
+- Camera Component (Document capture interface)
+- Stepper Component (Multi-step navigation)
+- Tooltip Component (Guidance and help text)
+- Loading Component (Spinner and skeleton states)
 
-**Reused Components:**
-- Button Component (Primary, secondary, ghost variants)
-- Card Component (Task cards with elevation)
-- Badge Component (Priority, count, status indicators)
-- Avatar Component (User avatars with initials)
-- Modal Component (Task creation modal)
-- Search Field Component (Header search)
-- Sidebar Component (Navigation sidebar)
-- Header Component (Top navigation)
-- Breadcrumb Component (Navigation breadcrumbs)
-- Form Components (Input, select, textarea)
-- Icon Components (Various SVG icons)
+New Components (if any):
+- DocumentCaptureComponent (Feature-specific)
+- QualityValidationComponent (Feature-specific)
+- CameraOverlayComponent (Feature-specific)
+- ValidationFeedbackComponent (Feature-specific)
 
-**New Components (if any):**
-- KanbanBoardComponent (Main container)
-- KanbanColumnComponent (Column container)
-- TaskCardComponent (Individual task card)
-- TaskModalComponent (Task creation/editing)
-- BoardControlsComponent (Filter controls)
+3. FOLDER STRUCTURE
 
-### 3. FOLDER STRUCTURE
-
-```
 src/
- ├── app/
- │   ├── features/
- │   │   └── kanban/
- │   │       ├── components/
- │   │       │   ├── kanban-board/
- │   │       │   │   ├── kanban-board.component.ts
- │   │       │   │   ├── kanban-board.component.html
- │   │       │   │   ├── kanban-board.component.scss
- │   │       │   │   └── kanban-board.component.spec.ts
- │   │       │   ├── kanban-column/
- │   │       │   ├── task-card/
- │   │       │   └── task-modal/
- │   │       ├── services/
- │   │       ├── models/
- │   │       └── kanban.module.ts
- │   ├── shared/
- │   │   ├── components/
- │   │   │   ├── header/
- │   │   │   ├── sidebar/
- │   │   │   ├── button/
- │   │   │   ├── card/
- │   │   │   ├── badge/
- │   │   │   ├── avatar/
- │   │   │   ├── modal/
- │   │   │   └── form/
- │   │   ├── services/
- │   │   └── models/
- │   └── core/
-```
+ ├── pages/
+ │    └── document-upload/
+ │         ├── document-upload.page.tsx
+ │
+ ├── components/
+ │    ├── layout/
+ │    │    ├── header/
+ │    │    └── sidebar/
+ │    ├── feature/
+ │    │    ├── document-capture/
+ │    │    ├── quality-validation/
+ │    │    ├── multi-step-form/
+ │    │    └── upload-progress/
+ │    ├── shared/
+ │    │    ├── button/
+ │    │    ├── card/
+ │    │    ├── badge/
+ │    │    ├── progress/
+ │    │    ├── alert/
+ │    │    ├── modal/
+ │    │    ├── camera/
+ │    │    ├── stepper/
+ │    │    └── loading/
 
-### 4. COMPONENT IMPLEMENTATION
+4. COMPONENT IMPLEMENTATION
 
-#### 4.1 KanbanBoardComponent
+### 4.1 DocumentUploadComponent
 
-**Component Type:** Page
+Component Type: Page
 
-**Mapped From A1:** Main container component for the Kanban board with three-column layout
+Mapped From A1: DocumentUploadComponent (Main Container)
 
-**Purpose:** Primary container managing the entire Kanban board functionality with drag-drop support
+Purpose: Main container for document upload interface with quality validation system
 
-**Parent:** App Component
+Parent: App
 
-**Children:**
+Children:
 - HeaderComponent
 - SidebarComponent
 - PageHeaderComponent
-- BoardControlsComponent
-- KanbanContainerComponent
-- TaskModalComponent
+- DocumentCaptureComponent
+- MultiStepFormComponent
+- UploadProgressComponent
 
-**Dependencies:**
-- Angular CDK Drag Drop
-- Angular Material Components
-- RxJS for state management
-- Kanban Service
+Dependencies:
+- React/Angular framework
+- Camera API
+- File Upload API
+- Form validation library
 
-**Library Components Used:**
-- LoadingComponent → Shared loading spinner
-- ErrorStateComponent → Error display component
-- ModalComponent → Base modal wrapper
+Library Components Used:
+- Card → Document container layout
+- Progress → Upload progress tracking
+- Alert → Error and success notifications
+- Loading → Loading states during processing
 
-**TypeScript Specification**
+TypeScript Specification
 
-**Inputs:**
-- youthAccountId: string (Account identifier)
-- initialColumns: KanbanColumn[] (Initial column configuration)
-- permissions: UserPermissions (User access rights)
+Inputs:
+- sessionId: string
+- documentTypes: DocumentType[]
+- maxFileSize: number
+- qualityThreshold: number
+- permissions: UserPermissions
 
-**Outputs:**
-- onTaskMove: EventEmitter<TaskMoveEvent> (Task moved between columns)
-- onTaskCreate: EventEmitter<Task> (New task created)
-- onTaskUpdate: EventEmitter<Task> (Task updated)
-- onError: EventEmitter<string> (Error occurred)
+Outputs:
+- onDocumentCaptured(document: Document)
+- onValidationComplete(results: ValidationResult)
+- onUploadComplete(documents: Document[])
+- onSessionComplete(sessionData: FormSession)
 
-**State:**
-- columns: KanbanColumn[] (Current column data)
-- loading: boolean (Loading state)
-- error: string | null (Error message)
-- selectedFilters: FilterState (Active filters)
-- draggedTask: Task | null (Currently dragged task)
-- modalOpen: boolean (Task modal visibility)
-- currentTask: Task | null (Task being edited)
+State:
+- currentStep: number
+- uploadProgress: number
+- validationResults: ValidationResult[]
+- capturedDocuments: Document[]
+- sessionData: FormSession
+- isLoading: boolean
+- error: string | null
 
-**Methods:**
-- ngOnInit() → Initialize component and load data
-- loadKanbanData() → Fetch initial board data
-- onTaskDrop(event: CdkDragDrop) → Handle task drop events
-- openTaskModal(task?: Task) → Open task creation/editing modal
-- closeTaskModal() → Close task modal
-- handleTaskSubmit(task: Task) → Process task creation/update
-- applyFilters(filters: FilterState) → Apply filtering to tasks
-- handleError(error: any) → Process and display errors
+Methods:
+- initializeSession() → POST /forms/sessions
+- handleDocumentCapture(document: Document) → validation workflow
+- handleStepNavigation(step: number) → form progression
+- handleUploadComplete() → finalize session
 
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
+HTML STRUCTURE (PSEUDO CODE ONLY)
 
-```html
-<div class="kanban-board-container" role="region" aria-label="Kanban Board">
-  <app-header 
-    [user]="currentUser" 
-    [notifications]="notifications"
-    (onSearch)="handleSearch($event)">
-  </app-header>
+<div class="document-upload-container">
+  <HeaderComponent [user]="currentUser" [notifications]="notifications" />
   
   <div class="main-layout">
-    <app-sidebar 
-      [menuItems]="navigationItems"
-      [activeItem]="activeMenuItem"
-      (onMenuItemClick)="handleNavigation($event)">
-    </app-sidebar>
+    <SidebarComponent [menuItems]="navigationItems" [activeItem]="currentRoute" />
     
     <main class="content-area">
-      <app-page-header 
+      <PageHeaderComponent 
         [breadcrumbs]="breadcrumbItems"
         [title]="pageTitle"
-        [subtitle]="pageSubtitle">
-        <app-button 
-          variant="primary" 
-          (click)="openTaskModal()"
-          class="add-task-btn">
-          Add Task
-        </app-button>
-      </app-page-header>
+        [actions]="headerActions" />
       
-      <app-board-controls 
-        [filters]="availableFilters"
-        (onFilterChange)="applyFilters($event)">
-      </app-board-controls>
-      
-      <div class="kanban-container" 
-           cdkDropListGroup
-           [class.loading]="loading">
-        <app-kanban-column 
-          *ngFor="let column of columns; trackBy: trackByColumnId"
-          [column]="column"
-          [tasks]="getTasksForColumn(column.id)"
-          [allowDrop]="!loading"
-          (onTaskDrop)="onTaskDrop($event)"
-          (onAddTask)="openTaskModal()">
-        </app-kanban-column>
+      <div class="upload-interface">
+        <DocumentCaptureComponent 
+          [documentType]="selectedDocumentType"
+          [validationEnabled]="true"
+          (onCapture)="handleDocumentCapture($event)" />
+        
+        <MultiStepFormComponent 
+          [formConfig]="formConfiguration"
+          [sessionData]="sessionData"
+          (onStepComplete)="handleStepComplete($event)" />
+        
+        <UploadProgressComponent 
+          [files]="capturedDocuments"
+          [uploadConfig]="uploadSettings"
+          (onUploadComplete)="handleUploadComplete()" />
       </div>
-      
-      <app-loading-spinner *ngIf="loading"></app-loading-spinner>
-      <app-error-state *ngIf="error" [message]="error"></app-error-state>
     </main>
   </div>
-  
-  <app-task-modal 
-    [open]="modalOpen"
-    [task]="currentTask"
-    [columns]="columns"
-    (onSubmit)="handleTaskSubmit($event)"
-    (onCancel)="closeTaskModal()">
-  </app-task-modal>
 </div>
-```
 
-**CSS SPECIFICATION**
+CSS SPECIFICATION
 
-**Layout:**
+Layout:
 - display: grid
-- grid-template-areas: "header header" "sidebar main"
+- grid-template-areas: "header header" "sidebar content"
 - grid-template-columns: 280px 1fr
 - grid-template-rows: 64px 1fr
 
-**Spacing:**
-- padding: 0
-- gap: 0
-- main content padding: 24px
-
-**Component Styles:**
-- .kanban-board-container: full viewport height
-- .main-layout: grid layout for sidebar and content
-- .content-area: flex column with gap
-- .kanban-container: CSS grid for columns
-
-**Responsive:**
-- Desktop (>1024px): Full three-column layout
-- Tablet (768px-1024px): Collapsible sidebar, scrollable columns
-- Mobile (<768px): Single column view, drawer sidebar
-
-**API INTEGRATION**
-
-- loadKanbanData() → GET /api/youth-accounts/{id}/dashboard → Load initial board data
-- handleTaskSubmit() → POST /api/youth-accounts/{id}/fund-transfer → Create new task (adapted)
-- onTaskMove() → PUT /api/youth-accounts/{id}/spending-limit → Update task status (adapted)
-- loadTransactionHistory() → GET /api/youth-accounts/{id}/transactions → Load task history
-
-**ERROR HANDLING**
-
-- API failure → Display error state component with retry option
-- Validation error → Show inline validation messages
-- Network timeout → Show connection error with offline indicator
-- Permission denied → Redirect to access denied page
-
-**INTERACTION FLOW**
-
-**User Action → UI → API**
-- Page load → Show loading spinner → GET dashboard API → Display board data
-- Click "Add Task" → Open task modal → Fill form → POST task API → Update UI
-- Drag task → Visual feedback → Drop → PUT update API → Sync state
-- Apply filters → Update UI immediately → Optional API call for server filtering
-
-#### 4.2 KanbanColumnComponent
-
-**Component Type:** Feature
-
-**Mapped From A1:** Individual column container (To Do, In Progress, Done)
-
-**Purpose:** Manages individual Kanban column with drag-drop zone and task list
-
-**Parent:** KanbanBoardComponent
-
-**Children:**
-- ColumnHeaderComponent
-- TaskCardComponent (multiple)
-- AddTaskButtonComponent
-- DropZoneComponent
-
-**Dependencies:**
-- Angular CDK Drag Drop
-- Task Card Component
-- Badge Component
-
-**Library Components Used:**
-- BadgeComponent → Column task count
-- ButtonComponent → Add task and column actions
-- CardComponent → Column container styling
-
-**TypeScript Specification**
-
-**Inputs:**
-- column: KanbanColumn (Column configuration and data)
-- tasks: Task[] (Tasks assigned to this column)
-- allowDrop: boolean (Enable/disable drop functionality)
-- maxTasks: number (Maximum tasks per column)
-
-**Outputs:**
-- onTaskDrop: EventEmitter<TaskDropEvent> (Task dropped in column)
-- onAddTask: EventEmitter<string> (Add task button clicked)
-- onColumnAction: EventEmitter<ColumnAction> (Column header actions)
-
-**State:**
-- dragOver: boolean (Drag over state for visual feedback)
-- expanded: boolean (Column expanded/collapsed state)
-- taskCount: number (Current number of tasks)
-- isOverLimit: boolean (Exceeds maximum task limit)
-
-**Methods:**
-- ngOnInit() → Initialize column state
-- onDragEnter(event) → Handle drag enter events
-- onDragLeave(event) → Handle drag leave events
-- onDrop(event) → Process task drop
-- toggleExpanded() → Toggle column expansion
-- getTasksByPriority() → Sort tasks by priority
-- canAcceptDrop(task: Task) → Validate drop eligibility
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<div class="kanban-column" 
-     [class.drag-over]="dragOver"
-     [class.expanded]="expanded"
-     [attr.aria-labelledby]="column.id + '-header'">
-  
-  <div class="column-header" [id]="column.id + '-header'">
-    <h3 class="column-title">{{ column.title }}</h3>
-    <app-badge 
-      [count]="taskCount"
-      [variant]="getCountVariant()"
-      class="task-count">
-    </app-badge>
-    <app-button 
-      variant="ghost" 
-      size="small"
-      (click)="toggleExpanded()"
-      class="expand-btn">
-      <app-icon [name]="expanded ? 'collapse' : 'expand'"></app-icon>
-    </app-button>
-  </div>
-  
-  <div class="column-body" 
-       cdkDropList
-       [cdkDropListData]="tasks"
-       [cdkDropListDisabled]="!allowDrop"
-       (cdkDropListDropped)="onDrop($event)"
-       (cdkDropListEntered)="onDragEnter($event)"
-       (cdkDropListExited)="onDragLeave($event)">
-    
-    <app-task-card 
-      *ngFor="let task of tasks; trackBy: trackByTaskId"
-      [task]="task"
-      [draggable]="allowDrop"
-      cdkDrag
-      [cdkDragData]="task"
-      class="task-item">
-    </app-task-card>
-    
-    <app-button 
-      variant="dashed"
-      size="large"
-      (click)="onAddTask.emit(column.id)"
-      class="add-task-btn"
-      [disabled]="isOverLimit">
-      <app-icon name="plus"></app-icon>
-      Add Task
-    </app-button>
-    
-    <div class="drop-zone-indicator" 
-         *ngIf="dragOver && canAcceptCurrentDrag">
-      Drop task here
-    </div>
-  </div>
-  
-  <div class="column-footer" *ngIf="column.showFooter">
-    <span class="task-limit-info">{{ taskCount }}/{{ maxTasks }} tasks</span>
-  </div>
-</div>
-```
-
-**CSS SPECIFICATION**
-
-**Layout:**
-- display: flex
-- flex-direction: column
-- min-height: 500px
-- width: 100%
-
-**Spacing:**
-- padding: 16px
-- gap: 12px
-- margin-bottom: 24px
-
-**Component Styles:**
-- .kanban-column: card styling with border radius
-- .column-header: flex layout with space-between
-- .column-body: flex-1 with scroll overflow
-- .drag-over: highlighted border and background
-
-**Responsive:**
-- Desktop: Fixed width columns in grid
-- Tablet: Scrollable horizontal layout
-- Mobile: Full width stacked columns
-
-**API INTEGRATION**
-
-- onDrop() → Triggers parent component API calls
-- Task validation → Uses column rules and limits
-- No direct API calls (data flows through parent)
-
-**ERROR HANDLING**
-
-- Invalid drop → Show error toast and revert
-- Task limit exceeded → Disable drop and show warning
-- Column load failure → Show empty state with retry
-
-**INTERACTION FLOW**
-
-**User Action → UI → API**
-- Drag task over column → Show drop zone → Highlight column
-- Drop task → Validate drop → Update parent → API call
-- Click add task → Emit event → Parent opens modal
-- Toggle expand → Update local state → Save preference
-
-#### 4.3 TaskCardComponent
-
-**Component Type:** Feature
-
-**Mapped From A1:** Individual task card with drag/drop functionality
-
-**Purpose:** Displays individual task information with interactive elements
-
-**Parent:** KanbanColumnComponent
-
-**Children:**
-- TaskTitleComponent
-- TaskDescriptionComponent
-- TaskMetaComponent
-- BadgeComponent (priority)
-- AvatarComponent (assignee)
-- TagComponent (multiple)
-
-**Dependencies:**
-- Angular CDK Drag Drop
-- Badge Component
-- Avatar Component
-- Date utilities
-
-**Library Components Used:**
-- CardComponent → Base card styling
-- BadgeComponent → Priority and status badges
-- AvatarComponent → Assignee avatar
-- ButtonComponent → Quick action buttons
-
-**TypeScript Specification**
-
-**Inputs:**
-- task: Task (Task data object)
-- draggable: boolean (Enable drag functionality)
-- compact: boolean (Compact display mode)
-- showActions: boolean (Show quick action buttons)
-
-**Outputs:**
-- onTaskClick: EventEmitter<Task> (Task clicked for editing)
-- onQuickAction: EventEmitter<TaskAction> (Quick action performed)
-- onDragStart: EventEmitter<Task> (Drag operation started)
-- onDragEnd: EventEmitter<Task> (Drag operation ended)
-
-**State:**
-- dragging: boolean (Currently being dragged)
-- selected: boolean (Selected state)
-- hovered: boolean (Hover state)
-- expanded: boolean (Expanded view)
-
-**Methods:**
-- ngOnInit() → Initialize task display
-- onCardClick() → Handle card click events
-- onDragStart(event) → Start drag operation
-- onDragEnd(event) → End drag operation
-- getPriorityColor() → Get priority badge color
-- formatDueDate() → Format due date display
-- getProgressPercentage() → Calculate task progress
-- canPerformAction(action) → Check action permissions
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<div class="task-card" 
-     [class.dragging]="dragging"
-     [class.selected]="selected"
-     [class.compact]="compact"
-     [class.overdue]="isOverdue()"
-     (click)="onCardClick()"
-     (mouseenter)="hovered = true"
-     (mouseleave)="hovered = false">
-  
-  <div class="task-header">
-    <div class="task-priority">
-      <app-badge 
-        [variant]="getPriorityVariant()"
-        [color]="getPriorityColor()"
-        size="small">
-        {{ task.priority }}
-      </app-badge>
-    </div>
-    
-    <div class="task-actions" *ngIf="showActions && hovered">
-      <app-button 
-        variant="ghost" 
-        size="small"
-        (click)="onQuickAction.emit({type: 'edit', task: task})"
-        class="edit-btn">
-        <app-icon name="edit"></app-icon>
-      </app-button>
-      <app-button 
-        variant="ghost" 
-        size="small"
-        (click)="onQuickAction.emit({type: 'delete', task: task})"
-        class="delete-btn">
-        <app-icon name="delete"></app-icon>
-      </app-button>
-    </div>
-  </div>
-  
-  <div class="task-content">
-    <h4 class="task-title">{{ task.title }}</h4>
-    <p class="task-description" *ngIf="!compact">{{ task.description }}</p>
-    
-    <div class="task-progress" *ngIf="task.progress !== undefined">
-      <div class="progress-bar">
-        <div class="progress-fill" 
-             [style.width.%]="getProgressPercentage()"></div>
-      </div>
-      <span class="progress-text">{{ getProgressPercentage() }}%</span>
-    </div>
-  </div>
-  
-  <div class="task-meta">
-    <div class="task-tags" *ngIf="task.tags?.length">
-      <app-badge 
-        *ngFor="let tag of task.tags; trackBy: trackByTag"
-        [variant]="'outline'"
-        [color]="tag.color"
-        size="small"
-        class="task-tag">
-        {{ tag.name }}
-      </app-badge>
-    </div>
-    
-    <div class="task-footer">
-      <div class="task-due-date" 
-           *ngIf="task.dueDate"
-           [class.overdue]="isOverdue()">
-        <app-icon name="calendar"></app-icon>
-        <span>{{ formatDueDate(task.dueDate) }}</span>
-      </div>
-      
-      <div class="task-assignee" *ngIf="task.assignee">
-        <app-avatar 
-          [user]="task.assignee"
-          size="small"
-          [showTooltip]="true">
-        </app-avatar>
-      </div>
-    </div>
-  </div>
-  
-  <div class="drag-handle" 
-       *ngIf="draggable"
-       cdkDragHandle
-       class="drag-handle">
-    <app-icon name="drag-handle"></app-icon>
-  </div>
-</div>
-```
-
-**CSS SPECIFICATION**
-
-**Layout:**
-- display: flex
-- flex-direction: column
-- position: relative
-- cursor: pointer
-
-**Spacing:**
-- padding: 16px
-- margin-bottom: 12px
-- gap: 8px
-
-**Component Styles:**
-- .task-card: card elevation with hover effects
-- .dragging: reduced opacity and transform
-- .selected: highlighted border
-- .overdue: red accent border
-
-**Responsive:**
-- Desktop: Full card with all details
-- Tablet: Slightly condensed layout
-- Mobile: Compact mode with essential info only
-
-**API INTEGRATION**
-
-- No direct API calls (data passed from parent)
-- Quick actions trigger parent component API calls
-- Task updates flow through parent component
-
-**ERROR HANDLING**
-
-- Missing task data → Show placeholder content
-- Image load failure → Show default avatar
-- Action failure → Show error toast
-
-**INTERACTION FLOW**
-
-**User Action → UI → API**
-- Click task card → Emit task click → Parent opens edit modal
-- Start drag → Visual feedback → Update dragging state
-- Quick action → Emit action event → Parent handles API call
-- Hover card → Show action buttons → Enable quick actions
-
-#### 4.4 TaskModalComponent
-
-**Component Type:** Feature
-
-**Mapped From A1:** Modal for creating/editing tasks
-
-**Purpose:** Provides form interface for task creation and editing
-
-**Parent:** KanbanBoardComponent
-
-**Children:**
-- ModalHeaderComponent
-- ModalBodyComponent
-- TaskFormComponent
-- ModalFooterComponent
-- ButtonComponent (multiple)
-
-**Dependencies:**
-- Angular Reactive Forms
-- Modal Component
-- Form validation
-- Date picker
-
-**Library Components Used:**
-- ModalComponent → Base modal wrapper
-- InputComponent → Form input fields
-- TextareaComponent → Description field
-- SelectComponent → Dropdown selections
-- ButtonComponent → Action buttons
-
-**TypeScript Specification**
-
-**Inputs:**
-- open: boolean (Modal visibility state)
-- task: Task | null (Task being edited, null for new task)
-- columns: KanbanColumn[] (Available columns for assignment)
-- users: User[] (Available users for assignment)
-
-**Outputs:**
-- onSubmit: EventEmitter<Task> (Form submitted with task data)
-- onCancel: EventEmitter<void> (Modal cancelled/closed)
-- onDelete: EventEmitter<string> (Task deletion requested)
-
-**State:**
-- taskForm: FormGroup (Reactive form group)
-- submitting: boolean (Form submission in progress)
-- errors: ValidationErrors (Form validation errors)
-- isEditMode: boolean (Editing existing task vs creating new)
-- selectedTags: Tag[] (Selected task tags)
-
-**Methods:**
-- ngOnInit() → Initialize form and validation
-- ngOnChanges() → Handle input changes
-- initializeForm() → Setup form controls and validation
-- onSubmit() → Process form submission
-- onCancel() → Close modal and reset form
-- onDelete() → Handle task deletion
-- addTag(tag: Tag) → Add tag to task
-- removeTag(tagId: string) → Remove tag from task
-- validateForm() → Custom form validation
-- resetForm() → Reset form to initial state
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<app-modal 
-  [open]="open"
-  [size]="'large'"
-  [closable]="!submitting"
-  (onClose)="onCancel()">
-  
-  <div class="modal-header" slot="header">
-    <h2 class="modal-title">
-      {{ isEditMode ? 'Edit Task' : 'Create New Task' }}
-    </h2>
-    <app-button 
-      variant="ghost" 
-      size="small"
-      (click)="onCancel()"
-      [disabled]="submitting"
-      class="close-btn">
-      <app-icon name="close"></app-icon>
-    </app-button>
-  </div>
-  
-  <div class="modal-body" slot="body">
-    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-form">
-      
-      <div class="form-row">
-        <app-input 
-          label="Task Title"
-          formControlName="title"
-          [required]="true"
-          [error]="getFieldError('title')"
-          placeholder="Enter task title"
-          class="title-input">
-        </app-input>
-      </div>
-      
-      <div class="form-row">
-        <app-textarea 
-          label="Description"
-          formControlName="description"
-          [rows]="4"
-          placeholder="Enter task description"
-          class="description-input">
-        </app-textarea>
-      </div>
-      
-      <div class="form-row form-row-split">
-        <app-select 
-          label="Priority"
-          formControlName="priority"
-          [options]="priorityOptions"
-          [required]="true"
-          class="priority-select">
-        </app-select>
-        
-        <app-select 
-          label="Column"
-          formControlName="columnId"
-          [options]="columnOptions"
-          [required]="true"
-          class="column-select">
-        </app-select>
-      </div>
-      
-      <div class="form-row form-row-split">
-        <app-date-picker 
-          label="Due Date"
-          formControlName="dueDate"
-          [minDate]="today"
-          class="due-date-picker">
-        </app-date-picker>
-        
-        <app-select 
-          label="Assignee"
-          formControlName="assigneeId"
-          [options]="userOptions"
-          [searchable]="true"
-          class="assignee-select">
-        </app-select>
-      </div>
-      
-      <div class="form-row">
-        <label class="form-label">Tags</label>
-        <div class="tag-input-container">
-          <div class="selected-tags">
-            <app-badge 
-              *ngFor="let tag of selectedTags; trackBy: trackByTag"
-              [variant]="'filled'"
-              [color]="tag.color"
-              [removable]="true"
-              (onRemove)="removeTag(tag.id)"
-              class="selected-tag">
-              {{ tag.name }}
-            </app-badge>
-          </div>
-          <app-tag-input 
-            [availableTags]="availableTags"
-            (onTagAdd)="addTag($event)"
-            placeholder="Add tags..."
-            class="tag-input">
-          </app-tag-input>
-        </div>
-      </div>
-      
-      <div class="form-row" *ngIf="isEditMode">
-        <app-slider 
-          label="Progress"
-          formControlName="progress"
-          [min]="0"
-          [max]="100"
-          [step]="5"
-          [showValue]="true"
-          class="progress-slider">
-        </app-slider>
-      </div>
-      
-    </form>
-  </div>
-  
-  <div class="modal-footer" slot="footer">
-    <div class="footer-actions">
-      <div class="left-actions">
-        <app-button 
-          *ngIf="isEditMode"
-          variant="danger"
-          (click)="onDelete()"
-          [disabled]="submitting"
-          class="delete-btn">
-          <app-icon name="delete"></app-icon>
-          Delete Task
-        </app-button>
-      </div>
-      
-      <div class="right-actions">
-        <app-button 
-          variant="secondary"
-          (click)="onCancel()"
-          [disabled]="submitting"
-          class="cancel-btn">
-          Cancel
-        </app-button>
-        
-        <app-button 
-          variant="primary"
-          type="submit"
-          [loading]="submitting"
-          [disabled]="taskForm.invalid || submitting"
-          (click)="onSubmit()"
-          class="submit-btn">
-          {{ isEditMode ? 'Update Task' : 'Create Task' }}
-        </app-button>
-      </div>
-    </div>
-  </div>
-  
-</app-modal>
-```
-
-**CSS SPECIFICATION**
-
-**Layout:**
-- Modal: fixed positioning with backdrop
-- Form: flex column layout
-- Form rows: flex with responsive wrapping
-
-**Spacing:**
-- Modal padding: 24px
-- Form row gap: 16px
-- Input spacing: 8px
-
-**Component Styles:**
-- .task-form: structured form layout
-- .form-row-split: two-column responsive layout
-- .modal-footer: space-between button layout
-- .tag-input-container: flex wrap for tags
-
-**Responsive:**
-- Desktop: Two-column form layout
-- Tablet: Single column with adjusted spacing
-- Mobile: Full-width modal with stacked inputs
-
-**API INTEGRATION**
-
-- onSubmit() → POST /api/youth-accounts/{id}/fund-transfer → Create task (adapted)
-- onSubmit() → PUT /api/youth-accounts/{id}/spending-limit → Update task (adapted)
-- onDelete() → DELETE /api/tasks/{id} → Delete task (when available)
-- Form validation → Client-side validation with server validation
-
-**ERROR HANDLING**
-
-- Form validation errors → Inline field error messages
-- API submission failure → Show error toast and keep modal open
-- Network timeout → Show retry option
-- Validation conflict → Highlight conflicting fields
-
-**INTERACTION FLOW**
-
-**User Action → UI → API**
-- Open modal → Initialize form → Load dropdown data
-- Fill form → Real-time validation → Show field errors
-- Submit form → Show loading → API call → Close modal on success
-- Cancel → Confirm unsaved changes → Close modal
-- Delete task → Confirm deletion → API call → Close modal
-
-#### 4.5 HeaderComponent
-
-**Component Type:** Layout
-
-**Mapped From A1:** Top navigation header with search and user actions
-
-**Purpose:** Provides global navigation, search, and user account access
-
-**Parent:** KanbanBoardComponent
-
-**Children:**
-- SearchFieldComponent
-- NotificationIconComponent
-- AvatarChipComponent
-- BrandLogoComponent
-
-**Dependencies:**
-- Search service
-- Notification service
-- Authentication service
-
-**Library Components Used:**
-- SearchFieldComponent → Header search functionality
-- AvatarComponent → User avatar display
-- BadgeComponent → Notification count badge
-- ButtonComponent → Action buttons
-
-**TypeScript Specification**
-
-**Inputs:**
-- user: User (Current user information)
-- notifications: Notification[] (User notifications)
-- searchEnabled: boolean (Enable search functionality)
-- showNotifications: boolean (Show notification icon)
-
-**Outputs:**
-- onSearch: EventEmitter<string> (Search query entered)
-- onNotificationClick: EventEmitter<void> (Notification icon clicked)
-- onUserMenuClick: EventEmitter<string> (User menu action)
-- onLogoClick: EventEmitter<void> (Logo clicked)
-
-**State:**
-- searchQuery: string (Current search query)
-- notificationCount: number (Unread notification count)
-- userMenuOpen: boolean (User dropdown menu state)
-- searchFocused: boolean (Search field focus state)
-
-**Methods:**
-- ngOnInit() → Initialize header state
-- onSearchInput(query: string) → Handle search input
-- onSearchSubmit() → Submit search query
-- toggleUserMenu() → Toggle user dropdown
-- handleNotificationClick() → Open notification panel
-- onLogoClick() → Navigate to home
-- getNotificationCount() → Calculate unread notifications
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<header class="app-header" role="banner">
-  <div class="header-container">
-    
-    <div class="header-left">
-      <div class="brand-section" (click)="onLogoClick()">
-        <app-icon name="logo" class="brand-logo"></app-icon>
-        <span class="brand-name">TaskBoard</span>
-      </div>
-    </div>
-    
-    <div class="header-center">
-      <app-search-field 
-        *ngIf="searchEnabled"
-        [placeholder]="'Search tasks, projects...'"
-        [value]="searchQuery"
-        (onInput)="onSearchInput($event)"
-        (onSubmit)="onSearchSubmit()"
-        (onFocus)="searchFocused = true"
-        (onBlur)="searchFocused = false"
-        class="header-search">
-      </app-search-field>
-    </div>
-    
-    <div class="header-right">
-      <div class="header-actions">
-        
-        <app-button 
-          *ngIf="showNotifications"
-          variant="ghost"
-          size="medium"
-          (click)="handleNotificationClick()"
-          class="notification-btn"
-          [attr.aria-label]="'Notifications (' + notificationCount + ' unread)'">
-          <app-icon name="bell"></app-icon>
-          <app-badge 
-            *ngIf="notificationCount > 0"
-            [count]="notificationCount"
-            variant="danger"
-            size="small"
-            class="notification-badge">
-          </app-badge>
-        </app-button>
-        
-        <div class="user-menu-container">
-          <app-button 
-            variant="ghost"
-            (click)="toggleUserMenu()"
-            class="user-menu-trigger"
-            [attr.aria-expanded]="userMenuOpen"
-            aria-haspopup="true">
-            <app-avatar 
-              [user]="user"
-              size="small"
-              class="user-avatar">
-            </app-avatar>
-            <span class="user-name">{{ user?.firstName }} {{ user?.lastName }}</span>
-            <app-icon name="chevron-down" class="dropdown-icon"></app-icon>
-          </app-button>
-          
-          <div class="user-dropdown" 
-               *ngIf="userMenuOpen"
-               role="menu"
-               aria-labelledby="user-menu-trigger">
-            <app-button 
-              variant="ghost"
-              (click)="onUserMenuClick('profile')"
-              role="menuitem"
-              class="menu-item">
-              <app-icon name="user"></app-icon>
-              Profile
-            </app-button>
-            <app-button 
-              variant="ghost"
-              (click)="onUserMenuClick('settings')"
-              role="menuitem"
-              class="menu-item">
-              <app-icon name="settings"></app-icon>
-              Settings
-            </app-button>
-            <div class="menu-divider"></div>
-            <app-button 
-              variant="ghost"
-              (click)="onUserMenuClick('logout')"
-              role="menuitem"
-              class="menu-item logout-item">
-              <app-icon name="logout"></app-icon>
-              Logout
-            </app-button>
-          </div>
-        </div>
-        
-      </div>
-    </div>
-    
-  </div>
-</header>
-```
-
-**CSS SPECIFICATION**
-
-**Layout:**
-- display: flex
-- justify-content: space-between
-- align-items: center
-- position: sticky
-- top: 0
-- z-index: 100
-
-**Spacing:**
-- height: 64px
-- padding: 0 24px
+Spacing:
+- padding: 24px
 - gap: 16px
 
-**Component Styles:**
-- .app-header: white background with shadow
-- .header-container: full width flex layout
-- .user-dropdown: absolute positioned menu
-- .brand-section: flex with logo and text
+Component Styles:
+- .document-upload-container: full viewport height
+- .main-layout: grid layout for sidebar and content
+- .content-area: flex column with gap
+- .upload-interface: grid layout for upload sections
 
-**Responsive:**
-- Desktop: Full layout with search and all actions
-- Tablet: Condensed search, maintain core actions
-- Mobile: Hide search, show hamburger menu
+Responsive:
+- Mobile: stack sidebar below header
+- Tablet: collapse sidebar to icons
+- Desktop: full layout with expanded sidebar
 
-**API INTEGRATION**
+API INTEGRATION
 
-- Search functionality → Triggers parent component search
-- Notification count → Real-time updates via WebSocket
-- User menu actions → Navigate to respective pages
-- No direct API calls (delegates to parent/services)
+- initializeSession() → POST /forms/sessions → create upload session
+- validateDocument() → POST /documents/validate → real-time quality check
+- uploadDocument() → POST /documents/upload → file upload with progress
+- updateSession() → PUT /forms/sessions/{id} → save form progress
 
-**ERROR HANDLING**
+ERROR HANDLING
 
-- Search service failure → Show search unavailable state
-- Notification load failure → Hide notification badge
-- User data missing → Show default avatar and name
+- API failure → show error alert with retry option
+- Validation error → display inline feedback with suggestions
+- Upload failure → show progress error with resume capability
+- Session timeout → auto-save and redirect to login
 
-**INTERACTION FLOW**
+INTERACTION FLOW
 
-**User Action → UI → API**
-- Type in search → Debounced input → Emit search event → Parent handles
-- Click notifications → Open notification panel → Load notifications
-- Click user menu → Toggle dropdown → Show menu options
-- Select menu item → Emit action → Parent handles navigation
+User Action → UI → API
+- Page load → initialize session → POST /forms/sessions
+- Document capture → quality validation → POST /documents/validate
+- Form submission → save progress → PUT /forms/sessions/{id}
+- Final upload → document upload → POST /documents/upload
 
-### 5. COMPONENT MAPPING SUMMARY
+### 4.2 CameraInterfaceComponent
+
+Component Type: Feature
+
+Mapped From A1: CameraInterfaceComponent
+
+Purpose: Document capture interface with overlay guidance and real-time quality validation
+
+Parent: DocumentCaptureComponent
+
+Children:
+- CameraOverlayComponent
+- CaptureButtonComponent
+- CameraControlsComponent
+
+Dependencies:
+- Camera API (getUserMedia)
+- Canvas API for image processing
+- WebRTC for camera access
+
+Library Components Used:
+- Button → Capture and control buttons
+- Tooltip → Guidance and help text
+- Alert → Camera permission and error messages
+- Loading → Camera initialization spinner
+
+TypeScript Specification
+
+Inputs:
+- documentType: string
+- overlayGuides: boolean
+- qualityValidation: boolean
+- cameraConstraints: MediaStreamConstraints
+
+Outputs:
+- onCapture(imageData: Blob)
+- onRetake()
+- onCameraError(error: Error)
+- onQualityUpdate(score: number)
+
+State:
+- cameraActive: boolean
+- captureMode: string
+- overlayVisible: boolean
+- stream: MediaStream | null
+- capturedImage: Blob | null
+- qualityScore: number
+
+Methods:
+- initializeCamera() → request camera permissions
+- captureImage() → capture and process image
+- toggleOverlay() → show/hide guidance overlay
+- retakePhoto() → reset capture state
+
+HTML STRUCTURE (PSEUDO CODE ONLY)
+
+<div class="camera-interface">
+  <div class="camera-viewport">
+    <video class="camera-stream" [srcObject]="cameraStream"></video>
+    
+    <CameraOverlayComponent 
+      [visible]="overlayVisible"
+      [documentType]="documentType"
+      [guides]="overlayGuides" />
+    
+    <div class="quality-indicator">
+      <div class="quality-score" [class.good]="qualityScore > 80">
+        Quality: {{qualityScore}}%
+      </div>
+    </div>
+  </div>
+  
+  <div class="camera-controls">
+    <Button 
+      variant="primary"
+      size="large"
+      [disabled]="!cameraActive"
+      (click)="captureImage()">
+      Capture Document
+    </Button>
+    
+    <Button 
+      variant="secondary"
+      (click)="retakePhoto()"
+      *ngIf="capturedImage">
+      Retake
+    </Button>
+    
+    <Button 
+      variant="ghost"
+      (click)="toggleOverlay()">
+      Toggle Guide
+    </Button>
+  </div>
+</div>
+
+CSS SPECIFICATION
+
+Layout:
+- display: flex
+- flex-direction: column
+- align-items: center
+
+Spacing:
+- padding: 24px
+- gap: 16px
+
+Component Styles:
+- .camera-viewport: relative positioning for overlay
+- .camera-stream: full width with aspect ratio
+- .quality-indicator: absolute positioned overlay
+- .camera-controls: flex row with button spacing
+
+Responsive:
+- Mobile: full width camera with large capture button
+- Tablet: optimized touch targets
+- Desktop: standard camera interface
+
+API INTEGRATION
+
+- validateImage() → POST /documents/validate → real-time quality assessment
+- captureDocument() → process image and trigger validation
+
+ERROR HANDLING
+
+- Camera permission denied → show permission request dialog
+- Camera not available → show fallback file upload option
+- Capture failure → show error message with retry
+- Quality too low → show improvement suggestions
+
+INTERACTION FLOW
+
+User Action → UI → API
+- Camera activation → request permissions → initialize camera stream
+- Image capture → process image → POST /documents/validate
+- Quality feedback → display score → suggest improvements
+- Retake action → reset interface → restart capture process
+
+### 4.3 QualityValidationComponent
+
+Component Type: Feature
+
+Mapped From A1: QualityValidationComponent
+
+Purpose: Real-time document quality assessment and feedback display
+
+Parent: DocumentCaptureComponent
+
+Children:
+- ValidationFeedbackComponent
+- QualityScoreComponent
+- ImprovementSuggestionsComponent
+
+Dependencies:
+- Image processing library
+- Validation service
+- Real-time API client
+
+Library Components Used:
+- Progress → Quality score visualization
+- Alert → Validation feedback messages
+- Badge → Quality status indicators
+- Card → Feedback container
+
+TypeScript Specification
+
+Inputs:
+- document: Document
+- validationRules: ValidationRule[]
+- realTimeMode: boolean
+- qualityThreshold: number
+
+Outputs:
+- onValidationUpdate(results: ValidationResult)
+- onQualityImproved()
+- onValidationComplete(isValid: boolean)
+
+State:
+- qualityScore: number
+- validationStatus: string
+- suggestions: string[]
+- isValidating: boolean
+- validationHistory: ValidationResult[]
+
+Methods:
+- validateDocument() → POST /documents/validate
+- updateQualityScore() → calculate and display score
+- generateSuggestions() → create improvement recommendations
+- resetValidation() → clear validation state
+
+HTML STRUCTURE (PSEUDO CODE ONLY)
+
+<div class="quality-validation">
+  <Card class="validation-container">
+    <div class="quality-header">
+      <h3>Document Quality</h3>
+      <Badge [variant]="qualityStatus" [text]="validationStatus" />
+    </div>
+    
+    <div class="quality-score">
+      <Progress 
+        [value]="qualityScore"
+        [max]="100"
+        [color]="getScoreColor(qualityScore)"
+        [label]="qualityScore + '%'" />
+    </div>
+    
+    <div class="validation-feedback">
+      <ValidationFeedbackComponent 
+        [results]="validationResults"
+        [suggestions]="suggestions" />
+    </div>
+    
+    <div class="improvement-suggestions" *ngIf="suggestions.length > 0">
+      <h4>Suggestions for Improvement:</h4>
+      <ul class="suggestions-list">
+        <li *ngFor="let suggestion of suggestions" class="suggestion-item">
+          <Alert variant="info" [message]="suggestion" />
+        </li>
+      </ul>
+    </div>
+  </Card>
+</div>
+
+CSS SPECIFICATION
+
+Layout:
+- display: flex
+- flex-direction: column
+- gap: 16px
+
+Spacing:
+- padding: 20px
+- margin: 16px 0
+
+Component Styles:
+- .validation-container: elevated card with border radius
+- .quality-header: flex row with space between
+- .quality-score: centered progress indicator
+- .suggestions-list: styled list with spacing
+
+Responsive:
+- Mobile: full width with stacked layout
+- Tablet: optimized spacing and typography
+- Desktop: standard card layout
+
+API INTEGRATION
+
+- validateDocument() → POST /documents/validate → quality assessment
+- getValidationRules() → GET /validation/rules → validation criteria
+
+ERROR HANDLING
+
+- Validation API failure → show generic quality message
+- Invalid document format → show format error
+- Network timeout → show offline validation mode
+
+INTERACTION FLOW
+
+User Action → UI → API
+- Document capture → trigger validation → POST /documents/validate
+- Quality update → display score → show suggestions
+- Improvement made → re-validate → update feedback
+
+### 4.4 MultiStepFormComponent
+
+Component Type: Feature
+
+Mapped From A1: MultiStepFormComponent
+
+Purpose: Multi-step form with progress tracking and validation
+
+Parent: DocumentUploadComponent
+
+Children:
+- FormProgressComponent
+- FormStepComponent (multiple instances)
+- FormSummaryComponent
+
+Dependencies:
+- Form validation library
+- State management
+- Progress tracking
+
+Library Components Used:
+- Stepper → Multi-step navigation
+- Input → Form fields with validation
+- Button → Navigation and submit buttons
+- Alert → Validation error messages
+- Progress → Form completion indicator
+
+TypeScript Specification
+
+Inputs:
+- formConfig: FormConfig
+- initialData: any
+- validationRules: ValidationRule[]
+- sessionId: string
+
+Outputs:
+- onStepComplete(stepData: any)
+- onFormSubmit(formData: any)
+- onStepValidation(errors: ValidationError[])
+- onProgressUpdate(percentage: number)
+
+State:
+- currentStep: number
+- formData: any
+- validationErrors: ValidationError[]
+- completionPercentage: number
+- isSubmitting: boolean
+- stepHistory: any[]
+
+Methods:
+- navigateToStep() → change current step
+- validateStep() → validate current step data
+- saveProgress() → PUT /forms/sessions/{id}
+- submitForm() → final form submission
+
+HTML STRUCTURE (PSEUDO CODE ONLY)
+
+<div class="multi-step-form">
+  <div class="form-header">
+    <h2>Document Upload Form</h2>
+    <Progress [value]="completionPercentage" [label]="completionPercentage + '% Complete'" />
+  </div>
+  
+  <Stepper 
+    [steps]="formSteps"
+    [currentStep]="currentStep"
+    [completedSteps]="completedSteps"
+    (onStepChange)="navigateToStep($event)" />
+  
+  <div class="form-content">
+    <FormStepComponent 
+      [stepConfig]="currentStepConfig"
+      [data]="formData"
+      [validationErrors]="validationErrors"
+      (onDataChange)="handleDataChange($event)"
+      (onValidation)="handleStepValidation($event)" />
+  </div>
+  
+  <div class="form-navigation">
+    <Button 
+      variant="secondary"
+      [disabled]="currentStep === 0"
+      (click)="previousStep()">
+      Previous
+    </Button>
+    
+    <Button 
+      variant="primary"
+      [disabled]="!isCurrentStepValid"
+      (click)="nextStep()"
+      *ngIf="!isLastStep">
+      Next
+    </Button>
+    
+    <Button 
+      variant="primary"
+      [loading]="isSubmitting"
+      (click)="submitForm()"
+      *ngIf="isLastStep">
+      Submit
+    </Button>
+  </div>
+</div>
+
+CSS SPECIFICATION
+
+Layout:
+- display: flex
+- flex-direction: column
+- gap: 24px
+
+Spacing:
+- padding: 32px
+- margin: 0 auto
+- max-width: 800px
+
+Component Styles:
+- .form-header: centered with progress indicator
+- .form-content: flexible height with scroll
+- .form-navigation: flex row with space between
+
+Responsive:
+- Mobile: single column with full width buttons
+- Tablet: optimized spacing and button sizes
+- Desktop: standard form layout with side navigation
+
+API INTEGRATION
+
+- saveProgress() → PUT /forms/sessions/{session_id} → save form state
+- getFormData() → GET /forms/sessions/{session_id} → retrieve saved data
+- submitForm() → POST /forms/submit → final form submission
+
+ERROR HANDLING
+
+- Validation errors → display inline field errors
+- Save failure → show auto-save error with retry
+- Submit failure → show submission error with recovery options
+- Session timeout → auto-save and redirect
+
+INTERACTION FLOW
+
+User Action → UI → API
+- Step navigation → validate current step → save progress
+- Data input → real-time validation → update error state
+- Form submission → validate all steps → POST /forms/submit
+
+### 4.5 UploadProgressComponent
+
+Component Type: Feature
+
+Mapped From A1: UploadProgressComponent
+
+Purpose: File upload progress tracking with optimization metrics
+
+Parent: DocumentUploadComponent
+
+Children:
+- ProgressBarComponent
+- UploadStatusComponent
+- CompressionInfoComponent
+- ErrorRecoveryComponent
+
+Dependencies:
+- File upload service
+- Progress tracking
+- Compression utilities
+
+Library Components Used:
+- Progress → Upload progress bars
+- Badge → Upload status indicators
+- Alert → Error and success messages
+- Button → Cancel and retry actions
+
+TypeScript Specification
+
+Inputs:
+- files: File[]
+- compressionEnabled: boolean
+- uploadSpeed: number
+- maxRetries: number
+
+Outputs:
+- onUploadProgress(progress: number)
+- onUploadComplete()
+- onUploadError(error: Error)
+- onUploadCancel()
+
+State:
+- uploadProgress: number
+- compressionRatio: number
+- estimatedTime: number
+- uploadStatus: string
+- currentFile: File | null
+- uploadSpeed: number
+
+Methods:
+- startUpload() → initiate file upload
+- pauseUpload() → pause upload process
+- resumeUpload() → resume paused upload
+- cancelUpload() → cancel upload and cleanup
+
+HTML STRUCTURE (PSEUDO CODE ONLY)
+
+<div class="upload-progress">
+  <div class="upload-header">
+    <h3>Uploading Documents</h3>
+    <Badge [variant]="uploadStatus" [text]="getStatusText()" />
+  </div>
+  
+  <div class="progress-section">
+    <Progress 
+      [value]="uploadProgress"
+      [max]="100"
+      [label]="uploadProgress + '%'"
+      [showPercentage]="true" />
+    
+    <div class="upload-details">
+      <span class="upload-speed">{{uploadSpeed}} MB/s</span>
+      <span class="estimated-time">{{estimatedTime}} remaining</span>
+    </div>
+  </div>
+  
+  <div class="file-list">
+    <div class="file-item" *ngFor="let file of files">
+      <span class="file-name">{{file.name}}</span>
+      <span class="file-size">{{formatFileSize(file.size)}}</span>
+      <Badge [variant]="getFileStatus(file)" [text]="getFileStatusText(file)" />
+    </div>
+  </div>
+  
+  <div class="compression-info" *ngIf="compressionEnabled">
+    <Alert variant="info" [message]="'Compression ratio: ' + compressionRatio + '%'" />
+  </div>
+  
+  <div class="upload-actions">
+    <Button 
+      variant="secondary"
+      (click)="pauseUpload()"
+      *ngIf="uploadStatus === 'uploading'">
+      Pause
+    </Button>
+    
+    <Button 
+      variant="secondary"
+      (click)="resumeUpload()"
+      *ngIf="uploadStatus === 'paused'">
+      Resume
+    </Button>
+    
+    <Button 
+      variant="danger"
+      (click)="cancelUpload()">
+      Cancel
+    </Button>
+  </div>
+</div>
+
+CSS SPECIFICATION
+
+Layout:
+- display: flex
+- flex-direction: column
+- gap: 16px
+
+Spacing:
+- padding: 24px
+- border-radius: 8px
+- background: card background
+
+Component Styles:
+- .upload-header: flex row with space between
+- .progress-section: progress bar with details
+- .file-list: scrollable list with file items
+- .upload-actions: flex row with button spacing
+
+Responsive:
+- Mobile: stacked layout with full width progress
+- Tablet: optimized file list and button sizes
+- Desktop: standard layout with detailed metrics
+
+API INTEGRATION
+
+- uploadFile() → POST /documents/upload → file upload with progress
+- getUploadStatus() → GET /uploads/{upload_id} → upload status check
+- cancelUpload() → DELETE /uploads/{upload_id} → cancel upload
+
+ERROR HANDLING
+
+- Upload failure → show error with retry option
+- Network interruption → auto-resume when connection restored
+- File too large → show size limit error
+- Invalid file type → show format error
+
+INTERACTION FLOW
+
+User Action → UI → API
+- Start upload → initialize upload → POST /documents/upload
+- Progress update → display progress → update UI state
+- Upload complete → show success → trigger completion callback
+- Error occurred → show error → provide retry/cancel options
+
+5. COMPONENT MAPPING SUMMARY
 
 | A1 Component | Final Component | Type |
 |--------------|----------------|---------|
-| KanbanBoardComponent | KanbanBoardComponent | Page |
+| DocumentUploadComponent | DocumentUploadComponent | Page |
 | HeaderComponent | HeaderComponent | Layout |
 | SidebarComponent | SidebarComponent | Layout |
-| KanbanContainerComponent | KanbanContainerComponent | Feature |
-| KanbanColumnComponent | KanbanColumnComponent | Feature |
-| TaskCardComponent | TaskCardComponent | Feature |
-| TaskModalComponent | TaskModalComponent | Feature |
-| SearchFieldComponent | SearchFieldComponent | Shared |
-| ButtonComponent | ButtonComponent | Shared |
-| BadgeComponent | BadgeComponent | Shared |
-| AvatarComponent | AvatarComponent | Shared |
-| ModalComponent | ModalComponent | Shared |
-| CardComponent | CardComponent | Shared |
-| InputComponent | InputComponent | Shared |
-| SelectComponent | SelectComponent | Shared |
-| LoadingComponent | LoadingComponent | Shared |
-| ErrorStateComponent | ErrorStateComponent | Shared |
+| PageHeaderComponent | PageHeaderComponent | Layout |
+| CameraInterfaceComponent | CameraInterfaceComponent | Feature |
+| QualityValidationComponent | QualityValidationComponent | Feature |
+| MultiStepFormComponent | MultiStepFormComponent | Feature |
+| UploadProgressComponent | UploadProgressComponent | Feature |
+| DocumentPreviewComponent | DocumentPreviewComponent | Feature |
+| FormProgressComponent | FormProgressComponent | Shared |
+| ValidationFeedbackComponent | ValidationFeedbackComponent | Shared |
 
-### 6. DATA FLOW (FROM AGENT-1)
+6. DATA FLOW (FROM AGENT-1)
 
-**Parent → Child:**
+Parent → Child:
+- App → HeaderComponent (user, notifications, searchEnabled)
+- App → SidebarComponent (menuItems, activeItem, collapsed)
+- App → DocumentUploadComponent (sessionId, config, permissions)
+- DocumentUploadComponent → CameraInterfaceComponent (documentType, validationEnabled)
+- DocumentUploadComponent → QualityValidationComponent (document, validationRules)
+- DocumentUploadComponent → MultiStepFormComponent (formConfig, sessionData)
+- DocumentUploadComponent → UploadProgressComponent (files, uploadConfig)
+- CameraInterfaceComponent → CameraOverlayComponent (guides, documentType)
+- QualityValidationComponent → ValidationFeedbackComponent (results, suggestions)
+- MultiStepFormComponent → FormStepComponent (stepConfig, data, validation)
 
-**App → HeaderComponent:**
-- user: User (Current user data)
-- notifications: Notification[] (User notifications)
+7. API USAGE SUMMARY
 
-**App → SidebarComponent:**
-- menuItems: MenuItem[] (Navigation menu structure)
-- activeItem: string (Currently active menu item)
+Component → API:
+- DocumentUploadComponent → POST /forms/sessions (initialize session)
+- CameraInterfaceComponent → POST /documents/validate (real-time validation)
+- QualityValidationComponent → POST /documents/validate (quality assessment)
+- MultiStepFormComponent → PUT /forms/sessions/{id} (save progress)
+- UploadProgressComponent → POST /documents/upload (file upload)
+- HeaderComponent → GET /users/profile (user information)
+- DocumentPreviewComponent → GET /documents/{id} (document status)
 
-**App → KanbanBoardComponent:**
-- youthAccountId: string (Account identifier)
-- initialColumns: KanbanColumn[] (Initial board configuration)
-- permissions: UserPermissions (User access rights)
+8. NOTES & CONSTRAINTS
 
-**KanbanBoardComponent → KanbanColumnComponent:**
-- column: KanbanColumn (Column configuration)
-- tasks: Task[] (Tasks for this column)
-- allowDrop: boolean (Drag-drop enabled state)
-
-**KanbanColumnComponent → TaskCardComponent:**
-- task: Task (Individual task data)
-- draggable: boolean (Drag functionality enabled)
-- compact: boolean (Display mode)
-
-**KanbanBoardComponent → TaskModalComponent:**
-- open: boolean (Modal visibility)
-- task: Task | null (Task being edited)
-- columns: KanbanColumn[] (Available columns)
-
-**TaskCardComponent → BadgeComponent:**
-- variant: string (Badge style variant)
-- color: string (Badge color)
-- count: number (Badge count value)
-
-**TaskCardComponent → AvatarComponent:**
-- user: User (Assignee information)
-- size: string (Avatar size)
-- showTooltip: boolean (Tooltip visibility)
-
-### 7. API USAGE SUMMARY
-
-**Component → API:**
-
-**KanbanBoardComponent:**
-- GET /api/youth-accounts/{id}/dashboard → Load initial board data and user information
-- GET /api/youth-accounts/{id}/transactions → Load task history and activity data
-- POST /api/youth-accounts/{id}/fund-transfer → Create new tasks (adapted endpoint)
-- PUT /api/youth-accounts/{id}/spending-limit → Update task status and details (adapted)
-- GET /api/youth-accounts/{id}/validate → Validate user permissions and access
-
-**TaskModalComponent:**
-- POST /api/youth-accounts/{id}/fund-transfer → Submit new task creation (adapted)
-- PUT /api/youth-accounts/{id}/spending-limit → Update existing task (adapted)
-
-**HeaderComponent:**
-- GET /api/youth-accounts/{id}/validate → Validate user session and permissions
-
-**API Adaptations Required:**
-- Dashboard API → Transform account data to Kanban board structure
-- Transaction API → Map transaction history to task activity timeline
-- Fund Transfer API → Adapt for task creation workflow
-- Spending Limit API → Repurpose for task status updates
-- Validation API → Use for authentication and permission checks
-
-### 8. NOTES & CONSTRAINTS
-
-**HTML Structure Compliance:**
-- HTML must follow Agent-1 structure strictly without deviation
-- Three-column CSS Grid layout is mandatory as specified
-- ARIA attributes must be implemented exactly as outlined
-- Responsive breakpoints must match the specified requirements
-
-**Component Reusability:**
+- HTML must follow A1 structure strictly
 - Do NOT create new components unnecessarily
-- Prefer reusable library components from the UI component library
-- Follow established import patterns from component documentation
-- Maintain consistency with existing component interfaces
-
-**Code Structure:**
-- HTML must be pseudo-code ONLY (not full framework implementation)
-- CSS should include only key classes and layout rules
-- TypeScript specifications must include all required interfaces
-- Follow Angular best practices for component architecture
-
-**API Integration:**
-- Current APIs are adapted from youth account management system
-- Missing dedicated task management endpoints require API transformations
-- Real-time features may need WebSocket implementation
-- Error handling must account for API limitations
-
-**Performance Considerations:**
-- Implement virtual scrolling for large task lists
-- Use OnPush change detection strategy where possible
-- Lazy load task details and attachments
-- Cache frequently accessed data
-
-**Accessibility Requirements:**
-- Full keyboard navigation support required
-- Screen reader compatibility with proper ARIA labels
-- High contrast mode support
-- Focus management for modal interactions
-
-**Security Constraints:**
-- Validate all user inputs on both client and server
-- Implement proper authentication guards
-- Use role-based access control for task operations
-- Sanitize all user-generated content
-
-**Browser Compatibility:**
-- Support modern browsers (Chrome, Firefox, Safari, Edge)
-- CSS Grid support required (IE11+ if needed)
-- Drag and drop API compatibility
-- Responsive design for mobile browsers
-
-**Development Guidelines:**
-- Follow established coding standards and linting rules
-- Implement comprehensive unit tests for all components
-- Use reactive forms for all form interactions
-- Implement proper error boundaries and fallback UI
-- Document all component interfaces and usage patterns
+- Prefer reusable library components
+- HTML must be pseudo-code ONLY (NOT real framework code)
+- All components must support accessibility (WCAG 2.1 AA)
+- Mobile-first responsive design approach
+- Real-time validation requires WebSocket or polling implementation
+- Camera access requires HTTPS in production
+- File upload supports chunked upload for large files
+- Form state must be persisted across browser sessions
+- Error boundaries required for camera and upload components
+- Progressive enhancement for users without camera access
+- Compression algorithms must preserve document quality
+- Multi-language support for international users
+- Dark mode support for improved accessibility
