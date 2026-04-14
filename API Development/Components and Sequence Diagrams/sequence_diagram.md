@@ -3,405 +3,379 @@
 
 ### Version: 1.0
 ### Date: 2024
-### Generated from: HLD Document and API Contract Outline
+### Classification: Internal
 
 ---
 
-## 1. Youth Account Dashboard Sequence Diagram
+## 1. Youth Account Dashboard Retrieval Sequence
+
+**Mapped to ADR**: SCIB-26 - Create API to retrieve youth account dashboard details
 
 ```mermaid
 sequenceDiagram
-    participant U as User (Parent/Guardian)
-    participant WA as Web Application
-    participant AG as API Gateway
-    participant DS as Dashboard Service
-    participant YS as Youth Account Service
-    participant C as Cache (Redis)
-    participant DB as Database (PostgreSQL)
-    participant CBS as Core Banking System
+    participant Parent as Parent/Guardian
+    participant WebApp as Web Application
+    participant APIGateway as API Gateway
+    participant AuthSvc as Authentication Service
+    participant DashboardSvc as Dashboard Service
+    participant Cache as Redis Cache
+    participant CoreBanking as Core Banking System
+    participant Database as PostgreSQL DB
+    participant AuditSvc as Audit Service
 
-    U->>WA: Request Dashboard
-    WA->>AG: GET /youth-accounts/{id}/dashboard
-    Note over AG: Authentication & Authorization
-    AG->>DS: Route to Dashboard Service
+    Parent->>WebApp: Request dashboard view
+    WebApp->>APIGateway: GET /youth-accounts/{id}/dashboard
+    APIGateway->>AuthSvc: Validate OAuth token
+    AuthSvc-->>APIGateway: Token valid + permissions
+    APIGateway->>DashboardSvc: Forward request with user context
     
-    DS->>C: Check Cache for Account Data
+    DashboardSvc->>Cache: Check cached dashboard data
     alt Cache Hit
-        C-->>DS: Return Cached Data
+        Cache-->>DashboardSvc: Return cached data
     else Cache Miss
-        DS->>YS: Get Account Details
-        YS->>DB: Query Account Information
-        DB-->>YS: Account Data
-        YS->>CBS: Sync Balance Information
-        CBS-->>YS: Current Balance
-        YS-->>DS: Complete Account Data
-        DS->>C: Cache Account Data (TTL: 5min)
+        DashboardSvc->>Database: Get account settings
+        Database-->>DashboardSvc: Account settings
+        DashboardSvc->>CoreBanking: Get current balance
+        CoreBanking-->>DashboardSvc: Balance data
+        DashboardSvc->>CoreBanking: Get recent transactions (5)
+        CoreBanking-->>DashboardSvc: Transaction data
+        DashboardSvc->>Cache: Store aggregated data
     end
     
-    DS->>DB: Get Recent Transactions (Last 5)
-    DB-->>DS: Transaction History
-    DS->>YS: Get Spending Limit Status
-    YS->>DB: Query Spending Limits
-    DB-->>YS: Limit Configuration
-    YS-->>DS: Spending Status
-    
-    DS-->>AG: Dashboard Response
-    AG-->>WA: JSON Response
-    WA-->>U: Render Dashboard
-    
-    Note over U,CBS: Response Time: <200ms (95th percentile)
+    DashboardSvc->>Database: Calculate spending summary
+    Database-->>DashboardSvc: Spending analytics
+    DashboardSvc->>DashboardSvc: Aggregate dashboard response
+    DashboardSvc-->>APIGateway: Dashboard data (JSON)
+    APIGateway->>AuditSvc: Log dashboard access
+    APIGateway-->>WebApp: HTTP 200 + Dashboard JSON
+    WebApp->>WebApp: Render dashboard UI
+    WebApp-->>Parent: Display dashboard
+
+    Note over Parent,AuditSvc: Response time < 200ms
+    Note over DashboardSvc,Cache: Cache TTL: 5 minutes
 ```
 
 ---
 
-## 2. Fund Transfer Sequence Diagram
+## 2. Fund Transfer Sequence
+
+**Mapped to ADR**: SCIB-27 - Create API for parent to transfer funds to youth account
 
 ```mermaid
 sequenceDiagram
-    participant U as User (Parent)
-    participant WA as Web Application
-    participant AG as API Gateway
-    participant TS as Transfer Service
-    participant YS as Youth Account Service
-    participant PS as Payment Service
-    participant CBS as Core Banking System
-    participant DB as Database
-    participant NS as Notification Service
-    participant AL as Audit Logger
+    participant Parent as Parent/Guardian
+    participant WebApp as Web Application
+    participant APIGateway as API Gateway
+    participant AuthSvc as Authentication Service
+    participant TransferSvc as Transfer Service
+    participant PaymentSvc as Payment Service
+    participant CoreBanking as Core Banking System
+    participant Database as PostgreSQL DB
+    participant AuditSvc as Audit Service
+    participant NotificationSvc as Notification Service
 
-    U->>WA: Initiate Fund Transfer
-    WA->>AG: POST /youth-accounts/{id}/fund-transfer
-    Note over AG: OAuth 2.0 Authentication
-    Note over AG: Rate Limiting Check
-    AG->>TS: Route Transfer Request
+    Parent->>WebApp: Initiate fund transfer
+    WebApp->>WebApp: Validate transfer form
+    WebApp->>APIGateway: POST /youth-accounts/{id}/fund-transfer
+    APIGateway->>AuthSvc: Validate OAuth token + permissions
+    AuthSvc-->>APIGateway: Authorization confirmed
+    APIGateway->>TransferSvc: Transfer request + user context
     
-    TS->>AL: Log Transfer Initiation
-    TS->>YS: Validate Youth Account
-    YS->>DB: Check Account Status
-    DB-->>YS: Account Valid
-    YS-->>TS: Account Validation Success
+    TransferSvc->>Database: Validate account ownership
+    Database-->>TransferSvc: Ownership confirmed
+    TransferSvc->>CoreBanking: Check source account balance
+    CoreBanking-->>TransferSvc: Balance sufficient
+    TransferSvc->>Database: Check spending limits
+    Database-->>TransferSvc: Limits validated
     
-    TS->>CBS: Validate Source Account
-    CBS-->>TS: Source Account Valid
-    TS->>CBS: Check Available Balance
-    CBS-->>TS: Sufficient Funds
+    TransferSvc->>Database: Create transfer record (PENDING)
+    Database-->>TransferSvc: Transfer ID generated
+    TransferSvc->>PaymentSvc: Execute internal transfer
+    PaymentSvc->>CoreBanking: Debit source account
+    CoreBanking-->>PaymentSvc: Debit successful
+    PaymentSvc->>CoreBanking: Credit youth account
+    CoreBanking-->>PaymentSvc: Credit successful
+    PaymentSvc-->>TransferSvc: Transfer completed
     
-    TS->>PS: Initiate Payment Transaction
-    Note over PS: PCI-DSS Compliant Processing
-    PS->>CBS: Execute Fund Transfer
-    CBS-->>PS: Transfer Successful
-    PS-->>TS: Payment Confirmation
+    TransferSvc->>Database: Update transfer status (COMPLETED)
+    TransferSvc->>AuditSvc: Log transfer completion
+    TransferSvc->>NotificationSvc: Send transfer notification
+    TransferSvc-->>APIGateway: Transfer confirmation
+    APIGateway-->>WebApp: HTTP 201 + Transfer details
+    WebApp-->>Parent: Transfer success confirmation
     
-    TS->>DB: Record Transfer Transaction
-    TS->>YS: Update Youth Account Balance
-    YS->>DB: Update Account Data
-    TS->>AL: Log Transfer Completion
+    NotificationSvc->>Parent: Email/SMS notification
     
-    TS->>NS: Send Transfer Notification
-    NS->>U: Email/SMS Notification
-    
-    TS-->>AG: Transfer Response
-    AG-->>WA: JSON Response
-    WA-->>U: Transfer Confirmation
-    
-    Note over U,AL: End-to-End Traceability
-    Note over TS,CBS: Idempotent Operations
+    Note over TransferSvc,PaymentSvc: Idempotency key prevents duplicates
+    Note over TransferSvc,Database: ACID transaction ensures consistency
 ```
 
 ---
 
-## 3. Spending Limit Configuration Sequence Diagram
+## 3. Spending Limit Configuration Sequence
+
+**Mapped to ADR**: SCIB-28 - Create API for configuring youth spending limit
 
 ```mermaid
 sequenceDiagram
-    participant P as Parent User
-    participant WA as Web Application
-    participant AG as API Gateway
-    participant YS as Youth Account Service
-    participant DB as Database
-    participant C as Cache (Redis)
-    participant NS as Notification Service
-    participant AL as Audit Logger
+    participant Parent as Parent/Guardian
+    participant WebApp as Web Application
+    participant APIGateway as API Gateway
+    participant AuthSvc as Authentication Service
+    participant LimitSvc as Limit Service
+    participant Database as PostgreSQL DB
+    participant Cache as Redis Cache
+    participant AuditSvc as Audit Service
+    participant NotificationSvc as Notification Service
 
-    P->>WA: Configure Spending Limit
-    WA->>AG: PUT /youth-accounts/{id}/spending-limit
-    Note over AG: Parent Authorization Check
-    AG->>YS: Route Limit Update Request
+    Parent->>WebApp: Access spending limit settings
+    WebApp->>APIGateway: GET /youth-accounts/{id}/spending-limit
+    APIGateway->>AuthSvc: Validate token
+    AuthSvc-->>APIGateway: Authorized
+    APIGateway->>LimitSvc: Get current limits
+    LimitSvc->>Database: Query spending limits
+    Database-->>LimitSvc: Current limit configuration
+    LimitSvc-->>APIGateway: Limit data
+    APIGateway-->>WebApp: HTTP 200 + Limits
+    WebApp-->>Parent: Display current limits
     
-    YS->>AL: Log Limit Change Request
-    YS->>DB: Validate Current Limits
-    DB-->>YS: Current Configuration
+    Parent->>WebApp: Modify spending limits
+    WebApp->>WebApp: Validate limit values
+    WebApp->>APIGateway: PUT /youth-accounts/{id}/spending-limit
+    APIGateway->>AuthSvc: Validate authorization
+    AuthSvc-->>APIGateway: Authorized for limit changes
+    APIGateway->>LimitSvc: Update limit request
     
-    alt Limit Increase
-        Note over YS: Business Rule: Requires Additional Validation
-        YS->>YS: Validate Increase Rules
-    else Limit Decrease
-        Note over YS: Immediate Processing
-    end
+    LimitSvc->>LimitSvc: Validate business rules
+    LimitSvc->>Database: Check account status
+    Database-->>LimitSvc: Account active
+    LimitSvc->>Database: Update spending limits
+    Database-->>LimitSvc: Limits updated
+    LimitSvc->>Cache: Invalidate cached limits
+    LimitSvc->>AuditSvc: Log limit change
+    LimitSvc->>NotificationSvc: Send limit change notification
+    LimitSvc-->>APIGateway: Update confirmation
+    APIGateway-->>WebApp: HTTP 200 + Updated limits
+    WebApp-->>Parent: Confirmation message
     
-    YS->>DB: Update Spending Limits
-    DB-->>YS: Update Confirmation
-    YS->>C: Invalidate Cache
-    C-->>YS: Cache Cleared
+    NotificationSvc->>Parent: Email confirmation
     
-    YS->>AL: Log Successful Update
-    YS->>NS: Send Limit Change Notification
-    NS->>P: Confirmation Notification
-    
-    YS-->>AG: Update Response
-    AG-->>WA: JSON Response
-    WA-->>P: Limit Updated Confirmation
-    
-    Note over P,AL: Audit Trail for Compliance
+    Note over LimitSvc,Database: Effective date handling
+    Note over LimitSvc,Cache: Real-time limit enforcement
 ```
 
 ---
 
-## 4. Transaction History Retrieval Sequence Diagram
+## 4. Transaction History Retrieval Sequence
+
+**Mapped to ADR**: SCIB-29 - Create API to retrieve youth account transaction history
 
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant WA as Web Application
-    participant AG as API Gateway
-    participant YS as Youth Account Service
-    participant DB as Database (Partitioned)
-    participant C as Cache (Redis)
-    participant CBS as Core Banking System
+    participant Parent as Parent/Guardian
+    participant WebApp as Web Application
+    participant APIGateway as API Gateway
+    participant AuthSvc as Authentication Service
+    participant TransactionSvc as Transaction Service
+    participant CoreBanking as Core Banking System
+    participant Cache as Redis Cache
+    participant Database as PostgreSQL DB
+    participant AuditSvc as Audit Service
 
-    U->>WA: Request Transaction History
-    WA->>AG: GET /youth-accounts/{id}/transactions?page=1&limit=20
-    Note over AG: Authorization & Rate Limiting
-    AG->>YS: Route History Request
+    Parent->>WebApp: Request transaction history
+    WebApp->>WebApp: Build query parameters (pagination, filters)
+    WebApp->>APIGateway: GET /youth-accounts/{id}/transactions?page=1&limit=20
+    APIGateway->>AuthSvc: Validate access token
+    AuthSvc-->>APIGateway: Access granted
+    APIGateway->>TransactionSvc: Transaction query + filters
     
-    YS->>YS: Parse Query Parameters
-    Note over YS: Validate Date Range, Pagination
-    
-    YS->>C: Check Cache for Query
-    alt Cache Hit
-        C-->>YS: Cached Results
+    TransactionSvc->>TransactionSvc: Validate query parameters
+    TransactionSvc->>Cache: Check cached results
+    alt Cache Hit (for same query)
+        Cache-->>TransactionSvc: Cached transaction page
     else Cache Miss
-        YS->>DB: Query Transaction History
-        Note over DB: Partitioned Query by Date
-        DB-->>YS: Transaction Records
-        YS->>C: Cache Results (TTL: 10min)
+        TransactionSvc->>CoreBanking: Query transaction ledger
+        CoreBanking-->>TransactionSvc: Raw transaction data
+        TransactionSvc->>Database: Get merchant details
+        Database-->>TransactionSvc: Merchant information
+        TransactionSvc->>TransactionSvc: Format and paginate results
+        TransactionSvc->>Cache: Cache formatted results (5 min TTL)
     end
     
-    YS->>YS: Apply Filters & Pagination
-    YS->>YS: Calculate Summary Statistics
+    TransactionSvc->>TransactionSvc: Calculate pagination metadata
+    TransactionSvc->>TransactionSvc: Generate transaction summary
+    TransactionSvc-->>APIGateway: Paginated transaction response
+    APIGateway->>AuditSvc: Log transaction history access
+    APIGateway-->>WebApp: HTTP 200 + Transaction data
+    WebApp->>WebApp: Render transaction list
+    WebApp-->>Parent: Display transaction history
     
-    alt Real-time Balance Sync Required
-        YS->>CBS: Get Current Balance
-        CBS-->>YS: Latest Balance
+    Note over TransactionSvc,Cache: Cache key includes filters
+    Note over TransactionSvc,CoreBanking: Real-time transaction data
+```
+
+---
+
+## 5. Account Validation Sequence
+
+**Mapped to**: Account validation and security checks
+
+```mermaid
+sequenceDiagram
+    participant Client as Client Application
+    participant APIGateway as API Gateway
+    participant AuthSvc as Authentication Service
+    participant ValidationSvc as Validation Service
+    participant Database as PostgreSQL DB
+    participant CoreBanking as Core Banking System
+    participant ComplianceSvc as Compliance Service
+    participant AuditSvc as Audit Service
+
+    Client->>APIGateway: GET /youth-accounts/{id}/validate
+    APIGateway->>AuthSvc: Validate request token
+    AuthSvc-->>APIGateway: Token validated
+    APIGateway->>ValidationSvc: Account validation request
+    
+    ValidationSvc->>Database: Check account existence
+    Database-->>ValidationSvc: Account found
+    ValidationSvc->>Database: Verify account ownership
+    Database-->>ValidationSvc: Ownership confirmed
+    ValidationSvc->>CoreBanking: Check account status
+    CoreBanking-->>ValidationSvc: Account status: ACTIVE
+    
+    ValidationSvc->>ComplianceSvc: Run compliance checks
+    ComplianceSvc->>ComplianceSvc: KYC verification
+    ComplianceSvc->>ComplianceSvc: AML screening
+    ComplianceSvc->>ComplianceSvc: PCI compliance check
+    ComplianceSvc-->>ValidationSvc: Compliance status: PASSED
+    
+    ValidationSvc->>ValidationSvc: Determine access permissions
+    ValidationSvc->>ValidationSvc: Check active restrictions
+    ValidationSvc-->>APIGateway: Validation response
+    APIGateway->>AuditSvc: Log validation request
+    APIGateway-->>Client: HTTP 200 + Validation result
+    
+    Note over ValidationSvc,ComplianceSvc: Real-time compliance validation
+    Note over ValidationSvc,Database: Cached permission matrix
+```
+
+---
+
+## 6. Error Handling Sequence
+
+**Generic error handling across all APIs**
+
+```mermaid
+sequenceDiagram
+    participant Client as Client Application
+    participant APIGateway as API Gateway
+    participant Service as Microservice
+    participant Database as Database
+    participant AuditSvc as Audit Service
+    participant NotificationSvc as Notification Service
+
+    Client->>APIGateway: API Request
+    APIGateway->>Service: Forward request
+    Service->>Database: Database operation
+    Database-->>Service: Database error
+    
+    Service->>Service: Classify error type
+    Service->>Service: Generate error response
+    Service->>AuditSvc: Log error event
+    
+    alt Critical Error
+        Service->>NotificationSvc: Alert operations team
+        NotificationSvc->>NotificationSvc: Send critical alert
+    else Business Rule Violation
+        Service->>Service: Return business error
+    else Transient Error
+        Service->>Service: Implement retry logic
     end
     
-    YS-->>AG: Paginated Response
-    AG-->>WA: JSON Response with Metadata
-    WA-->>U: Render Transaction History
+    Service-->>APIGateway: Error response
+    APIGateway->>APIGateway: Add correlation ID
+    APIGateway-->>Client: HTTP error + details
     
-    Note over U,CBS: Optimized for Large Datasets
+    Note over Service,AuditSvc: All errors logged for analysis
+    Note over APIGateway,Client: Consistent error format
 ```
 
 ---
 
-## 5. Account Status Check Sequence Diagram
+## 7. Authentication and Authorization Sequence
+
+**OAuth 2.0 flow for API access**
 
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant WA as Web Application
-    participant AG as API Gateway
-    participant YS as Youth Account Service
-    participant DB as Database
-    participant CBS as Core Banking System
-    participant CS as Compliance Service
+    participant User as Parent/Guardian
+    participant WebApp as Web Application
+    participant AuthServer as OAuth Authorization Server
+    participant APIGateway as API Gateway
+    participant Service as Youth Account Service
+    participant Database as User Database
 
-    U->>WA: Check Account Status
-    WA->>AG: GET /youth-accounts/{id}/status
-    AG->>YS: Route Status Request
+    User->>WebApp: Login request
+    WebApp->>AuthServer: Authorization request (OAuth 2.0)
+    AuthServer->>Database: Validate credentials
+    Database-->>AuthServer: User authenticated
+    AuthServer->>AuthServer: Generate access token + refresh token
+    AuthServer-->>WebApp: Authorization code
+    WebApp->>AuthServer: Exchange code for tokens
+    AuthServer-->>WebApp: Access token + Refresh token
     
-    YS->>DB: Get Account Information
-    DB-->>YS: Account Details
+    WebApp->>APIGateway: API request + Bearer token
+    APIGateway->>AuthServer: Validate access token
+    AuthServer-->>APIGateway: Token valid + user permissions
+    APIGateway->>Service: Authorized request + user context
+    Service-->>APIGateway: Service response
+    APIGateway-->>WebApp: API response
     
-    YS->>CBS: Sync Account Status
-    CBS-->>YS: Current Status
-    
-    YS->>CS: Check Compliance Status
-    CS-->>YS: Compliance Information
-    
-    YS->>YS: Aggregate Status Information
-    YS-->>AG: Status Response
-    AG-->>WA: JSON Response
-    WA-->>U: Display Account Status
+    Note over AuthServer,Database: MFA validation included
+    Note over APIGateway,Service: JWT token with claims
 ```
 
 ---
 
-## 6. Notification Management Sequence Diagram
+## Sequence Diagram Summary
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant WA as Web Application
-    participant AG as API Gateway
-    participant NS as Notification Service
-    participant DB as Database
-    participant ES as Email Service
-    participant SMS as SMS Service
-    participant PN as Push Notification Service
+### Key Architectural Patterns Demonstrated:
 
-    U->>WA: Get Notifications
-    WA->>AG: GET /youth-accounts/{id}/notifications
-    AG->>NS: Route Notification Request
-    
-    NS->>DB: Query User Notifications
-    DB-->>NS: Notification List
-    NS-->>AG: Notifications Response
-    AG-->>WA: JSON Response
-    WA-->>U: Display Notifications
-    
-    U->>WA: Mark Notifications Read
-    WA->>AG: PATCH /notifications
-    AG->>NS: Update Read Status
-    NS->>DB: Update Notification Status
-    DB-->>NS: Update Confirmation
-    NS-->>AG: Success Response
-    AG-->>WA: Confirmation
-    WA-->>U: Updated Status
-    
-    Note over NS: Async Notification Delivery
-    NS->>ES: Send Email Notifications
-    NS->>SMS: Send SMS Notifications
-    NS->>PN: Send Push Notifications
-```
+1. **API Gateway Pattern**: Centralized entry point for all API requests
+2. **Authentication/Authorization**: OAuth 2.0 with JWT tokens
+3. **Caching Strategy**: Redis for performance optimization
+4. **Audit Logging**: Comprehensive audit trail for all operations
+5. **Error Handling**: Consistent error handling across all services
+6. **Microservices**: Loosely coupled service architecture
+7. **Database Transactions**: ACID compliance for financial operations
+8. **Real-time Notifications**: Event-driven notification system
+
+### Performance Considerations:
+
+- **Caching**: Strategic caching to achieve <200ms response times
+- **Pagination**: Efficient pagination for large data sets
+- **Connection Pooling**: Database connection optimization
+- **Async Processing**: Non-blocking operations where possible
+
+### Security Features:
+
+- **Token Validation**: Every request validates OAuth tokens
+- **Permission Checks**: Granular permission validation
+- **Audit Logging**: Complete audit trail for compliance
+- **Input Validation**: Comprehensive input validation
+- **Encryption**: End-to-end encryption for sensitive data
+
+### Compliance and Auditability:
+
+- **Transaction Logging**: All financial transactions logged
+- **Access Logging**: User access patterns tracked
+- **Error Logging**: System errors captured for analysis
+- **Compliance Checks**: Real-time compliance validation
 
 ---
 
-## 7. Error Handling and Circuit Breaker Sequence Diagram
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant WA as Web Application
-    participant AG as API Gateway
-    participant YS as Youth Account Service
-    participant CB as Circuit Breaker
-    participant CBS as Core Banking System
-    participant DB as Database
-    participant AL as Audit Logger
-
-    U->>WA: Request Dashboard
-    WA->>AG: API Request
-    AG->>YS: Route Request
-    
-    YS->>CB: Check Circuit State
-    alt Circuit Open
-        CB-->>YS: Circuit Open - Fallback
-        YS->>DB: Get Cached Data Only
-        DB-->>YS: Cached Account Data
-        Note over YS: Degraded Mode - No Real-time Balance
-    else Circuit Closed
-        CB->>CBS: Forward Request
-        CBS-->>CB: Timeout/Error
-        CB->>CB: Increment Failure Count
-        CB-->>YS: Service Unavailable
-        YS->>AL: Log Service Failure
-        YS->>DB: Fallback to Cached Data
-    end
-    
-    YS-->>AG: Response (with degraded flag)
-    AG-->>WA: JSON Response
-    WA-->>U: Display with Warning Message
-    
-    Note over CB: Circuit Breaker Pattern Prevents Cascade Failures
-```
-
----
-
-## 8. Security and Audit Sequence Diagram
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant WA as Web Application
-    participant AG as API Gateway
-    participant AS as Auth Service
-    participant YS as Youth Account Service
-    participant AL as Audit Logger
-    participant SM as Security Monitor
-    participant DB as Database
-
-    U->>WA: Login Request
-    WA->>AS: OAuth 2.0 Authentication
-    AS->>AS: Validate Credentials
-    AS->>AL: Log Authentication Attempt
-    AS-->>WA: JWT Token
-    
-    U->>WA: Sensitive Operation Request
-    WA->>AG: API Request with JWT
-    AG->>AS: Validate Token
-    AS-->>AG: Token Valid
-    
-    AG->>SM: Security Policy Check
-    SM->>SM: Rate Limit Check
-    SM->>SM: Anomaly Detection
-    SM-->>AG: Security Approved
-    
-    AG->>YS: Authorized Request
-    YS->>AL: Log Operation Start
-    YS->>DB: Execute Operation
-    DB-->>YS: Operation Result
-    YS->>AL: Log Operation Complete
-    
-    YS-->>AG: Response
-    AG->>AL: Log API Response
-    AG-->>WA: JSON Response
-    WA-->>U: Operation Result
-    
-    Note over AL: Immutable Audit Trail
-    Note over SM: Real-time Security Monitoring
-```
-
----
-
-## Sequence Diagram Standards and Conventions
-
-### Naming Conventions
-- **Participants**: Abbreviated service names (YS = Youth Service)
-- **Messages**: RESTful API patterns with HTTP methods
-- **Notes**: Performance targets and business rules
-
-### Performance Annotations
-- Response time targets included in notes
-- Cache TTL values specified
-- Timeout configurations documented
-
-### Security Considerations
-- Authentication flows clearly marked
-- Authorization checkpoints identified
-- Audit logging points highlighted
-
-### Error Handling Patterns
-- Circuit breaker implementations
-- Fallback mechanisms
-- Graceful degradation scenarios
-
-### Compliance Markers
-- PCI-DSS compliance points
-- Audit trail requirements
-- Data protection measures
-
----
-
-## Integration with Architecture
-
-These sequence diagrams directly map to:
-- **HLD Document**: Section 4 (Component Design)
-- **API Contract**: All 6 major endpoints
-- **ADR References**: SCIB-26 through SCIB-197
-- **NFR Requirements**: Performance and security targets
-
----
-
-*Generated from Youth Account Management System HLD Document v1.0*
-*Compliant with OpenAPI 3.0 and enterprise architecture standards*
+**Document Version**: 1.0
+**Last Updated**: 2024
+**Review Cycle**: Monthly
+**Approval**: Pending Architecture Review Board
+**Classification**: Internal
