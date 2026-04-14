@@ -1,354 +1,273 @@
 openapi: 3.0.3
 info:
-  title: Youth Account Management System API
+  title: Document Upload Interface with Quality Validation System
   description: |
-    Comprehensive API for managing youth accounts, enabling parents and guardians to allocate and manage funds for their children's accounts while maintaining visibility and control over spending.
+    Comprehensive API for document upload interface with intelligent quality validation,
+    multi-step form processing, and core component library integration.
     
-    ## Key Features
-    - Youth account dashboard and balance management
-    - Secure fund transfers between parent and youth accounts
-    - Configurable spending limits (daily and weekly)
-    - Comprehensive transaction history with filtering
-    - Account status management and notifications
-    - Bulk operations and webhook configurations
+    This API provides:
+    - Intelligent document capture with camera guidance
+    - Real-time quality validation and feedback
+    - Multi-step form session management
+    - Secure document upload and processing
+    - Component library metadata access
+    - User profile management
+    - System health monitoring
     
     ## Security
-    - OAuth 2.0 authentication with JWT Bearer tokens
-    - Multi-factor authentication for parents
-    - Rate limiting and CORS protection
-    - PCI-DSS and GDPR compliant
+    All endpoints (except health check) require Bearer token authentication.
+    Documents are encrypted at rest using AES-256 and transmitted over TLS 1.3.
     
-    ## Performance
-    - Sub-500ms response times for critical operations
-    - Support for 1,000 concurrent users
-    - Horizontal scaling with microservices architecture
+    ## Rate Limiting
+    - Authentication: 10 requests/minute per IP
+    - Document Upload: 5 uploads/minute per user
+    - Document Validation: 20 validations/minute per user
+    - General API: 1000 requests/hour per user
+    
+    ## Compliance
+    - GDPR compliant with right to be forgotten
+    - PCI-DSS Level 1 compliant
+    - ISO 27001 certified
+    - WCAG 2.1 AA accessible
   version: 1.0.0
   contact:
-    name: API Support Team
-    email: api-support@youthaccounts.bank.com
-    url: https://developer.youthaccounts.bank.com
+    name: API Support
+    url: https://api.tasheel.com/support
+    email: api-support@tasheel.com
   license:
     name: Proprietary
-    url: https://youthaccounts.bank.com/license
-  termsOfService: https://youthaccounts.bank.com/terms
+    url: https://tasheel.com/license
+  termsOfService: https://tasheel.com/terms
 
 servers:
-  - url: https://api.youthaccounts.bank.com/v1
+  - url: https://api.tasheel.com/v1
     description: Production server
-  - url: https://api-staging.youthaccounts.bank.com/v1
+  - url: https://staging-api.tasheel.com/v1
     description: Staging server
-  - url: https://api-dev.youthaccounts.bank.com/v1
+  - url: https://dev-api.tasheel.com/v1
     description: Development server
 
 security:
-  - OAuth2:
-      - youth-account-management
+  - BearerAuth: []
 
 paths:
-  /api/youth-accounts/{youthAccountId}/dashboard:
-    get:
-      tags:
-        - Youth Account Dashboard
-      summary: Get youth account dashboard
-      description: |
-        Retrieves consolidated youth account information including balance, spending limit, and recent transactions.
-        Mapped to SCIB-26 requirements.
-      operationId: getYouthAccountDashboard
-      parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          description: Unique identifier for the youth account
-          schema:
-            type: string
-            pattern: '^ya-[0-9]{9}$'
-            example: ya-123456789
-        - name: includeTransactions
-          in: query
-          required: false
-          description: Include recent transactions in response
-          schema:
-            type: boolean
-            default: true
-        - name: transactionLimit
-          in: query
-          required: false
-          description: Number of recent transactions to include
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 50
-            default: 10
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XApiVersion'
-      responses:
-        '200':
-          description: Youth account dashboard data retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/YouthAccountDashboard'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/youth-accounts/{youthAccountId}/fund-transfer:
+  # Authentication Endpoints
+  /auth/login:
     post:
       tags:
-        - Fund Transfer
-      summary: Transfer funds to youth account
-      description: |
-        Allows parents to transfer funds from their primary account to a youth account.
-        Mapped to SCIB-27 requirements.
-      operationId: transferFundsToYouthAccount
-      parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          description: Target youth account identifier
-          schema:
-            type: string
-            pattern: '^ya-[0-9]{9}$'
-            example: ya-123456789
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XApiVersion'
-        - $ref: '#/components/parameters/XIdempotencyKey'
+        - Authentication
+      summary: User Login
+      description: Authenticate user credentials and receive JWT access token
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/FundTransferRequest'
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              standard_login:
+                summary: Standard login
+                value:
+                  email: user@example.com
+                  password: SecurePass123!
+                  remember_me: false
       responses:
-        '201':
-          description: Fund transfer completed successfully
+        '200':
+          description: Authentication successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FundTransferResponse'
+                $ref: '#/components/schemas/LoginResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '402':
-          $ref: '#/components/responses/PaymentRequired'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh Token
+      description: Refresh expired JWT token using refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # Form Session Management
+  /forms/sessions:
+    post:
+      tags:
+        - Form Sessions
+      summary: Create Form Session
+      description: Initialize a new multi-step form session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFormSessionRequest'
+      responses:
+        '201':
+          description: Form session created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormSessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /forms/sessions/{session_id}:
+    get:
+      tags:
+        - Form Sessions
+      summary: Get Form Session
+      description: Retrieve current form session state and data
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: Form session retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormSessionDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - Form Sessions
+      summary: Update Form Session
+      description: Update form session with step data and progress
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFormSessionRequest'
+      responses:
+        '200':
+          description: Form session updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateFormSessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/youth-accounts/{youthAccountId}/spending-limit:
-    put:
+  # Document Upload Endpoints
+  /documents/upload:
+    post:
       tags:
-        - Spending Limits
-      summary: Configure spending limits
-      description: |
-        Allows parents to configure weekly and daily spending limits for a youth account.
-        Mapped to SCIB-28 requirements.
-      operationId: configureSpendingLimits
-      parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          description: Youth account identifier
-          schema:
-            type: string
-            pattern: '^ya-[0-9]{9}$'
-            example: ya-123456789
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XApiVersion'
+        - Documents
+      summary: Upload Document
+      description: Upload document with quality validation and processing
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SpendingLimitRequest'
+              $ref: '#/components/schemas/DocumentUploadRequest'
       responses:
-        '200':
-          description: Spending limits updated successfully
+        '201':
+          description: Document uploaded successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SpendingLimitResponse'
+                $ref: '#/components/schemas/DocumentUploadResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
         '422':
           $ref: '#/components/responses/UnprocessableEntity'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/youth-accounts/{youthAccountId}/transactions:
+  /documents/{document_id}:
     get:
       tags:
-        - Transaction History
-      summary: Get transaction history
-      description: |
-        Retrieves paginated transaction history for a youth account with filtering options.
-        Mapped to SCIB-29 requirements.
-      operationId: getTransactionHistory
+        - Documents
+      summary: Get Document Status
+      description: Retrieve document processing status and validation results
       parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          description: Youth account identifier
-          schema:
-            type: string
-            pattern: '^ya-[0-9]{9}$'
-            example: ya-123456789
-        - name: startDate
-          in: query
-          required: false
-          description: Start date for transaction filter (ISO 8601 format)
-          schema:
-            type: string
-            format: date
-            example: '2024-01-01'
-        - name: endDate
-          in: query
-          required: false
-          description: End date for transaction filter (ISO 8601 format)
-          schema:
-            type: string
-            format: date
-            example: '2024-01-31'
-        - name: transactionType
-          in: query
-          required: false
-          description: Filter by transaction type
-          schema:
-            type: string
-            enum: [DEBIT, CREDIT, ALL]
-            default: ALL
-        - name: minAmount
-          in: query
-          required: false
-          description: Minimum transaction amount
-          schema:
-            type: number
-            format: decimal
-            minimum: 0
-        - name: maxAmount
-          in: query
-          required: false
-          description: Maximum transaction amount
-          schema:
-            type: number
-            format: decimal
-            minimum: 0
-        - name: merchant
-          in: query
-          required: false
-          description: Filter by merchant name (partial match)
-          schema:
-            type: string
-            maxLength: 100
-        - name: page
-          in: query
-          required: false
-          description: Page number (1-based)
-          schema:
-            type: integer
-            minimum: 1
-            default: 1
-        - name: pageSize
-          in: query
-          required: false
-          description: Items per page
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-        - name: sortBy
-          in: query
-          required: false
-          description: Sort field
-          schema:
-            type: string
-            enum: [date, amount, merchant]
-            default: date
-        - name: sortOrder
-          in: query
-          required: false
-          description: Sort order
-          schema:
-            type: string
-            enum: [asc, desc]
-            default: desc
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XApiVersion'
+        - $ref: '#/components/parameters/DocumentId'
       responses:
         '200':
-          description: Transaction history retrieved successfully
+          description: Document status retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransactionHistoryResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/DocumentStatusResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntity'
         '500':
           $ref: '#/components/responses/InternalServerError'
-
-  /api/youth-accounts/{youthAccountId}/status:
-    patch:
+    
+    delete:
       tags:
-        - Account Management
-      summary: Update account status
-      description: Allows parents to temporarily suspend or reactivate youth accounts
-      operationId: updateAccountStatus
+        - Documents
+      summary: Delete Document
+      description: Securely delete uploaded document with cryptographic erasure
       parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          description: Youth account identifier
-          schema:
-            type: string
-            pattern: '^ya-[0-9]{9}$'
-            example: ya-123456789
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XApiVersion'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AccountStatusRequest'
+        - $ref: '#/components/parameters/DocumentId'
       responses:
         '200':
-          description: Account status updated successfully
+          description: Document deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AccountStatusResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
+                $ref: '#/components/schemas/DocumentDeleteResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -360,1163 +279,1180 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/youth-accounts/{youthAccountId}/notifications:
-    put:
+  /documents/validate:
+    post:
       tags:
-        - Notifications
-      summary: Configure notification preferences
-      description: Configure notification preferences for youth account activities
-      operationId: configureNotifications
-      parameters:
-        - name: youthAccountId
-          in: path
-          required: true
-          description: Youth account identifier
-          schema:
-            type: string
-            pattern: '^ya-[0-9]{9}$'
-            example: ya-123456789
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XApiVersion'
+        - Documents
+      summary: Validate Document Quality
+      description: Real-time document quality validation without permanent upload
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/NotificationPreferencesRequest'
+              $ref: '#/components/schemas/DocumentValidationRequest'
       responses:
         '200':
-          description: Notification preferences updated successfully
+          description: Document validation completed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NotificationPreferencesResponse'
+                $ref: '#/components/schemas/DocumentValidationResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/youth-accounts/bulk/fund-transfer:
-    post:
-      tags:
-        - Bulk Operations
-      summary: Bulk fund transfer
-      description: Transfer funds to multiple youth accounts in a single operation
-      operationId: bulkFundTransfer
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XApiVersion'
-        - $ref: '#/components/parameters/XIdempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BulkTransferRequest'
-      responses:
-        '202':
-          description: Bulk transfer request accepted for processing
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BulkTransferResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /api/webhooks:
-    post:
-      tags:
-        - Webhooks
-      summary: Configure webhook
-      description: Configure webhooks for real-time event notifications
-      operationId: configureWebhook
-      parameters:
-        - $ref: '#/components/parameters/XRequestId'
-        - $ref: '#/components/parameters/XApiVersion'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WebhookRequest'
-      responses:
-        '201':
-          description: Webhook configured successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebhookResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /health:
+  # Component Library Endpoints
+  /components/metadata:
     get:
       tags:
-        - Health Check
-      summary: Health check endpoint
-      description: Returns the health status of the API service
-      operationId: healthCheck
+        - Component Library
+      summary: Get Component Metadata
+      description: Retrieve available UI components and their configurations
       security: []
       responses:
         '200':
-          description: Service is healthy
+          description: Component metadata retrieved successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: healthy
-                  timestamp:
-                    type: string
-                    format: date-time
-                  version:
-                    type: string
-                    example: 1.0.0
+                $ref: '#/components/schemas/ComponentMetadataResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # User Management Endpoints
+  /users/profile:
+    get:
+      tags:
+        - User Management
+      summary: Get User Profile
+      description: Retrieve current user profile information
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      tags:
+        - User Management
+      summary: Update User Profile
+      description: Update user profile information and preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserProfileRequest'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # System Health and Monitoring
+  /health:
+    get:
+      tags:
+        - System Health
+      summary: Health Check
+      description: System health status and service availability
+      security: []
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthCheckResponse'
 
 components:
   securitySchemes:
-    OAuth2:
-      type: oauth2
-      description: OAuth 2.0 authentication with JWT Bearer tokens
-      flows:
-        authorizationCode:
-          authorizationUrl: https://auth.youthaccounts.bank.com/oauth/authorize
-          tokenUrl: https://auth.youthaccounts.bank.com/oauth/token
-          scopes:
-            youth-account-management: Access to youth account management operations
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authentication
 
   parameters:
-    XRequestId:
-      name: X-Request-ID
-      in: header
+    SessionId:
+      name: session_id
+      in: path
       required: true
-      description: Unique request identifier for tracing
+      description: Unique form session identifier
       schema:
         type: string
         format: uuid
-        example: 123e4567-e89b-12d3-a456-426614174000
+        example: 550e8400-e29b-41d4-a716-446655440000
     
-    XApiVersion:
-      name: X-API-Version
-      in: header
-      required: false
-      description: API version
-      schema:
-        type: string
-        default: v1
-        example: v1
-    
-    XIdempotencyKey:
-      name: X-Idempotency-Key
-      in: header
-      required: false
-      description: Idempotency key for safe retries
+    DocumentId:
+      name: document_id
+      in: path
+      required: true
+      description: Unique document identifier
       schema:
         type: string
         format: uuid
-        example: 123e4567-e89b-12d3-a456-426614174000
+        example: 550e8400-e29b-41d4-a716-446655440001
 
   schemas:
-    YouthAccountDashboard:
-      type: object
-      required:
-        - youthAccountId
-        - accountNumber
-        - youthName
-        - accountBalance
-        - currency
-        - spendingLimit
-        - parentAccountId
-        - status
-        - lastUpdated
-      properties:
-        youthAccountId:
-          type: string
-          pattern: '^ya-[0-9]{9}$'
-          example: ya-123456789
-        accountNumber:
-          type: string
-          pattern: '^\*{4}[0-9]{4}$'
-          example: '****1234'
-        youthName:
-          type: string
-          maxLength: 100
-          example: John Doe Jr
-        accountBalance:
-          type: number
-          format: decimal
-          minimum: 0
-          example: 150.50
-        currency:
-          type: string
-          pattern: '^[A-Z]{3}$'
-          example: USD
-        spendingLimit:
-          $ref: '#/components/schemas/SpendingLimit'
-        parentAccountId:
-          type: string
-          pattern: '^pa-[0-9]{9}$'
-          example: pa-987654321
-        status:
-          type: string
-          enum: [ACTIVE, SUSPENDED, CLOSED]
-          example: ACTIVE
-        lastUpdated:
-          type: string
-          format: date-time
-          example: '2024-01-01T12:00:00Z'
-        recentTransactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Transaction'
-
-    SpendingLimit:
-      type: object
-      required:
-        - weekly
-        - daily
-        - remaining
-      properties:
-        weekly:
-          type: number
-          format: decimal
-          minimum: 0
-          maximum: 1000
-          example: 50.00
-        daily:
-          type: number
-          format: decimal
-          minimum: 0
-          maximum: 200
-          example: 10.00
-        remaining:
-          type: number
-          format: decimal
-          minimum: 0
-          example: 35.00
-
-    Transaction:
-      type: object
-      required:
-        - transactionId
-        - date
-        - merchant
-        - description
-        - amount
-        - transactionType
-        - remainingBalance
-      properties:
-        transactionId:
-          type: string
-          pattern: '^txn-[0-9]{3,}$'
-          example: txn-001
-        date:
-          type: string
-          format: date-time
-          example: '2024-01-01T10:30:00Z'
-        merchant:
-          type: string
-          maxLength: 100
-          example: Coffee Shop
-        description:
-          type: string
-          maxLength: 200
-          example: Purchase at Coffee Shop
-        amount:
-          type: number
-          format: decimal
-          example: -4.50
-        transactionType:
-          type: string
-          enum: [DEBIT, CREDIT]
-          example: DEBIT
-        remainingBalance:
-          type: number
-          format: decimal
-          minimum: 0
-          example: 150.50
-        category:
-          type: string
-          example: FOOD_BEVERAGE
-        authorizationCode:
-          type: string
-          example: AUTH123
-        location:
-          $ref: '#/components/schemas/TransactionLocation'
-
-    TransactionLocation:
-      type: object
-      properties:
-        city:
-          type: string
-          example: New York
-        state:
-          type: string
-          example: NY
-        country:
-          type: string
-          pattern: '^[A-Z]{2}$'
-          example: US
-
-    FundTransferRequest:
-      type: object
-      required:
-        - sourceAccountId
-        - transferAmount
-        - currency
-        - transferType
-      properties:
-        sourceAccountId:
-          type: string
-          pattern: '^pa-[0-9]{9}$'
-          example: pa-987654321
-        transferAmount:
-          type: number
-          format: decimal
-          minimum: 1.00
-          maximum: 500.00
-          example: 25.00
-        currency:
-          type: string
-          pattern: '^[A-Z]{3}$'
-          example: USD
-        description:
-          type: string
-          maxLength: 100
-          example: Weekly allowance
-        transferType:
-          type: string
-          enum: [ALLOWANCE, BONUS, EMERGENCY]
-          example: ALLOWANCE
-
-    FundTransferResponse:
-      type: object
-      required:
-        - transferId
-        - status
-        - sourceAccountId
-        - targetYouthAccountId
-        - transferAmount
-        - currency
-        - updatedBalance
-        - transactionReference
-        - processedAt
-      properties:
-        transferId:
-          type: string
-          pattern: '^tfr-[0-9]{9}$'
-          example: tfr-123456789
-        status:
-          type: string
-          enum: [SUCCESS, PENDING, FAILED]
-          example: SUCCESS
-        sourceAccountId:
-          type: string
-          pattern: '^pa-[0-9]{9}$'
-          example: pa-987654321
-        targetYouthAccountId:
-          type: string
-          pattern: '^ya-[0-9]{9}$'
-          example: ya-123456789
-        transferAmount:
-          type: number
-          format: decimal
-          example: 25.00
-        currency:
-          type: string
-          pattern: '^[A-Z]{3}$'
-          example: USD
-        updatedBalance:
-          type: number
-          format: decimal
-          example: 175.50
-        transactionReference:
-          type: string
-          example: TXN-REF-001
-        processedAt:
-          type: string
-          format: date-time
-          example: '2024-01-01T12:00:00Z'
-        description:
-          type: string
-          example: Weekly allowance
-
-    SpendingLimitRequest:
-      type: object
-      required:
-        - weeklyLimit
-        - dailyLimit
-        - currency
-      properties:
-        weeklyLimit:
-          type: number
-          format: decimal
-          minimum: 1.00
-          maximum: 1000.00
-          example: 50.00
-        dailyLimit:
-          type: number
-          format: decimal
-          minimum: 1.00
-          maximum: 200.00
-          example: 10.00
-        currency:
-          type: string
-          pattern: '^[A-Z]{3}$'
-          example: USD
-        effectiveDate:
-          type: string
-          format: date-time
-          example: '2024-01-01T00:00:00Z'
-        notifyOnLimit:
-          type: boolean
-          default: true
-          example: true
-        notifyOnPercentage:
-          type: integer
-          minimum: 1
-          maximum: 100
-          example: 80
-
-    SpendingLimitResponse:
-      type: object
-      required:
-        - youthAccountId
-        - spendingLimits
-        - effectiveDate
-        - notifications
-        - status
-        - updatedAt
-        - updatedBy
-      properties:
-        youthAccountId:
-          type: string
-          pattern: '^ya-[0-9]{9}$'
-          example: ya-123456789
-        spendingLimits:
-          type: object
-          properties:
-            weeklyLimit:
-              type: number
-              format: decimal
-              example: 50.00
-            dailyLimit:
-              type: number
-              format: decimal
-              example: 10.00
-            currency:
-              type: string
-              pattern: '^[A-Z]{3}$'
-              example: USD
-        effectiveDate:
-          type: string
-          format: date-time
-          example: '2024-01-01T00:00:00Z'
-        notifications:
-          type: object
-          properties:
-            notifyOnLimit:
-              type: boolean
-              example: true
-            notifyOnPercentage:
-              type: integer
-              example: 80
-        status:
-          type: string
-          enum: [UPDATED, PENDING, FAILED]
-          example: UPDATED
-        updatedAt:
-          type: string
-          format: date-time
-          example: '2024-01-01T12:00:00Z'
-        updatedBy:
-          type: string
-          pattern: '^pa-[0-9]{9}$'
-          example: pa-987654321
-
-    TransactionHistoryResponse:
-      type: object
-      required:
-        - youthAccountId
-        - transactions
-        - pagination
-        - summary
-        - filters
-      properties:
-        youthAccountId:
-          type: string
-          pattern: '^ya-[0-9]{9}$'
-          example: ya-123456789
-        transactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Transaction'
-        pagination:
-          $ref: '#/components/schemas/Pagination'
-        summary:
-          $ref: '#/components/schemas/TransactionSummary'
-        filters:
-          $ref: '#/components/schemas/TransactionFilters'
-
-    Pagination:
-      type: object
-      required:
-        - page
-        - pageSize
-        - totalRecords
-        - totalPages
-        - hasNext
-        - hasPrevious
-      properties:
-        page:
-          type: integer
-          minimum: 1
-          example: 1
-        pageSize:
-          type: integer
-          minimum: 1
-          maximum: 100
-          example: 20
-        totalRecords:
-          type: integer
-          minimum: 0
-          example: 45
-        totalPages:
-          type: integer
-          minimum: 0
-          example: 3
-        hasNext:
-          type: boolean
-          example: true
-        hasPrevious:
-          type: boolean
-          example: false
-
-    TransactionSummary:
-      type: object
-      required:
-        - totalDebits
-        - totalCredits
-        - netAmount
-        - transactionCount
-      properties:
-        totalDebits:
-          type: number
-          format: decimal
-          example: -125.50
-        totalCredits:
-          type: number
-          format: decimal
-          example: 200.00
-        netAmount:
-          type: number
-          format: decimal
-          example: 74.50
-        transactionCount:
-          type: integer
-          minimum: 0
-          example: 45
-
-    TransactionFilters:
-      type: object
-      properties:
-        startDate:
-          type: string
-          format: date
-          example: '2024-01-01'
-        endDate:
-          type: string
-          format: date
-          example: '2024-01-31'
-        transactionType:
-          type: string
-          enum: [DEBIT, CREDIT, ALL]
-          example: ALL
-
-    AccountStatusRequest:
-      type: object
-      required:
-        - status
-        - reason
-      properties:
-        status:
-          type: string
-          enum: [ACTIVE, SUSPENDED]
-          example: SUSPENDED
-        reason:
-          type: string
-          maxLength: 200
-          example: Temporary suspension for review
-        effectiveDate:
-          type: string
-          format: date-time
-          example: '2024-01-01T12:00:00Z'
-        autoReactivateDate:
-          type: string
-          format: date-time
-          example: '2024-01-07T12:00:00Z'
-
-    AccountStatusResponse:
-      type: object
-      required:
-        - youthAccountId
-        - previousStatus
-        - currentStatus
-        - reason
-        - effectiveDate
-        - updatedBy
-        - updatedAt
-      properties:
-        youthAccountId:
-          type: string
-          pattern: '^ya-[0-9]{9}$'
-          example: ya-123456789
-        previousStatus:
-          type: string
-          enum: [ACTIVE, SUSPENDED, CLOSED]
-          example: ACTIVE
-        currentStatus:
-          type: string
-          enum: [ACTIVE, SUSPENDED, CLOSED]
-          example: SUSPENDED
-        reason:
-          type: string
-          example: Temporary suspension for review
-        effectiveDate:
-          type: string
-          format: date-time
-          example: '2024-01-01T12:00:00Z'
-        autoReactivateDate:
-          type: string
-          format: date-time
-          example: '2024-01-07T12:00:00Z'
-        updatedBy:
-          type: string
-          pattern: '^pa-[0-9]{9}$'
-          example: pa-987654321
-        updatedAt:
-          type: string
-          format: date-time
-          example: '2024-01-01T12:00:00Z'
-
-    NotificationPreferencesRequest:
+    # Authentication Schemas
+    LoginRequest:
       type: object
       required:
         - email
-        - sms
-        - events
-        - thresholds
+        - password
       properties:
         email:
-          type: object
-          properties:
-            enabled:
-              type: boolean
-              example: true
-            address:
-              type: string
-              format: email
-              example: parent@example.com
-            frequency:
-              type: string
-              enum: [IMMEDIATE, DAILY, WEEKLY]
-              example: IMMEDIATE
-        sms:
-          type: object
-          properties:
-            enabled:
-              type: boolean
-              example: false
-            phoneNumber:
-              type: string
-              pattern: '^\+[1-9]\d{1,14}$'
-              example: '+1234567890'
-        events:
-          type: object
-          properties:
-            transactionAlert:
-              type: boolean
-              example: true
-            limitReached:
-              type: boolean
-              example: true
-            lowBalance:
-              type: boolean
-              example: true
-            accountSuspended:
-              type: boolean
-              example: true
-        thresholds:
-          type: object
-          properties:
-            lowBalanceAmount:
-              type: number
-              format: decimal
-              minimum: 0
-              example: 10.00
-            largeTransactionAmount:
-              type: number
-              format: decimal
-              minimum: 0
-              example: 50.00
+          type: string
+          format: email
+          description: User email address
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: User password (minimum 8 characters)
+          example: SecurePass123!
+        device_id:
+          type: string
+          description: Optional device identifier for tracking
+          example: device_12345
+        remember_me:
+          type: boolean
+          default: false
+          description: Extend session duration
+          example: false
 
-    NotificationPreferencesResponse:
+    LoginResponse:
       type: object
       required:
-        - youthAccountId
-        - notificationPreferences
-        - updatedAt
+        - access_token
+        - refresh_token
+        - token_type
+        - expires_in
+        - user
       properties:
-        youthAccountId:
+        access_token:
           type: string
-          pattern: '^ya-[0-9]{9}$'
-          example: ya-123456789
-        notificationPreferences:
+          description: JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        refresh_token:
+          type: string
+          description: Refresh token for token renewal
+          example: refresh_token_12345
+        token_type:
+          type: string
+          enum: [Bearer]
+          description: Token type
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Token expiration time in seconds
+          example: 86400
+        user:
+          $ref: '#/components/schemas/User'
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          description: Valid refresh token
+          example: refresh_token_12345
+
+    RefreshTokenResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - expires_in
+      properties:
+        access_token:
+          type: string
+          description: New JWT access token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        token_type:
+          type: string
+          enum: [Bearer]
+          description: Token type
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Token expiration time in seconds
+          example: 86400
+
+    # User Schemas
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - role
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique user identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: user@example.com
+        name:
+          type: string
+          description: User full name
+          example: John Doe
+        role:
+          type: string
+          enum: [user, admin, moderator]
+          description: User role
+          example: user
+
+    UserProfileResponse:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - role
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique user identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: user@example.com
+        name:
+          type: string
+          description: User full name
+          example: John Doe
+        phone:
+          type: string
+          description: User phone number
+          example: +1234567890
+        role:
+          type: string
+          enum: [user, admin, moderator]
+          description: User role
+          example: user
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: 2024-01-01T00:00:00Z
+        updated_at:
+          type: string
+          format: date-time
+          description: Last profile update timestamp
+          example: 2024-01-15T10:30:00Z
+        last_login:
+          type: string
+          format: date-time
+          description: Last login timestamp
+          example: 2024-01-15T09:00:00Z
+
+    UpdateUserProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: User full name
+          example: John Doe
+        phone:
+          type: string
+          description: User phone number
+          example: +1234567890
+        preferences:
+          $ref: '#/components/schemas/UserPreferences'
+
+    UserPreferences:
+      type: object
+      properties:
+        language:
+          type: string
+          enum: [en, ar]
+          description: Preferred language
+          example: en
+        theme:
+          type: string
+          enum: [light, dark, auto]
+          description: UI theme preference
+          example: light
+        notifications:
           type: object
+          description: Notification preferences
           properties:
             email:
-              type: object
-              properties:
-                enabled:
-                  type: boolean
-                  example: true
-                address:
-                  type: string
-                  format: email
-                  example: parent@example.com
-                frequency:
-                  type: string
-                  enum: [IMMEDIATE, DAILY, WEEKLY]
-                  example: IMMEDIATE
-                verified:
-                  type: boolean
-                  example: true
+              type: boolean
+              example: true
+            push:
+              type: boolean
+              example: false
             sms:
-              type: object
-              properties:
-                enabled:
-                  type: boolean
-                  example: false
-                phoneNumber:
-                  type: string
-                  example: '+1234567890'
-                verified:
-                  type: boolean
-                  example: false
-            events:
-              type: object
-              properties:
-                transactionAlert:
-                  type: boolean
-                  example: true
-                limitReached:
-                  type: boolean
-                  example: true
-                lowBalance:
-                  type: boolean
-                  example: true
-                accountSuspended:
-                  type: boolean
-                  example: true
-            thresholds:
-              type: object
-              properties:
-                lowBalanceAmount:
-                  type: number
-                  format: decimal
-                  example: 10.00
-                largeTransactionAmount:
-                  type: number
-                  format: decimal
-                  example: 50.00
-        updatedAt:
+              type: boolean
+              example: false
+
+    # Form Session Schemas
+    CreateFormSessionRequest:
+      type: object
+      required:
+        - form_type
+      properties:
+        form_type:
+          type: string
+          enum: [document_upload, application, verification]
+          description: Type of form session
+          example: document_upload
+        initial_data:
+          type: object
+          description: Optional initial form data
+          example: {"user_id": "12345"}
+        metadata:
+          type: object
+          description: Optional session metadata
+          example: {"source": "mobile_app"}
+
+    FormSessionResponse:
+      type: object
+      required:
+        - session_id
+        - form_type
+        - current_step
+        - total_steps
+        - completion_percentage
+        - expires_at
+        - created_at
+      properties:
+        session_id:
+          type: string
+          format: uuid
+          description: Unique session identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        form_type:
+          type: string
+          enum: [document_upload, application, verification]
+          description: Type of form session
+          example: document_upload
+        current_step:
+          type: string
+          description: Current form step identifier
+          example: document_capture
+        total_steps:
+          type: integer
+          description: Total number of steps in form
+          example: 5
+        completion_percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Form completion percentage
+          example: 20.0
+        expires_at:
           type: string
           format: date-time
-          example: '2024-01-01T12:00:00Z'
+          description: Session expiration timestamp
+          example: 2024-01-15T12:00:00Z
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation timestamp
+          example: 2024-01-15T10:00:00Z
 
-    BulkTransferRequest:
+    FormSessionDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/FormSessionResponse'
+        - type: object
+          properties:
+            form_data:
+              type: object
+              description: Current form data
+              example: {"step1": {"name": "John"}, "step2": {"email": "john@example.com"}}
+            validation_state:
+              type: object
+              description: Form validation state
+              example: {"step1": {"valid": true}, "step2": {"valid": false, "errors": ["Invalid email"]}}
+            updated_at:
+              type: string
+              format: date-time
+              description: Last update timestamp
+              example: 2024-01-15T10:30:00Z
+
+    UpdateFormSessionRequest:
       type: object
       required:
-        - sourceAccountId
-        - transfers
-        - currency
-        - transferType
+        - step_id
+        - step_data
+        - is_complete
       properties:
-        sourceAccountId:
+        step_id:
           type: string
-          pattern: '^pa-[0-9]{9}$'
-          example: pa-987654321
-        transfers:
+          description: Step identifier being updated
+          example: document_capture
+        step_data:
+          type: object
+          description: Step data to save
+          example: {"document_type": "passport", "quality_score": 95}
+        is_complete:
+          type: boolean
+          description: Whether step is complete
+          example: true
+        validation_errors:
           type: array
-          minItems: 1
-          maxItems: 100
           items:
-            type: object
-            required:
-              - youthAccountId
-              - amount
-            properties:
-              youthAccountId:
-                type: string
-                pattern: '^ya-[0-9]{9}$'
-                example: ya-123456789
-              amount:
-                type: number
-                format: decimal
-                minimum: 1.00
-                maximum: 500.00
-                example: 25.00
-              description:
-                type: string
-                maxLength: 100
-                example: Weekly allowance
-        currency:
-          type: string
-          pattern: '^[A-Z]{3}$'
-          example: USD
-        transferType:
-          type: string
-          enum: [ALLOWANCE, BONUS, EMERGENCY]
-          example: ALLOWANCE
+            type: string
+          description: Validation errors for the step
+          example: ["Document quality too low"]
 
-    BulkTransferResponse:
+    UpdateFormSessionResponse:
       type: object
       required:
-        - batchId
-        - status
-        - totalTransfers
-        - totalAmount
-        - submittedAt
-        - estimatedCompletion
-        - statusUrl
+        - session_id
+        - current_step
+        - completion_percentage
+        - is_valid
+        - updated_at
       properties:
-        batchId:
+        session_id:
           type: string
-          pattern: '^batch-[0-9]{9}$'
-          example: batch-123456789
+          format: uuid
+          description: Session identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        current_step:
+          type: string
+          description: Current step after update
+          example: review
+        next_step:
+          type: string
+          description: Next step identifier
+          example: submit
+        completion_percentage:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Updated completion percentage
+          example: 80.0
+        is_valid:
+          type: boolean
+          description: Whether current form state is valid
+          example: true
+        validation_errors:
+          type: array
+          items:
+            type: string
+          description: Current validation errors
+          example: []
+        updated_at:
+          type: string
+          format: date-time
+          description: Update timestamp
+          example: 2024-01-15T10:35:00Z
+
+    # Document Schemas
+    DocumentUploadRequest:
+      type: object
+      required:
+        - file
+        - session_id
+        - document_type
+      properties:
+        file:
+          type: string
+          format: binary
+          description: Document file (max 10MB, formats: jpg, png, pdf)
+        session_id:
+          type: string
+          format: uuid
+          description: Associated form session ID
+          example: 550e8400-e29b-41d4-a716-446655440000
+        document_type:
+          type: string
+          enum: [passport, id_card, driver_license, utility_bill]
+          description: Type of document being uploaded
+          example: passport
+        metadata:
+          type: string
+          description: Optional metadata as JSON string
+          example: '{"page_number": 1, "orientation": "portrait"}'
+
+    DocumentUploadResponse:
+      type: object
+      required:
+        - document_id
+        - session_id
+        - document_type
+        - original_filename
+        - file_size
+        - upload_status
+        - quality_score
+        - validation_result
+        - uploaded_at
+      properties:
+        document_id:
+          type: string
+          format: uuid
+          description: Unique document identifier
+          example: 550e8400-e29b-41d4-a716-446655440001
+        session_id:
+          type: string
+          format: uuid
+          description: Associated session identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        document_type:
+          type: string
+          enum: [passport, id_card, driver_license, utility_bill]
+          description: Document type
+          example: passport
+        original_filename:
+          type: string
+          description: Original uploaded filename
+          example: passport_scan.jpg
+        file_size:
+          type: integer
+          description: File size in bytes
+          example: 2048576
+        upload_status:
+          type: string
+          enum: [uploaded, processing, validated, rejected]
+          description: Current upload status
+          example: validated
+        quality_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Document quality score
+          example: 95.5
+        validation_result:
+          $ref: '#/components/schemas/ValidationResult'
+        uploaded_at:
+          type: string
+          format: date-time
+          description: Upload timestamp
+          example: 2024-01-15T10:40:00Z
+
+    DocumentStatusResponse:
+      allOf:
+        - $ref: '#/components/schemas/DocumentUploadResponse'
+        - type: object
+          properties:
+            metadata:
+              type: object
+              description: Document metadata
+              example: {"page_number": 1, "orientation": "portrait"}
+            validated_at:
+              type: string
+              format: date-time
+              description: Validation completion timestamp
+              example: 2024-01-15T10:42:00Z
+
+    DocumentDeleteResponse:
+      type: object
+      required:
+        - document_id
+        - deleted
+        - deleted_at
+        - message
+      properties:
+        document_id:
+          type: string
+          format: uuid
+          description: Deleted document identifier
+          example: 550e8400-e29b-41d4-a716-446655440001
+        deleted:
+          type: boolean
+          description: Deletion success status
+          example: true
+        deleted_at:
+          type: string
+          format: date-time
+          description: Deletion timestamp
+          example: 2024-01-15T11:00:00Z
+        message:
+          type: string
+          description: Deletion confirmation message
+          example: Document securely deleted with cryptographic erasure
+
+    DocumentValidationRequest:
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+          description: Document file for validation (max 5MB)
+        document_type:
+          type: string
+          enum: [passport, id_card, driver_license, utility_bill]
+          description: Expected document type (optional)
+          example: passport
+
+    DocumentValidationResponse:
+      type: object
+      required:
+        - validation_id
+        - quality_score
+        - is_valid
+        - confidence
+        - detected_type
+        - quality_checks
+        - suggestions
+        - processing_time
+      properties:
+        validation_id:
+          type: string
+          format: uuid
+          description: Unique validation identifier
+          example: 550e8400-e29b-41d4-a716-446655440002
+        quality_score:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Overall quality score
+          example: 87.5
+        is_valid:
+          type: boolean
+          description: Whether document meets quality standards
+          example: true
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Validation confidence level
+          example: 0.92
+        detected_type:
+          type: string
+          description: Detected document type
+          example: passport
+        quality_checks:
+          $ref: '#/components/schemas/QualityChecks'
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QualitySuggestion'
+          description: Improvement suggestions
+        processing_time:
+          type: integer
+          description: Processing time in milliseconds
+          example: 1250
+
+    ValidationResult:
+      type: object
+      required:
+        - is_valid
+        - confidence
+        - detected_type
+        - quality_checks
+        - suggestions
+      properties:
+        is_valid:
+          type: boolean
+          description: Whether document is valid
+          example: true
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Validation confidence
+          example: 0.95
+        detected_type:
+          type: string
+          description: Detected document type
+          example: passport
+        quality_checks:
+          $ref: '#/components/schemas/QualityChecks'
+        suggestions:
+          type: array
+          items:
+            type: string
+          description: Quality improvement suggestions
+          example: ["Ensure document is fully visible", "Improve lighting conditions"]
+
+    QualityChecks:
+      type: object
+      required:
+        - brightness
+        - contrast
+        - blur
+        - completeness
+      properties:
+        brightness:
+          $ref: '#/components/schemas/QualityCheck'
+        contrast:
+          $ref: '#/components/schemas/QualityCheck'
+        blur:
+          $ref: '#/components/schemas/QualityCheck'
+        completeness:
+          $ref: '#/components/schemas/QualityCheck'
+
+    QualityCheck:
+      type: object
+      required:
+        - status
+        - score
+        - message
+      properties:
         status:
           type: string
-          enum: [PROCESSING, COMPLETED, FAILED]
-          example: PROCESSING
-        totalTransfers:
-          type: integer
-          minimum: 1
-          example: 2
-        totalAmount:
+          enum: [pass, fail, warning]
+          description: Quality check status
+          example: pass
+        score:
           type: number
-          format: decimal
-          example: 40.00
-        submittedAt:
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Quality score for this check
+          example: 85.0
+        message:
           type: string
-          format: date-time
-          example: '2024-01-01T12:00:00Z'
-        estimatedCompletion:
-          type: string
-          format: date-time
-          example: '2024-01-01T12:05:00Z'
-        statusUrl:
-          type: string
-          format: uri
-          example: /api/bulk-operations/batch-123456789/status
+          description: Quality check message
+          example: Document brightness is optimal
 
-    WebhookRequest:
+    QualitySuggestion:
       type: object
       required:
-        - url
-        - events
-        - secret
-        - active
+        - type
+        - message
+        - priority
       properties:
-        url:
+        type:
           type: string
-          format: uri
-          example: https://client.example.com/webhooks/youth-accounts
-        events:
-          type: array
-          minItems: 1
-          items:
-            type: string
-            enum:
-              - transaction.created
-              - limit.reached
-              - balance.low
-              - account.suspended
-          example:
-            - transaction.created
-            - limit.reached
-        secret:
+          enum: [lighting, positioning, focus, cropping]
+          description: Suggestion category
+          example: lighting
+        message:
           type: string
-          minLength: 16
-          maxLength: 64
-          example: webhook_secret_key
-        active:
-          type: boolean
-          example: true
+          description: Improvement suggestion
+          example: Increase lighting to improve document visibility
+        priority:
+          type: string
+          enum: [high, medium, low]
+          description: Suggestion priority
+          example: medium
 
-    WebhookResponse:
+    # Component Library Schemas
+    ComponentMetadataResponse:
       type: object
       required:
-        - webhookId
-        - url
-        - events
-        - active
-        - createdAt
-        - lastDelivery
-        - deliveryStatus
+        - components
+        - themes
       properties:
-        webhookId:
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComponentMetadata'
+          description: Available UI components
+        themes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ThemeMetadata'
+          description: Available themes
+
+    ComponentMetadata:
+      type: object
+      required:
+        - name
+        - version
+        - category
+        - states
+        - props
+        - accessibility_features
+        - browser_support
+      properties:
+        name:
           type: string
-          pattern: '^wh-[0-9]{9}$'
-          example: wh-123456789
-        url:
+          description: Component name
+          example: Button
+        version:
           type: string
-          format: uri
-          example: https://client.example.com/webhooks/youth-accounts
-        events:
+          description: Component version
+          example: 1.2.0
+        category:
+          type: string
+          enum: [input, button, navigation, feedback, layout]
+          description: Component category
+          example: button
+        states:
           type: array
           items:
             type: string
-          example:
-            - transaction.created
-            - limit.reached
-        active:
-          type: boolean
-          example: true
-        createdAt:
-          type: string
-          format: date-time
-          example: '2024-01-01T12:00:00Z'
-        lastDelivery:
-          type: string
-          format: date-time
-          nullable: true
-          example: null
-        deliveryStatus:
-          type: string
-          enum: [PENDING, SUCCESS, FAILED]
-          example: PENDING
+          description: Available component states
+          example: [default, hover, focus, active, disabled, loading, error, success]
+        props:
+          type: object
+          description: Component properties
+          example: {"size": "string", "variant": "string", "disabled": "boolean"}
+        accessibility_features:
+          type: array
+          items:
+            type: string
+          description: Accessibility features
+          example: ["keyboard_navigation", "screen_reader_support", "high_contrast"]
+        browser_support:
+          type: object
+          description: Browser compatibility
+          example: {"chrome": ">=90", "firefox": ">=88", "safari": ">=14"}
 
-    Error:
+    ThemeMetadata:
+      type: object
+      required:
+        - name
+        - description
+        - variables
+      properties:
+        name:
+          type: string
+          description: Theme name
+          example: default
+        description:
+          type: string
+          description: Theme description
+          example: Default light theme with blue accents
+        variables:
+          type: object
+          description: Theme variables
+          example: {"primary_color": "#007bff", "secondary_color": "#6c757d"}
+
+    # System Health Schemas
+    HealthCheckResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - version
+        - services
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Overall system status
+          example: healthy
+        timestamp:
+          type: string
+          format: date-time
+          description: Health check timestamp
+          example: 2024-01-15T12:00:00Z
+        version:
+          type: string
+          description: API version
+          example: 1.0.0
+        services:
+          $ref: '#/components/schemas/ServiceStatus'
+
+    ServiceStatus:
+      type: object
+      required:
+        - database
+        - cache
+        - storage
+        - validation_service
+      properties:
+        database:
+          type: string
+          enum: [up, down, degraded]
+          description: Database service status
+          example: up
+        cache:
+          type: string
+          enum: [up, down, degraded]
+          description: Cache service status
+          example: up
+        storage:
+          type: string
+          enum: [up, down, degraded]
+          description: Storage service status
+          example: up
+        validation_service:
+          type: string
+          enum: [up, down, degraded]
+          description: Document validation service status
+          example: up
+
+    # Error Schemas
+    ErrorResponse:
       type: object
       required:
         - error
       properties:
         error:
-          type: object
-          required:
-            - code
-            - message
-            - timestamp
-            - requestId
-          properties:
-            code:
-              type: string
-              example: INVALID_REQUEST
-            message:
-              type: string
-              example: The request is invalid
-            details:
-              type: string
-              example: Additional error details
-            timestamp:
-              type: string
-              format: date-time
-              example: '2024-01-01T12:00:00Z'
-            requestId:
-              type: string
-              format: uuid
-              example: 123e4567-e89b-12d3-a456-426614174000
+          $ref: '#/components/schemas/ErrorDetail'
+
+    ErrorDetail:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+        - request_id
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: VALIDATION_FAILED
+        message:
+          type: string
+          description: Human-readable error message
+          example: Request validation failed
+        details:
+          oneOf:
+            - type: string
+            - type: object
+          description: Additional error details
+          example: Invalid email format
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+          example: 2024-01-15T12:00:00Z
+        request_id:
+          type: string
+          description: Request identifier for tracking
+          example: req_12345
 
   responses:
     BadRequest:
-      description: Bad Request - Invalid input parameters
+      description: Bad Request - Invalid request format or parameters
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             error:
               code: INVALID_REQUEST
-              message: Invalid request parameters
-              details: Youth account ID format is invalid
-              timestamp: '2024-01-01T12:00:00Z'
-              requestId: 123e4567-e89b-12d3-a456-426614174000
+              message: Invalid request format
+              details: Missing required field 'email'
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12345
 
     Unauthorized:
       description: Unauthorized - Invalid or missing authentication
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             error:
-              code: UNAUTHORIZED
-              message: Authentication required
-              details: Invalid or expired authentication token
-              timestamp: '2024-01-01T12:00:00Z'
-              requestId: 123e4567-e89b-12d3-a456-426614174000
+              code: AUTHENTICATION_FAILED
+              message: Invalid or expired token
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12346
 
     Forbidden:
       description: Forbidden - Insufficient permissions
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             error:
-              code: FORBIDDEN
-              message: Access denied
-              details: Parent not authorized to access this youth account
-              timestamp: '2024-01-01T12:00:00Z'
-              requestId: 123e4567-e89b-12d3-a456-426614174000
+              code: AUTHORIZATION_FAILED
+              message: Insufficient permissions to access resource
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12347
 
     NotFound:
       description: Not Found - Resource not found
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             error:
-              code: NOT_FOUND
-              message: Resource not found
-              details: Youth account not found
-              timestamp: '2024-01-01T12:00:00Z'
-              requestId: 123e4567-e89b-12d3-a456-426614174000
-
-    PaymentRequired:
-      description: Payment Required - Insufficient funds
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Error'
-          example:
-            error:
-              code: INSUFFICIENT_FUNDS
-              message: Insufficient balance in source account
-              details: 'Available: $10.00, Requested: $25.00'
-              timestamp: '2024-01-01T12:00:00Z'
-              requestId: 123e4567-e89b-12d3-a456-426614174000
+              code: RESOURCE_NOT_FOUND
+              message: Requested resource not found
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12348
 
     Conflict:
-      description: Conflict - Resource conflict
+      description: Conflict - Resource conflict or constraint violation
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             error:
-              code: DUPLICATE_REQUEST
-              message: Duplicate request detected
-              details: Transfer with same idempotency key already exists
-              timestamp: '2024-01-01T12:00:00Z'
-              requestId: 123e4567-e89b-12d3-a456-426614174000
+              code: RESOURCE_CONFLICT
+              message: Resource already exists or constraint violation
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12349
+
+    PayloadTooLarge:
+      description: Payload Too Large - File size exceeds limit
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: FILE_TOO_LARGE
+              message: File size exceeds maximum limit of 10MB
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12350
+
+    UnsupportedMediaType:
+      description: Unsupported Media Type - Invalid file format
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: INVALID_FILE_TYPE
+              message: Unsupported file format. Allowed formats: jpg, png, pdf
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12351
 
     UnprocessableEntity:
-      description: Unprocessable Entity - Business rule violation
+      description: Unprocessable Entity - Document quality below threshold
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             error:
-              code: BUSINESS_RULE_VIOLATION
-              message: Business rule validation failed
-              details: Daily limit cannot exceed weekly limit divided by 7
-              timestamp: '2024-01-01T12:00:00Z'
-              requestId: 123e4567-e89b-12d3-a456-426614174000
+              code: DOCUMENT_QUALITY_LOW
+              message: Document quality below acceptable threshold
+              details:
+                quality_score: 45.2
+                minimum_required: 70.0
+                suggestions:
+                  - Improve lighting conditions
+                  - Ensure document is fully visible
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12352
 
-    InternalServerError:
-      description: Internal Server Error - System error
+    TooManyRequests:
+      description: Too Many Requests - Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Request limit per time window
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests in current window
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Time when rate limit resets (Unix timestamp)
+        Retry-After:
+          schema:
+            type: integer
+          description: Seconds to wait before retrying
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: Too many requests. Please try again later.
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12353
+
+    InternalServerError:
+      description: Internal Server Error - Unexpected server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
           example:
             error:
               code: INTERNAL_ERROR
-              message: An internal system error occurred
-              details: Please try again later or contact support
-              timestamp: '2024-01-01T12:00:00Z'
-              requestId: 123e4567-e89b-12d3-a456-426614174000
+              message: An unexpected error occurred. Please try again later.
+              timestamp: 2024-01-15T12:00:00Z
+              request_id: req_12354
 
   headers:
+    X-Request-ID:
+      description: Unique request identifier for tracking
+      schema:
+        type: string
+        example: req_12345
+    
     X-RateLimit-Limit:
-      description: The number of allowed requests in the current period
+      description: Request limit per time window
       schema:
         type: integer
         example: 1000
     
     X-RateLimit-Remaining:
-      description: The number of remaining requests in the current period
+      description: Remaining requests in current window
       schema:
         type: integer
-        example: 999
+        example: 995
     
     X-RateLimit-Reset:
-      description: The time at which the current rate limit window resets
+      description: Time when rate limit resets (Unix timestamp)
       schema:
         type: integer
-        format: int64
         example: 1640995200
 
-# Rate limiting configuration
-x-rate-limit:
-  default: 1000 requests per hour
-  burst: 100 requests per minute
-  
-# CORS configuration
-x-cors:
-  allowOrigins:
-    - https://app.youthaccounts.bank.com
-    - https://mobile.youthaccounts.bank.com
-  allowMethods:
-    - GET
-    - POST
-    - PUT
-    - PATCH
-    - DELETE
-    - OPTIONS
-  allowHeaders:
-    - Authorization
-    - Content-Type
-    - X-Request-ID
-    - X-API-Version
-    - X-Idempotency-Key
-  maxAge: 86400
+tags:
+  - name: Authentication
+    description: User authentication and token management
+  - name: Form Sessions
+    description: Multi-step form session management
+  - name: Documents
+    description: Document upload, validation, and management
+  - name: Component Library
+    description: UI component metadata and configuration
+  - name: User Management
+    description: User profile and preference management
+  - name: System Health
+    description: System health monitoring and status
 
-# Security extensions
-x-security:
-  contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline'"
-  frameOptions: DENY
-  contentTypeOptions: nosniff
-  referrerPolicy: strict-origin-when-cross-origin
-  
-# Compliance metadata
-x-compliance:
-  gdpr: true
-  pci-dss: true
-  sox: true
-  basel-iii: true
-  dataRetention: 7 years
-  auditLogging: true
+externalDocs:
+  description: Complete API Documentation
+  url: https://docs.tasheel.com/api/v1
