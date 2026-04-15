@@ -1,703 +1,988 @@
 ## UI COMPONENT SPECIFICATIONS
 
-### 1. INPUT REFERENCE (FROM AGENT-1)
+1. INPUT REFERENCE (FROM AGENT-1)
 
-**Page Name:** Document Upload Interface
+Page Name: Kanban Board Application
 
-**Mapped Layout:** Multi-step form with camera integration and quality validation
+Mapped Layout: Three-column Kanban board with header, sidebar, and main content area
 
-**Components from A1:**
-- DocumentUploadApp (Main Container)
-- HeaderComponent with progress tracking
-- CameraInterfaceComponent with overlay guidance
-- QualityValidationComponent with real-time feedback
-- FormContainerComponent with multi-step navigation
-- DocumentPreviewComponent with editing capabilities
-- UploadZoneComponent with drag-and-drop functionality
-- NavigationControlsComponent for step management
-
-### 2. GLOBAL ARCHITECTURE SUMMARY
-
-**Layout Type:** CSS Grid (primary), Flexbox (secondary)
-
-**Main Sections:**
-- Header: Application branding, progress indicator, user status
-- Main Content: Multi-step form container with document upload interface
-- Side Panel: Help content and upload guidelines (optional)
-- Footer: Legal information and accessibility options
-
-**Component Strategy:** Maximize reuse of existing UI library components
-
-**Reused Components:**
-- Button Component (primary, secondary, ghost variants)
-- Input Component (text inputs with validation)
-- Card Component (document preview cards)
-- Modal Component (confirmation dialogs)
-- Progress Component (step indicators)
-- Alert Component (notifications)
-- Badge Component (status indicators)
-- Loading Component (spinners and skeleton loaders)
-- Icon Component (SVG icons)
-- Form Components (validation and containers)
-
-**New Components (if any):**
-- CameraInterfaceComponent (specialized camera functionality)
-- QualityValidationComponent (document quality assessment)
-- DocumentPreviewComponent (document display and editing)
-- OverlayGuidanceComponent (camera positioning guidance)
-
-### 3. FOLDER STRUCTURE
-
-```
-src/
-├── pages/
-│    └── document-upload/
-│         ├── DocumentUploadPage.tsx
-│
-├── components/
-│    ├── layout/
-│    │    ├── HeaderComponent.tsx
-│    │    ├── FooterComponent.tsx
-│    │    └── SidePanelComponent.tsx
-│    ├── feature/
-│    │    ├── DocumentUploadApp.tsx
-│    │    ├── CameraInterfaceComponent.tsx
-│    │    ├── QualityValidationComponent.tsx
-│    │    ├── DocumentPreviewComponent.tsx
-│    │    ├── FormContainerComponent.tsx
-│    │    ├── StepNavigationComponent.tsx
-│    │    ├── UploadZoneComponent.tsx
-│    │    └── NavigationControlsComponent.tsx
-│    ├── shared/
-│    │    ├── LoadingOverlayComponent.tsx
-│    │    ├── ErrorBoundaryComponent.tsx
-│    │    ├── NotificationComponent.tsx
-│    │    └── ConfirmationModalComponent.tsx
-```
-
-### 4. COMPONENT IMPLEMENTATION
-
-#### 4.1 DocumentUploadApp
-
-**Component Type:** Page
-
-**Mapped From A1:** Main application container managing entire document upload flow
-
-**Purpose:** Orchestrates multi-step document upload process with camera integration and quality validation
-
-**Parent:** DocumentUploadPage
-
-**Children:**
+Components from A1:
+- KanbanBoardComponent
+- KanbanColumnComponent  
+- KanbanCardComponent
 - HeaderComponent
-- MainContentComponent
-- FooterComponent
-- LoadingOverlayComponent
-- ErrorBoundaryComponent
+- SidebarComponent
+- AddCardButtonComponent
+- KanbanErrorStateComponent
 
-**Dependencies:**
-- React hooks (useState, useEffect, useCallback)
-- Form session service
-- Document upload service
-- Quality validation service
+2. GLOBAL ARCHITECTURE SUMMARY
 
-**Library Components Used:**
-- Card Component → Main container wrapper
-- Loading Component → Loading states
-- Alert Component → Error notifications
+Layout Type: CSS Grid for main layout, Flexbox for component internals
 
-**TypeScript Specification:**
+Main Sections:
+- Header: Navigation bar with search, notifications, user avatar
+- Sidebar: Collapsible navigation menu with multi-level structure
+- Main Content: Three-column Kanban board container
+- Modals: Card creation and editing overlays
 
-```typescript
+Component Strategy: Reuse existing library components where possible, create new Kanban-specific components
+
+Reused Components:
+- HeaderComponent (navigation bar)
+- SidebarComponent (collapsible navigation)
+- CardComponent (content containers)
+- ButtonComponent (various button types)
+- ModalComponent (overlay dialogs)
+- InputComponent (form inputs)
+- BadgeComponent (status indicators)
+- AvatarComponent (user representation)
+- SearchFieldComponent (search input)
+
+New Components (if any):
+- KanbanBoardComponent (main container)
+- KanbanColumnComponent (individual columns)
+- KanbanCardComponent (draggable cards)
+- AddCardButtonComponent (card creation trigger)
+- KanbanErrorStateComponent (error handling)
+
+3. FOLDER STRUCTURE
+
+src/
+ ├── app/
+ │    ├── features/
+ │    │    └── kanban/
+ │    │         ├── components/
+ │    │         │    ├── kanban-board/
+ │    │         │    │    ├── kanban-board.component.ts
+ │    │         │    │    ├── kanban-board.component.html
+ │    │         │    │    ├── kanban-board.component.scss
+ │    │         │    │    └── kanban-board.component.spec.ts
+ │    │         │    ├── kanban-column/
+ │    │         │    │    ├── kanban-column.component.ts
+ │    │         │    │    ├── kanban-column.component.html
+ │    │         │    │    ├── kanban-column.component.scss
+ │    │         │    │    └── kanban-column.component.spec.ts
+ │    │         │    └── kanban-card/
+ │    │         │         ├── kanban-card.component.ts
+ │    │         │         ├── kanban-card.component.html
+ │    │         │         ├── kanban-card.component.scss
+ │    │         │         └── kanban-card.component.spec.ts
+ │    │         ├── services/
+ │    │         │    ├── kanban.service.ts
+ │    │         │    └── kanban-api.service.ts
+ │    │         ├── models/
+ │    │         │    ├── kanban-board.model.ts
+ │    │         │    ├── kanban-column.model.ts
+ │    │         │    └── kanban-card.model.ts
+ │    │         └── kanban.module.ts
+ │    └── shared/
+ │         ├── components/
+ │         │    ├── header/
+ │         │    ├── sidebar/
+ │         │    ├── button/
+ │         │    ├── card/
+ │         │    ├── modal/
+ │         │    └── input/
+ │         └── services/
+ │              ├── api.service.ts
+ │              └── auth.service.ts
+
+4. COMPONENT IMPLEMENTATION
+
+### 4.1 KanbanBoardComponent
+
+Component Type: Feature
+
+Mapped From A1: Main container for three-column Kanban layout
+
+Purpose: Primary container component that manages the overall Kanban board state and coordinates between columns
+
+Parent: AppComponent
+
+Children:
+- KanbanColumnComponent (3 instances)
+- KanbanErrorStateComponent
+- KanbanHeaderComponent
+
+Dependencies:
+- KanbanService
+- KanbanApiService
+- Angular CDK Drag Drop
+
+Library Components Used:
+- CardComponent → Container wrapper
+- ButtonComponent → Action buttons
+- ProgressBarComponent → Loading states
+
+TypeScript Specification
+
 Inputs:
-- sessionId: string
-- userId: string
-- configuration: AppConfig
-- onComplete?: (data: FormData) => void
+- boardId: string (board identifier)
+- permissions: Permission[] (user permissions)
+- loading: boolean (loading state)
 
 Outputs:
-- onStepChange: (step: number) => void
-- onDocumentUpload: (document: Document) => void
-- onFormSubmit: (data: FormData) => void
-- onError: (error: Error) => void
+- onColumnUpdate: EventEmitter<{columnId: string, data: any}> (column update payload)
+- onCardMove: EventEmitter<{cardId: string, fromColumn: string, toColumn: string}> (card move payload)
+- onError: EventEmitter<string> (error message payload)
 
 State:
-- currentStep: number
-- formData: FormData
-- uploadedDocuments: Document[]
-- validationResults: ValidationResult[]
-- loading: boolean
-- error: string | null
-- sessionActive: boolean
+- columns: KanbanColumn[] (current column data)
+- isLoading: boolean (loading indicator)
+- errorMessage: string | null (error state)
+- draggedCard: KanbanCard | null (currently dragged card)
 
 Methods:
-- initializeSession() → Promise<void>
-- saveProgress() → Promise<void>
-- handleStepNavigation(direction: 'next' | 'previous') → void
-- handleDocumentUpload(document: File) → Promise<void>
-- handleFormSubmission() → Promise<void>
-```
+- ngOnInit() → Initialize board data
+- loadBoardData() → Fetch board from API
+- handleCardMove(event: CdkDragDrop<KanbanCard[]>) → Process card movement
+- handleError(error: string) → Handle error states
+- refreshBoard() → Reload board data
 
-**HTML STRUCTURE (PSEUDO CODE ONLY):**
+HTML STRUCTURE (PSEUDO CODE ONLY)
 
-```html
-<div className="document-upload-app">
-  <ErrorBoundary>
-    <HeaderComponent 
-      user={user} 
-      progress={currentStep} 
-      totalSteps={4} 
-    />
-    
-    <main className="main-content">
-      <Card className="form-container">
-        <StepNavigationComponent 
-          currentStep={currentStep}
-          totalSteps={4}
-          completedSteps={completedSteps}
-        />
-        
-        <div className="step-content">
-          {currentStep === 1 && (
-            <DocumentUploadStepComponent 
-              documentType={documentType}
-              onDocumentCapture={handleDocumentCapture}
-              onValidationComplete={handleValidation}
-            />
-          )}
-          {/* Other step components */}
-        </div>
-        
-        <NavigationControlsComponent 
-          canGoBack={currentStep > 1}
-          canGoNext={isStepValid}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          onSubmit={handleSubmit}
-        />
-      </Card>
-    </main>
-    
-    <FooterComponent />
-    
-    {loading && <LoadingOverlayComponent />}
-  </ErrorBoundary>
+<div class="kanban-board-container" role="region" aria-label="Kanban Board">
+  <div class="kanban-header">
+    <h1 class="board-title">{{boardTitle}}</h1>
+    <div class="board-actions">
+      <button-component type="primary" (click)="refreshBoard()">Refresh</button-component>
+    </div>
+  </div>
+  
+  <div class="kanban-columns" cdkDropListGroup>
+    <kanban-column-component 
+      *ngFor="let column of columns; trackBy: trackByColumnId"
+      [columnData]="column"
+      [cards]="column.cards"
+      [allowDrop]="!isLoading"
+      (onCardDrop)="handleCardMove($event)"
+      (onCardAdd)="handleCardAdd($event)"
+      cdkDropList
+      [cdkDropListData]="column.cards">
+    </kanban-column-component>
+  </div>
+  
+  <kanban-error-state-component 
+    *ngIf="errorMessage" 
+    [message]="errorMessage"
+    (onRetry)="loadBoardData()">
+  </kanban-error-state-component>
+  
+  <div class="loading-overlay" *ngIf="isLoading">
+    <progress-bar-component mode="indeterminate"></progress-bar-component>
+  </div>
 </div>
-```
 
-**CSS SPECIFICATION:**
+CSS SPECIFICATION
 
-```css
 Layout:
 - display: grid
-- grid-template-rows: auto 1fr auto
+- grid-template-columns: repeat(3, 1fr)
+- grid-gap: 1rem
 - min-height: 100vh
 
 Spacing:
 - padding: 1rem
-- gap: 1.5rem
+- gap: 1rem between columns
+- margin: 0 auto for centering
 
 Component Styles:
-- .document-upload-app: container styles
-- .main-content: flex-grow content area
-- .form-container: elevated card with shadow
+- .kanban-board-container: main grid container
+- .kanban-columns: three-column grid layout
+- .kanban-header: flex header with title and actions
+- .loading-overlay: absolute positioned overlay
 
 Responsive:
-- Mobile: single column, full width
-- Tablet: centered with max-width
-- Desktop: optimized spacing and layout
-```
+- Desktop (>1024px): 3 columns, full width
+- Tablet (768px-1024px): 2 columns, stacked layout
+- Mobile (<768px): 1 column, vertical stack
 
-**API INTEGRATION:**
+API INTEGRATION
 
-- initializeSession() → POST /forms/sessions → Create new form session
-- saveProgress() → PUT /forms/sessions/{session_id} → Save current progress
-- handleFormSubmission() → POST /documents/upload → Final submission
+- loadBoardData() → GET /kanban/boards/{boardId} → Fetch initial board state
+- handleCardMove() → PUT /kanban/cards/{cardId}/move → Update card position
+- refreshBoard() → GET /kanban/boards/{boardId} → Reload board data
 
-**ERROR HANDLING:**
+ERROR HANDLING
 
-- API failure → show error alert with retry option
-- Validation error → inline field-specific messages
-- Network error → offline mode with local storage
+- API failure → show error state component with retry option
+- Network timeout → display connection error message
+- Invalid board ID → redirect to board selection
+- Permission denied → show access denied message
 
-**INTERACTION FLOW:**
+INTERACTION FLOW
 
 User Action → UI → API
-- Page load → initialize session → POST /forms/sessions
-- Step completion → save progress → PUT /forms/sessions/{id}
-- Final submit → upload documents → POST /documents/upload
+- Load board → ngOnInit() → GET /kanban/boards/{boardId} → populate columns
+- Drag card → handleCardMove() → PUT /kanban/cards/{cardId}/move → update UI optimistically
+- Refresh board → click refresh → GET /kanban/boards/{boardId} → reload data
 
-#### 4.2 CameraInterfaceComponent
+### 4.2 KanbanColumnComponent
 
-**Component Type:** Feature
+Component Type: Feature
 
-**Mapped From A1:** Camera functionality with overlay guidance for document positioning
+Mapped From A1: Individual column container with drag-drop support
 
-**Purpose:** Provides camera access, overlay guidance, and document capture functionality
+Purpose: Manages individual column state, card rendering, and drop zone functionality
 
-**Parent:** DocumentUploadStepComponent
+Parent: KanbanBoardComponent
 
-**Children:**
-- CameraPreviewComponent
-- OverlayGuidanceComponent
-- CaptureControlsComponent
+Children:
+- KanbanCardComponent (multiple instances)
+- AddCardButtonComponent
 
-**Dependencies:**
-- Camera API
-- Media devices API
-- Canvas API for image processing
+Dependencies:
+- Angular CDK Drag Drop
+- KanbanService
 
-**Library Components Used:**
-- Button Component → Capture and retake buttons
-- Icon Component → Camera and control icons
-- Alert Component → Permission and error messages
+Library Components Used:
+- CardComponent → Column container
+- ButtonComponent → Add card button
+- BadgeComponent → Card count indicator
 
-**TypeScript Specification:**
+TypeScript Specification
 
-```typescript
 Inputs:
-- documentType: string
-- guidelines: CameraGuidelines
-- enabled: boolean
-- onCapture: (image: Blob) => void
-- onRetake: () => void
-- onPermissionDenied: () => void
+- columnData: KanbanColumn (column configuration)
+- cards: KanbanCard[] (cards in column)
+- allowDrop: boolean (enable drop functionality)
+- maxCards: number (WIP limit)
 
 Outputs:
-- onCapture: (image: Blob) => void
-- onRetake: () => void
-- onPermissionDenied: () => void
+- onCardDrop: EventEmitter<{cardId: string, columnId: string}> (card drop payload)
+- onCardAdd: EventEmitter<{columnId: string, cardData: Partial<KanbanCard>}> (new card payload)
+- onColumnCollapse: EventEmitter<string> (column collapse payload)
 
 State:
-- cameraActive: boolean
-- capturedImage: Blob | null
-- overlayVisible: boolean
-- devicePermissions: boolean
-- stream: MediaStream | null
+- isDragOver: boolean (drag over state)
+- isExpanded: boolean (column expansion state)
+- isAddingCard: boolean (card creation state)
+- cardCount: number (current card count)
 
 Methods:
-- requestCameraPermission() → Promise<boolean>
-- startCamera() → Promise<void>
-- stopCamera() → void
-- captureImage() → Blob
-- retakeImage() → void
-```
+- onDragOver(event: CdkDragOver) → Handle drag over events
+- onDrop(event: CdkDragDrop<KanbanCard[]>) → Process card drops
+- toggleExpansion() → Expand/collapse column
+- startAddCard() → Initialize card creation
+- cancelAddCard() → Cancel card creation
 
-**HTML STRUCTURE (PSEUDO CODE ONLY):**
+HTML STRUCTURE (PSEUDO CODE ONLY)
 
-```html
-<div className="camera-interface">
-  <div className="camera-container">
-    <video className="camera-preview" autoPlay playsInline />
-    
-    <OverlayGuidanceComponent 
-      documentType={documentType}
-      visible={overlayVisible}
-      guidelines={guidelines}
-    />
-    
-    {!devicePermissions && (
-      <Alert type="warning">
-        Camera permission required for document capture
-      </Alert>
-    )}
+<div class="kanban-column" 
+     [class.drag-over]="isDragOver"
+     [class.collapsed]="!isExpanded"
+     cdkDropList
+     [cdkDropListData]="cards"
+     (cdkDropListDropped)="onDrop($event)">
+  
+  <div class="column-header" [attr.aria-labelledby]="'column-' + columnData.id">
+    <h2 [id]="'column-' + columnData.id" class="column-title">
+      {{columnData.title}}
+    </h2>
+    <badge-component [count]="cardCount" [maxCount]="maxCards"></badge-component>
+    <button-component 
+      type="ghost" 
+      icon="collapse"
+      (click)="toggleExpansion()"
+      [attr.aria-expanded]="isExpanded">
+    </button-component>
   </div>
   
-  <div className="camera-controls">
-    <Button 
-      variant="primary" 
-      onClick={captureImage}
-      disabled={!cameraActive}
-    >
-      <Icon name="camera" /> Capture
-    </Button>
+  <div class="column-content" *ngIf="isExpanded">
+    <div class="cards-container">
+      <kanban-card-component
+        *ngFor="let card of cards; trackBy: trackByCardId"
+        [cardData]="card"
+        [draggable]="allowDrop"
+        [editable]="true"
+        cdkDrag
+        [cdkDragData]="card">
+      </kanban-card-component>
+    </div>
     
-    {capturedImage && (
-      <Button 
-        variant="secondary" 
-        onClick={retakeImage}
-      >
-        <Icon name="refresh" /> Retake
-      </Button>
-    )}
+    <div class="add-card-section">
+      <add-card-button-component
+        *ngIf="!isAddingCard"
+        (click)="startAddCard()"
+        [disabled]="cardCount >= maxCards">
+      </add-card-button-component>
+      
+      <div class="add-card-form" *ngIf="isAddingCard">
+        <input-component
+          placeholder="Enter card title"
+          [(ngModel)]="newCardTitle"
+          (keyup.enter)="createCard()"
+          (keyup.escape)="cancelAddCard()">
+        </input-component>
+        <div class="form-actions">
+          <button-component type="primary" (click)="createCard()">Add</button-component>
+          <button-component type="secondary" (click)="cancelAddCard()">Cancel</button-component>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
-```
 
-**CSS SPECIFICATION:**
+CSS SPECIFICATION
 
-```css
 Layout:
 - display: flex
 - flex-direction: column
-- align-items: center
+- min-height: 500px
+- flex: 1
 
 Spacing:
-- gap: 1rem
 - padding: 1rem
+- margin-bottom: 1rem between cards
+- gap: 0.5rem in header
 
 Component Styles:
-- .camera-container: relative positioning for overlay
-- .camera-preview: full width with aspect ratio
-- .camera-controls: flex row with button spacing
+- .kanban-column: flex column container with border
+- .column-header: flex header with title and controls
+- .cards-container: scrollable card list
+- .add-card-section: fixed bottom section
+- .drag-over: highlight style for drop target
 
 Responsive:
-- Mobile: full width camera preview
-- Desktop: constrained width with centered layout
-```
+- Desktop: fixed width 300px
+- Tablet: flexible width with min 250px
+- Mobile: full width stacked
 
-**API INTEGRATION:**
+API INTEGRATION
 
-- No direct API calls (uses browser camera API)
-- Captured images passed to parent for validation
+- onDrop() → PUT /kanban/cards/{cardId}/move → Update card column
+- createCard() → POST /kanban/cards → Create new card in column
+- loadColumnCards() → GET /kanban/columns/{columnId}/cards → Refresh column data
 
-**ERROR HANDLING:**
+ERROR HANDLING
 
-- Permission denied → show alternative upload option
-- Camera not available → fallback to file upload
-- Capture failure → retry mechanism with user feedback
+- Card creation failure → show inline error message
+- Drop operation failure → revert card position
+- Column load error → display retry option
+- WIP limit exceeded → prevent card drops
 
-**INTERACTION FLOW:**
+INTERACTION FLOW
 
 User Action → UI → API
-- Enable camera → request permissions → browser camera API
-- Capture image → process image → pass to parent component
-- Retake → clear current image → restart camera preview
+- Drop card → onDrop() → PUT /kanban/cards/{cardId}/move → update card position
+- Add card → createCard() → POST /kanban/cards → add to column
+- Collapse column → toggleExpansion() → save preference locally
 
-#### 4.3 QualityValidationComponent
+### 4.3 KanbanCardComponent
 
-**Component Type:** Feature
+Component Type: Feature
 
-**Mapped From A1:** Real-time document quality assessment and feedback
+Mapped From A1: Individual card with content and actions
 
-**Purpose:** Validates document quality and provides improvement suggestions
+Purpose: Displays card content, handles editing, and provides drag functionality
 
-**Parent:** DocumentUploadStepComponent
+Parent: KanbanColumnComponent
 
-**Children:**
-- ValidationResultsComponent
-- QualityScoreComponent
-- FeedbackMessagesComponent
-- ImprovementSuggestionsComponent
+Children:
+- None (leaf component)
 
-**Dependencies:**
-- Quality validation service
-- Image processing utilities
+Dependencies:
+- Angular CDK Drag Drop
+- KanbanService
 
-**Library Components Used:**
-- Card Component → Validation results container
-- Progress Component → Quality score indicator
-- Badge Component → Status badges
-- Alert Component → Validation messages
+Library Components Used:
+- CardComponent → Card container
+- ButtonComponent → Action buttons
+- InputComponent → Edit mode input
+- BadgeComponent → Priority/status indicators
+- AvatarComponent → Assignee display
 
-**TypeScript Specification:**
+TypeScript Specification
 
-```typescript
 Inputs:
-- document: File | Blob
-- documentType: string
-- validationRules: ValidationRules
-- onValidationComplete: (results: ValidationResult) => void
-- onValidationError: (error: Error) => void
+- cardData: KanbanCard (card information)
+- draggable: boolean (enable drag functionality)
+- editable: boolean (allow editing)
+- compact: boolean (compact display mode)
 
 Outputs:
-- onValidationComplete: (results: ValidationResult) => void
-- onValidationError: (error: Error) => void
+- onCardEdit: EventEmitter<{cardId: string, data: Partial<KanbanCard>}> (edit payload)
+- onCardDelete: EventEmitter<string> (delete payload)
+- onDragStart: EventEmitter<string> (drag start payload)
+- onCardClick: EventEmitter<string> (card click payload)
 
 State:
-- validationInProgress: boolean
-- qualityScore: number
-- validationResults: QualityCheck[]
-- suggestions: Suggestion[]
-- overallStatus: 'pass' | 'warning' | 'fail'
+- isEditing: boolean (edit mode state)
+- isDragging: boolean (drag state)
+- isHovered: boolean (hover state)
+- editableTitle: string (temporary edit value)
 
 Methods:
-- validateDocument() → Promise<ValidationResult>
-- calculateQualityScore(checks: QualityCheck[]) → number
-- generateSuggestions(results: QualityCheck[]) → Suggestion[]
-- retryValidation() → Promise<void>
-```
+- startEdit() → Enter edit mode
+- saveEdit() → Save card changes
+- cancelEdit() → Cancel editing
+- deleteCard() → Delete card with confirmation
+- onDragStart() → Handle drag start
+- onDragEnd() → Handle drag end
 
-**HTML STRUCTURE (PSEUDO CODE ONLY):**
+HTML STRUCTURE (PSEUDO CODE ONLY)
 
-```html
-<div className="quality-validation">
-  <Card className="validation-container">
-    <div className="validation-header">
-      <h3>Document Quality Assessment</h3>
+<div class="kanban-card"
+     [class.editing]="isEditing"
+     [class.dragging]="isDragging"
+     [class.compact]="compact"
+     cdkDrag
+     [cdkDragData]="cardData"
+     (cdkDragStarted)="onDragStart()"
+     (cdkDragEnded)="onDragEnd()"
+     (click)="onCardClick.emit(cardData.id)">
+  
+  <div class="card-header">
+    <div class="card-title" *ngIf="!isEditing">
+      {{cardData.title}}
+    </div>
+    <input-component
+      *ngIf="isEditing"
+      [(ngModel)]="editableTitle"
+      (keyup.enter)="saveEdit()"
+      (keyup.escape)="cancelEdit()"
+      class="title-input">
+    </input-component>
+    
+    <div class="card-actions">
+      <button-component
+        *ngIf="!isEditing && editable"
+        type="ghost"
+        icon="edit"
+        size="small"
+        (click)="startEdit(); $event.stopPropagation()">
+      </button-component>
       
-      {validationInProgress && (
-        <Loading size="small" text="Analyzing document..." />
-      )}
+      <button-component
+        *ngIf="!isEditing"
+        type="ghost"
+        icon="delete"
+        size="small"
+        (click)="deleteCard(); $event.stopPropagation()">
+      </button-component>
+    </div>
+  </div>
+  
+  <div class="card-content" *ngIf="!compact">
+    <div class="card-description" *ngIf="cardData.description">
+      {{cardData.description}}
     </div>
     
-    {!validationInProgress && (
-      <div className="validation-results">
-        <QualityScoreComponent 
-          score={qualityScore}
-          status={overallStatus}
-        />
-        
-        <div className="quality-checks">
-          {validationResults.map(check => (
-            <div className="quality-check" key={check.id}>
-              <Badge 
-                variant={check.status} 
-                text={check.name}
-              />
-              <span className="check-result">{check.message}</span>
-            </div>
-          ))}
-        </div>
-        
-        {suggestions.length > 0 && (
-          <div className="improvement-suggestions">
-            <h4>Suggestions for Improvement:</h4>
-            {suggestions.map(suggestion => (
-              <Alert 
-                key={suggestion.id}
-                type="info"
-                message={suggestion.text}
-              />
-            ))}
-          </div>
-        )}
+    <div class="card-metadata">
+      <badge-component
+        *ngIf="cardData.priority"
+        [type]="cardData.priority"
+        [text]="cardData.priority">
+      </badge-component>
+      
+      <div class="card-assignee" *ngIf="cardData.assignee">
+        <avatar-component
+          [user]="cardData.assignee"
+          size="small">
+        </avatar-component>
       </div>
-    )}
-  </Card>
+      
+      <div class="card-due-date" *ngIf="cardData.dueDate">
+        {{cardData.dueDate | date:'short'}}
+      </div>
+    </div>
+  </div>
+  
+  <div class="edit-actions" *ngIf="isEditing">
+    <button-component type="primary" size="small" (click)="saveEdit()">Save</button-component>
+    <button-component type="secondary" size="small" (click)="cancelEdit()">Cancel</button-component>
+  </div>
 </div>
-```
 
-**CSS SPECIFICATION:**
+CSS SPECIFICATION
 
-```css
 Layout:
-- display: flex
-- flex-direction: column
-- gap: 1rem
+- display: block
+- position: relative
+- cursor: grab (when draggable)
+- cursor: grabbing (when dragging)
 
 Spacing:
-- padding: 1.5rem
-- margin: 1rem 0
+- padding: 0.75rem
+- margin-bottom: 0.5rem
+- border-radius: 4px
 
 Component Styles:
-- .validation-container: elevated card with border
-- .quality-checks: grid layout for check items
-- .improvement-suggestions: highlighted section
+- .kanban-card: card container with shadow and border
+- .card-header: flex header with title and actions
+- .card-content: content area with metadata
+- .card-metadata: flex row with badges and assignee
+- .editing: edit mode styling
+- .dragging: drag state styling
 
 Responsive:
-- Mobile: stacked layout
-- Desktop: grid layout for quality checks
-```
+- Desktop: full card content displayed
+- Tablet: compact mode with essential info
+- Mobile: minimal card display
 
-**API INTEGRATION:**
+API INTEGRATION
 
-- validateDocument() → POST /documents/validate → Real-time quality assessment
-- retryValidation() → POST /documents/validate → Retry failed validation
+- saveEdit() → PUT /kanban/cards/{cardId} → Update card data
+- deleteCard() → DELETE /kanban/cards/{cardId} → Remove card
+- loadCardDetails() → GET /kanban/cards/{cardId} → Fetch full card data
 
-**ERROR HANDLING:**
+ERROR HANDLING
 
-- Validation API failure → show retry option with error message
-- Invalid document format → clear error message with format requirements
-- Network timeout → offline validation with reduced feature set
+- Save failure → revert changes and show error
+- Delete failure → show error message
+- Network error → show retry option
+- Validation error → highlight invalid fields
 
-**INTERACTION FLOW:**
+INTERACTION FLOW
 
 User Action → UI → API
-- Document upload → start validation → POST /documents/validate
-- Validation complete → display results → update parent component
-- Retry validation → clear previous results → POST /documents/validate
+- Edit card → startEdit() → saveEdit() → PUT /kanban/cards/{cardId} → update display
+- Delete card → deleteCard() → confirm → DELETE /kanban/cards/{cardId} → remove from UI
+- Drag card → onDragStart() → visual feedback → drop triggers parent update
 
-#### 4.4 FormContainerComponent
+### 4.4 HeaderComponent
 
-**Component Type:** Layout
+Component Type: Layout
 
-**Mapped From A1:** Multi-step form container with progress tracking
+Mapped From A1: Application header with navigation and user controls
 
-**Purpose:** Manages form state, validation, and step navigation
+Purpose: Provides global navigation, search, notifications, and user menu
 
-**Parent:** DocumentUploadApp
+Parent: AppComponent
 
-**Children:**
-- StepNavigationComponent
-- StepContentComponent
-- NavigationControlsComponent
+Children:
+- SearchFieldComponent
+- NotificationIconComponent
+- UserAvatarComponent
 
-**Dependencies:**
-- Form validation library
-- Form session service
+Dependencies:
+- AuthService
+- NotificationService
+- Router
 
-**Library Components Used:**
-- Card Component → Form container
-- Progress Component → Step progress indicator
-- Button Component → Navigation buttons
+Library Components Used:
+- SearchFieldComponent → Search input
+- AvatarComponent → User avatar
+- BadgeComponent → Notification count
+- ButtonComponent → Action buttons
+- ModalComponent → User menu dropdown
 
-**TypeScript Specification:**
+TypeScript Specification
 
-```typescript
 Inputs:
-- sessionId: string
-- initialData: FormData
-- validationRules: ValidationRules
-- onStepChange: (step: number) => void
-- onFormSubmit: (data: FormData) => void
+- user: User (current user data)
+- notifications: Notification[] (user notifications)
+- searchEnabled: boolean (enable search functionality)
+- brandLogo: string (application logo URL)
 
 Outputs:
-- onStepChange: (step: number) => void
-- onFormSubmit: (data: FormData) => void
-- onDataChange: (data: Partial<FormData>) => void
+- onSearch: EventEmitter<string> (search query payload)
+- onNotificationClick: EventEmitter<void> (notification click payload)
+- onUserMenuClick: EventEmitter<void> (user menu payload)
+- onLogout: EventEmitter<void> (logout payload)
 
 State:
-- currentStep: number
-- formData: FormData
-- validationErrors: ValidationErrors
-- stepValidation: boolean[]
-- isDirty: boolean
+- isSearchFocused: boolean (search focus state)
+- notificationCount: number (unread notifications)
+- isUserMenuOpen: boolean (user menu state)
+- searchQuery: string (current search term)
 
 Methods:
-- validateStep(step: number) → boolean
-- saveStepData(step: number, data: any) → void
-- navigateToStep(step: number) → void
-- submitForm() → Promise<void>
-```
+- onSearchInput(query: string) → Handle search input
+- toggleNotifications() → Open notification panel
+- toggleUserMenu() → Open/close user menu
+- logout() → Handle user logout
+- navigateToProfile() → Navigate to user profile
 
-**HTML STRUCTURE (PSEUDO CODE ONLY):**
+HTML STRUCTURE (PSEUDO CODE ONLY)
 
-```html
-<div className="form-container">
-  <Card className="form-card">
-    <StepNavigationComponent 
-      steps={steps}
-      currentStep={currentStep}
-      completedSteps={completedSteps}
-      onStepClick={navigateToStep}
-    />
-    
-    <div className="form-content">
-      <StepContentComponent 
-        step={currentStep}
-        data={formData}
-        validationErrors={validationErrors}
-        onDataChange={handleDataChange}
-      />
+<header class="app-header" role="banner">
+  <div class="header-container">
+    <div class="header-left">
+      <div class="brand-section">
+        <img [src]="brandLogo" alt="Application Logo" class="brand-logo">
+        <h1 class="app-title">Kanban Board</h1>
+      </div>
     </div>
     
-    <NavigationControlsComponent 
-      currentStep={currentStep}
-      totalSteps={totalSteps}
-      canGoBack={currentStep > 1}
-      canGoNext={stepValidation[currentStep]}
-      onPrevious={handlePrevious}
-      onNext={handleNext}
-      onSubmit={submitForm}
-    />
-  </Card>
-</div>
-```
+    <div class="header-center">
+      <search-field-component
+        *ngIf="searchEnabled"
+        [placeholder]="'Search cards, boards...'"
+        [(value)]="searchQuery"
+        (onSearch)="onSearch.emit($event)"
+        (onFocus)="isSearchFocused = true"
+        (onBlur)="isSearchFocused = false">
+      </search-field-component>
+    </div>
+    
+    <div class="header-right">
+      <div class="header-actions">
+        <button-component
+          type="ghost"
+          icon="notifications"
+          [class.has-notifications]="notificationCount > 0"
+          (click)="toggleNotifications()"
+          [attr.aria-label]="'Notifications (' + notificationCount + ' unread)'">
+          <badge-component
+            *ngIf="notificationCount > 0"
+            [count]="notificationCount"
+            type="error"
+            position="top-right">
+          </badge-component>
+        </button-component>
+        
+        <div class="user-section">
+          <avatar-component
+            [user]="user"
+            size="medium"
+            [clickable]="true"
+            (click)="toggleUserMenu()"
+            [attr.aria-expanded]="isUserMenuOpen">
+          </avatar-component>
+          
+          <modal-component
+            *ngIf="isUserMenuOpen"
+            [isOpen]="isUserMenuOpen"
+            (onClose)="isUserMenuOpen = false"
+            position="bottom-right"
+            class="user-menu">
+            <div class="user-menu-content">
+              <div class="user-info">
+                <div class="user-name">{{user.name}}</div>
+                <div class="user-email">{{user.email}}</div>
+              </div>
+              <div class="menu-divider"></div>
+              <button-component
+                type="ghost"
+                fullWidth="true"
+                (click)="navigateToProfile()">
+                Profile Settings
+              </button-component>
+              <button-component
+                type="ghost"
+                fullWidth="true"
+                (click)="logout()">
+                Logout
+              </button-component>
+            </div>
+          </modal-component>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
-**CSS SPECIFICATION:**
+CSS SPECIFICATION
 
-```css
+Layout:
+- display: flex
+- justify-content: space-between
+- align-items: center
+- position: sticky
+- top: 0
+- z-index: 1000
+
+Spacing:
+- padding: 0.75rem 1rem
+- height: 64px
+- gap: 1rem between sections
+
+Component Styles:
+- .app-header: sticky header with shadow
+- .header-container: flex container with sections
+- .brand-section: flex row with logo and title
+- .header-actions: flex row with action buttons
+- .user-menu: dropdown positioned menu
+
+Responsive:
+- Desktop: full header with all elements
+- Tablet: hide search on smaller screens
+- Mobile: collapse to hamburger menu
+
+API INTEGRATION
+
+- loadUserData() → GET /users/profile → Populate user info
+- loadNotifications() → GET /notifications → Get notification count
+- logout() → POST /auth/logout → Clear session
+
+ERROR HANDLING
+
+- Profile load failure → show default avatar
+- Notification load error → hide notification badge
+- Logout failure → show error message
+- Search API error → show search unavailable
+
+INTERACTION FLOW
+
+User Action → UI → API
+- Search input → onSearchInput() → debounced search → emit search event
+- Click notifications → toggleNotifications() → GET /notifications → show panel
+- Click avatar → toggleUserMenu() → show menu options
+- Logout → logout() → POST /auth/logout → redirect to login
+
+### 4.5 SidebarComponent
+
+Component Type: Layout
+
+Mapped From A1: Navigation sidebar with menu items
+
+Purpose: Provides application navigation with collapsible menu structure
+
+Parent: AppComponent
+
+Children:
+- NavigationMenuComponent
+- BrandComponent
+- SidebarFooterComponent
+
+Dependencies:
+- Router
+- NavigationService
+
+Library Components Used:
+- ButtonComponent → Menu toggle and items
+- BadgeComponent → Menu item indicators
+- DividerComponent → Section separators
+- IconComponent → Menu icons
+
+TypeScript Specification
+
+Inputs:
+- menuItems: MenuItem[] (navigation items)
+- collapsed: boolean (sidebar collapse state)
+- activeRoute: string (current active route)
+- userPermissions: Permission[] (user access permissions)
+
+Outputs:
+- onMenuItemClick: EventEmitter<string> (menu item payload)
+- onToggleCollapse: EventEmitter<boolean> (collapse state payload)
+- onSectionExpand: EventEmitter<string> (section expand payload)
+
+State:
+- isCollapsed: boolean (collapse state)
+- expandedSections: string[] (expanded menu sections)
+- hoveredItem: string | null (hovered menu item)
+- sidebarWidth: number (current width)
+
+Methods:
+- toggleCollapse() → Toggle sidebar collapse
+- expandSection(sectionId: string) → Expand menu section
+- collapseSection(sectionId: string) → Collapse menu section
+- navigateToItem(itemId: string) → Navigate to menu item
+- isItemActive(route: string) → Check if item is active
+
+HTML STRUCTURE (PSEUDO CODE ONLY)
+
+<aside class="app-sidebar"
+       [class.collapsed]="isCollapsed"
+       [style.width.px]="sidebarWidth"
+       role="navigation"
+       aria-label="Main Navigation">
+  
+  <div class="sidebar-header">
+    <div class="brand-section" *ngIf="!isCollapsed">
+      <img src="/assets/logo.svg" alt="Logo" class="sidebar-logo">
+      <span class="app-name">Kanban App</span>
+    </div>
+    
+    <button-component
+      type="ghost"
+      icon="menu"
+      size="small"
+      (click)="toggleCollapse()"
+      [attr.aria-expanded]="!isCollapsed"
+      class="collapse-toggle">
+    </button-component>
+  </div>
+  
+  <nav class="sidebar-nav">
+    <ul class="nav-menu" role="menubar">
+      <li *ngFor="let item of menuItems; trackBy: trackByItemId" 
+          class="nav-item"
+          [class.active]="isItemActive(item.route)"
+          [class.has-children]="item.children?.length > 0"
+          role="none">
+        
+        <button-component
+          type="ghost"
+          fullWidth="true"
+          [class.active]="isItemActive(item.route)"
+          (click)="item.children ? expandSection(item.id) : navigateToItem(item.id)"
+          role="menuitem"
+          [attr.aria-expanded]="expandedSections.includes(item.id)">
+          
+          <icon-component [name]="item.icon" size="small"></icon-component>
+          <span class="nav-label" *ngIf="!isCollapsed">{{item.label}}</span>
+          
+          <badge-component
+            *ngIf="item.badge && !isCollapsed"
+            [count]="item.badge.count"
+            [type]="item.badge.type">
+          </badge-component>
+          
+          <icon-component
+            *ngIf="item.children && !isCollapsed"
+            name="chevron-down"
+            size="small"
+            [class.rotated]="expandedSections.includes(item.id)"
+            class="expand-icon">
+          </icon-component>
+        </button-component>
+        
+        <ul *ngIf="item.children && expandedSections.includes(item.id) && !isCollapsed"
+            class="nav-submenu"
+            role="menu">
+          <li *ngFor="let child of item.children"
+              class="nav-subitem"
+              [class.active]="isItemActive(child.route)"
+              role="none">
+            <button-component
+              type="ghost"
+              fullWidth="true"
+              [class.active]="isItemActive(child.route)"
+              (click)="navigateToItem(child.id)"
+              role="menuitem">
+              <span class="nav-sublabel">{{child.label}}</span>
+            </button-component>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+  
+  <div class="sidebar-footer" *ngIf="!isCollapsed">
+    <divider-component></divider-component>
+    <div class="version-info">
+      <span class="version-label">Version 1.0.0</span>
+    </div>
+  </div>
+</aside>
+
+CSS SPECIFICATION
+
 Layout:
 - display: flex
 - flex-direction: column
-- max-width: 800px
-- margin: 0 auto
+- position: fixed
+- left: 0
+- top: 0
+- height: 100vh
+- transition: width 0.3s ease
 
 Spacing:
-- padding: 2rem
-- gap: 2rem
+- width: 280px (expanded), 64px (collapsed)
+- padding: 1rem 0.5rem
+- gap: 0.25rem between menu items
 
 Component Styles:
-- .form-card: elevated container with rounded corners
-- .form-content: flexible content area
+- .app-sidebar: fixed sidebar with transition
+- .sidebar-nav: scrollable navigation area
+- .nav-menu: styled menu list
+- .nav-item: menu item with hover states
+- .nav-submenu: indented submenu
+- .collapsed: collapsed sidebar styles
 
 Responsive:
-- Mobile: full width with reduced padding
-- Desktop: centered with max-width constraint
-```
+- Desktop: persistent sidebar
+- Tablet: overlay sidebar
+- Mobile: full-screen overlay
 
-**API INTEGRATION:**
+API INTEGRATION
 
-- saveStepData() → PUT /forms/sessions/{session_id} → Save progress
-- submitForm() → POST /forms/sessions/{session_id}/submit → Final submission
+- loadMenuItems() → GET /navigation/menu → Populate navigation
+- savePreferences() → PUT /users/preferences → Save collapse state
+- checkPermissions() → GET /users/permissions → Filter menu items
 
-**ERROR HANDLING:**
+ERROR HANDLING
 
-- Validation errors → inline field-specific messages
-- Save failure → show retry option with error notification
-- Network issues → local storage backup with sync on reconnect
+- Menu load failure → show default navigation
+- Permission check error → show limited menu
+- Navigation error → show error toast
+- Preference save failure → continue with local state
 
-**INTERACTION FLOW:**
+INTERACTION FLOW
 
 User Action → UI → API
-- Step navigation → validate current step → save if valid
-- Data change → update form state → auto-save after delay
-- Form submission → validate all steps → POST final data
+- Click menu item → navigateToItem() → Router.navigate() → route change
+- Toggle collapse → toggleCollapse() → save preference → update width
+- Expand section → expandSection() → update expanded state → show children
 
-### 5. COMPONENT MAPPING SUMMARY
+5. COMPONENT MAPPING SUMMARY
 
 | A1 Component | Final Component | Type |
 |--------------|----------------|---------|
-| DocumentUploadApp | DocumentUploadApp | Page |
+| KanbanBoardComponent | KanbanBoardComponent | Feature |
+| KanbanColumnComponent | KanbanColumnComponent | Feature |
+| KanbanCardComponent | KanbanCardComponent | Feature |
 | HeaderComponent | HeaderComponent | Layout |
-| CameraInterfaceComponent | CameraInterfaceComponent | Feature |
-| QualityValidationComponent | QualityValidationComponent | Feature |
-| FormContainerComponent | FormContainerComponent | Layout |
-| DocumentPreviewComponent | DocumentPreviewComponent | Feature |
-| UploadZoneComponent | UploadZoneComponent | Feature |
-| NavigationControlsComponent | NavigationControlsComponent | Shared |
-| StepNavigationComponent | StepNavigationComponent | Shared |
-| FooterComponent | FooterComponent | Layout |
+| SidebarComponent | SidebarComponent | Layout |
+| AddCardButtonComponent | AddCardButtonComponent | Shared |
+| KanbanErrorStateComponent | KanbanErrorStateComponent | Shared |
+| SearchFieldComponent | SearchFieldComponent | Shared |
+| NotificationIconComponent | NotificationIconComponent | Shared |
+| UserAvatarComponent | AvatarComponent | Shared |
 
-### 6. DATA FLOW (FROM AGENT-1)
+6. DATA FLOW (FROM AGENT-1)
 
-**Parent → Child:**
-- DocumentUploadApp → HeaderComponent (user, progress, configuration)
-- DocumentUploadApp → FormContainerComponent (sessionId, formData, currentStep)
-- FormContainerComponent → StepContentComponent (stepData, validationErrors, isValid)
-- StepContentComponent → DocumentUploadStepComponent (documentType, uploadedDocs, validation)
-- DocumentUploadStepComponent → CameraInterfaceComponent (documentType, guidelines, enabled)
-- DocumentUploadStepComponent → QualityValidationComponent (document, documentType, rules)
-- DocumentUploadStepComponent → DocumentPreviewComponent (document, metadata, editOptions)
+Parent → Child:
+- AppComponent → HeaderComponent (user: User, notifications: Notification[])
+- AppComponent → SidebarComponent (menuItems: MenuItem[], activeRoute: string)
+- AppComponent → KanbanBoardComponent (boardId: string, permissions: Permission[])
+- KanbanBoardComponent → KanbanColumnComponent (columnData: KanbanColumn, cards: KanbanCard[])
+- KanbanColumnComponent → KanbanCardComponent (cardData: KanbanCard, draggable: boolean)
+- HeaderComponent → SearchFieldComponent (searchEnabled: boolean, placeholder: string)
+- HeaderComponent → AvatarComponent (user: User, clickable: boolean)
+- SidebarComponent → ButtonComponent (menuItems: MenuItem[], activeRoute: string)
 
-### 7. API USAGE SUMMARY
+Child → Parent Events:
+- KanbanCardComponent → KanbanColumnComponent (onCardEdit, onCardDelete, onDragStart)
+- KanbanColumnComponent → KanbanBoardComponent (onCardDrop, onCardAdd, onColumnCollapse)
+- KanbanBoardComponent → AppComponent (onColumnUpdate, onCardMove, onError)
+- HeaderComponent → AppComponent (onSearch, onNotificationClick, onUserMenuClick)
+- SidebarComponent → AppComponent (onMenuItemClick, onToggleCollapse)
 
-**Component → API:**
-- DocumentUploadApp → POST /forms/sessions (initialize session)
-- FormContainerComponent → PUT /forms/sessions/{id} (save progress)
-- QualityValidationComponent → POST /documents/validate (quality assessment)
-- DocumentPreviewComponent → POST /documents/upload (final upload)
-- HeaderComponent → GET /users/profile (user information)
-- NavigationControlsComponent → GET /forms/sessions/{id} (session state)
+7. API USAGE SUMMARY
 
-### 8. NOTES & CONSTRAINTS
+Component → API:
+- KanbanBoardComponent → GET /kanban/boards/{boardId}, PUT /kanban/boards/{boardId}
+- KanbanColumnComponent → GET /kanban/columns/{columnId}/cards, POST /kanban/cards
+- KanbanCardComponent → PUT /kanban/cards/{cardId}, DELETE /kanban/cards/{cardId}
+- HeaderComponent → GET /users/profile, GET /notifications, POST /auth/logout
+- SidebarComponent → GET /navigation/menu, PUT /users/preferences
+- AuthService → POST /auth/login, POST /auth/refresh, POST /auth/logout
+- NotificationService → GET /notifications, PUT /notifications/{id}/read
 
-**Implementation Guidelines:**
-- HTML must follow A1 structure strictly - no deviations from the defined component hierarchy
-- Do NOT create new components unnecessarily - maximize reuse of existing UI library components
-- Prefer reusable library components over custom implementations
+API Endpoints Used:
+- Authentication: POST /auth/login, POST /auth/logout, POST /auth/refresh
+- User Management: GET /users/profile, PUT /users/preferences, GET /users/permissions
+- Kanban Operations: GET /kanban/boards/{boardId}, PUT /kanban/cards/{cardId}/move
+- Navigation: GET /navigation/menu
+- Notifications: GET /notifications, PUT /notifications/{id}/read
+- Health Check: GET /health
+
+8. NOTES & CONSTRAINTS
+
+- HTML must follow A1 structure strictly - three-column grid layout is mandatory
+- Do NOT create new components unnecessarily - reuse existing library components
+- Prefer reusable library components from the shared component library
 - HTML must be pseudo-code ONLY (NOT real framework code)
-- CSS should include only key classes and layout rules, not full stylesheets
-- All API integrations must follow the established patterns from Agent-1
-- Maintain accessibility compliance (WCAG 2.1 AA) throughout implementation
-- Ensure mobile-first responsive design approach
-- Implement proper error boundaries and graceful degradation
-- Follow TypeScript strict mode requirements for type safety
-- Use React hooks pattern for state management
-- Implement proper loading states and user feedback
-- Ensure secure handling of sensitive document data
-- Follow established naming conventions and folder structure
-- Implement proper cleanup for camera and media resources
-- Use progressive enhancement for advanced features
-- Maintain consistent styling with design system tokens
-- Implement proper form validation and error handling
-- Ensure cross-browser compatibility for camera features
-- Follow performance best practices for image processing
-- Implement proper accessibility features for camera interface
-- Use semantic HTML elements for better screen reader support
-- Implement proper focus management for keyboard navigation
-- Follow security best practices for file upload and processing
-- Ensure proper data sanitization and validation
-- Implement proper session management and cleanup
-- Use proper error logging and monitoring integration
-- Follow established code review and testing standards
+- CSS Grid layout is required for the main Kanban board container
+- Responsive breakpoints must be implemented: desktop (>1024px), tablet (768px-1024px), mobile (<768px)
+- ARIA attributes are mandatory for accessibility compliance
+- Error handling must be implemented with conditional rendering using *ngIf
+- Drag-and-drop functionality requires Angular CDK Drag Drop module
+- Component lifecycle hooks (OnInit) must be implemented for data initialization
+- All API calls must include proper error handling and loading states
+- TypeScript interfaces must be defined for all data models (KanbanBoard, KanbanColumn, KanbanCard)
+- Component selectors must follow Angular naming conventions (app-kanban-board)
+- SCSS files must include responsive breakpoints and component-specific styles
+- Unit tests must be created for all components (.spec.ts files)
+- Components must be organized in feature modules (kanban.module.ts)
+- Shared components must be imported from the shared module
+- API services must be injected as dependencies
+- State management should use component state, not global state management
+- Performance optimization: use OnPush change detection strategy where possible
+- Accessibility: ensure keyboard navigation and screen reader support
+- Security: implement proper input sanitization and authorization checks
+- Testing: ensure all components pass linting checks and compile without errors
