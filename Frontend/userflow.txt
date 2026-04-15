@@ -25,142 +25,159 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
         }
         .mermaid {
             background: white;
             padding: 20px;
             border-radius: 8px;
-            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
-        .description {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            font-size: 14px;
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .flow-description {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .flow-description h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .flow-description ul {
             line-height: 1.6;
+        }
+        .flow-description li {
+            margin-bottom: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board Application - User Flow Diagram</h1>
+        <h1>Kanban Board User Flow Diagram</h1>
         
         <div class="mermaid">
             flowchart TD
-                Start[User Opens Application]
-                Start --> Login[Login Screen]
-                Login --> Auth{Authentication}
-                Auth -->|Success| Dashboard[Load Dashboard]
-                Auth -->|Failure| LoginError[Show Login Error]
-                LoginError --> Login
-                
-                Dashboard --> LoadBoard[Load Kanban Board]
-                LoadBoard --> BoardDisplay[Display Three Column Board]
-                BoardDisplay --> UserActions[User Interaction Options]
-                
-                UserActions --> Search[Search Cards]
-                UserActions --> CreateCard[Create New Card]
-                UserActions --> MoveCard[Move Card Between Columns]
-                UserActions --> EditCard[Edit Existing Card]
-                UserActions --> DeleteCard[Delete Card]
-                UserActions --> ViewNotifications[Check Notifications]
-                UserActions --> AccessProfile[Access User Profile]
-                UserActions --> NavigateMenu[Navigate Sidebar Menu]
-                
-                Search --> SearchResults[Display Search Results]
-                SearchResults --> UserActions
-                
-                CreateCard --> CardForm[Show Card Creation Form]
-                CardForm --> ValidateCard{Validate Card Data}
-                ValidateCard -->|Valid| SaveCard[Save New Card]
-                ValidateCard -->|Invalid| CardError[Show Validation Error]
-                CardError --> CardForm
-                SaveCard --> RefreshColumn[Refresh Column Display]
-                RefreshColumn --> UserActions
-                
-                MoveCard --> DragStart[Start Drag Operation]
+                Start[User Opens Kanban Board]
+                Start --> LoadBoard[Load Board Data]
+                LoadBoard --> CheckAuth{User Authenticated?}
+                CheckAuth -->|No| Login[Redirect to Login]
+                Login --> AuthSuccess[Authentication Success]
+                AuthSuccess --> LoadBoard
+                CheckAuth -->|Yes| FetchData[Fetch Board Data from API]
+                FetchData --> DataSuccess{Data Load Success?}
+                DataSuccess -->|No| ShowError[Display Error State]
+                ShowError --> RetryOption[Show Retry Button]
+                RetryOption --> RetryAction{User Clicks Retry?}
+                RetryAction -->|Yes| FetchData
+                RetryAction -->|No| StayError[Stay on Error State]
+                DataSuccess -->|Yes| RenderBoard[Render Kanban Board]
+                RenderBoard --> ShowColumns[Display Three Columns]
+                ShowColumns --> TodoColumn[To Do Column]
+                ShowColumns --> InProgressColumn[In Progress Column]
+                ShowColumns --> DoneColumn[Done Column]
+                TodoColumn --> DisplayCards1[Display Cards in To Do]
+                InProgressColumn --> DisplayCards2[Display Cards in Progress]
+                DoneColumn --> DisplayCards3[Display Cards in Done]
+                DisplayCards1 --> UserActions[User Interaction Options]
+                DisplayCards2 --> UserActions
+                DisplayCards3 --> UserActions
+                UserActions --> AddCard{Add New Card?}
+                UserActions --> MoveCard{Move Card?}
+                UserActions --> EditCard{Edit Card?}
+                UserActions --> DeleteCard{Delete Card?}
+                AddCard -->|Yes| ShowAddForm[Show Add Card Form]
+                ShowAddForm --> FillCardData[User Fills Card Data]
+                FillCardData --> SubmitCard[Submit New Card]
+                SubmitCard --> CreateAPI[POST Create Card API]
+                CreateAPI --> CreateSuccess{Create Success?}
+                CreateSuccess -->|Yes| UpdateColumn[Update Column Display]
+                CreateSuccess -->|No| ShowCreateError[Show Create Error]
+                ShowCreateError --> ShowAddForm
+                UpdateColumn --> UserActions
+                MoveCard -->|Yes| DragStart[User Starts Dragging Card]
                 DragStart --> DragOver[Drag Over Target Column]
-                DragOver --> DropCard[Drop Card in Column]
-                DropCard --> ValidateMove{Validate Move}
-                ValidateMove -->|Valid| UpdatePosition[Update Card Position]
-                ValidateMove -->|Invalid| RevertMove[Revert Card Position]
-                UpdatePosition --> RefreshBoard[Refresh Board State]
-                RevertMove --> UserActions
-                RefreshBoard --> UserActions
-                
-                EditCard --> EditForm[Show Edit Form]
-                EditForm --> ValidateEdit{Validate Changes}
-                ValidateEdit -->|Valid| SaveChanges[Save Card Changes]
-                ValidateEdit -->|Invalid| EditError[Show Edit Error]
-                EditError --> EditForm
-                SaveChanges --> UpdateDisplay[Update Card Display]
-                UpdateDisplay --> UserActions
-                
-                DeleteCard --> ConfirmDelete{Confirm Deletion}
-                ConfirmDelete -->|Yes| RemoveCard[Remove Card from Board]
-                ConfirmDelete -->|No| UserActions
-                RemoveCard --> RefreshBoard
-                
-                ViewNotifications --> NotificationPanel[Show Notification Panel]
-                NotificationPanel --> MarkRead[Mark Notifications as Read]
-                MarkRead --> UserActions
-                
-                AccessProfile --> ProfileMenu[Show Profile Menu]
-                ProfileMenu --> EditProfile[Edit Profile Settings]
-                ProfileMenu --> Logout[Logout User]
-                EditProfile --> SaveProfile[Save Profile Changes]
-                SaveProfile --> UserActions
-                Logout --> LogoutConfirm{Confirm Logout}
-                LogoutConfirm -->|Yes| ClearSession[Clear User Session]
-                LogoutConfirm -->|No| UserActions
-                ClearSession --> Login
-                
-                NavigateMenu --> MenuOptions[Show Menu Options]
-                MenuOptions --> BoardList[View Board List]
-                MenuOptions --> Settings[Application Settings]
-                MenuOptions --> Help[Help Documentation]
-                BoardList --> SelectBoard[Select Different Board]
-                SelectBoard --> LoadBoard
-                Settings --> ConfigureApp[Configure Application]
-                ConfigureApp --> UserActions
-                Help --> ViewHelp[Display Help Content]
-                ViewHelp --> UserActions
-                
-                LoadBoard --> LoadError{Board Load Error}
-                LoadError -->|Retry| LoadBoard
-                LoadError -->|Cancel| Dashboard
-                
-                SaveCard --> SaveError{Save Error}
-                SaveError -->|Retry| SaveCard
-                SaveError -->|Cancel| UserActions
-                
-                UpdatePosition --> UpdateError{Update Error}
-                UpdateError -->|Retry| UpdatePosition
-                UpdateError -->|Revert| RevertMove
+                DragOver --> DropCard[Drop Card in New Column]
+                DropCard --> MoveAPI[PUT Move Card API]
+                MoveAPI --> MoveSuccess{Move Success?}
+                MoveSuccess -->|Yes| UpdateColumns[Update Both Columns]
+                MoveSuccess -->|No| RevertMove[Revert Card Position]
+                RevertMove --> ShowMoveError[Show Move Error]
+                ShowMoveError --> UserActions
+                UpdateColumns --> UserActions
+                EditCard -->|Yes| ShowEditForm[Show Edit Card Form]
+                ShowEditForm --> ModifyCardData[User Modifies Card Data]
+                ModifyCardData --> SaveChanges[Save Card Changes]
+                SaveChanges --> UpdateAPI[PUT Update Card API]
+                UpdateAPI --> UpdateSuccess{Update Success?}
+                UpdateSuccess -->|Yes| RefreshCard[Refresh Card Display]
+                UpdateSuccess -->|No| ShowUpdateError[Show Update Error]
+                ShowUpdateError --> ShowEditForm
+                RefreshCard --> UserActions
+                DeleteCard -->|Yes| ConfirmDelete[Show Delete Confirmation]
+                ConfirmDelete --> UserConfirms{User Confirms Delete?}
+                UserConfirms -->|No| UserActions
+                UserConfirms -->|Yes| DeleteAPI[DELETE Card API]
+                DeleteAPI --> DeleteSuccess{Delete Success?}
+                DeleteSuccess -->|Yes| RemoveCard[Remove Card from Column]
+                DeleteSuccess -->|No| ShowDeleteError[Show Delete Error]
+                ShowDeleteError --> UserActions
+                RemoveCard --> UserActions
+                UserActions --> ContinueWork[Continue Working]
+                ContinueWork --> UserActions
         </div>
         
-        <div class="description">
-            <h3>User Flow Description:</h3>
-            <p>This diagram illustrates the complete user journey through the Kanban Board application:</p>
+        <div class="flow-description">
+            <h2>User Flow Description</h2>
+            <p>This diagram represents the complete user interaction flow for the Kanban Board application. The flow covers all major user journeys and system interactions:</p>
+            
+            <h3>Main User Journeys:</h3>
             <ul>
-                <li><strong>Authentication Flow:</strong> Users start by logging in, with error handling for failed attempts</li>
-                <li><strong>Board Management:</strong> Loading and displaying the three-column Kanban board structure</li>
-                <li><strong>Card Operations:</strong> Creating, editing, moving, and deleting cards with validation</li>
-                <li><strong>Navigation:</strong> Sidebar menu navigation and search functionality</li>
-                <li><strong>User Management:</strong> Profile access, notifications, and logout procedures</li>
-                <li><strong>Error Handling:</strong> Comprehensive error states with retry and recovery options</li>
+                <li><strong>Board Loading:</strong> User opens the application, system checks authentication, loads board data, and displays the three-column layout (To Do, In Progress, Done)</li>
+                <li><strong>Card Management:</strong> Users can add new cards, edit existing cards, delete cards, and move cards between columns</li>
+                <li><strong>Drag and Drop:</strong> Users can drag cards from one column to another, with real-time API updates and error handling</li>
+                <li><strong>Error Handling:</strong> System provides error states with retry options for failed operations</li>
+                <li><strong>Authentication:</strong> Ensures users are authenticated before accessing board functionality</li>
             </ul>
-            <p>The flow emphasizes user-centric interactions while maintaining data integrity and providing clear feedback for all operations.</p>
+            
+            <h3>Key Interaction Points:</h3>
+            <ul>
+                <li><strong>Authentication Check:</strong> Validates user access before loading board data</li>
+                <li><strong>API Integration:</strong> All CRUD operations (Create, Read, Update, Delete) are handled through REST API calls</li>
+                <li><strong>Real-time Updates:</strong> UI updates immediately reflect user actions with API confirmation</li>
+                <li><strong>Error Recovery:</strong> Failed operations provide retry mechanisms and clear error messaging</li>
+                <li><strong>Responsive Design:</strong> Flow supports desktop, tablet, and mobile interactions</li>
+            </ul>
+            
+            <h3>Component Interactions:</h3>
+            <ul>
+                <li><strong>KanbanBoardComponent:</strong> Main container managing overall board state and API calls</li>
+                <li><strong>KanbanColumnComponent:</strong> Individual column containers handling card display and drop zones</li>
+                <li><strong>KanbanCardComponent:</strong> Individual cards with drag functionality and edit capabilities</li>
+                <li><strong>ErrorStateComponent:</strong> Error display with retry functionality for failed operations</li>
+            </ul>
+            
+            <h3>API Endpoints Used:</h3>
+            <ul>
+                <li><strong>GET /kanban/boards/{boardId}:</strong> Load initial board data and columns</li>
+                <li><strong>POST /kanban/cards:</strong> Create new cards in specified columns</li>
+                <li><strong>PUT /kanban/cards/{cardId}:</strong> Update existing card information</li>
+                <li><strong>PUT /kanban/cards/{cardId}/move:</strong> Move cards between columns</li>
+                <li><strong>DELETE /kanban/cards/{cardId}:</strong> Remove cards from the board</li>
+            </ul>
+            
+            <h3>Accessibility Features:</h3>
+            <ul>
+                <li><strong>ARIA Labels:</strong> All interactive elements include proper ARIA attributes</li>
+                <li><strong>Keyboard Navigation:</strong> Full keyboard support for drag and drop operations</li>
+                <li><strong>Screen Reader Support:</strong> Semantic HTML structure with role attributes</li>
+                <li><strong>Focus Management:</strong> Proper focus handling during modal operations</li>
+            </ul>
         </div>
     </div>
 </body>
