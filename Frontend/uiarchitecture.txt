@@ -1,613 +1,442 @@
 ## UI COMPONENT ARCHITECTURE
 
-### 1. JIRA REQUIREMENT SUMMARY
+1. JIRA REQUIREMENT SUMMARY
 
-**Story Description:**
-Design an intuitive document upload interface with camera guidance and real-time quality validation to ensure high-quality document capture for processing. The system provides multi-step form processing with progress tracking, document type detection, and accessibility features for users with visual impairments.
+Story Description:
+Create Angular component for Kanban board container with three-column layout at src/app/features/kanban/components/kanban-board/kanban-board.component.ts. Implement component class with @Component decorator and selector 'app-kanban-board'. Define template in kanban-board.component.html with three column containers using CSS Grid layout (grid-template-columns: repeat(3, 1fr)). Create component SCSS file with responsive breakpoints: desktop (>1024px), tablet (768px-1024px), mobile (<768px). Implement OnInit lifecycle hook to initialize column data structure: columns = [{id: 'todo', title: 'To Do', cards: []}, {id: 'inprogress', title: 'In Progress', cards: []}, {id: 'done', title: 'Done', cards: []}]. Add ARIA attributes: role='region', aria-label='Kanban Board', and aria-labelledby for each column header. Implement error handling with *ngIf directive to display error message when column configuration fails. Use Angular Material or custom CSS for styling. Add responsive meta tags and viewport configuration.
 
-**Acceptance Criteria:**
-- Document upload interface with camera integration and overlay guidance
-- Real-time quality validation with specific feedback and improvement suggestions
-- Multi-step form processing with logical progression and validation checkpoints
-- Document type detection and automated validation
-- Retake and editing capabilities for captured documents
-- Compression and optimization for upload efficiency
-- Progress tracking for multi-document uploads
-- Accessibility features supporting WCAG 2.1 AA compliance
-- Mobile-optimized responsive design
-- Error handling with graceful degradation
+Acceptance Criteria:
+- KanbanBoardComponent created with proper Angular structure and decorators
+- Template renders three distinct column containers with proper semantic HTML
+- CSS Grid layout implemented with responsive breakpoints for desktop, tablet, and mobile
+- ARIA attributes added for accessibility compliance
+- Error state template implemented with conditional rendering
+- Component compiles without errors and passes linting checks
 
-**UI Tasks:**
-- Create document upload interface with camera integration
-- Implement real-time quality validation system
-- Design multi-step form with progress tracking
-- Add document type detection and validation
-- Implement accessibility features and alternative input methods
-- Create responsive design for mobile and desktop
-- Add error handling and recovery mechanisms
+UI Tasks:
+- Create Angular component structure
+- Implement three-column CSS Grid layout
+- Add responsive breakpoints
+- Implement ARIA accessibility features
+- Add error handling and validation
+- Ensure component compilation and linting compliance
 
-### 2. HTML STRUCTURE SUMMARY (SOURCE OF TRUTH)
+2. HTML STRUCTURE SUMMARY (SOURCE OF TRUTH)
 
-**Header:**
-- Application branding and navigation
-- User authentication status
-- Progress indicator for multi-step process
-- Help and support access
+The provided HTML shows a Document Upload Interface with:
 
-**Main Container:**
-- Multi-step form container with progress tracking
-- Document upload area with camera interface
-- Quality validation feedback panel
-- Navigation controls (Previous/Next/Submit)
+Header:
+- Search field with icon
+- Notification and settings icons
+- User avatar chip
 
-**Document Upload Section:**
-- **Camera Interface**: Live camera preview with overlay guidance
-- **Upload Area**: Drag-and-drop zone for file uploads
-- **Document Preview**: Captured/uploaded document display
-- **Quality Feedback**: Real-time validation results and suggestions
-- **Action Buttons**: Capture, retake, upload, and edit options
+Sidebar / Navigation:
+- Brand section with logo and name
+- Multiple navigation sections:
+  - Upload Process (Document Landing, Camera Capture, Quality Check, Upload Progress)
+  - Alternative Flows (Quick Start, Quality Issues, Enhanced Capture)
+  - Multi-Document (Multi-Document, Document Types, Batch Review)
+  - Accessibility (Accessibility Options, Voice Guided)
+  - Special Conditions (Smart Lighting, Enhanced Processing, Network Aware, Resilient Upload)
 
-**Form Sections:**
-- **Document Information**: Document type selection and metadata
-- **Personal Information**: User details and verification data
-- **Review Section**: Summary of uploaded documents and information
-- **Submission**: Final review and submit functionality
+Main Container:
+- Stepper component for multi-step process
+- Card-based layout for different upload stages
+- Camera interface with overlay guidance
+- Quality validation with metrics
+- Document preview and management
+- Progress tracking and confirmation
 
-**Feedback Components:**
-- **Progress Indicators**: Step completion and overall progress
-- **Validation Messages**: Real-time feedback and error messages
-- **Success States**: Confirmation of successful uploads and submissions
-- **Error States**: Clear error messages with recovery options
+Sections:
+- Document type selection cards
+- Camera capture interface
+- Quality assessment metrics
+- Upload progress indicators
+- Success confirmation screens
+- Multi-document management
+- Accessibility options
+- Network-aware upload features
 
-### 3. LAYOUT STRUCTURE (MANDATORY)
+3. LAYOUT STRUCTURE (MANDATORY)
 
-**Page Layout Hierarchy:**
-```
-├── Application Container
-│   ├── Header Section
-│   │   ├── Brand Logo
-│   │   ├── Progress Indicator
-│   │   ├── User Status
-│   │   └── Help/Support
-│   ├── Main Content Area
-│   │   ├── Form Container
-│   │   │   ├── Step Navigation
-│   │   │   ├── Current Step Content
-│   │   │   │   ├── Document Upload Interface
-│   │   │   │   │   ├── Camera Preview
-│   │   │   │   │   ├── Upload Zone
-│   │   │   │   │   ├── Document Preview
-│   │   │   │   │   └── Quality Feedback
-│   │   │   │   ├── Form Fields
-│   │   │   │   └── Validation Messages
-│   │   │   └── Navigation Controls
-│   │   └── Side Panel (Optional)
-│   │       ├── Help Content
-│   │       ├── Upload Guidelines
-│   │       └── Progress Summary
-│   └── Footer Section
-│       ├── Legal Information
-│       ├── Contact Support
-│       └── Accessibility Options
-```
+Page Layout Hierarchy:
+├── App Container (#app)
+├── Sidebar Container
+│   └── Sidebar Navigation
+│       ├── Brand Section
+│       ├── Navigation Sections (Multiple)
+│       └── Footer
+├── Main Layout (#main)
+│   ├── Header (outer-box)
+│   │   ├── Search Field
+│   │   └── Header Right (Icons + Avatar)
+│   └── Content Area (#content)
+│       ├── Page Header
+│       ├── Stepper Component
+│       ├── Card Containers
+│       ├── Camera Interface
+│       ├── Quality Metrics
+│       ├── Progress Indicators
+│       └── Success/Error States
 
-**Layout Type:** CSS Grid (primary), Flexbox (secondary)
+Layout Type: CSS Grid / Flexbox Mixed
 
-### 4. REUSABLE COMPONENTS IDENTIFIED
+4. REUSABLE COMPONENTS IDENTIFIED
 
-**From Library (uicomponentlibrary):**
-- **Button Component**: Primary, secondary, ghost variants with loading states
-- **Input Component**: Text inputs with validation and error states
-- **Card Component**: Document preview cards with elevation
-- **Modal Component**: Confirmation dialogs and help modals
-- **Progress Component**: Step indicators and progress bars
-- **Alert Component**: Success, warning, and error notifications
-- **Badge Component**: Status indicators and document type badges
-- **Loading Component**: Spinners and skeleton loaders
-- **Icon Component**: Various SVG icons for UI elements
-- **Form Components**: Validation, labels, and form containers
+From Library (Based on HTML Analysis):
+- Header Component (with search and user actions)
+- Sidebar Component (navigation with sections)
+- Card Component (multiple variants: light, medium, auto)
+- Button Component (primary, secondary, danger, ghost variants)
+- Badge Component (success, warning, danger, info, neutral, primary)
+- Stepper Component (multi-step progress indicator)
+- Input Component (with wrapper and validation states)
+- Avatar Component (with chip variant)
+- Search Field Component
+- Progress Bar Component
+- Modal/Overlay Components
+- Icon Components
+- Breadcrumb Component
+- Grid Layout Components
 
-### 5. UI COMPONENT ARCHITECTURE
+5. UI COMPONENT ARCHITECTURE
 
-```
-├── DocumentUploadApp (Main Container)
+**MISMATCH IDENTIFIED**: Jira requires Kanban Board but HTML shows Document Upload Interface
+
+**Proposed Architecture for Kanban Board (Jira Requirements)**:
+├── KanbanBoardComponent (Main Container)
+│   ├── KanbanColumnComponent (Reusable)
+│   │   ├── ColumnHeaderComponent
+│   │   ├── CardListComponent
+│   │   └── AddCardComponent
+│   ├── KanbanCardComponent (Draggable)
+│   └── ErrorStateComponent
+
+**Existing Architecture from HTML (Document Upload)**:
+├── AppComponent
 ├── HeaderComponent
-│   ├── BrandLogoComponent
-│   ├── ProgressIndicatorComponent
-│   ├── UserStatusComponent
-│   └── HelpButtonComponent
-├── MainContentComponent
-│   ├── FormContainerComponent
-│   │   ├── StepNavigationComponent
-│   │   ├── StepContentComponent
-│   │   │   ├── DocumentUploadStepComponent
-│   │   │   │   ├── CameraInterfaceComponent
-│   │   │   │   │   ├── CameraPreviewComponent
-│   │   │   │   │   ├── OverlayGuidanceComponent
-│   │   │   │   │   └── CaptureControlsComponent
-│   │   │   │   ├── UploadZoneComponent
-│   │   │   │   │   ├── DragDropAreaComponent
-│   │   │   │   │   └── FileInputComponent
-│   │   │   │   ├── DocumentPreviewComponent
-│   │   │   │   │   ├── ImagePreviewComponent
-│   │   │   │   │   ├── DocumentMetadataComponent
-│   │   │   │   │   └── EditControlsComponent
-│   │   │   │   └── QualityValidationComponent
-│   │   │   │       ├── ValidationResultsComponent
-│   │   │   │       ├── QualityScoreComponent
-│   │   │   │       ├── FeedbackMessagesComponent
-│   │   │   │       └── ImprovementSuggestionsComponent
-│   │   │   ├── PersonalInfoStepComponent
-│   │   │   │   ├── FormFieldsComponent
-│   │   │   │   ├── ValidationComponent
-│   │   │   │   └── AutofillComponent
-│   │   │   ├── ReviewStepComponent
-│   │   │   │   ├── DocumentSummaryComponent
-│   │   │   │   ├── InfoSummaryComponent
-│   │   │   │   └── EditLinksComponent
-│   │   │   └── SubmissionStepComponent
-│   │   │       ├── FinalReviewComponent
-│   │   │       ├── TermsAcceptanceComponent
-│   │   │       └── SubmitButtonComponent
-│   │   └── NavigationControlsComponent
-│   │       ├── PreviousButtonComponent
-│   │       ├── NextButtonComponent
-│   │       └── SaveDraftButtonComponent
-│   └── SidePanelComponent (Optional)
-│       ├── HelpContentComponent
-│       ├── GuidelinesComponent
-│       └── ProgressSummaryComponent
-├── FooterComponent
-│   ├── LegalLinksComponent
-│   ├── SupportContactComponent
-│   └── AccessibilityOptionsComponent
-└── SharedComponents
-    ├── LoadingOverlayComponent
-    ├── ErrorBoundaryComponent
-    ├── NotificationComponent
-    └── ConfirmationModalComponent
-```
+├── SidebarComponent
+├── DocumentUploadComponent
+│   ├── StepperComponent
+│   ├── DocumentTypeSelectionComponent
+│   ├── CameraInterfaceComponent
+│   ├── QualityValidationComponent
+│   ├── UploadProgressComponent
+│   └── SuccessConfirmationComponent
 
-### 6. COMPONENT DEFINITIONS
+6. COMPONENT DEFINITIONS
 
-**DocumentUploadApp:**
-- **Purpose:** Main application container managing the entire document upload flow
-- **Props:** 
-  - sessionId: string
-  - userId: string
-  - configuration: AppConfig
-- **State:**
-  - currentStep: number
-  - formData: FormData
-  - uploadedDocuments: Document[]
-  - validationResults: ValidationResult[]
-  - loading: boolean
-  - error: string | null
-- **Events:**
-  - onStepChange(step: number)
-  - onDocumentUpload(document: Document)
-  - onFormSubmit(data: FormData)
-  - onError(error: Error)
-- **API Binding:**
-  - POST /forms/sessions
-  - PUT /forms/sessions/{session_id}
-  - GET /forms/sessions/{session_id}
+**KanbanBoardComponent** (Required by Jira):
+Purpose: Main container for three-column Kanban board
+Props:
+- columns: KanbanColumn[]
+- allowDragDrop: boolean
+- theme: string
+State:
+- columns: KanbanColumn[]
+- loading: boolean
+- error: string | null
+Events:
+- onCardMove: (cardId, fromColumn, toColumn) => void
+- onCardAdd: (columnId, cardData) => void
+- onError: (error) => void
+API Binding:
+- GET /kanban/boards/{boardId}
+- PUT /kanban/cards/{cardId}/move
+- POST /kanban/cards
 
-**CameraInterfaceComponent:**
-- **Purpose:** Provides camera functionality with overlay guidance for document positioning
-- **Props:**
-  - documentType: string
-  - guidelines: CameraGuidelines
-  - enabled: boolean
-- **State:**
-  - cameraActive: boolean
-  - capturedImage: Blob | null
-  - overlayVisible: boolean
-  - devicePermissions: boolean
-- **Events:**
-  - onCapture(image: Blob)
-  - onRetake()
-  - onPermissionDenied()
-- **API Binding:** None (client-side camera API)
+**KanbanColumnComponent**:
+Purpose: Individual column container with drag-drop support
+Props:
+- column: KanbanColumn
+- allowDrop: boolean
+- maxCards: number
+State:
+- cards: KanbanCard[]
+- isDragOver: boolean
+Events:
+- onCardDrop: (card, column) => void
+- onAddCard: (columnId) => void
+API Binding:
+- GET /kanban/columns/{columnId}/cards
 
-**QualityValidationComponent:**
-- **Purpose:** Real-time document quality assessment and feedback
-- **Props:**
-  - document: File | Blob
-  - documentType: string
-  - validationRules: ValidationRules
-- **State:**
-  - validationInProgress: boolean
-  - qualityScore: number
-  - validationResults: QualityCheck[]
-  - suggestions: Suggestion[]
-- **Events:**
-  - onValidationComplete(results: ValidationResult)
-  - onValidationError(error: Error)
-- **API Binding:**
-  - POST /documents/validate
+**KanbanCardComponent**:
+Purpose: Individual draggable card item
+Props:
+- card: KanbanCard
+- draggable: boolean
+- compact: boolean
+State:
+- isDragging: boolean
+Events:
+- onDragStart: (card) => void
+- onDragEnd: () => void
+- onClick: (card) => void
+API Binding:
+- GET /kanban/cards/{cardId}
+- PUT /kanban/cards/{cardId}
 
-**DocumentPreviewComponent:**
-- **Purpose:** Display uploaded/captured documents with editing capabilities
-- **Props:**
-  - document: Document
-  - editable: boolean
-  - validationResult: ValidationResult
-- **State:**
-  - previewMode: string
-  - editMode: boolean
-  - cropArea: CropArea | null
-- **Events:**
-  - onEdit()
-  - onDelete()
-  - onCrop(area: CropArea)
-- **API Binding:** None (client-side processing)
+**HeaderComponent** (From HTML):
+Purpose: Top navigation with search and user actions
+Props:
+- user: User
+- showSearch: boolean
+- notifications: Notification[]
+State:
+- searchQuery: string
+- notificationCount: number
+Events:
+- onSearch: (query) => void
+- onNotificationClick: () => void
+- onUserMenuClick: () => void
+API Binding:
+- GET /users/profile
+- GET /notifications
 
-**StepNavigationComponent:**
-- **Purpose:** Multi-step form navigation with progress tracking
-- **Props:**
-  - steps: Step[]
-  - currentStep: number
-  - completedSteps: number[]
-  - canNavigate: boolean
-- **State:**
-  - navigationEnabled: boolean
-- **Events:**
-  - onStepClick(step: number)
-  - onNext()
-  - onPrevious()
-- **API Binding:** None (state management)
+**SidebarComponent** (From HTML):
+Purpose: Left navigation with hierarchical menu
+Props:
+- menuItems: MenuItem[]
+- collapsed: boolean
+- activeItem: string
+State:
+- selectedItem: string
+- expandedSections: string[]
+Events:
+- onItemSelect: (itemId) => void
+- onToggleCollapse: () => void
+API Binding:
+- GET /navigation/menu
 
-**FormContainerComponent:**
-- **Purpose:** Container for multi-step form with validation and state management
-- **Props:**
-  - sessionId: string
-  - initialData: FormData
-  - validationRules: ValidationRules
-- **State:**
-  - formData: FormData
-  - validationErrors: ValidationErrors
-  - isDirty: boolean
-  - isValid: boolean
-- **Events:**
-  - onDataChange(data: FormData)
-  - onValidationChange(errors: ValidationErrors)
-  - onSubmit(data: FormData)
-- **API Binding:**
-  - PUT /forms/sessions/{session_id}
-  - GET /forms/sessions/{session_id}
+7. DATA FLOW / PROPS
 
-### 7. DATA FLOW / PROPS
+**Kanban Board Data Flow**:
+AppComponent → KanbanBoardComponent (boardId, permissions)
+KanbanBoardComponent → KanbanColumnComponent (column, allowDrop)
+KanbanColumnComponent → KanbanCardComponent (card, draggable)
 
-**Parent → Child Mapping:**
-- **DocumentUploadApp** → HeaderComponent (user, progress, configuration)
-- **DocumentUploadApp** → MainContentComponent (sessionId, formData, currentStep)
-- **MainContentComponent** → FormContainerComponent (sessionId, initialData, validationRules)
-- **FormContainerComponent** → StepContentComponent (stepData, validationErrors, isValid)
-- **StepContentComponent** → DocumentUploadStepComponent (documentType, uploadedDocs, validation)
-- **DocumentUploadStepComponent** → CameraInterfaceComponent (documentType, guidelines, enabled)
-- **DocumentUploadStepComponent** → QualityValidationComponent (document, documentType, rules)
-- **DocumentUploadStepComponent** → DocumentPreviewComponent (document, editable, validationResult)
-- **FormContainerComponent** → NavigationControlsComponent (canPrevious, canNext, canSubmit)
+**Document Upload Data Flow** (From HTML):
+AppComponent → HeaderComponent (user, notifications)
+AppComponent → SidebarComponent (menuItems, activeItem)
+AppComponent → DocumentUploadComponent (sessionId, allowedTypes)
+DocumentUploadComponent → StepperComponent (currentStep, totalSteps)
+DocumentUploadComponent → CameraInterfaceComponent (documentType, quality)
 
-### 8. API SUMMARY
+8. API SUMMARY
 
-**Available APIs:**
-- **POST /auth/login** → User authentication and session establishment
-- **POST /auth/refresh** → Token refresh for session management
-- **POST /forms/sessions** → Initialize new multi-step form session
-- **PUT /forms/sessions/{session_id}** → Update form session with step data
-- **GET /forms/sessions/{session_id}** → Retrieve current form session state
-- **POST /documents/upload** → Upload document with quality validation
-- **POST /documents/validate** → Real-time document quality validation
-- **GET /documents/{document_id}** → Retrieve document status and validation results
-- **DELETE /documents/{document_id}** → Securely delete uploaded document
-- **GET /components/metadata** → Retrieve UI component metadata and configurations
-- **GET /users/profile** → Get current user profile information
-- **PUT /users/profile** → Update user profile and preferences
-- **GET /health** → System health status and service availability
+**Available APIs from OpenAPI Spec**:
+- POST /auth/login → User authentication
+- GET /forms/sessions/{session_id} → Form session management
+- POST /documents/upload → Document upload with validation
+- POST /documents/validate → Real-time quality validation
+- GET /components/metadata → UI component metadata
+- GET /users/profile → User profile data
+- GET /health → System health check
 
-### 9. API TO UI MAPPING
+**Missing APIs for Kanban Board**:
+- GET /kanban/boards → Fetch Kanban boards
+- GET /kanban/boards/{boardId} → Fetch specific board
+- GET /kanban/columns/{columnId}/cards → Fetch column cards
+- POST /kanban/cards → Create new card
+- PUT /kanban/cards/{cardId}/move → Move card between columns
+- PUT /kanban/cards/{cardId} → Update card details
+- DELETE /kanban/cards/{cardId} → Delete card
 
-**Component → API:**
-- **DocumentUploadApp** → POST /forms/sessions (initialize session)
-- **DocumentUploadApp** → GET /forms/sessions/{id} (load session state)
-- **FormContainerComponent** → PUT /forms/sessions/{id} (save form progress)
-- **CameraInterfaceComponent** → POST /documents/validate (real-time validation)
-- **QualityValidationComponent** → POST /documents/validate (quality assessment)
-- **DocumentPreviewComponent** → POST /documents/upload (final upload)
-- **DocumentPreviewComponent** → DELETE /documents/{id} (remove document)
-- **HeaderComponent** → GET /users/profile (user information)
-- **StepContentComponent** → GET /components/metadata (component configurations)
+9. API TO UI MAPPING
 
-### 10. API COMPATIBILITY
+**Kanban Board Component Mapping** (Required):
+- KanbanBoardComponent → GET /kanban/boards/{boardId}
+- KanbanColumnComponent → GET /kanban/columns/{columnId}/cards
+- KanbanCardComponent → PUT /kanban/cards/{cardId}, DELETE /kanban/cards/{cardId}
+- Card Creation → POST /kanban/cards
+- Card Movement → PUT /kanban/cards/{cardId}/move
 
-**Compatible:**
-- Form session management APIs support multi-step form workflow
-- Document upload and validation APIs provide core functionality
-- User profile APIs support personalization and preferences
-- Component metadata APIs enable dynamic UI configuration
+**Document Upload Component Mapping** (Existing):
+- DocumentUploadComponent → POST /documents/upload
+- QualityValidationComponent → POST /documents/validate
+- FormSessionComponent → GET/PUT /forms/sessions/{session_id}
+- UserProfileComponent → GET /users/profile
 
-**Missing:**
-- Real-time collaboration APIs for multi-user sessions
-- Advanced document processing APIs (OCR, data extraction)
-- Bulk document upload APIs for multiple file handling
-- Document template and automation APIs
+10. API COMPATIBILITY
 
-**Transformations:**
-- Form session data → Multi-step form state management
-- Document validation results → User-friendly feedback messages
-- User profile data → Personalized UI configuration
-- Component metadata → Dynamic component rendering
+**Compatible APIs**:
+- Authentication system supports both interfaces
+- User management APIs work for both use cases
+- Component metadata API provides UI library info
+- Health check API for system monitoring
 
-### 11. JIRA vs HTML VALIDATION
+**Missing APIs for Kanban**:
+- Complete Kanban board management API endpoints
+- Card CRUD operations
+- Column management
+- Board configuration
+- Drag-drop state persistence
 
-**Matching Elements:**
-- ✅ Document upload interface with camera integration
-- ✅ Real-time quality validation with feedback
-- ✅ Multi-step form processing with progress tracking
-- ✅ Document type detection and validation
-- ✅ Retake and editing capabilities
-- ✅ Compression and optimization features
-- ✅ Progress tracking for multi-document uploads
-- ✅ Accessibility features and WCAG 2.1 AA compliance
-- ✅ Mobile-optimized responsive design
-- ✅ Error handling with graceful degradation
+**Transformations Needed**:
+- Kanban data models need to be defined
+- Card movement events need API integration
+- Real-time updates for collaborative editing
+- Websocket integration for live updates
 
-**Missing Elements:**
-- None - HTML implementation fully aligns with Jira requirements
+11. JIRA vs HTML VALIDATION
 
-**Extra Elements:**
-- Advanced document editing tools (crop, rotate, enhance)
-- Multi-language support for international users
-- Offline capability with local storage
-- Integration with external document services
-- Advanced analytics and user behavior tracking
+**CRITICAL MISMATCH IDENTIFIED**:
 
-### 12. FOLDER STRUCTURE (MANDATORY)
+**Missing Elements in HTML**:
+- Kanban board layout structure
+- Three-column grid system for Kanban
+- Drag-and-drop card interface
+- Column headers (To Do, In Progress, Done)
+- Card management interface
+- Kanban-specific navigation
 
-```
+**Extra Elements in HTML**:
+- Complete document upload workflow
+- Camera capture interface
+- Quality validation system
+- Multi-step form stepper
+- Document type selection
+- Upload progress tracking
+- Accessibility features for document upload
+
+**Recommendation**: The HTML represents a different application (Document Upload) than what's required by Jira (Kanban Board). The Kanban board component needs to be built from scratch following the Jira specifications.
+
+12. FOLDER STRUCTURE (MANDATORY)
+
+**For Kanban Board Implementation** (Jira Requirements):
+src/
+├── app/
+│   ├── features/
+│   │   └── kanban/
+│   │       ├── components/
+│   │       │   ├── kanban-board/
+│   │       │   │   ├── kanban-board.component.ts
+│   │       │   │   ├── kanban-board.component.html
+│   │       │   │   ├── kanban-board.component.scss
+│   │       │   │   └── kanban-board.component.spec.ts
+│   │       │   ├── kanban-column/
+│   │       │   │   ├── kanban-column.component.ts
+│   │       │   │   ├── kanban-column.component.html
+│   │       │   │   ├── kanban-column.component.scss
+│   │       │   │   └── kanban-column.component.spec.ts
+│   │       │   └── kanban-card/
+│   │       │       ├── kanban-card.component.ts
+│   │       │       ├── kanban-card.component.html
+│   │       │       ├── kanban-card.component.scss
+│   │       │       └── kanban-card.component.spec.ts
+│   │       ├── models/
+│   │       │   ├── kanban-board.model.ts
+│   │       │   ├── kanban-column.model.ts
+│   │       │   └── kanban-card.model.ts
+│   │       ├── services/
+│   │       │   └── kanban.service.ts
+│   │       └── kanban.module.ts
+│   ├── shared/
+│   │   ├── components/
+│   │   │   ├── button/
+│   │   │   ├── card/
+│   │   │   ├── header/
+│   │   │   ├── sidebar/
+│   │   │   └── error-state/
+│   │   └── services/
+│   │       ├── api.service.ts
+│   │       └── auth.service.ts
+│   └── core/
+│       ├── guards/
+│       ├── interceptors/
+│       └── models/
+
+**Existing Structure** (Document Upload):
 src/
 ├── app/
 │   ├── features/
 │   │   └── document-upload/
 │   │       ├── components/
-│   │       │   ├── document-upload-app/
-│   │       │   │   ├── document-upload-app.component.ts
-│   │       │   │   ├── document-upload-app.component.html
-│   │       │   │   ├── document-upload-app.component.scss
-│   │       │   │   └── document-upload-app.component.spec.ts
 │   │       │   ├── camera-interface/
-│   │       │   │   ├── camera-interface.component.ts
-│   │       │   │   ├── camera-interface.component.html
-│   │       │   │   ├── camera-interface.component.scss
-│   │       │   │   └── camera-interface.component.spec.ts
 │   │       │   ├── quality-validation/
-│   │       │   │   ├── quality-validation.component.ts
-│   │       │   │   ├── quality-validation.component.html
-│   │       │   │   ├── quality-validation.component.scss
-│   │       │   │   └── quality-validation.component.spec.ts
-│   │       │   ├── document-preview/
-│   │       │   │   ├── document-preview.component.ts
-│   │       │   │   ├── document-preview.component.html
-│   │       │   │   ├── document-preview.component.scss
-│   │       │   │   └── document-preview.component.spec.ts
-│   │       │   ├── form-container/
-│   │       │   │   ├── form-container.component.ts
-│   │       │   │   ├── form-container.component.html
-│   │       │   │   ├── form-container.component.scss
-│   │       │   │   └── form-container.component.spec.ts
-│   │       │   ├── step-navigation/
-│   │       │   │   ├── step-navigation.component.ts
-│   │       │   │   ├── step-navigation.component.html
-│   │       │   │   ├── step-navigation.component.scss
-│   │       │   │   └── step-navigation.component.spec.ts
-│   │       │   └── upload-zone/
-│   │       │       ├── upload-zone.component.ts
-│   │       │       ├── upload-zone.component.html
-│   │       │       ├── upload-zone.component.scss
-│   │       │       └── upload-zone.component.spec.ts
-│   │       ├── services/
-│   │       │   ├── document-upload.service.ts
-│   │       │   ├── quality-validation.service.ts
-│   │       │   ├── form-session.service.ts
-│   │       │   └── camera.service.ts
-│   │       ├── models/
-│   │       │   ├── document.model.ts
-│   │       │   ├── validation-result.model.ts
-│   │       │   ├── form-session.model.ts
-│   │       │   └── quality-check.model.ts
-│   │       ├── guards/
-│   │       │   ├── form-session.guard.ts
-│   │       │   └── camera-permission.guard.ts
-│   │       └── document-upload.module.ts
+│   │       │   ├── upload-progress/
+│   │       │   └── document-selection/
+│   │       └── services/
+│   │           └── document.service.ts
 │   ├── shared/
 │   │   ├── components/
 │   │   │   ├── header/
-│   │   │   │   ├── header.component.ts
-│   │   │   │   ├── header.component.html
-│   │   │   │   └── header.component.scss
-│   │   │   ├── button/
-│   │   │   │   ├── button.component.ts
-│   │   │   │   ├── button.component.html
-│   │   │   │   └── button.component.scss
-│   │   │   ├── input/
-│   │   │   │   ├── input.component.ts
-│   │   │   │   ├── input.component.html
-│   │   │   │   └── input.component.scss
+│   │   │   ├── sidebar/
+│   │   │   ├── stepper/
 │   │   │   ├── card/
-│   │   │   │   ├── card.component.ts
-│   │   │   │   ├── card.component.html
-│   │   │   │   └── card.component.scss
-│   │   │   ├── modal/
-│   │   │   │   ├── modal.component.ts
-│   │   │   │   ├── modal.component.html
-│   │   │   │   └── modal.component.scss
-│   │   │   ├── progress/
-│   │   │   │   ├── progress.component.ts
-│   │   │   │   ├── progress.component.html
-│   │   │   │   └── progress.component.scss
-│   │   │   ├── alert/
-│   │   │   │   ├── alert.component.ts
-│   │   │   │   ├── alert.component.html
-│   │   │   │   └── alert.component.scss
+│   │   │   ├── button/
 │   │   │   ├── badge/
-│   │   │   │   ├── badge.component.ts
-│   │   │   │   ├── badge.component.html
-│   │   │   │   └── badge.component.scss
-│   │   │   ├── loading/
-│   │   │   │   ├── loading.component.ts
-│   │   │   │   ├── loading.component.html
-│   │   │   │   └── loading.component.scss
-│   │   │   └── icon/
-│   │   │       ├── icon.component.ts
-│   │   │       ├── icon.component.html
-│   │   │       └── icon.component.scss
-│   │   ├── services/
-│   │   │   ├── api.service.ts
-│   │   │   ├── auth.service.ts
-│   │   │   ├── notification.service.ts
-│   │   │   └── storage.service.ts
-│   │   ├── models/
-│   │   │   ├── user.model.ts
-│   │   │   ├── api-response.model.ts
-│   │   │   └── error.model.ts
-│   │   ├── pipes/
-│   │   │   ├── file-size.pipe.ts
-│   │   │   └── date-format.pipe.ts
-│   │   └── validators/
-│   │       ├── file-type.validator.ts
-│   │       └── file-size.validator.ts
-│   ├── core/
-│   │   ├── guards/
-│   │   │   ├── auth.guard.ts
-│   │   │   └── permission.guard.ts
-│   │   ├── interceptors/
-│   │   │   ├── auth.interceptor.ts
-│   │   │   ├── error.interceptor.ts
-│   │   │   └── loading.interceptor.ts
+│   │   │   ├── input/
+│   │   │   └── avatar/
 │   │   └── services/
-│   │       ├── config.service.ts
-│   │       └── error-handler.service.ts
-│   └── app.module.ts
-├── assets/
-│   ├── styles/
-│   │   ├── _variables.scss
-│   │   ├── _mixins.scss
-│   │   ├── _tokens.scss
-│   │   └── _accessibility.scss
-│   ├── icons/
-│   │   ├── camera.svg
-│   │   ├── upload.svg
-│   │   ├── check.svg
-│   │   └── error.svg
-│   └── images/
-│       ├── document-guidelines/
-│       └── placeholders/
-└── environments/
-    ├── environment.ts
-    ├── environment.prod.ts
-    └── environment.staging.ts
-```
+│   └── core/
 
-### 13. INTERACTION FLOWS
+13. INTERACTION FLOWS
 
-**User Action → UI → API:**
+**Kanban Board Interactions** (Required by Jira):
+User Action → UI → API
+- Load Board → KanbanBoardComponent.ngOnInit() → GET /kanban/boards/{boardId}
+- Drag Card → KanbanCardComponent.onDragStart() → Update UI state
+- Drop Card → KanbanColumnComponent.onCardDrop() → PUT /kanban/cards/{cardId}/move
+- Add Card → KanbanColumnComponent.onAddCard() → POST /kanban/cards
+- Edit Card → KanbanCardComponent.onClick() → PUT /kanban/cards/{cardId}
+- Delete Card → KanbanCardComponent.onDelete() → DELETE /kanban/cards/{cardId}
+- Error Handling → ErrorStateComponent.show() → Display error message
 
-1. **Initialize Document Upload Session:**
-   - User accesses document upload page
-   - DocumentUploadApp loads and initializes
-   - Call POST /forms/sessions to create new session
-   - Display initial step with camera interface
+**Document Upload Interactions** (Existing in HTML):
+User Action → UI → API
+- Select Document Type → DocumentSelectionComponent → Update form session
+- Capture Document → CameraInterfaceComponent → POST /documents/validate
+- Upload Document → UploadProgressComponent → POST /documents/upload
+- Quality Check → QualityValidationComponent → POST /documents/validate
+- Complete Upload → SuccessComponent → Update session state
 
-2. **Capture Document with Camera:**
-   - User activates camera interface
-   - CameraInterfaceComponent requests camera permissions
-   - Display overlay guidance for document positioning
-   - User captures document image
-   - Call POST /documents/validate for real-time quality check
-   - Display validation results and suggestions
+14. GAPS & RECOMMENDATIONS
 
-3. **Upload Document File:**
-   - User drags/drops file into UploadZoneComponent
-   - Validate file type and size on client-side
-   - Call POST /documents/validate for quality assessment
-   - Display validation results in QualityValidationComponent
-   - If quality acceptable, proceed to next step
+**Critical Gaps**:
+- **Major Mismatch**: Jira specifies Kanban board but HTML shows document upload interface
+- Missing Kanban-specific API endpoints
+- No drag-and-drop functionality in current HTML
+- Missing three-column grid layout for Kanban
+- No card management interface
 
-4. **Multi-Step Form Navigation:**
-   - User completes current step
-   - Call PUT /forms/sessions/{id} to save progress
-   - StepNavigationComponent updates progress indicator
-   - Load next step content
-   - Continue until all steps completed
+**Missing UI Components for Kanban**:
+- KanbanBoardComponent (main requirement)
+- KanbanColumnComponent (three columns: To Do, In Progress, Done)
+- KanbanCardComponent (draggable cards)
+- Drag-and-drop interaction handlers
+- Column header components
+- Card creation/editing modals
 
-5. **Final Submission:**
-   - User reviews all information in ReviewStepComponent
-   - Call POST /documents/upload for final document submission
-   - Display success confirmation
-   - Provide option to upload additional documents
+**API Gaps**:
+- Complete Kanban API endpoints missing
+- Real-time collaboration features
+- Websocket integration for live updates
+- Card history and audit trail
+- Board configuration management
 
-6. **Error Handling and Recovery:**
-   - API errors trigger ErrorBoundaryComponent
-   - Display user-friendly error messages
-   - Provide retry options and alternative actions
-   - Maintain form state during error recovery
+**Recommendations**:
+1. **Immediate Action**: Clarify requirements - should we build Kanban board (Jira) or document upload (HTML)?
+2. **If Kanban Board**: Implement from scratch following Jira specifications, reuse shared components from HTML
+3. **If Document Upload**: Update Jira requirements to match HTML implementation
+4. **API Development**: Create missing Kanban API endpoints
+5. **Component Reuse**: Leverage existing components (Button, Card, Header, Sidebar) for Kanban implementation
+6. **Responsive Design**: Implement CSS Grid with breakpoints as specified in Jira
+7. **Accessibility**: Add ARIA attributes and keyboard navigation for Kanban board
+8. **Testing**: Implement comprehensive unit and integration tests
+9. **Performance**: Optimize for large numbers of cards with virtual scrolling
+10. **Real-time**: Add websocket integration for collaborative Kanban boards
 
-### 14. GAPS & RECOMMENDATIONS
+**Performance Considerations**:
+- Implement virtual scrolling for large card lists
+- Use OnPush change detection strategy
+- Lazy load card details
+- Optimize drag-and-drop performance
+- Cache board state locally
 
-**Missing UI:**
-- Advanced document editing tools (crop, rotate, brightness adjustment)
-- Bulk document upload interface for multiple files
-- Document template selection for guided capture
-- Real-time collaboration indicators for shared sessions
-- Advanced accessibility features (voice commands, gesture controls)
-
-**Improvements:**
-- Add machine learning-powered document positioning assistance
-- Implement progressive web app features for offline capability
-- Add biometric authentication for enhanced security
-- Create guided tutorials for first-time users
-- Implement advanced analytics for user behavior optimization
-
-**Performance:**
-- Implement lazy loading for camera and validation components
-- Add service worker for offline document processing
-- Optimize image compression algorithms for faster uploads
-- Cache validation results to avoid redundant API calls
-- Implement progressive image loading for better perceived performance
-
-**API Recommendations:**
-- Add WebSocket support for real-time collaboration
-- Implement batch document processing APIs
-- Create document template and automation APIs
-- Add advanced OCR and data extraction endpoints
-- Implement document workflow and approval APIs
-
-**Accessibility:**
-- Enhance screen reader support with detailed ARIA descriptions
-- Add keyboard shortcuts for power users
-- Implement voice commands for hands-free operation
-- Create high contrast and large text modes
-- Add support for assistive technologies and alternative input devices
-
-**Security:**
-- Implement end-to-end encryption for document transmission
-- Add digital signatures and document integrity verification
-- Create audit trails for all document operations
-- Implement role-based access control for sensitive documents
-- Add secure document sharing and collaboration features
-
-**Mobile Optimization:**
-- Optimize camera interface for various mobile devices
-- Implement touch gestures for document manipulation
-- Add haptic feedback for better user experience
-- Optimize for different screen sizes and orientations
-- Implement native mobile app features through PWA
-
-**Quality Assurance:**
-- Add comprehensive unit and integration tests
-- Implement automated accessibility testing
-- Create performance benchmarks and monitoring
-- Add cross-browser compatibility testing
-- Implement user acceptance testing frameworks
+**Accessibility Improvements**:
+- Full keyboard navigation support
+- Screen reader compatibility
+- High contrast mode support
+- Focus management during drag-and-drop
+- ARIA live regions for dynamic updates
