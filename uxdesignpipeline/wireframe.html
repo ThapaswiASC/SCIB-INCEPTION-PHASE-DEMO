@@ -17,9 +17,6 @@
       --w-text:    #444444;
       --w-label:   #888888;
       --w-active:  #555555;
-      --w-todo:    #E3F2FD;
-      --w-progress: #FFF3E0;
-      --w-done:    #E8F5E8;
     }
 
     html, body { height: 100%; font-family: 'Courier New', Courier, monospace; background: var(--w-bg); color: var(--w-text); font-size: 12px; }
@@ -59,27 +56,30 @@
     .ph-sub   { height: 10px; width: 300px; background: var(--w-surface); border: 1px dashed var(--w-border); }
     .bc-wf    { height: 8px; width: 180px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 10px; }
 
-    /* KANBAN SPECIFIC */
-    .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; height: calc(100vh - 140px); }
-    .kanban-column { background: var(--w-surface); border: 2px solid var(--w-border); border-radius: 4px; display: flex; flex-direction: column; min-height: 0; }
-    .column-header { padding: 16px; border-bottom: 1px solid var(--w-border); display: flex; justify-content: space-between; align-items: center; }
-    .column-title { height: 16px; width: 80px; background: var(--w-block); border: 1px solid var(--w-border); }
-    .task-count { height: 20px; width: 30px; background: var(--w-dark); border: 1px solid var(--w-border); border-radius: 10px; }
-    .column-content { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    
-    .todo-column { background: var(--w-todo); }
-    .progress-column { background: var(--w-progress); }
-    .done-column { background: var(--w-done); }
+    /* KANBAN BOARD */
+    .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; height: calc(100vh - 140px); }
+    .kanban-column { background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; display: flex; flex-direction: column; }
+    .column-header { padding: 12px 16px; border-bottom: 1px solid var(--w-border); background: var(--w-block); display: flex; justify-content: space-between; align-items: center; }
+    .column-title { font-size: 14px; font-weight: bold; color: var(--w-text); }
+    .task-count { background: var(--w-dark); color: var(--w-surface); padding: 2px 6px; border-radius: 10px; font-size: 10px; }
+    .column-content { flex: 1; padding: 12px; overflow-y: auto; }
+    .task-card { background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px; padding: 12px; margin-bottom: 8px; cursor: pointer; }
+    .task-card:hover { background: var(--w-block); }
+    .task-title { height: 14px; background: var(--w-dark); border: 1px solid var(--w-border); margin-bottom: 8px; }
+    .task-meta { display: flex; justify-content: space-between; align-items: center; }
+    .task-assignee { width: 20px; height: 20px; background: var(--w-dark); border-radius: 50%; }
+    .task-priority { width: 40px; height: 12px; background: var(--w-stroke); }
 
-    /* TASK CARDS */
-    .task-card { background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 12px; cursor: pointer; min-height: 80px; }
-    .task-card:hover { border-color: var(--w-stroke); }
-    .task-card.dragging { opacity: 0.5; }
-    .task-title { height: 12px; width: 100%; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 8px; }
-    .task-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-    .task-assignee { height: 20px; width: 20px; border-radius: 50%; background: var(--w-dark); border: 1px solid var(--w-border); }
-    .task-priority { height: 8px; width: 40px; background: var(--w-stroke); border: 1px solid var(--w-border); }
-    .task-due { height: 8px; width: 60px; background: var(--w-surface); border: 1px dashed var(--w-border); }
+    /* RESPONSIVE */
+    @media (max-width: 1023px) {
+      .kanban-board { grid-template-columns: repeat(2, 1fr); }
+      .kanban-column:nth-child(3) { grid-column: 1 / -1; }
+    }
+    @media (max-width: 767px) {
+      .kanban-board { grid-template-columns: 1fr; }
+      #sidebar { width: 100%; position: absolute; z-index: 1000; transform: translateX(-100%); transition: transform 0.3s; }
+      #sidebar.open { transform: translateX(0); }
+    }
 
     /* BUTTONS */
     .btn  { display: inline-flex; align-items: center; justify-content: center; height: 30px; min-width: 80px; background: var(--w-block); border: 1.5px solid var(--w-stroke); cursor: pointer; font-size: 10px; color: var(--w-text); font-family: inherit; padding: 0 14px; white-space: nowrap; }
@@ -88,30 +88,22 @@
     .btn.sm      { height: 24px; min-width: 50px; font-size: 9px; padding: 0 8px; }
     .btn-grp     { display: flex; gap: 8px; flex-wrap: wrap; }
 
-    /* RESPONSIVE */
-    @media (max-width: 1023px) {
-      .kanban-board { grid-template-columns: 1fr; grid-template-rows: repeat(3, 1fr); }
-      #sidebar { width: 240px; }
-    }
-
-    @media (max-width: 767px) {
-      #app { flex-direction: column; }
-      #sidebar { width: 100%; height: auto; flex-direction: row; overflow-x: auto; }
-      .kanban-board { grid-template-columns: 1fr; grid-template-rows: none; height: auto; }
-      .kanban-column { min-height: 300px; }
-    }
-
     /* MODAL */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
-    .modal.active { display: flex; align-items: center; justify-content: center; }
-    .modal-content { background: var(--w-surface); border: 2px solid var(--w-border); padding: 24px; max-width: 400px; width: 90%; }
-    .modal-header { height: 16px; width: 200px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 16px; }
-    .modal-body { margin-bottom: 20px; }
-    .modal-text { height: 10px; width: 100%; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 8px; }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; }
+    .modal.active { display: flex; }
+    .modal-content { background: var(--w-bg); border: 2px solid var(--w-border); border-radius: 4px; padding: 24px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-title { font-size: 16px; font-weight: bold; }
+    .close-btn { background: none; border: none; font-size: 18px; cursor: pointer; }
 
-    /* ACCESSIBILITY FEATURES */
-    .skip-link { position: absolute; top: -40px; left: 6px; background: var(--w-active); color: var(--w-surface); padding: 8px; text-decoration: none; z-index: 100; }
-    .skip-link:focus { top: 6px; }
+    /* FORMS */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; margin-bottom: 4px; font-size: 11px; color: var(--w-text); }
+    .form-input { width: 100%; height: 32px; background: var(--w-block); border: 1px solid var(--w-border); padding: 0 8px; }
+    .form-textarea { width: 100%; height: 80px; background: var(--w-block); border: 1px solid var(--w-border); padding: 8px; resize: vertical; }
+    .form-select { width: 100%; height: 32px; background: var(--w-block); border: 1px solid var(--w-border); padding: 0 8px; }
+
+    /* ACCESSIBILITY */
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     .focus-indicator { outline: 2px solid var(--w-stroke); outline-offset: 2px; }
 
@@ -120,129 +112,156 @@
       :root {
         --w-bg: #ffffff;
         --w-surface: #f0f0f0;
-        --w-block: #000000;
+        --w-block: #e0e0e0;
+        --w-dark: #808080;
         --w-border: #000000;
+        --w-stroke: #000000;
         --w-text: #000000;
+        --w-label: #404040;
+        --w-active: #000000;
       }
     }
 
-    /* REDUCED MOTION */
-    @media (prefers-reduced-motion: reduce) {
-      * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
-    }
-
-    /* TABS */
-    .tab-bar { display: flex; border-bottom: 2px solid var(--w-border); margin-bottom: 14px; gap: 2px; }
-    .tab     { height: 32px; min-width: 90px; background: var(--w-surface); border: 1px solid var(--w-border); border-bottom: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; color: var(--w-label); padding: 0 14px; }
-    .tab:hover   { background: var(--w-block); }
-    .tab.active  { background: var(--w-block); color: var(--w-text); font-weight: bold; border-bottom: 2px solid var(--w-surface); }
-
-    /* FORM ELEMENTS */
-    .inp  { width: 100%; height: 30px; background: var(--w-block); border: 1px dashed var(--w-border); margin-bottom: 4px; }
-    .txa  { width: 100%; height: 70px; background: var(--w-block); border: 1px dashed var(--w-border); margin-bottom: 4px; }
-    .lbl  { height: 8px; width: 80px; background: var(--w-dark); border: 1px solid var(--w-border); margin-bottom: 5px; }
-    .fgrp { margin-bottom: 12px; }
+    /* DRAG AND DROP */
+    .dragging { opacity: 0.5; }
+    .drop-zone { border: 2px dashed var(--w-stroke); background: var(--w-block); }
+    .drop-zone.valid { border-color: #4CAF50; background: #E8F5E8; }
+    .drop-zone.invalid { border-color: #F44336; background: #FFEBEE; }
 
     /* CONTEXT MENU */
-    .context-menu { position: absolute; background: var(--w-surface); border: 2px solid var(--w-border); padding: 8px 0; min-width: 120px; z-index: 100; }
-    .context-item { padding: 8px 12px; cursor: pointer; font-size: 10px; }
-    .context-item:hover { background: var(--w-block); }
+    .context-menu { position: absolute; background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px; padding: 4px 0; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1000; display: none; }
+    .context-menu.active { display: block; }
+    .context-menu-item { padding: 8px 16px; cursor: pointer; font-size: 11px; }
+    .context-menu-item:hover { background: var(--w-block); }
 
-    /* DRAG AND DROP */
-    .drop-zone { border: 2px dashed var(--w-stroke); background: rgba(85, 85, 85, 0.1); }
-    .drag-preview { position: fixed; pointer-events: none; z-index: 1000; opacity: 0.8; }
+    /* MOBILE OPTIMIZATIONS */
+    @media (max-width: 767px) {
+      .task-card { padding: 16px; margin-bottom: 12px; }
+      .btn { height: 44px; min-width: 44px; }
+      .form-input, .form-select { height: 44px; }
+    }
   </style>
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-  
   <div id="app">
     <!-- SIDEBAR -->
-    <nav id="sidebar" role="navigation" aria-label="Main navigation">
+    <div id="sidebar">
       <div class="sb-logo">
         <div class="sb-logo-box">[ LOGO — Kanban Board ]</div>
       </div>
       
-      <div class="sb-section">Workflow Views</div>
-      
-      <a href="#" class="nav-link active" onclick="show('desktop-board', this)" role="menuitem">
+      <div class="sb-section">Scenario 1: Task Visualization</div>
+      <div class="nav-link active" onclick="show('board-landing', this)">
         <div class="nav-icon"></div>
-        Desktop Board
-      </a>
-      
-      <a href="#" class="nav-link" onclick="show('tablet-view', this)" role="menuitem">
+        1.0 Board Landing
+      </div>
+      <div class="nav-link" onclick="show('column-interaction', this)">
         <div class="nav-icon"></div>
-        Tablet View
-      </a>
-      
-      <a href="#" class="nav-link" onclick="show('mobile-view', this)" role="menuitem">
+        1.1 Column Interaction
+      </div>
+      <div class="nav-link" onclick="show('task-overview', this)">
         <div class="nav-icon"></div>
-        Mobile View
-      </a>
-      
-      <div class="sb-section">Task Management</div>
-      
-      <a href="#" class="nav-link" onclick="show('drag-drop', this)" role="menuitem">
+        1.2 Task Overview
+      </div>
+      <div class="nav-link" onclick="show('simplified-overview', this)">
         <div class="nav-icon"></div>
-        Drag & Drop
-      </a>
-      
-      <a href="#" class="nav-link" onclick="show('context-menu', this)" role="menuitem">
+        2.0 Simplified Overview
+      </div>
+      <div class="nav-link" onclick="show('column-expansion', this)">
         <div class="nav-icon"></div>
-        Context Menu
-      </a>
-      
-      <a href="#" class="nav-link" onclick="show('task-update', this)" role="menuitem">
+        2.1 Column Expansion
+      </div>
+      <div class="nav-link" onclick="show('task-detail-overlay', this)">
         <div class="nav-icon"></div>
-        Task Update
-      </a>
-      
-      <a href="#" class="nav-link" onclick="show('workflow-validation', this)" role="menuitem">
+        2.2 Task Detail Overlay
+      </div>
+
+      <div class="sb-section">Scenario 2: Task Management</div>
+      <div class="nav-link" onclick="show('active-task-id', this)">
         <div class="nav-icon"></div>
-        Workflow Rules
-      </a>
-      
-      <div class="sb-section">Accessibility</div>
-      
-      <a href="#" class="nav-link" onclick="show('keyboard-nav', this)" role="menuitem">
+        3.0 Active Task ID
+      </div>
+      <div class="nav-link" onclick="show('drag-initiation', this)">
         <div class="nav-icon"></div>
-        Keyboard Navigation
-      </a>
-      
-      <a href="#" class="nav-link" onclick="show('screen-reader', this)" role="menuitem">
+        3.1 Drag Initiation
+      </div>
+      <div class="nav-link" onclick="show('cross-column-drag', this)">
         <div class="nav-icon"></div>
-        Screen Reader
-      </a>
-      
-      <a href="#" class="nav-link" onclick="show('high-contrast', this)" role="menuitem">
+        3.2 Cross-Column Drag
+      </div>
+      <div class="nav-link" onclick="show('movement-confirmation', this)">
         <div class="nav-icon"></div>
-        High Contrast
-      </a>
-      
+        3.3 Movement Confirmation
+      </div>
+      <div class="nav-link" onclick="show('context-menu', this)">
+        <div class="nav-icon"></div>
+        4.0 Context Menu
+      </div>
+      <div class="nav-link" onclick="show('status-change', this)">
+        <div class="nav-icon"></div>
+        4.1 Status Change
+      </div>
+
+      <div class="sb-section">Scenario 3: Accessibility</div>
+      <div class="nav-link" onclick="show('accessible-structure', this)">
+        <div class="nav-icon"></div>
+        5.0 Accessible Structure
+      </div>
+      <div class="nav-link" onclick="show('column-navigation', this)">
+        <div class="nav-icon"></div>
+        5.1 Column Navigation
+      </div>
+      <div class="nav-link" onclick="show('keyboard-interaction', this)">
+        <div class="nav-icon"></div>
+        5.2 Keyboard Interaction
+      </div>
+      <div class="nav-link" onclick="show('high-contrast', this)">
+        <div class="nav-icon"></div>
+        6.0 High Contrast
+      </div>
+
+      <div class="sb-section">Scenario 4: Multi-Device</div>
+      <div class="nav-link" onclick="show('mobile-overview', this)">
+        <div class="nav-icon"></div>
+        7.0 Mobile Overview
+      </div>
+      <div class="nav-link" onclick="show('tablet-layout', this)">
+        <div class="nav-icon"></div>
+        7.1 Tablet Layout
+      </div>
+      <div class="nav-link" onclick="show('desktop-experience', this)">
+        <div class="nav-icon"></div>
+        7.2 Desktop Experience
+      </div>
+      <div class="nav-link" onclick="show('cross-device-sync', this)">
+        <div class="nav-icon"></div>
+        7.3 Cross-Device Sync
+      </div>
+
       <div class="sb-footer">
         <div class="sb-fline"></div>
         <div class="sb-fline"></div>
-        <div style="font-size: 9px; color: var(--w-label);">WCAG 2.1 AA Compliant</div>
+        <div style="font-size: 9px; color: var(--w-label);">Kanban Board v1.0</div>
+        <div style="font-size: 9px; color: var(--w-label);">WCAG AA Compliant</div>
       </div>
-    </nav>
+    </div>
 
     <!-- MAIN CONTENT -->
-    <main id="main">
+    <div id="main">
       <!-- TOPBAR -->
-      <header id="topbar" role="banner">
-        <div class="search-wf">[ Search tasks... ]</div>
+      <div id="topbar">
+        <div class="search-wf">[ Search tasks and boards... ]</div>
         <div class="topbar-right">
           <div class="notif-wf">[ Notifications ]</div>
-          <div class="avatar-wf">PM</div>
+          <div class="avatar-wf">SJ</div>
           <div class="topbar-name"></div>
         </div>
-      </header>
+      </div>
 
       <!-- CONTENT AREA -->
-      <div id="content" role="main" id="main-content">
-        
-        <!-- DESKTOP KANBAN BOARD -->
-        <div id="desktop-board" class="page active">
+      <div id="content">
+        <!-- 1.0 Kanban Board Landing Page -->
+        <div id="board-landing" class="page active">
           <div class="ph">
             <div>
               <div class="bc-wf"></div>
@@ -250,101 +269,112 @@
               <div class="ph-sub"></div>
             </div>
             <div class="btn-grp">
-              <button class="btn sm">[ Filter ]</button>
-              <button class="btn sm filled">[ + New Task ]</button>
+              <div class="btn filled">+ Add Task</div>
+              <div class="btn">Filter</div>
+              <div class="btn">Settings</div>
             </div>
           </div>
-          
-          <div class="kanban-board" role="application" aria-label="Kanban board">
-            <!-- TO DO COLUMN -->
-            <div class="kanban-column todo-column" role="region" aria-label="To Do tasks">
+
+          <div class="kanban-board">
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title" aria-label="To Do"></div>
-                <div class="task-count" aria-label="5 tasks"></div>
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
               </div>
-              <div class="column-content" id="todo-column" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button" aria-label="Task: Implement user authentication">
-                  <div class="task-title"></div>
-                  <div class="task-meta">
-                    <div class="task-assignee" aria-label="Assigned to John"></div>
-                    <div class="task-priority" aria-label="High priority"></div>
-                    <div class="task-due" aria-label="Due: 2 days"></div>
-                  </div>
-                </div>
-                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+              <div class="column-content">
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
                   </div>
                 </div>
-                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
+                  </div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <!-- IN PROGRESS COLUMN -->
-            <div class="kanban-column progress-column" role="region" aria-label="In Progress tasks">
+
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title" aria-label="In Progress"></div>
-                <div class="task-count" aria-label="3 tasks"></div>
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
               </div>
-              <div class="column-content" id="progress-column" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+              <div class="column-content">
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
                   </div>
                 </div>
-                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
+                  </div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <!-- DONE COLUMN -->
-            <div class="kanban-column done-column" role="region" aria-label="Done tasks">
+
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title" aria-label="Done"></div>
-                <div class="task-count" aria-label="8 tasks"></div>
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
               </div>
-              <div class="column-content" id="done-column" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+              <div class="column-content">
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
                   </div>
                 </div>
-                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
                   </div>
                 </div>
-                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
                   </div>
                 </div>
               </div>
@@ -352,8 +382,8 @@
           </div>
         </div>
 
-        <!-- TABLET VIEW -->
-        <div id="tablet-view" class="page">
+        <!-- 1.1 Column Header Interaction State -->
+        <div id="column-interaction" class="page">
           <div class="ph">
             <div>
               <div class="bc-wf"></div>
@@ -361,204 +391,127 @@
               <div class="ph-sub"></div>
             </div>
             <div class="btn-grp">
-              <button class="btn sm">[ Filter ]</button>
-              <button class="btn sm filled">[ + New ]</button>
+              <div class="btn">Column Settings</div>
+              <div class="btn">Add Column</div>
             </div>
           </div>
-          
-          <div class="tab-bar">
-            <div class="tab active" onclick="switchTab(this, 'tablet-todo')">To Do (5)</div>
-            <div class="tab" onclick="switchTab(this, 'tablet-progress')">In Progress (3)</div>
-            <div class="tab" onclick="switchTab(this, 'tablet-done')">Done (8)</div>
-          </div>
-          
-          <div id="tablet-todo" class="tab-content">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              <div class="task-card">
-                <div class="task-title"></div>
-                <div class="task-meta">
-                  <div class="task-assignee"></div>
-                  <div class="task-priority"></div>
-                  <div class="task-due"></div>
-                </div>
-                <div class="btn-grp" style="margin-top: 8px;">
-                  <button class="btn sm">[ Move to Progress ]</button>
-                  <button class="btn sm">[ Edit ]</button>
-                </div>
+
+          <div class="kanban-board">
+            <div class="kanban-column">
+              <div class="column-header" style="background: var(--w-active); color: var(--w-surface);">
+                <div class="column-title">To Do (Hover State)</div>
+                <div class="task-count">5</div>
               </div>
-              <div class="task-card">
-                <div class="task-title"></div>
-                <div class="task-meta">
-                  <div class="task-assignee"></div>
-                  <div class="task-priority"></div>
-                  <div class="task-due"></div>
+              <div class="column-content">
+                <div style="padding: 12px; background: var(--w-block); border: 1px dashed var(--w-border); margin-bottom: 8px; font-size: 10px;">
+                  [ Column Analytics: 5 tasks, 2 high priority, avg. 3 days in column ]
                 </div>
-                <div class="btn-grp" style="margin-top: 8px;">
-                  <button class="btn sm">[ Move to Progress ]</button>
-                  <button class="btn sm">[ Edit ]</button>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div id="tablet-progress" class="tab-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              <div class="task-card">
-                <div class="task-title"></div>
-                <div class="task-meta">
-                  <div class="task-assignee"></div>
-                  <div class="task-priority"></div>
-                  <div class="task-due"></div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
                 </div>
-                <div class="btn-grp" style="margin-top: 8px;">
-                  <button class="btn sm">[ Move to Done ]</button>
-                  <button class="btn sm">[ Move to Todo ]</button>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          
-          <div id="tablet-done" class="tab-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              <div class="task-card">
-                <div class="task-title"></div>
-                <div class="task-meta">
-                  <div class="task-assignee"></div>
-                  <div class="task-priority"></div>
-                  <div class="task-due"></div>
-                </div>
-                <div class="btn-grp" style="margin-top: 8px;">
-                  <button class="btn sm">[ Reopen ]</button>
-                  <button class="btn sm">[ Archive ]</button>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- MOBILE VIEW -->
-        <div id="mobile-view" class="page">
+        <!-- 1.2 Task Card Overview State -->
+        <div id="task-overview" class="page">
           <div class="ph">
             <div>
+              <div class="bc-wf"></div>
               <div class="ph-title"></div>
               <div class="ph-sub"></div>
             </div>
             <div class="btn-grp">
-              <button class="btn sm filled">[ + ]</button>
+              <div class="btn">View Options</div>
+              <div class="btn">Card Settings</div>
             </div>
           </div>
-          
-          <div class="tab-bar">
-            <div class="tab active" onclick="switchTab(this, 'mobile-todo')">Todo</div>
-            <div class="tab" onclick="switchTab(this, 'mobile-progress')">Progress</div>
-            <div class="tab" onclick="switchTab(this, 'mobile-done')">Done</div>
-          </div>
-          
-          <div id="mobile-todo" class="tab-content">
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              <div class="task-card">
-                <div class="task-title"></div>
-                <div class="task-meta">
-                  <div class="task-assignee"></div>
-                  <div class="task-priority"></div>
-                </div>
-                <div class="btn-grp" style="margin-top: 8px;">
-                  <button class="btn sm filled">[ → ]</button>
-                  <button class="btn sm">[ ⋯ ]</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div id="mobile-progress" class="tab-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              <div class="task-card">
-                <div class="task-title"></div>
-                <div class="task-meta">
-                  <div class="task-assignee"></div>
-                  <div class="task-priority"></div>
-                </div>
-                <div class="btn-grp" style="margin-top: 8px;">
-                  <button class="btn sm filled">[ → ]</button>
-                  <button class="btn sm">[ ← ]</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div id="mobile-done" class="tab-content" style="display: none;">
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              <div class="task-card">
-                <div class="task-title"></div>
-                <div class="task-meta">
-                  <div class="task-assignee"></div>
-                  <div class="task-priority"></div>
-                </div>
-                <div class="btn-grp" style="margin-top: 8px;">
-                  <button class="btn sm">[ Reopen ]</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- DRAG AND DROP INTERACTION -->
-        <div id="drag-drop" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-          </div>
-          
-          <div style="margin-bottom: 20px; padding: 16px; background: var(--w-surface); border: 1px dashed var(--w-border);">
-            <div style="font-size: 10px; margin-bottom: 8px; color: var(--w-label);">DRAG AND DROP INTERACTION STATES</div>
-            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-              <div class="task-card" style="position: relative;">
-                <div class="task-title"></div>
-                <div style="position: absolute; top: -4px; right: -4px; background: var(--w-stroke); color: var(--w-surface); padding: 2px 4px; font-size: 8px;">DRAGGING</div>
-              </div>
-              <div class="kanban-column" style="width: 200px; height: 120px; border-style: dashed; background: rgba(85, 85, 85, 0.1);">
-                <div class="column-header">
-                  <div class="column-title"></div>
-                </div>
-                <div style="text-align: center; padding: 20px; font-size: 10px; color: var(--w-label);">DROP ZONE ACTIVE</div>
-              </div>
-            </div>
-          </div>
-          
           <div class="kanban-board">
-            <div class="kanban-column todo-column">
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
               </div>
               <div class="column-content">
-                <div class="task-card dragging">
+                <div class="task-card" style="border: 2px solid var(--w-stroke); background: var(--w-block);">
+                  <div class="task-title"></div>
+                  <div style="height: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin: 6px 0;"></div>
+                  <div style="display: flex; gap: 8px; margin: 8px 0;">
+                    <div style="width: 30px; height: 12px; background: var(--w-stroke);"></div>
+                    <div style="width: 40px; height: 12px; background: var(--w-dark);"></div>
+                  </div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; padding: 4px; background: var(--w-surface); border: 1px dashed var(--w-border); font-size: 9px;">[ Hover: Show due date, comments, attachments ]</div>
+                </div>
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div class="kanban-column progress-column drop-zone">
+
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
-              </div>
-              <div class="column-content">
-                <div style="text-align: center; padding: 40px; font-size: 10px; color: var(--w-label);">Drop task here to move to In Progress</div>
-              </div>
-            </div>
-            
-            <div class="kanban-column done-column">
-              <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
               </div>
               <div class="column-content">
                 <div class="task-card">
@@ -566,7 +519,22 @@
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
                   </div>
                 </div>
               </div>
@@ -574,225 +542,284 @@
           </div>
         </div>
 
-        <!-- CONTEXT MENU -->
-        <div id="context-menu" class="page">
+        <!-- 2.0 Simplified Board Overview -->
+        <div id="simplified-overview" class="page">
           <div class="ph">
             <div>
+              <div class="bc-wf"></div>
               <div class="ph-title"></div>
               <div class="ph-sub"></div>
             </div>
-          </div>
-          
-          <div style="margin-bottom: 20px; padding: 16px; background: var(--w-surface); border: 1px dashed var(--w-border);">
-            <div style="font-size: 10px; margin-bottom: 8px; color: var(--w-label);">RIGHT-CLICK CONTEXT MENU</div>
-            <div style="position: relative; display: inline-block;">
-              <div class="task-card" style="border-color: var(--w-stroke);">
-                <div class="task-title"></div>
-                <div class="task-meta">
-                  <div class="task-assignee"></div>
-                  <div class="task-priority"></div>
-                  <div class="task-due"></div>
-                </div>
-              </div>
-              <div class="context-menu" style="position: absolute; top: 20px; left: 120px;">
-                <div class="context-item">Move to In Progress</div>
-                <div class="context-item">Move to Done</div>
-                <div class="context-item" style="border-top: 1px solid var(--w-border); margin-top: 4px; padding-top: 8px;">Edit Task</div>
-                <div class="context-item">Assign to...</div>
-                <div class="context-item">Set Priority</div>
-                <div class="context-item" style="border-top: 1px solid var(--w-border); margin-top: 4px; padding-top: 8px; color: #cc0000;">Delete Task</div>
-              </div>
+            <div class="btn-grp">
+              <div class="btn">Expand All</div>
+              <div class="btn">Quick Actions</div>
             </div>
           </div>
-          
+
           <div class="kanban-board">
-            <div class="kanban-column todo-column">
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
               </div>
               <div class="column-content">
-                <div class="task-card" oncontextmenu="showContextMenu(event)">
-                  <div class="task-title"></div>
-                  <div class="task-meta">
-                    <div class="task-assignee"></div>
-                    <div class="task-priority"></div>
-                    <div class="task-due"></div>
-                  </div>
-                </div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-001 ]</div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-002 ]</div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-003 ]</div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-004 ]</div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-005 ]</div>
               </div>
             </div>
-            
-            <div class="kanban-column progress-column">
+
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
               </div>
               <div class="column-content">
-                <div class="task-card">
-                  <div class="task-title"></div>
-                  <div class="task-meta">
-                    <div class="task-assignee"></div>
-                    <div class="task-priority"></div>
-                    <div class="task-due"></div>
-                  </div>
-                </div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-006 ]</div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-007 ]</div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-008 ]</div>
               </div>
             </div>
-            
-            <div class="kanban-column done-column">
+
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
               </div>
               <div class="column-content">
-                <div class="task-card">
-                  <div class="task-title"></div>
-                  <div class="task-meta">
-                    <div class="task-assignee"></div>
-                    <div class="task-priority"></div>
-                    <div class="task-due"></div>
-                  </div>
-                </div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-009 ]</div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ Task ID: TASK-010 ]</div>
+                <div style="padding: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; font-size: 10px; cursor: pointer;">[ + 6 more tasks ]</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- TASK UPDATE -->
-        <div id="task-update" class="page">
+        <!-- 2.1 Column Expansion State -->
+        <div id="column-expansion" class="page">
           <div class="ph">
             <div>
+              <div class="bc-wf"></div>
               <div class="ph-title"></div>
               <div class="ph-sub"></div>
             </div>
+            <div class="btn-grp">
+              <div class="btn">← Back to Overview</div>
+              <div class="btn">Column Actions</div>
+            </div>
           </div>
-          
-          <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px;">
-            <div class="kanban-board" style="grid-template-columns: repeat(3, 1fr);">
-              <div class="kanban-column todo-column">
-                <div class="column-header">
-                  <div class="column-title"></div>
-                  <div class="task-count"></div>
-                </div>
-                <div class="column-content">
-                  <div class="task-card">
-                    <div class="task-title"></div>
-                    <div class="task-meta">
-                      <div class="task-assignee"></div>
-                      <div class="task-priority"></div>
-                      <div class="task-due"></div>
-                    </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; height: calc(100vh - 140px);">
+            <div class="kanban-column" style="border: 2px solid var(--w-stroke);">
+              <div class="column-header" style="background: var(--w-active); color: var(--w-surface);">
+                <div class="column-title">To Do (Expanded)</div>
+                <div class="task-count">5</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div style="height: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin: 6px 0;"></div>
+                  <div style="display: flex; gap: 8px; margin: 8px 0;">
+                    <div style="width: 30px; height: 12px; background: var(--w-stroke);"></div>
+                    <div style="width: 40px; height: 12px; background: var(--w-dark);"></div>
+                  </div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
                   </div>
                 </div>
-              </div>
-              
-              <div class="kanban-column progress-column">
-                <div class="column-header">
-                  <div class="column-title"></div>
-                  <div class="task-count"></div>
-                </div>
-                <div class="column-content">
-                  <div class="task-card" style="border-color: var(--w-stroke); background: #fff;">
-                    <div class="task-title"></div>
-                    <div class="task-meta">
-                      <div class="task-assignee"></div>
-                      <div class="task-priority"></div>
-                      <div class="task-due"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="kanban-column done-column">
-                <div class="column-header">
-                  <div class="column-title"></div>
-                  <div class="task-count"></div>
-                </div>
-                <div class="column-content">
-                  <div class="task-card">
-                    <div class="task-title"></div>
-                    <div class="task-meta">
-                      <div class="task-assignee"></div>
-                      <div class="task-priority"></div>
-                      <div class="task-due"></div>
-                    </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div style="height: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin: 6px 0;"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div style="background: var(--w-surface); border: 2px solid var(--w-border); padding: 16px;">
-              <div style="height: 14px; width: 100px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 16px;"></div>
-              
-              <div class="fgrp">
-                <div class="lbl"></div>
-                <div class="inp"></div>
+
+            <div class="kanban-column" style="opacity: 0.6;">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
               </div>
-              
-              <div class="fgrp">
-                <div class="lbl"></div>
-                <div class="txa"></div>
+              <div class="column-content">
+                <div style="padding: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 4px; font-size: 10px;">[ Collapsed View ]</div>
               </div>
-              
-              <div class="fgrp">
-                <div class="lbl"></div>
-                <select class="inp">
-                  <option>[ Select Status ]</option>
+            </div>
+
+            <div class="kanban-column" style="opacity: 0.6;">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div style="padding: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 4px; font-size: 10px;">[ Collapsed View ]</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2.2 Task Detail Overlay -->
+        <div id="task-detail-overlay" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn" onclick="openModal('task-modal')">View Task Details</div>
+            </div>
+          </div>
+
+          <div class="kanban-board" style="opacity: 0.3;">
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card" style="border: 2px solid var(--w-stroke);">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
+              </div>
+            </div>
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Task Detail Modal -->
+          <div id="task-modal" class="modal">
+            <div class="modal-content">
+              <div class="modal-header">
+                <div class="modal-title">Task Details</div>
+                <button class="close-btn" onclick="closeModal('task-modal')">&times;</button>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Task Title</label>
+                <input type="text" class="form-input" value="[Task Title Placeholder]">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-textarea">[Task Description Placeholder]</textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-select">
                   <option>To Do</option>
                   <option>In Progress</option>
                   <option>Done</option>
                 </select>
               </div>
-              
-              <div class="fgrp">
-                <div class="lbl"></div>
-                <select class="inp">
-                  <option>[ Select Assignee ]</option>
-                  <option>John Doe</option>
-                  <option>Jane Smith</option>
+              <div class="form-group">
+                <label class="form-label">Assignee</label>
+                <select class="form-select">
+                  <option>Sarah Johnson</option>
+                  <option>Mike Chen</option>
+                  <option>Alex Rodriguez</option>
                 </select>
               </div>
-              
               <div class="btn-grp">
-                <button class="btn filled">[ Save Changes ]</button>
-                <button class="btn">[ Cancel ]</button>
+                <div class="btn filled">Save Changes</div>
+                <div class="btn" onclick="closeModal('task-modal')">Cancel</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- WORKFLOW VALIDATION -->
-        <div id="workflow-validation" class="page">
+        <!-- 3.0 Active Task Identification -->
+        <div id="active-task-id" class="page">
           <div class="ph">
             <div>
+              <div class="bc-wf"></div>
               <div class="ph-title"></div>
               <div class="ph-sub"></div>
             </div>
+            <div class="btn-grp">
+              <div class="btn">My Tasks Only</div>
+              <div class="btn">All Tasks</div>
+            </div>
           </div>
-          
+
           <div class="kanban-board">
-            <div class="kanban-column todo-column">
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
               </div>
               <div class="column-content">
+                <div class="task-card" style="border: 2px solid #4CAF50; background: #E8F5E8;">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee" style="background: #4CAF50;"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #2E7D32;">[Assigned to You]</div>
+                </div>
                 <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
+                  </div>
+                </div>
+                <div class="task-card" style="border: 2px solid #4CAF50; background: #E8F5E8;">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee" style="background: #4CAF50;"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #2E7D32;">[Assigned to You]</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card" style="border: 2px solid #FF9800; background: #FFF3E0;">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee" style="background: #FF9800;"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #E65100;">[Currently Working]</div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div class="kanban-column progress-column">
+
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
               </div>
               <div class="column-content">
                 <div class="task-card">
@@ -800,127 +827,500 @@
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column done-column">
-              <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
-              </div>
-              <div class="column-content">
-                <div class="task-card">
-                  <div class="task-title"></div>
-                  <div class="task-meta">
-                    <div class="task-assignee"></div>
-                    <div class="task-priority"></div>
-                    <div class="task-due"></div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
-          <!-- VALIDATION MODAL -->
-          <div class="modal active">
+        </div>
+
+        <!-- 3.1 Task Selection and Drag Initiation -->
+        <div id="drag-initiation" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn">Enable Drag Mode</div>
+              <div class="btn">Keyboard Mode</div>
+            </div>
+          </div>
+
+          <div class="kanban-board">
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+                <div class="task-card dragging" style="border: 2px dashed var(--w-stroke); opacity: 0.5;">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: var(--w-stroke);">[Dragging...]</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column drop-zone valid">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
+              </div>
+              <div class="column-content">
+                <div style="padding: 16px; text-align: center; font-size: 10px; color: #4CAF50; border: 2px dashed #4CAF50; background: #E8F5E8;">
+                  [ Drop Here to Move to In Progress ]
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3.2 Cross-Column Drag Operation -->
+        <div id="cross-column-drag" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn">Cancel Drag</div>
+              <div class="btn">Snap to Grid</div>
+            </div>
+          </div>
+
+          <div class="kanban-board">
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">To Do</div>
+                <div class="task-count">4</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+                <div style="height: 60px; border: 2px dashed var(--w-border); background: var(--w-surface); margin-bottom: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--w-label);">
+                  [ Task moved from here ]
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column drop-zone valid">
+              <div class="column-header" style="background: #4CAF50; color: white;">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">4</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+                <div style="height: 4px; background: #4CAF50; margin: 4px 0;"></div>
+                <div class="task-card" style="border: 2px solid #4CAF50; background: #E8F5E8; transform: rotate(-2deg);">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #2E7D32;">[Dropping here...]</div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3.3 Task Movement Confirmation -->
+        <div id="movement-confirmation" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn">Undo Move</div>
+              <div class="btn">Move History</div>
+            </div>
+          </div>
+
+          <div style="padding: 12px; background: #E8F5E8; border: 1px solid #4CAF50; margin-bottom: 16px; border-radius: 4px; font-size: 11px; color: #2E7D32;">
+            ✓ Task successfully moved from "To Do" to "In Progress"
+          </div>
+
+          <div class="kanban-board">
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">To Do</div>
+                <div class="task-count">4</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">4</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+                <div class="task-card" style="border: 2px solid #4CAF50; background: #E8F5E8; animation: pulse 1s;">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #2E7D32;">[Recently moved]</div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4.0 Task Card Context Menu -->
+        <div id="context-menu" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn">Keyboard Shortcuts</div>
+              <div class="btn">Menu Settings</div>
+            </div>
+          </div>
+
+          <div class="kanban-board">
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+                <div class="task-card" style="border: 2px solid var(--w-stroke); position: relative;">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div class="context-menu active" style="top: 100%; left: 0; position: absolute;">
+                    <div class="context-menu-item">Move to In Progress</div>
+                    <div class="context-menu-item">Move to Done</div>
+                    <div class="context-menu-item">Edit Task</div>
+                    <div class="context-menu-item">Assign to...</div>
+                    <div class="context-menu-item">Set Priority</div>
+                    <div class="context-menu-item">Add Comment</div>
+                    <div class="context-menu-item">Delete Task</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4.1 Status Change Selection -->
+        <div id="status-change" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn" onclick="openModal('status-modal')">Change Status</div>
+            </div>
+          </div>
+
+          <div class="kanban-board" style="opacity: 0.3;">
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card" style="border: 2px solid var(--w-stroke);">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
+              </div>
+            </div>
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Change Modal -->
+          <div id="status-modal" class="modal">
             <div class="modal-content">
-              <div class="modal-header"></div>
-              <div class="modal-body">
-                <div class="modal-text"></div>
-                <div class="modal-text" style="width: 80%;"></div>
-                <div class="modal-text" style="width: 90%;"></div>
-                <div style="margin: 16px 0; padding: 12px; background: #fff3cd; border: 1px solid #ffeaa7;">
-                  <div style="font-size: 10px; color: #856404;">⚠ Warning: This task has dependencies that may be affected</div>
-                </div>
+              <div class="modal-header">
+                <div class="modal-title">Change Task Status</div>
+                <button class="close-btn" onclick="closeModal('status-modal')">&times;</button>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Current Status: To Do</label>
+              </div>
+              <div class="form-group">
+                <label class="form-label">New Status</label>
+                <select class="form-select">
+                  <option disabled>To Do (Current)</option>
+                  <option selected>In Progress</option>
+                  <option>Done</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Comment (Optional)</label>
+                <textarea class="form-textarea" placeholder="Add a comment about this status change..."></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Time Spent (Optional)</label>
+                <input type="text" class="form-input" placeholder="e.g., 2h 30m">
               </div>
               <div class="btn-grp">
-                <button class="btn filled">[ Proceed Anyway ]</button>
-                <button class="btn">[ Cancel ]</button>
-                <button class="btn">[ View Dependencies ]</button>
+                <div class="btn filled">Update Status</div>
+                <div class="btn" onclick="closeModal('status-modal')">Cancel</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- KEYBOARD NAVIGATION -->
-        <div id="keyboard-nav" class="page">
+        <!-- 5.0 Accessible Board Structure -->
+        <div id="accessible-structure" class="page">
           <div class="ph">
             <div>
+              <div class="bc-wf"></div>
               <div class="ph-title"></div>
               <div class="ph-sub"></div>
             </div>
-          </div>
-          
-          <div style="margin-bottom: 20px; padding: 16px; background: var(--w-surface); border: 1px dashed var(--w-border);">
-            <div style="font-size: 10px; margin-bottom: 8px; color: var(--w-label);">KEYBOARD SHORTCUTS</div>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 9px;">
-              <div>Tab - Navigate between elements</div>
-              <div>Arrow Keys - Navigate within columns</div>
-              <div>Enter - Activate focused element</div>
-              <div>Space - Select/deselect task</div>
-              <div>Ctrl+M - Move task</div>
-              <div>Ctrl+N - New task</div>
+            <div class="btn-grp">
+              <div class="btn">Screen Reader Mode</div>
+              <div class="btn">Accessibility Settings</div>
             </div>
           </div>
-          
+
+          <div style="padding: 12px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 16px; font-size: 11px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">[ARIA Landmarks and Structure]</div>
+            <div>• Main navigation: role="navigation" aria-label="Board navigation"</div>
+            <div>• Board region: role="main" aria-label="Kanban board"</div>
+            <div>• Column headers: role="heading" level="2"</div>
+            <div>• Task cards: role="button" tabindex="0"</div>
+            <div>• Skip links: "Skip to board content", "Skip to navigation"</div>
+          </div>
+
           <div class="kanban-board">
-            <div class="kanban-column todo-column">
+            <div class="kanban-column" style="border: 2px solid var(--w-stroke);">
               <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
               </div>
               <div class="column-content">
-                <div class="task-card focus-indicator" tabindex="0">
-                  <div class="task-title"></div>
-                  <div class="task-meta">
-                    <div class="task-assignee"></div>
-                    <div class="task-priority"></div>
-                    <div class="task-due"></div>
-                  </div>
+                <div style="padding: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 8px; font-size: 10px;">
+                  [aria-label="Task 1 of 5: Implement user authentication, assigned to Sarah, high priority, in To Do column"]
                 </div>
-                <div class="task-card" tabindex="0">
+                <div class="task-card focus-indicator">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
                   </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: var(--w-stroke);">[Keyboard Focus]</div>
                 </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column progress-column">
-              <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
-              </div>
-              <div class="column-content">
-                <div class="task-card" tabindex="0">
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div class="kanban-column done-column">
+
+            <div class="kanban-column">
               <div class="column-header">
-                <div class="column-title"></div>
-                <div class="task-count"></div>
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
               </div>
               <div class="column-content">
-                <div class="task-card" tabindex="0">
+                <div class="task-card">
                   <div class="task-title"></div>
                   <div class="task-meta">
                     <div class="task-assignee"></div>
                     <div class="task-priority"></div>
-                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
                   </div>
                 </div>
               </div>
@@ -928,149 +1328,250 @@
           </div>
         </div>
 
-        <!-- SCREEN READER -->
-        <div id="screen-reader" class="page">
+        <!-- 5.1 Column Navigation and Announcement -->
+        <div id="column-navigation" class="page">
           <div class="ph">
             <div>
+              <div class="bc-wf"></div>
               <div class="ph-title"></div>
               <div class="ph-sub"></div>
             </div>
-          </div>
-          
-          <div style="margin-bottom: 20px; padding: 16px; background: var(--w-surface); border: 1px dashed var(--w-border);">
-            <div style="font-size: 10px; margin-bottom: 8px; color: var(--w-label);">SCREEN READER ANNOUNCEMENTS</div>
-            <div style="background: #f0f0f0; padding: 8px; font-size: 9px; font-style: italic;">
-              "Kanban board with 3 columns. To Do column has 5 tasks, In Progress has 3 tasks, Done has 8 tasks. Use arrow keys to navigate between tasks."
+            <div class="btn-grp">
+              <div class="btn">Navigation Help</div>
+              <div class="btn">Keyboard Shortcuts</div>
             </div>
           </div>
-          
-          <div class="kanban-board" role="application" aria-label="Project tasks organized in kanban board">
-            <div class="kanban-column todo-column" role="region" aria-labelledby="todo-header">
-              <div class="column-header">
-                <h2 id="todo-header" class="sr-only">To Do Tasks</h2>
-                <div class="column-title" aria-hidden="true"></div>
-                <div class="task-count" aria-label="5 tasks in To Do column"></div>
-              </div>
-              <div class="column-content" role="list">
-                <div class="task-card" role="listitem" tabindex="0" aria-label="Task: Implement user authentication. Assigned to John Doe. High priority. Due in 2 days.">
-                  <div class="task-title" aria-hidden="true"></div>
-                  <div class="task-meta" aria-hidden="true">
-                    <div class="task-assignee"></div>
-                    <div class="task-priority"></div>
-                    <div class="task-due"></div>
-                  </div>
-                </div>
-                <div class="task-card" role="listitem" tabindex="0" aria-label="Task: Design database schema. Assigned to Jane Smith. Medium priority. Due in 5 days.">
-                  <div class="task-title" aria-hidden="true"></div>
-                  <div class="task-meta" aria-hidden="true">
-                    <div class="task-assignee"></div>
-                    <div class="task-priority"></div>
-                    <div class="task-due"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column progress-column" role="region" aria-labelledby="progress-header">
-              <div class="column-header">
-                <h2 id="progress-header" class="sr-only">In Progress Tasks</h2>
-                <div class="column-title" aria-hidden="true"></div>
-                <div class="task-count" aria-label="3 tasks in progress"></div>
-              </div>
-              <div class="column-content" role="list">
-                <div class="task-card" role="listitem" tabindex="0" aria-label="Task: Setup CI/CD pipeline. Assigned to Mike Johnson. High priority. Due tomorrow.">
-                  <div class="task-title" aria-hidden="true"></div>
-                  <div class="task-meta" aria-hidden="true">
-                    <div class="task-assignee"></div>
-                    <div class="task-priority"></div>
-                    <div class="task-due"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column done-column" role="region" aria-labelledby="done-header">
-              <div class="column-header">
-                <h2 id="done-header" class="sr-only">Completed Tasks</h2>
-                <div class="column-title" aria-hidden="true"></div>
-                <div class="task-count" aria-label="8 completed tasks"></div>
-              </div>
-              <div class="column-content" role="list">
-                <div class="task-card" role="listitem" tabindex="0" aria-label="Task: Project setup. Completed by Sarah Wilson. Was high priority.">
-                  <div class="task-title" aria-hidden="true"></div>
-                  <div class="task-meta" aria-hidden="true">
-                    <div class="task-assignee"></div>
-                    <div class="task-priority"></div>
-                    <div class="task-due"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
+          <div style="padding: 12px; background: var(--w-surface); border: 1px solid var(--w-border); margin-bottom: 16px; font-size: 11px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">[Screen Reader Announcements]</div>
+            <div>• "Navigated to To Do column, 5 tasks"</div>
+            <div>• "Use arrow keys to navigate between columns"</div>
+            <div>• "Press Enter to enter column, Escape to exit"</div>
+            <div>• "Press Tab to navigate tasks within column"</div>
           </div>
-          
-          <div aria-live="polite" aria-atomic="true" class="sr-only" id="announcements">
-            <!-- Dynamic announcements will appear here -->
+
+          <div style="padding: 12px; background: var(--w-block); border: 2px solid var(--w-stroke); margin-bottom: 16px; font-size: 11px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">[Keyboard Navigation]</div>
+            <div>• Left/Right Arrow: Navigate between columns</div>
+            <div>• Up/Down Arrow: Navigate tasks within column</div>
+            <div>• Enter: Activate task or column</div>
+            <div>• Space: Select/deselect task</div>
+            <div>• Ctrl+M: Move task to next column</div>
+            <div>• Ctrl+Shift+M: Move task to previous column</div>
+          </div>
+
+          <div class="kanban-board">
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column" style="border: 2px solid var(--w-stroke); background: var(--w-block);">
+              <div class="column-header" style="background: var(--w-active); color: var(--w-surface);">
+                <div class="column-title">In Progress (Current)</div>
+                <div class="task-count">3</div>
+              </div>
+              <div class="column-content">
+                <div style="padding: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 8px; font-size: 10px;">
+                  [Live Region: "In Progress column selected, 3 tasks available"]
+                </div>
+                <div class="task-card focus-indicator">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- HIGH CONTRAST -->
+        <!-- 5.2 Task Interaction and Management -->
+        <div id="keyboard-interaction" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn">Voice Commands</div>
+              <div class="btn">Gesture Support</div>
+            </div>
+          </div>
+
+          <div style="padding: 12px; background: var(--w-surface); border: 1px solid var(--w-border); margin-bottom: 16px; font-size: 11px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">[Alternative Interaction Methods]</div>
+            <div>• Keyboard-only task movement (Ctrl+M)</div>
+            <div>• Voice commands: "Move task to Done"</div>
+            <div>• Screen reader compatible menus</div>
+            <div>• High contrast focus indicators</div>
+          </div>
+
+          <div class="kanban-board">
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card focus-indicator" style="border: 3px solid var(--w-stroke);">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: var(--w-stroke);">[Selected for keyboard move]</div>
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column" style="border: 2px dashed #4CAF50; background: #E8F5E8;">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
+              </div>
+              <div class="column-content">
+                <div style="padding: 12px; text-align: center; font-size: 10px; color: #2E7D32;">
+                  [ Press Enter to confirm move ]
+                </div>
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6.0 High Contrast Board Layout -->
         <div id="high-contrast" class="page">
           <div class="ph">
             <div>
+              <div class="bc-wf"></div>
               <div class="ph-title"></div>
               <div class="ph-sub"></div>
             </div>
+            <div class="btn-grp">
+              <div class="btn">Toggle High Contrast</div>
+              <div class="btn">Accessibility Options</div>
+            </div>
           </div>
-          
-          <div style="margin-bottom: 20px; padding: 16px; background: #000; color: #fff; border: 2px solid #fff;">
-            <div style="font-size: 10px; margin-bottom: 8px;">HIGH CONTRAST MODE ACTIVE</div>
-            <div style="font-size: 9px;">All colors meet WCAG AA contrast requirements (4.5:1 ratio minimum)</div>
+
+          <div style="padding: 12px; background: #000000; color: #ffffff; border: 2px solid #ffffff; margin-bottom: 16px; font-size: 11px;">
+            <div style="font-weight: bold; margin-bottom: 8px;">[High Contrast Mode Active]</div>
+            <div>• WCAG AAA contrast ratios (7:1 minimum)</div>
+            <div>• Bold focus indicators (4px borders)</div>
+            <div>• Pattern-based visual indicators</div>
+            <div>• Reduced motion for vestibular disorders</div>
           </div>
-          
-          <div class="kanban-board">
-            <div class="kanban-column" style="background: #fff; border: 3px solid #000;">
-              <div class="column-header" style="border-bottom: 2px solid #000;">
-                <div style="background: #000; color: #fff; padding: 4px 8px; font-weight: bold;">TO DO</div>
-                <div style="background: #000; color: #fff; padding: 2px 6px; border-radius: 10px;">5</div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; height: calc(100vh - 200px);">
+            <div style="background: #ffffff; border: 3px solid #000000; display: flex; flex-direction: column;">
+              <div style="padding: 12px 16px; border-bottom: 3px solid #000000; background: #000000; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 14px; font-weight: bold;">To Do</div>
+                <div style="background: #ffffff; color: #000000; padding: 2px 6px; font-size: 10px; font-weight: bold;">5</div>
               </div>
-              <div class="column-content">
-                <div style="background: #fff; border: 2px solid #000; padding: 12px; margin-bottom: 8px;">
-                  <div style="background: #000; height: 12px; margin-bottom: 8px;"></div>
-                  <div style="display: flex; justify-content: space-between;">
-                    <div style="background: #000; width: 20px; height: 20px; border-radius: 50%;"></div>
-                    <div style="background: #000; width: 40px; height: 8px;"></div>
+              <div style="flex: 1; padding: 12px; overflow-y: auto;">
+                <div style="background: #ffffff; border: 3px solid #000000; padding: 12px; margin-bottom: 8px;">
+                  <div style="height: 14px; background: #000000; margin-bottom: 8px;"></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="width: 20px; height: 20px; background: #000000; border: 2px solid #ffffff;"></div>
+                    <div style="width: 40px; height: 12px; background: #000000;"></div>
+                  </div>
+                </div>
+                <div style="background: #ffffff; border: 4px solid #000000; padding: 12px; margin-bottom: 8px;">
+                  <div style="height: 14px; background: #000000; margin-bottom: 8px;"></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="width: 20px; height: 20px; background: #000000; border: 2px solid #ffffff;"></div>
+                    <div style="width: 40px; height: 12px; background: #000000;"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #000000; font-weight: bold;">[FOCUSED]</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="background: #ffffff; border: 3px solid #000000; display: flex; flex-direction: column;">
+              <div style="padding: 12px 16px; border-bottom: 3px solid #000000; background: #000000; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 14px; font-weight: bold;">In Progress</div>
+                <div style="background: #ffffff; color: #000000; padding: 2px 6px; font-size: 10px; font-weight: bold;">3</div>
+              </div>
+              <div style="flex: 1; padding: 12px; overflow-y: auto;">
+                <div style="background: #ffffff; border: 3px solid #000000; padding: 12px; margin-bottom: 8px;">
+                  <div style="height: 14px; background: #000000; margin-bottom: 8px;"></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="width: 20px; height: 20px; background: #000000; border: 2px solid #ffffff;"></div>
+                    <div style="width: 40px; height: 12px; background: #000000;"></div>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div class="kanban-column" style="background: #fff; border: 3px solid #000;">
-              <div class="column-header" style="border-bottom: 2px solid #000;">
-                <div style="background: #000; color: #fff; padding: 4px 8px; font-weight: bold;">IN PROGRESS</div>
-                <div style="background: #000; color: #fff; padding: 2px 6px; border-radius: 10px;">3</div>
+
+            <div style="background: #ffffff; border: 3px solid #000000; display: flex; flex-direction: column;">
+              <div style="padding: 12px 16px; border-bottom: 3px solid #000000; background: #000000; color: #ffffff; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 14px; font-weight: bold;">Done</div>
+                <div style="background: #ffffff; color: #000000; padding: 2px 6px; font-size: 10px; font-weight: bold;">8</div>
               </div>
-              <div class="column-content">
-                <div style="background: #fff; border: 2px solid #000; padding: 12px; margin-bottom: 8px;">
-                  <div style="background: #000; height: 12px; margin-bottom: 8px;"></div>
-                  <div style="display: flex; justify-content: space-between;">
-                    <div style="background: #000; width: 20px; height: 20px; border-radius: 50%;"></div>
-                    <div style="background: #000; width: 40px; height: 8px;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column" style="background: #fff; border: 3px solid #000;">
-              <div class="column-header" style="border-bottom: 2px solid #000;">
-                <div style="background: #000; color: #fff; padding: 4px 8px; font-weight: bold;">DONE</div>
-                <div style="background: #000; color: #fff; padding: 2px 6px; border-radius: 10px;">8</div>
-              </div>
-              <div class="column-content">
-                <div style="background: #fff; border: 2px solid #000; padding: 12px; margin-bottom: 8px;">
-                  <div style="background: #000; height: 12px; margin-bottom: 8px;"></div>
-                  <div style="display: flex; justify-content: space-between;">
-                    <div style="background: #000; width: 20px; height: 20px; border-radius: 50%;"></div>
-                    <div style="background: #000; width: 40px; height: 8px;"></div>
+              <div style="flex: 1; padding: 12px; overflow-y: auto;">
+                <div style="background: #ffffff; border: 3px solid #000000; padding: 12px; margin-bottom: 8px;">
+                  <div style="height: 14px; background: #000000; margin-bottom: 8px;"></div>
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="width: 20px; height: 20px; background: #000000; border: 2px solid #ffffff;"></div>
+                    <div style="width: 40px; height: 12px; background: #000000;"></div>
                   </div>
                 </div>
               </div>
@@ -1078,8 +1579,381 @@
           </div>
         </div>
 
+        <!-- 7.0 Mobile Overview -->
+        <div id="mobile-overview" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn">Mobile Menu</div>
+              <div class="btn">Swipe Guide</div>
+            </div>
+          </div>
+
+          <div style="max-width: 375px; margin: 0 auto; border: 2px solid var(--w-border); background: var(--w-surface);">
+            <div style="padding: 12px; background: var(--w-block); border-bottom: 1px solid var(--w-border); font-size: 11px; font-weight: bold; text-align: center;">
+              Mobile View (320px - 767px)
+            </div>
+            
+            <div style="padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="font-size: 12px; font-weight: bold;">Kanban Board</div>
+                <div style="width: 30px; height: 30px; background: var(--w-dark); border: 1px solid var(--w-border);"></div>
+              </div>
+
+              <!-- Mobile Column Tabs -->
+              <div style="display: flex; margin-bottom: 16px; border-bottom: 2px solid var(--w-border);">
+                <div style="flex: 1; padding: 8px; text-align: center; background: var(--w-active); color: var(--w-surface); font-size: 10px; font-weight: bold;">To Do (5)</div>
+                <div style="flex: 1; padding: 8px; text-align: center; background: var(--w-surface); font-size: 10px; cursor: pointer;">In Progress (3)</div>
+                <div style="flex: 1; padding: 8px; text-align: center; background: var(--w-surface); font-size: 10px; cursor: pointer;">Done (8)</div>
+              </div>
+
+              <!-- Mobile Task Cards -->
+              <div style="margin-bottom: 12px; background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px; padding: 16px;">
+                <div style="height: 12px; background: var(--w-dark); border: 1px solid var(--w-border); margin-bottom: 8px;"></div>
+                <div style="height: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 8px;"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="width: 24px; height: 24px; background: var(--w-dark); border-radius: 50%;"></div>
+                  <div style="width: 50px; height: 12px; background: var(--w-stroke);"></div>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 12px; background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px; padding: 16px;">
+                <div style="height: 12px; background: var(--w-dark); border: 1px solid var(--w-border); margin-bottom: 8px;"></div>
+                <div style="height: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 8px;"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="width: 24px; height: 24px; background: var(--w-dark); border-radius: 50%;"></div>
+                  <div style="width: 50px; height: 12px; background: var(--w-stroke);"></div>
+                </div>
+              </div>
+
+              <div style="padding: 12px; text-align: center; background: var(--w-surface); border: 1px dashed var(--w-border); font-size: 10px;">
+                [ Swipe left/right to navigate columns ]
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7.1 Tablet Hybrid Layout -->
+        <div id="tablet-layout" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn">Portrait Mode</div>
+              <div class="btn">Landscape Mode</div>
+            </div>
+          </div>
+
+          <div style="max-width: 768px; margin: 0 auto; border: 2px solid var(--w-border); background: var(--w-surface);">
+            <div style="padding: 12px; background: var(--w-block); border-bottom: 1px solid var(--w-border); font-size: 11px; font-weight: bold; text-align: center;">
+              Tablet View (768px - 1023px)
+            </div>
+            
+            <div style="padding: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="font-size: 14px; font-weight: bold;">Kanban Board</div>
+                <div style="display: flex; gap: 8px;">
+                  <div style="width: 80px; height: 32px; background: var(--w-block); border: 1px solid var(--w-border);"></div>
+                  <div style="width: 32px; height: 32px; background: var(--w-dark); border-radius: 50%;"></div>
+                </div>
+              </div>
+
+              <!-- Tablet Two-Column Layout -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div style="background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px;">
+                  <div style="padding: 12px 16px; border-bottom: 1px solid var(--w-border); background: var(--w-block); font-size: 12px; font-weight: bold;">To Do (5)</div>
+                  <div style="padding: 12px;">
+                    <div style="background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 12px; margin-bottom: 8px;">
+                      <div style="height: 10px; background: var(--w-dark); margin-bottom: 6px;"></div>
+                      <div style="display: flex; justify-content: space-between;">
+                        <div style="width: 20px; height: 20px; background: var(--w-dark); border-radius: 50%;"></div>
+                        <div style="width: 40px; height: 10px; background: var(--w-stroke);"></div>
+                      </div>
+                    </div>
+                    <div style="background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 12px; margin-bottom: 8px;">
+                      <div style="height: 10px; background: var(--w-dark); margin-bottom: 6px;"></div>
+                      <div style="display: flex; justify-content: space-between;">
+                        <div style="width: 20px; height: 20px; background: var(--w-dark); border-radius: 50%;"></div>
+                        <div style="width: 40px; height: 10px; background: var(--w-stroke);"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px;">
+                  <div style="padding: 12px 16px; border-bottom: 1px solid var(--w-border); background: var(--w-block); font-size: 12px; font-weight: bold;">In Progress (3)</div>
+                  <div style="padding: 12px;">
+                    <div style="background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 12px; margin-bottom: 8px;">
+                      <div style="height: 10px; background: var(--w-dark); margin-bottom: 6px;"></div>
+                      <div style="display: flex; justify-content: space-between;">
+                        <div style="width: 20px; height: 20px; background: var(--w-dark); border-radius: 50%;"></div>
+                        <div style="width: 40px; height: 10px; background: var(--w-stroke);"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Done Column (Full Width) -->
+              <div style="background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px;">
+                <div style="padding: 12px 16px; border-bottom: 1px solid var(--w-border); background: var(--w-block); font-size: 12px; font-weight: bold;">Done (8)</div>
+                <div style="padding: 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                  <div style="background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 8px;">
+                    <div style="height: 8px; background: var(--w-dark); margin-bottom: 4px;"></div>
+                    <div style="display: flex; justify-content: space-between;">
+                      <div style="width: 16px; height: 16px; background: var(--w-dark); border-radius: 50%;"></div>
+                      <div style="width: 30px; height: 8px; background: var(--w-stroke);"></div>
+                    </div>
+                  </div>
+                  <div style="background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 8px;">
+                    <div style="height: 8px; background: var(--w-dark); margin-bottom: 4px;"></div>
+                    <div style="display: flex; justify-content: space-between;">
+                      <div style="width: 16px; height: 16px; background: var(--w-dark); border-radius: 50%;"></div>
+                      <div style="width: 30px; height: 8px; background: var(--w-stroke);"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7.2 Desktop Full Experience -->
+        <div id="desktop-experience" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn">Advanced Features</div>
+              <div class="btn">Multi-Board View</div>
+              <div class="btn">Analytics</div>
+            </div>
+          </div>
+
+          <div style="border: 2px solid var(--w-border); background: var(--w-surface); margin-bottom: 16px;">
+            <div style="padding: 12px; background: var(--w-block); border-bottom: 1px solid var(--w-border); font-size: 11px; font-weight: bold; text-align: center;">
+              Desktop View (1024px+) - Full Feature Set
+            </div>
+            
+            <div style="padding: 20px;">
+              <!-- Advanced Toolbar -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 12px; background: var(--w-bg); border: 1px solid var(--w-border);">
+                <div style="display: flex; gap: 8px;">
+                  <div style="width: 80px; height: 28px; background: var(--w-block); border: 1px solid var(--w-border);"></div>
+                  <div style="width: 80px; height: 28px; background: var(--w-block); border: 1px solid var(--w-border);"></div>
+                  <div style="width: 80px; height: 28px; background: var(--w-block); border: 1px solid var(--w-border);"></div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <div style="width: 120px; height: 28px; background: var(--w-surface); border: 1px dashed var(--w-border);"></div>
+                  <div style="width: 60px; height: 28px; background: var(--w-active); color: var(--w-surface);"></div>
+                </div>
+              </div>
+
+              <!-- Full Three-Column Layout -->
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                <div style="background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px;">
+                  <div style="padding: 16px; border-bottom: 1px solid var(--w-border); background: var(--w-block); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 14px; font-weight: bold;">To Do</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                      <div style="background: var(--w-dark); color: var(--w-surface); padding: 2px 6px; border-radius: 10px; font-size: 10px;">5</div>
+                      <div style="width: 16px; height: 16px; background: var(--w-dark);"></div>
+                    </div>
+                  </div>
+                  <div style="padding: 16px;">
+                    <div style="background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                      <div style="height: 12px; background: var(--w-dark); margin-bottom: 8px;"></div>
+                      <div style="height: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 8px;"></div>
+                      <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                        <div style="width: 30px; height: 12px; background: var(--w-stroke);"></div>
+                        <div style="width: 40px; height: 12px; background: var(--w-dark);"></div>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="width: 24px; height: 24px; background: var(--w-dark); border-radius: 50%;"></div>
+                        <div style="width: 50px; height: 12px; background: var(--w-stroke);"></div>
+                      </div>
+                    </div>
+                    <div style="background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                      <div style="height: 12px; background: var(--w-dark); margin-bottom: 8px;"></div>
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="width: 24px; height: 24px; background: var(--w-dark); border-radius: 50%;"></div>
+                        <div style="width: 50px; height: 12px; background: var(--w-stroke);"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px;">
+                  <div style="padding: 16px; border-bottom: 1px solid var(--w-border); background: var(--w-block); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 14px; font-weight: bold;">In Progress</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                      <div style="background: var(--w-dark); color: var(--w-surface); padding: 2px 6px; border-radius: 10px; font-size: 10px;">3</div>
+                      <div style="width: 16px; height: 16px; background: var(--w-dark);"></div>
+                    </div>
+                  </div>
+                  <div style="padding: 16px;">
+                    <div style="background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                      <div style="height: 12px; background: var(--w-dark); margin-bottom: 8px;"></div>
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="width: 24px; height: 24px; background: var(--w-dark); border-radius: 50%;"></div>
+                        <div style="width: 50px; height: 12px; background: var(--w-stroke);"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="background: var(--w-bg); border: 1px solid var(--w-border); border-radius: 4px;">
+                  <div style="padding: 16px; border-bottom: 1px solid var(--w-border); background: var(--w-block); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 14px; font-weight: bold;">Done</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                      <div style="background: var(--w-dark); color: var(--w-surface); padding: 2px 6px; border-radius: 10px; font-size: 10px;">8</div>
+                      <div style="width: 16px; height: 16px; background: var(--w-dark);"></div>
+                    </div>
+                  </div>
+                  <div style="padding: 16px;">
+                    <div style="background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 16px; margin-bottom: 12px;">
+                      <div style="height: 12px; background: var(--w-dark); margin-bottom: 8px;"></div>
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="width: 24px; height: 24px; background: var(--w-dark); border-radius: 50%;"></div>
+                        <div style="width: 50px; height: 12px; background: var(--w-stroke);"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Advanced Features Panel -->
+              <div style="margin-top: 20px; padding: 16px; background: var(--w-block); border: 1px solid var(--w-border);">
+                <div style="font-size: 12px; font-weight: bold; margin-bottom: 12px;">Advanced Desktop Features</div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                  <div style="padding: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); text-align: center; font-size: 10px;">[ Bulk Operations ]</div>
+                  <div style="padding: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); text-align: center; font-size: 10px;">[ Advanced Filters ]</div>
+                  <div style="padding: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); text-align: center; font-size: 10px;">[ Real-time Collab ]</div>
+                  <div style="padding: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); text-align: center; font-size: 10px;">[ Analytics Dashboard ]</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7.3 Cross-Device Synchronization -->
+        <div id="cross-device-sync" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <div class="btn">Sync Status</div>
+              <div class="btn">Offline Mode</div>
+              <div class="btn">Conflict Resolution</div>
+            </div>
+          </div>
+
+          <div style="padding: 16px; background: var(--w-surface); border: 1px solid var(--w-border); margin-bottom: 20px;">
+            <div style="font-size: 12px; font-weight: bold; margin-bottom: 12px;">Cross-Device Synchronization Status</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+              <div style="padding: 12px; background: var(--w-bg); border: 1px solid var(--w-border); text-align: center;">
+                <div style="width: 40px; height: 60px; background: var(--w-dark); margin: 0 auto 8px; border-radius: 8px;"></div>
+                <div style="font-size: 10px; font-weight: bold;">Mobile</div>
+                <div style="font-size: 9px; color: #4CAF50;">✓ Synced</div>
+              </div>
+              <div style="padding: 12px; background: var(--w-bg); border: 1px solid var(--w-border); text-align: center;">
+                <div style="width: 60px; height: 40px; background: var(--w-dark); margin: 0 auto 8px; border-radius: 4px;"></div>
+                <div style="font-size: 10px; font-weight: bold;">Tablet</div>
+                <div style="font-size: 9px; color: #FF9800;">⟳ Syncing...</div>
+              </div>
+              <div style="padding: 12px; background: var(--w-bg); border: 1px solid var(--w-border); text-align: center;">
+                <div style="width: 80px; height: 50px; background: var(--w-dark); margin: 0 auto 8px; border-radius: 4px;"></div>
+                <div style="font-size: 10px; font-weight: bold;">Desktop</div>
+                <div style="font-size: 9px; color: #4CAF50;">✓ Synced</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 16px; background: #FFF3E0; border: 1px solid #FF9800; margin-bottom: 20px;">
+            <div style="font-size: 12px; font-weight: bold; margin-bottom: 8px; color: #E65100;">Sync Conflict Detected</div>
+            <div style="font-size: 10px; color: #E65100; margin-bottom: 12px;">Task "Implement user authentication" was modified on both mobile and desktop devices.</div>
+            <div style="display: flex; gap: 8px;">
+              <div style="padding: 6px 12px; background: var(--w-active); color: var(--w-surface); font-size: 9px;">Use Desktop Version</div>
+              <div style="padding: 6px 12px; background: var(--w-block); border: 1px solid var(--w-border); font-size: 9px;">Use Mobile Version</div>
+              <div style="padding: 6px 12px; background: var(--w-block); border: 1px solid var(--w-border); font-size: 9px;">Merge Changes</div>
+            </div>
+          </div>
+
+          <div class="kanban-board">
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">To Do</div>
+                <div class="task-count">5</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #4CAF50;">✓ Synced across all devices</div>
+                </div>
+                <div class="task-card" style="border: 2px solid #FF9800; background: #FFF3E0;">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #E65100;">⚠ Sync conflict</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">In Progress</div>
+                <div class="task-count">3</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #2196F3;">⟳ Syncing from mobile...</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="kanban-column">
+              <div class="column-header">
+                <div class="column-title">Done</div>
+                <div class="task-count">8</div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                  </div>
+                  <div style="margin-top: 8px; font-size: 9px; color: #4CAF50;">✓ Synced</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </main>
+    </div>
   </div>
 
   <script>
@@ -1090,89 +1964,118 @@
       if (el) el.classList.add('active');
     }
 
-    function switchTab(el, panelId) {
-      el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      el.classList.add('active');
-      var prefix = panelId.substring(0, panelId.lastIndexOf('-'));
-      document.querySelectorAll('[id^="'+prefix+'-"]').forEach(p => p.style.display='none');
-      var t = document.getElementById(panelId);
-      if (t) t.style.display = 'block';
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
     }
 
-    // Drag and Drop Functions
-    function allowDrop(ev) {
-      ev.preventDefault();
-      ev.target.closest('.kanban-column').classList.add('drop-zone');
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
     }
 
-    function drag(ev) {
-      ev.dataTransfer.setData("text", ev.target.id);
-      ev.target.classList.add('dragging');
-    }
+    // Close modal when clicking outside
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('modal')) {
+        e.target.classList.remove('active');
+      }
+    });
 
-    function drop(ev) {
-      ev.preventDefault();
-      var data = ev.dataTransfer.getData("text");
-      ev.target.appendChild(document.getElementById(data));
-      document.querySelectorAll('.drop-zone').forEach(zone => zone.classList.remove('drop-zone'));
-      document.querySelectorAll('.dragging').forEach(item => item.classList.remove('dragging'));
-    }
-
-    // Context Menu
-    function showContextMenu(event) {
-      event.preventDefault();
-      // Context menu logic would go here
-      console.log('Context menu triggered');
-    }
-
-    // Keyboard Navigation
+    // Keyboard navigation
     document.addEventListener('keydown', function(e) {
-      if (e.ctrlKey && e.key === 'm') {
-        e.preventDefault();
-        console.log('Move task shortcut triggered');
-      }
-      if (e.ctrlKey && e.key === 'n') {
-        e.preventDefault();
-        console.log('New task shortcut triggered');
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.active').forEach(modal => {
+          modal.classList.remove('active');
+        });
       }
     });
 
-    // Screen Reader Announcements
-    function announce(message) {
-      const announcer = document.getElementById('announcements');
-      if (announcer) {
-        announcer.textContent = message;
-        setTimeout(() => announcer.textContent = '', 1000);
-      }
+    // Mobile sidebar toggle
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
     }
 
-    // Focus Management
-    document.addEventListener('focusin', function(e) {
+    // Add mobile menu button for small screens
+    if (window.innerWidth <= 767) {
+      const topbar = document.getElementById('topbar');
+      const menuBtn = document.createElement('div');
+      menuBtn.innerHTML = '☰';
+      menuBtn.style.cssText = 'cursor: pointer; font-size: 18px; margin-right: 12px;';
+      menuBtn.onclick = toggleSidebar;
+      topbar.insertBefore(menuBtn, topbar.firstChild);
+    }
+
+    // Simulate drag and drop interactions
+    let draggedElement = null;
+
+    document.addEventListener('dragstart', function(e) {
       if (e.target.classList.contains('task-card')) {
-        announce(`Focused on task: ${e.target.getAttribute('aria-label') || 'Task details'}`);
+        draggedElement = e.target;
+        e.target.classList.add('dragging');
       }
     });
+
+    document.addEventListener('dragend', function(e) {
+      if (e.target.classList.contains('task-card')) {
+        e.target.classList.remove('dragging');
+        draggedElement = null;
+      }
+    });
+
+    document.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      if (e.target.closest('.kanban-column')) {
+        e.target.closest('.kanban-column').classList.add('drop-zone', 'valid');
+      }
+    });
+
+    document.addEventListener('dragleave', function(e) {
+      if (e.target.closest('.kanban-column')) {
+        e.target.closest('.kanban-column').classList.remove('drop-zone', 'valid');
+      }
+    });
+
+    // Add pulse animation for recently moved items
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
   </script>
+
+  <!-- 
+  SUMMARY TABLE:
+  Step → Screen Name → File Reference → Navigates To
+  
+  Scenario 1: Task Visualization and Overview
+  1.0 → Kanban Board Landing Page → board-landing → 1.1 Column Interaction
+  1.1 → Column Header Interaction State → column-interaction → 1.2 Task Overview
+  1.2 → Task Card Overview State → task-overview → 2.0 Simplified Overview
+  2.0 → Simplified Board Overview → simplified-overview → 2.1 Column Expansion
+  2.1 → Column Expansion State → column-expansion → 2.2 Task Detail Overlay
+  2.2 → Task Detail Overlay → task-detail-overlay → 2.3 Return to Overview
+  
+  Scenario 2: Task Management and Interaction
+  3.0 → Active Task Identification → active-task-id → 3.1 Drag Initiation
+  3.1 → Task Selection and Drag Initiation → drag-initiation → 3.2 Cross-Column Drag
+  3.2 → Cross-Column Drag Operation → cross-column-drag → 3.3 Movement Confirmation
+  3.3 → Task Movement Confirmation → movement-confirmation → 4.0 Context Menu
+  4.0 → Task Card Context Menu → context-menu → 4.1 Status Change
+  4.1 → Status Change Selection → status-change → 4.2 Confirmation and Validation
+  
+  Scenario 3: Responsive Navigation and Accessibility
+  5.0 → Accessible Board Structure → accessible-structure → 5.1 Column Navigation
+  5.1 → Column Navigation and Announcement → column-navigation → 5.2 Keyboard Interaction
+  5.2 → Task Interaction and Management → keyboard-interaction → 5.3 Status Update Confirmation
+  6.0 → High Contrast Board Layout → high-contrast → 6.1 Keyboard Navigation Mastery
+  
+  Scenario 4: Multi-Device Usage
+  7.0 → Mobile Overview → mobile-overview → 7.1 Tablet Layout
+  7.1 → Tablet Hybrid Layout → tablet-layout → 7.2 Desktop Experience
+  7.2 → Desktop Full Experience → desktop-experience → 7.3 Cross-Device Sync
+  7.3 → Cross-Device Synchronization → cross-device-sync → Return to Overview
+  -->
 </body>
 </html>
-
-<!--
-SUMMARY TABLE:
-Step → Screen Name → File Reference → Navigates To
-
-1.0 → Desktop Kanban Board → desktop-board → tablet-view, mobile-view, drag-drop
-2.0 → Tablet Responsive View → tablet-view → desktop-board, mobile-view
-3.0 → Mobile Responsive View → mobile-view → desktop-board, tablet-view
-4.0 → Drag and Drop Interaction → drag-drop → context-menu, task-update
-5.0 → Context Menu Actions → context-menu → task-update, workflow-validation
-6.0 → Task Status Update → task-update → workflow-validation, desktop-board
-7.0 → Workflow Validation → workflow-validation → desktop-board, task-update
-8.0 → Keyboard Navigation → keyboard-nav → screen-reader, high-contrast
-9.0 → Screen Reader Optimization → screen-reader → keyboard-nav, high-contrast
-10.0 → High Contrast Mode → high-contrast → screen-reader, keyboard-nav
-
-All screens support bidirectional navigation through the sidebar menu.
-Each screen represents a key workflow step from the user journey scenarios.
-Accessibility features are integrated throughout all screens.
-Responsive behavior is demonstrated across desktop, tablet, and mobile viewports.
--->
