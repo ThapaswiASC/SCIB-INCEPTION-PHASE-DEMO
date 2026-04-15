@@ -3,17 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board User Flow Diagram</title>
+    <title>User Flow Diagram - Document Upload Interface</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ 
-            startOnLoad: true,
-            theme: 'default',
-            flowchart: {
-                useMaxWidth: true,
-                htmlLabels: true
-            }
-        });
+        mermaid.initialize({ startOnLoad: true });
     </script>
     <style>
         body {
@@ -26,157 +19,98 @@
             max-width: 1200px;
             margin: 0 auto;
         }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
         .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        .description {
             background: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .flow-description {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .flow-description h2 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-        .flow-description ul {
-            line-height: 1.6;
-        }
-        .flow-description li {
-            margin-bottom: 8px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board User Flow Diagram</h1>
+        <h1>User Flow Diagram - Document Upload Interface</h1>
         
+        <div class="description">
+            <h3>Flow Description</h3>
+            <p>This diagram represents the user journey through the document upload interface, showing the main interaction paths from initial access through document submission and validation.</p>
+        </div>
+
         <div class="mermaid">
             flowchart TD
-                Start[User Opens Kanban Board]
-                Start --> LoadBoard[Load Board Data]
-                LoadBoard --> CheckAuth{User Authenticated?}
-                CheckAuth -->|No| Login[Redirect to Login]
-                Login --> AuthSuccess[Authentication Success]
-                AuthSuccess --> LoadBoard
-                CheckAuth -->|Yes| FetchData[Fetch Board Data from API]
-                FetchData --> DataSuccess{Data Load Success?}
-                DataSuccess -->|No| ShowError[Display Error State]
-                ShowError --> RetryOption[Show Retry Button]
-                RetryOption --> RetryAction{User Clicks Retry?}
-                RetryAction -->|Yes| FetchData
-                RetryAction -->|No| StayError[Stay on Error State]
-                DataSuccess -->|Yes| RenderBoard[Render Kanban Board]
-                RenderBoard --> ShowColumns[Display Three Columns]
-                ShowColumns --> TodoColumn[To Do Column]
-                ShowColumns --> InProgressColumn[In Progress Column]
-                ShowColumns --> DoneColumn[Done Column]
-                TodoColumn --> DisplayCards1[Display Cards in To Do]
-                InProgressColumn --> DisplayCards2[Display Cards in Progress]
-                DoneColumn --> DisplayCards3[Display Cards in Done]
-                DisplayCards1 --> UserActions[User Interaction Options]
-                DisplayCards2 --> UserActions
-                DisplayCards3 --> UserActions
-                UserActions --> AddCard{Add New Card?}
-                UserActions --> MoveCard{Move Card?}
-                UserActions --> EditCard{Edit Card?}
-                UserActions --> DeleteCard{Delete Card?}
-                AddCard -->|Yes| ShowAddForm[Show Add Card Form]
-                ShowAddForm --> FillCardData[User Fills Card Data]
-                FillCardData --> SubmitCard[Submit New Card]
-                SubmitCard --> CreateAPI[POST Create Card API]
-                CreateAPI --> CreateSuccess{Create Success?}
-                CreateSuccess -->|Yes| UpdateColumn[Update Column Display]
-                CreateSuccess -->|No| ShowCreateError[Show Create Error]
-                ShowCreateError --> ShowAddForm
-                UpdateColumn --> UserActions
-                MoveCard -->|Yes| DragStart[User Starts Dragging Card]
-                DragStart --> DragOver[Drag Over Target Column]
-                DragOver --> DropCard[Drop Card in New Column]
-                DropCard --> MoveAPI[PUT Move Card API]
-                MoveAPI --> MoveSuccess{Move Success?}
-                MoveSuccess -->|Yes| UpdateColumns[Update Both Columns]
-                MoveSuccess -->|No| RevertMove[Revert Card Position]
-                RevertMove --> ShowMoveError[Show Move Error]
-                ShowMoveError --> UserActions
-                UpdateColumns --> UserActions
-                EditCard -->|Yes| ShowEditForm[Show Edit Card Form]
-                ShowEditForm --> ModifyCardData[User Modifies Card Data]
-                ModifyCardData --> SaveChanges[Save Card Changes]
-                SaveChanges --> UpdateAPI[PUT Update Card API]
-                UpdateAPI --> UpdateSuccess{Update Success?}
-                UpdateSuccess -->|Yes| RefreshCard[Refresh Card Display]
-                UpdateSuccess -->|No| ShowUpdateError[Show Update Error]
-                ShowUpdateError --> ShowEditForm
-                RefreshCard --> UserActions
-                DeleteCard -->|Yes| ConfirmDelete[Show Delete Confirmation]
-                ConfirmDelete --> UserConfirms{User Confirms Delete?}
-                UserConfirms -->|No| UserActions
-                UserConfirms -->|Yes| DeleteAPI[DELETE Card API]
-                DeleteAPI --> DeleteSuccess{Delete Success?}
-                DeleteSuccess -->|Yes| RemoveCard[Remove Card from Column]
-                DeleteSuccess -->|No| ShowDeleteError[Show Delete Error]
-                ShowDeleteError --> UserActions
-                RemoveCard --> UserActions
-                UserActions --> ContinueWork[Continue Working]
-                ContinueWork --> UserActions
+                Start[User Opens Application]
+                Start --> Login[User Authentication]
+                Login --> Dashboard[Access Dashboard]
+                Dashboard --> InitSession[Initialize Upload Session]
+                InitSession --> SelectMethod[Select Upload Method]
+                
+                SelectMethod --> CameraUpload[Camera Capture]
+                SelectMethod --> FileUpload[File Upload]
+                
+                CameraUpload --> CameraPreview[Camera Preview]
+                CameraPreview --> CapturePhoto[Capture Document Photo]
+                CapturePhoto --> ImageProcessing[Process Captured Image]
+                
+                FileUpload --> BrowseFiles[Browse Local Files]
+                BrowseFiles --> SelectFile[Select Document File]
+                SelectFile --> FileValidation[Validate File Type]
+                
+                ImageProcessing --> QualityCheck[Quality Validation]
+                FileValidation --> QualityCheck
+                
+                QualityCheck --> QualityPass{Quality Check Passed}
+                QualityPass -->|Yes| UploadProgress[Show Upload Progress]
+                QualityPass -->|No| RetryUpload[Retry Upload Process]
+                
+                RetryUpload --> SelectMethod
+                
+                UploadProgress --> ProcessingStatus[Document Processing]
+                ProcessingStatus --> ValidationResults[Validation Results]
+                
+                ValidationResults --> ValidationSuccess{Validation Successful}
+                ValidationSuccess -->|Yes| SuccessPage[Upload Success]
+                ValidationSuccess -->|No| ErrorHandling[Show Error Message]
+                
+                ErrorHandling --> RetryOption{Retry Available}
+                RetryOption -->|Yes| SelectMethod
+                RetryOption -->|No| ContactSupport[Contact Support]
+                
+                SuccessPage --> ViewDocument[View Uploaded Document]
+                SuccessPage --> UploadAnother[Upload Another Document]
+                SuccessPage --> CompletedWorkflow[Complete Workflow]
+                
+                UploadAnother --> SelectMethod
+                ViewDocument --> DocumentDetails[View Document Details]
+                DocumentDetails --> DownloadDocument[Download Document]
+                DocumentDetails --> ShareDocument[Share Document]
+                
+                CompletedWorkflow --> Dashboard
+                ContactSupport --> SupportTicket[Create Support Ticket]
+                SupportTicket --> Dashboard
         </div>
-        
-        <div class="flow-description">
-            <h2>User Flow Description</h2>
-            <p>This diagram represents the complete user interaction flow for the Kanban Board application. The flow covers all major user journeys and system interactions:</p>
-            
-            <h3>Main User Journeys:</h3>
+
+        <div class="description">
+            <h3>Key User Interactions</h3>
             <ul>
-                <li><strong>Board Loading:</strong> User opens the application, system checks authentication, loads board data, and displays the three-column layout (To Do, In Progress, Done)</li>
-                <li><strong>Card Management:</strong> Users can add new cards, edit existing cards, delete cards, and move cards between columns</li>
-                <li><strong>Drag and Drop:</strong> Users can drag cards from one column to another, with real-time API updates and error handling</li>
-                <li><strong>Error Handling:</strong> System provides error states with retry options for failed operations</li>
-                <li><strong>Authentication:</strong> Ensures users are authenticated before accessing board functionality</li>
-            </ul>
-            
-            <h3>Key Interaction Points:</h3>
-            <ul>
-                <li><strong>Authentication Check:</strong> Validates user access before loading board data</li>
-                <li><strong>API Integration:</strong> All CRUD operations (Create, Read, Update, Delete) are handled through REST API calls</li>
-                <li><strong>Real-time Updates:</strong> UI updates immediately reflect user actions with API confirmation</li>
-                <li><strong>Error Recovery:</strong> Failed operations provide retry mechanisms and clear error messaging</li>
-                <li><strong>Responsive Design:</strong> Flow supports desktop, tablet, and mobile interactions</li>
-            </ul>
-            
-            <h3>Component Interactions:</h3>
-            <ul>
-                <li><strong>KanbanBoardComponent:</strong> Main container managing overall board state and API calls</li>
-                <li><strong>KanbanColumnComponent:</strong> Individual column containers handling card display and drop zones</li>
-                <li><strong>KanbanCardComponent:</strong> Individual cards with drag functionality and edit capabilities</li>
-                <li><strong>ErrorStateComponent:</strong> Error display with retry functionality for failed operations</li>
-            </ul>
-            
-            <h3>API Endpoints Used:</h3>
-            <ul>
-                <li><strong>GET /kanban/boards/{boardId}:</strong> Load initial board data and columns</li>
-                <li><strong>POST /kanban/cards:</strong> Create new cards in specified columns</li>
-                <li><strong>PUT /kanban/cards/{cardId}:</strong> Update existing card information</li>
-                <li><strong>PUT /kanban/cards/{cardId}/move:</strong> Move cards between columns</li>
-                <li><strong>DELETE /kanban/cards/{cardId}:</strong> Remove cards from the board</li>
-            </ul>
-            
-            <h3>Accessibility Features:</h3>
-            <ul>
-                <li><strong>ARIA Labels:</strong> All interactive elements include proper ARIA attributes</li>
-                <li><strong>Keyboard Navigation:</strong> Full keyboard support for drag and drop operations</li>
-                <li><strong>Screen Reader Support:</strong> Semantic HTML structure with role attributes</li>
-                <li><strong>Focus Management:</strong> Proper focus handling during modal operations</li>
+                <li><strong>Authentication:</strong> User login and session management</li>
+                <li><strong>Upload Methods:</strong> Camera capture or file selection</li>
+                <li><strong>Quality Validation:</strong> Automatic document quality checking</li>
+                <li><strong>Progress Tracking:</strong> Real-time upload and processing status</li>
+                <li><strong>Error Handling:</strong> Retry mechanisms and support options</li>
+                <li><strong>Success Actions:</strong> View, download, share, or upload additional documents</li>
             </ul>
         </div>
     </div>
