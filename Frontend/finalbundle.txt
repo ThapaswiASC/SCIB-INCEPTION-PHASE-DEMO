@@ -3,592 +3,2176 @@
 ## 1. JIRA REQUIREMENT SUMMARY
 
 **Story Description:**
-Create Angular component for Kanban board container with three-column layout at src/app/features/kanban/components/kanban-board/kanban-board.component.ts. Implement component class with @Component decorator and selector 'app-kanban-board'. Define template in kanban-board.component.html with three column containers using CSS Grid layout (grid-template-columns: repeat(3, 1fr)). Create component SCSS file with responsive breakpoints: desktop (>1024px), tablet (768px-1024px), mobile (<768px). Implement OnInit lifecycle hook to initialize column data structure: columns = [{id: 'todo', title: 'To Do', cards: []}, {id: 'inprogress', title: 'In Progress', cards: []}, {id: 'done', title: 'Done', cards: []}]. Add ARIA attributes: role='region', aria-label='Kanban Board', and aria-labelledby for each column header. Implement error handling with *ngIf directive to display error message when column configuration fails. Use Angular Material or custom CSS for styling. Add responsive meta tags and viewport configuration.
+DEMO-1060: Create an Angular Kanban board component with three-column layout (To Do, In Progress, Done), responsive design, and accessibility features.
 
 **Acceptance Criteria:**
-- KanbanBoardComponent created with proper Angular structure and decorators
-- Template renders three distinct column containers with proper semantic HTML
-- CSS Grid layout implemented with responsive breakpoints for desktop, tablet, and mobile
-- ARIA attributes added for accessibility compliance
-- Error state template implemented with conditional rendering
-- Component compiles without errors and passes linting checks
+- Three-column Kanban board layout
+- Drag-and-drop functionality between columns
+- Responsive design for mobile and desktop
+- WCAG 2.1 AA accessibility compliance
+- Angular component architecture
+- TypeScript implementation
 
 **UI Tasks:**
-- Create Angular component structure
-- Implement three-column CSS Grid layout
-- Add responsive breakpoints
-- Implement ARIA accessibility features
-- Add error handling and conditional rendering
-- Ensure component compilation and linting compliance
+- Implement KanbanBoardComponent with column management
+- Create KanbanColumnComponent with add/remove capabilities
+- Develop KanbanCardComponent with edit/delete actions
+- Implement drag-and-drop interactions
+- Ensure responsive mobile-first design
+- Add accessibility features and ARIA attributes
 
 ## 2. UI COMPONENT ARCHITECTURE (FROM AGENT-1)
 
-**NOTE: This section is the SOURCE OF TRUTH for structure.**
+**CRITICAL NOTE: REQUIREMENT MISMATCH IDENTIFIED**
+Jira requirement specifies Kanban board component, but provided HTML structure shows document upload interface.
 
 ### Component Hierarchy:
+
+**For Kanban Board (Per Jira Requirement):**
 ```
-├── KanbanBoardComponent
-│   ├── KanbanColumnComponent (x3)
-│   │   ├── ColumnHeaderComponent
-│   │   ├── KanbanCardComponent (dynamic)
-│   │   └── AddCardComponent
-│   └── ErrorStateComponent
+KanbanBoardComponent
+├── KanbanColumnComponent (To Do)
+│   └── KanbanCardComponent[]
+├── KanbanColumnComponent (In Progress)
+│   └── KanbanCardComponent[]
+└── KanbanColumnComponent (Done)
+    └── KanbanCardComponent[]
+```
+
+**For Document Upload Interface (Per HTML Structure):**
+```
+DocumentUploadPage
+├── HeaderComponent
+├── SidebarComponent
+├── DocumentUploadComponent
+│   ├── CameraComponent
+│   ├── QualityValidationComponent
+│   └── ProgressComponent
+└── FormSessionComponent
 ```
 
 ### Layout Structure:
-**Page Layout Hierarchy:**
-```
-├── App Container (#app)
-├── Sidebar Container
-│   └── Navigation Sidebar
-│       ├── Brand Section
-│       ├── Navigation Sections
-│       └── Footer
-└── Main Layout (#main)
-    ├── Header (outer-box)
-    │   ├── Search Field
-    │   └── Header Right (notifications, settings, avatar)
-    └── Content Area (#content)
-        └── Multiple Page Sections
-            ├── Page Headers
-            ├── Stepper Components
-            ├── Card Containers
-            └── Form Elements
-```
+
+**Kanban Board Layout:**
+- Three-column grid layout
+- Drag-and-drop zones
+- Responsive breakpoints
+- Card containers with overflow handling
+
+**Document Upload Layout:**
+- Header-Sidebar-Main content structure
+- Flex-based responsive design
+- Modal overlays for camera and validation
+- Progressive disclosure for upload steps
 
 ### Component Responsibilities:
 
 **KanbanBoardComponent:**
-- Purpose: Main container for three-column Kanban layout
-- Props: columns: KanbanColumn[], loading: boolean, error: string | null
-- State: columns, isLoading, errorMessage
-- Events: onCardMove, onCardAdd, onCardEdit
-- API Binding: GET /kanban/boards/{boardId}, POST /kanban/cards, PUT /kanban/cards/{cardId}/move
+- Manage board state and column data
+- Handle drag-and-drop operations
+- Coordinate between columns
+- Persist board changes
 
-**KanbanColumnComponent:**
-- Purpose: Individual column container with header and cards
-- Props: column: KanbanColumn, cards: KanbanCard[], allowDrop: boolean
-- State: isDragOver, isAddingCard
-- Events: onCardDrop, onAddCard
-- API Binding: None (delegates to parent)
+**DocumentUploadComponent:**
+- Manage upload workflow state
+- Coordinate camera and file upload methods
+- Handle validation and progress tracking
+- Integrate with backend APIs
 
-**KanbanCardComponent:**
-- Purpose: Individual task card with drag/drop functionality
-- Props: card: KanbanCard, draggable: boolean
-- State: isDragging, isEditing
-- Events: onDragStart, onEdit, onDelete
-- API Binding: None (delegates to parent)
+### Data Flow:
 
-**ErrorStateComponent:**
-- Purpose: Display error messages when column configuration fails
-- Props: error: string, retry: () => void
-- State: None
-- Events: onRetry
-- API Binding: None
+**Kanban Board:**
+- Board state → Column components → Card components
+- Drag events bubble up to board level
+- State updates flow down to affected columns
 
-### Data Flow Between Components:
-**Parent → Child Mapping:**
-- App → KanbanBoardComponent (boardId, permissions)
-- KanbanBoardComponent → KanbanColumnComponent (column, cards, allowDrop)
-- KanbanColumnComponent → KanbanCardComponent (card, draggable)
-- KanbanBoardComponent → ErrorStateComponent (error, retry)
+**Document Upload:**
+- Upload state → Child components
+- File data flows through validation pipeline
+- Progress updates propagate to UI components
 
-### Folder Structure (MANDATORY):
-```
-src/
-├── app/
-│   ├── features/
-│   │   └── kanban/
-│   │       ├── components/
-│   │       │   ├── kanban-board/
-│   │       │   │   ├── kanban-board.component.ts
-│   │       │   │   ├── kanban-board.component.html
-│   │       │   │   ├── kanban-board.component.scss
-│   │       │   │   └── kanban-board.component.spec.ts
-│   │       │   ├── kanban-column/
-│   │       │   ├── kanban-card/
-│   │       │   └── error-state/
-│   │       ├── services/
-│   │       │   └── kanban.service.ts
-│   │       ├── models/
-│   │       │   ├── kanban-board.model.ts
-│   │       │   ├── kanban-column.model.ts
-│   │       │   └── kanban-card.model.ts
-│   │       └── kanban.module.ts
-│   ├── shared/
-│   │   ├── components/
-│   │   │   ├── button/
-│   │   │   ├── card/
-│   │   │   ├── header/
-│   │   │   ├── sidebar/
-│   │   │   └── badge/
-│   │   └── services/
-│   │       ├── api.service.ts
-│   │       └── auth.service.ts
-│   └── core/
-│       ├── guards/
-│       ├── interceptors/
-│       └── services/
-```
+**NOTE:** This section represents the SOURCE OF TRUTH for structure, but shows critical mismatch between requirements and implementation.
 
 ## 3. UI COMPONENT SPECIFICATIONS (FROM AGENT-2)
 
-**IMPORTANT: FULL CODE MUST BE PRESERVED - DO NOT MODIFY OR SUMMARIZE**
+**IMPORTANT: FULL CODE PRESERVED - DO NOT MODIFY OR SUMMARIZE**
 
-### 3.1 KanbanBoardComponent
+### INPUT REFERENCE (FROM AGENT-1)
+- **Page Name**: Document Upload Interface
+- **Mapped Layout**: Comprehensive document upload with sidebar navigation
+- **Components**: HeaderComponent, SidebarComponent, CameraComponent, ValidationComponent, ProgressComponent, DocumentUploadComponent, QualityValidationComponent, FormSessionComponent
 
-**Component Type:** Feature
-**Mapped From A1:** Main Kanban board container with three-column layout
-**Purpose:** Primary container component that manages the entire Kanban board with three columns (To Do, In Progress, Done)
-**Parent:** App/Page Component
-**Children:** KanbanColumnComponent (x3), ErrorStateComponent (conditional)
+### GLOBAL ARCHITECTURE SUMMARY
+- **Layout Type**: Mixed (Flex + Grid)
+- **Main Sections**: Header, Sidebar, Main Content, Modals
+- **Component Strategy**: Reuse existing UI library components where possible
+- **Reused Components**: Button, Card, Badge, Stepper, Input, Avatar, Progress Bar
+- **New Components**: DocumentUploadComponent, CameraComponent, QualityValidationComponent
 
-**Dependencies:**
-- Angular CDK (Drag & Drop)
-- KanbanService
-- Shared UI Components
+### FOLDER STRUCTURE
+```
+src/
+├── pages/
+│   └── DocumentUploadPage/
+│       ├── DocumentUploadPage.component.ts
+│       ├── DocumentUploadPage.component.html
+│       └── DocumentUploadPage.component.css
+├── layout/
+│   ├── HeaderComponent/
+│   └── SidebarComponent/
+├── features/
+│   ├── DocumentUploadComponent/
+│   ├── CameraComponent/
+│   └── QualityValidationComponent/
+└── shared/
+    ├── Button/
+    ├── Card/
+    ├── Badge/
+    ├── Stepper/
+    ├── Input/
+    ├── Avatar/
+    └── ProgressBar/
+```
 
-**Library Components Used:**
-- awe-card → Board container styling
-- Button → Action buttons
-- Badge → Status indicators
+### DETAILED COMPONENT IMPLEMENTATIONS
+
+#### 4.1 DocumentUploadPage (Page Component)
+
+**Purpose**: Root page component for document upload workflow
 
 **TypeScript Specification:**
+```typescript
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
-**Inputs:**
-- boardId: string (board identifier)
-- permissions: BoardPermissions (user access rights)
-- initialData: KanbanBoard | null (optional initial board data)
+export interface DocumentUploadPageProps {
+  sessionId?: string;
+  userId: string;
+  allowedFileTypes: string[];
+  maxFileSize: number;
+  enableCamera: boolean;
+  enableQualityValidation: boolean;
+}
 
-**Outputs:**
-- onCardMove: EventEmitter<CardMoveEvent> (card moved between columns)
-- onCardAdd: EventEmitter<CardAddEvent> (new card created)
-- onCardEdit: EventEmitter<CardEditEvent> (card updated)
-- onError: EventEmitter<string> (error occurred)
+export interface DocumentUploadPageState {
+  isLoading: boolean;
+  currentStep: number;
+  uploadProgress: number;
+  error: string | null;
+  sessionData: any;
+  userProfile: any;
+}
 
-**State:**
-- columns: KanbanColumn[] (three column configuration)
-- isLoading: boolean (loading state)
-- errorMessage: string | null (error state)
-- draggedCard: KanbanCard | null (currently dragged card)
+@Component({
+  selector: 'app-document-upload-page',
+  templateUrl: './DocumentUploadPage.component.html',
+  styleUrls: ['./DocumentUploadPage.component.css']
+})
+export class DocumentUploadPage implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  
+  // Props
+  sessionId?: string;
+  userId: string = '';
+  allowedFileTypes: string[] = ['pdf', 'jpg', 'png'];
+  maxFileSize: number = 10485760; // 10MB
+  enableCamera: boolean = true;
+  enableQualityValidation: boolean = true;
+  
+  // State
+  isLoading: boolean = false;
+  currentStep: number = 1;
+  uploadProgress: number = 0;
+  error: string | null = null;
+  sessionData: any = null;
+  userProfile: any = null;
+  
+  constructor(
+    private router: Router,
+    private sessionService: SessionService,
+    private userService: UserService
+  ) {}
+  
+  ngOnInit(): void {
+    this.initializeSession();
+    this.loadUserProfile();
+  }
+  
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+  
+  private async initializeSession(): Promise<void> {
+    try {
+      this.isLoading = true;
+      const session = await this.sessionService.initializeSession(this.userId);
+      this.sessionData = session;
+      this.sessionId = session.id;
+    } catch (error) {
+      this.handleError('Failed to initialize session', error);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+  
+  private async loadUserProfile(): Promise<void> {
+    try {
+      this.userProfile = await this.userService.getUserProfile(this.userId);
+    } catch (error) {
+      this.handleError('Failed to load user profile', error);
+    }
+  }
+  
+  onStepChange(step: number): void {
+    this.currentStep = step;
+  }
+  
+  onUploadProgress(progress: number): void {
+    this.uploadProgress = progress;
+  }
+  
+  onUploadComplete(): void {
+    this.router.navigate(['/upload-success']);
+  }
+  
+  onUploadError(error: string): void {
+    this.handleError('Upload failed', error);
+  }
+  
+  private handleError(message: string, error: any): void {
+    console.error(message, error);
+    this.error = message;
+    this.isLoading = false;
+  }
+  
+  retryOperation(): void {
+    this.error = null;
+    this.initializeSession();
+  }
+}
+```
 
-**Methods:**
-- ngOnInit() → Initialize component and load board data
-- loadBoardData() → Fetch board data from API
-- handleCardMove(cardId: string, fromColumn: string, toColumn: string) → Process card movement
-- handleCardAdd(columnId: string, cardData: any) → Add new card to column
-- handleError(error: string) → Handle and display errors
-- retryOperation() → Retry failed operations
-
-**HTML STRUCTURE:**
-
+**HTML Structure (Pseudo-code):**
 ```html
-<div class="kanban-board-container" 
-     role="region" 
-     aria-label="Kanban Board" 
-     [attr.aria-busy]="isLoading">
+<div class="document-upload-page">
+  <app-header 
+    [userProfile]="userProfile"
+    [isLoading]="isLoading">
+  </app-header>
   
-  <div class="kanban-board-header">
-    <h1>Kanban Board</h1>
-    <div class="board-actions">
-      <button type="button" class="btn-primary">Add Card</button>
-    </div>
+  <div class="page-container">
+    <app-sidebar 
+      [currentStep]="currentStep"
+      [totalSteps]="4"
+      (stepChange)="onStepChange($event)">
+    </app-sidebar>
+    
+    <main class="main-content">
+      <div class="content-wrapper" *ngIf="!isLoading">
+        <app-document-upload
+          [sessionId]="sessionId"
+          [allowedFileTypes]="allowedFileTypes"
+          [maxFileSize]="maxFileSize"
+          [enableCamera]="enableCamera"
+          [enableQualityValidation]="enableQualityValidation"
+          (stepChange)="onStepChange($event)"
+          (uploadProgress)="onUploadProgress($event)"
+          (uploadComplete)="onUploadComplete()"
+          (uploadError)="onUploadError($event)">
+        </app-document-upload>
+      </div>
+      
+      <div class="loading-state" *ngIf="isLoading">
+        <app-progress-bar [indeterminate]="true"></app-progress-bar>
+        <p>Initializing session...</p>
+      </div>
+      
+      <div class="error-state" *ngIf="error">
+        <app-card class="error-card">
+          <h3>Error</h3>
+          <p>{{ error }}</p>
+          <app-button (click)="retryOperation()">Retry</app-button>
+        </app-card>
+      </div>
+    </main>
   </div>
-  
-  <div class="kanban-columns-grid" 
-       *ngIf="!errorMessage; else errorTemplate">
-    <app-kanban-column 
-      *ngFor="let column of columns; trackBy: trackByColumnId"
-      [column]="column"
-      [cards]="column.cards"
-      [allowDrop]="!isLoading"
-      (onCardDrop)="handleCardMove($event)"
-      (onAddCard)="handleCardAdd($event)">
-    </app-kanban-column>
-  </div>
-  
-  <ng-template #errorTemplate>
-    <app-error-state 
-      [error]="errorMessage"
-      (onRetry)="retryOperation()">
-    </app-error-state>
-  </ng-template>
-  
 </div>
 ```
 
-**CSS SPECIFICATION:**
+**CSS Specification:**
+```css
+.document-upload-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color, #f5f5f5);
+}
 
-**Layout:**
-- .kanban-board-container: flex column layout, full height
-- .kanban-columns-grid: display: grid, grid-template-columns: repeat(3, 1fr), gap: 1rem
+.page-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
 
-**Spacing:**
-- padding: 1.5rem
-- gap: 1rem between columns
-- margin: 0.5rem for headers
+.main-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}
 
-**Component Styles:**
-- .kanban-board-container: background: var(--surface-color), border-radius: 8px
-- .kanban-board-header: flex justify-between, padding-bottom: 1rem
-- .kanban-columns-grid: flex: 1, overflow: hidden
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-**Responsive:**
-- Desktop (>1024px): 3 columns side by side
-- Tablet (768px-1024px): 2 columns with horizontal scroll
-- Mobile (<768px): 1 column with tab navigation
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
 
-**API INTEGRATION:**
-- ngOnInit() → GET /kanban/boards/{boardId} → Load initial board data
-- handleCardAdd() → POST /kanban/cards → Create new card
-- handleCardMove() → PUT /kanban/cards/{cardId}/move → Move card between columns
+.error-card {
+  max-width: 400px;
+  padding: 24px;
+}
 
-**ERROR HANDLING:**
-- API failure → show ErrorStateComponent with retry option
-- Network error → display offline message with retry
-- Validation error → show inline error messages
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .page-container {
+    flex-direction: column;
+  }
+  
+  .main-content {
+    padding: 16px;
+  }
+}
+```
 
-**INTERACTION FLOW:**
-**User Action → UI → API:**
-- Page load → show loading spinner → GET board data → render columns
-- Drag card → update UI optimistically → PUT move API → confirm/rollback
-- Add card → show form modal → POST card data → update column
-- Retry error → clear error state → retry failed operation
+**API Integration:**
+- Session initialization: `POST /api/sessions`
+- User profile: `GET /api/users/{userId}`
+- Error handling for network failures and session timeouts
 
-### 3.2 KanbanColumnComponent
+**Error Handling:**
+- API failures with retry mechanism
+- Session timeout handling
+- Network error recovery
+- User-friendly error messages
 
-**Component Type:** Feature
-**Mapped From A1:** Individual column container with header and card list
-**Purpose:** Represents a single column (To Do, In Progress, Done) with drag/drop functionality
-**Parent:** KanbanBoardComponent
-**Children:** KanbanCardComponent (multiple), AddCardComponent (inline form)
+#### 4.2 HeaderComponent (Layout Component)
 
-**Dependencies:**
-- Angular CDK Drag & Drop
-- Shared UI Components
+**Purpose**: Top navigation with user info and actions
 
-**Library Components Used:**
-- awe-card → Column container styling
-- Button → Add card button
-- Badge → Card count indicator
+**Library Components Used**: AppBar, Toolbar, Avatar, Button, Badge
 
 **TypeScript Specification:**
+```typescript
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 
-**Inputs:**
-- column: KanbanColumn (column configuration)
-- cards: KanbanCard[] (cards in this column)
-- allowDrop: boolean (enable/disable drop functionality)
+export interface HeaderComponentProps {
+  userProfile: {
+    name: string;
+    avatar?: string;
+    email: string;
+  } | null;
+  isLoading: boolean;
+  notificationCount?: number;
+}
 
-**Outputs:**
-- onCardDrop: EventEmitter<CardDropEvent> (card dropped in column)
-- onAddCard: EventEmitter<CardAddEvent> (add card to column)
+@Component({
+  selector: 'app-header',
+  templateUrl: './HeaderComponent.component.html',
+  styleUrls: ['./HeaderComponent.component.css']
+})
+export class HeaderComponent {
+  @Input() userProfile: HeaderComponentProps['userProfile'] = null;
+  @Input() isLoading: boolean = false;
+  @Input() notificationCount: number = 0;
+  
+  @Output() logout = new EventEmitter<void>();
+  @Output() profileClick = new EventEmitter<void>();
+  @Output() notificationClick = new EventEmitter<void>();
+  
+  onLogout(): void {
+    this.logout.emit();
+  }
+  
+  onProfileClick(): void {
+    this.profileClick.emit();
+  }
+  
+  onNotificationClick(): void {
+    this.notificationClick.emit();
+  }
+  
+  getUserInitials(name: string): string {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  }
+}
+```
 
-**State:**
-- isDragOver: boolean (drag over state)
-- isAddingCard: boolean (show add card form)
-- newCardData: Partial<KanbanCard> (new card form data)
-
-**Methods:**
-- onDragOver(event: CdkDragDrop) → Handle drag over events
-- onCardDrop(event: CdkDragDrop) → Process card drop
-- startAddCard() → Show add card form
-- cancelAddCard() → Hide add card form
-- submitNewCard() → Submit new card data
-
-**HTML STRUCTURE:**
-
+**HTML Structure:**
 ```html
-<div class="kanban-column" 
-     [class.drag-over]="isDragOver"
-     cdkDropList
-     [cdkDropListData]="cards"
-     (cdkDropListDropped)="onCardDrop($event)">
-  
-  <div class="column-header" [attr.aria-labelledby]="column.id + '-header'">
-    <h2 [id]="column.id + '-header'">{{ column.title }}</h2>
-    <span class="card-count badge-neutral">{{ cards.length }}</span>
-  </div>
-  
-  <div class="column-content" [attr.aria-label]="column.title + ' cards'">
-    <app-kanban-card 
-      *ngFor="let card of cards; trackBy: trackByCardId"
-      [card]="card"
-      [draggable]="allowDrop"
-      cdkDrag>
-    </app-kanban-card>
-    
-    <div class="add-card-section" *ngIf="!isAddingCard">
-      <button type="button" 
-              class="btn-ghost btn-small add-card-btn"
-              (click)="startAddCard()">
-        + Add Card
-      </button>
+<header class="app-header">
+  <div class="header-container">
+    <div class="header-left">
+      <h1 class="app-title">Document Upload</h1>
     </div>
     
-    <div class="add-card-form" *ngIf="isAddingCard">
-      <input type="text" 
-             [(ngModel)]="newCardData.title"
-             placeholder="Card title"
-             class="card-title-input">
-      <div class="form-actions">
-        <button type="button" class="btn-primary btn-small" (click)="submitNewCard()">Add</button>
-        <button type="button" class="btn-ghost btn-small" (click)="cancelAddCard()">Cancel</button>
+    <div class="header-right">
+      <app-button 
+        variant="ghost" 
+        class="notification-btn"
+        (click)="onNotificationClick()"
+        [attr.aria-label]="'Notifications' + (notificationCount > 0 ? ' (' + notificationCount + ' unread)' : '')">
+        <span class="notification-icon">🔔</span>
+        <app-badge 
+          *ngIf="notificationCount > 0" 
+          [count]="notificationCount"
+          class="notification-badge">
+        </app-badge>
+      </app-button>
+      
+      <div class="user-menu" *ngIf="userProfile && !isLoading">
+        <app-avatar 
+          [src]="userProfile.avatar"
+          [alt]="userProfile.name"
+          [fallback]="getUserInitials(userProfile.name)"
+          (click)="onProfileClick()"
+          class="user-avatar">
+        </app-avatar>
+        
+        <div class="user-info desktop-only">
+          <span class="user-name">{{ userProfile.name }}</span>
+          <span class="user-email">{{ userProfile.email }}</span>
+        </div>
+        
+        <app-button 
+          variant="outline" 
+          size="small"
+          (click)="onLogout()"
+          class="logout-btn desktop-only">
+          Logout
+        </app-button>
+      </div>
+      
+      <div class="loading-placeholder" *ngIf="isLoading">
+        <div class="skeleton-avatar"></div>
+        <div class="skeleton-text desktop-only"></div>
+      </div>
+    </div>
+  </div>
+</header>
+```
+
+**CSS Specification:**
+```css
+.app-header {
+  background: white;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 64px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--primary-color, #1976d2);
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.notification-btn {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.user-avatar:hover {
+  transform: scale(1.05);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.user-email {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+}
+
+.loading-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--skeleton-color, #f0f0f0);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-text {
+  width: 120px;
+  height: 32px;
+  background: var(--skeleton-color, #f0f0f0);
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 16px;
+    height: 56px;
+  }
+  
+  .app-title {
+    font-size: 18px;
+  }
+  
+  .desktop-only {
+    display: none;
+  }
+  
+  .header-right {
+    gap: 8px;
+  }
+}
+```
+
+**API Integration:**
+- Notifications: `GET /api/notifications`
+- Logout: `POST /api/auth/logout`
+
+#### 4.3 SidebarComponent (Layout Component)
+
+**Purpose**: Left navigation menu with workflow steps
+
+**Library Components Used**: Drawer, List, Stepper
+
+**TypeScript Specification:**
+```typescript
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+
+export interface SidebarStep {
+  id: number;
+  title: string;
+  description: string;
+  completed: boolean;
+  active: boolean;
+}
+
+export interface SidebarComponentProps {
+  currentStep: number;
+  totalSteps: number;
+  isCollapsed?: boolean;
+}
+
+@Component({
+  selector: 'app-sidebar',
+  templateUrl: './SidebarComponent.component.html',
+  styleUrls: ['./SidebarComponent.component.css']
+})
+export class SidebarComponent {
+  @Input() currentStep: number = 1;
+  @Input() totalSteps: number = 4;
+  @Input() isCollapsed: boolean = false;
+  
+  @Output() stepChange = new EventEmitter<number>();
+  @Output() toggleCollapse = new EventEmitter<boolean>();
+  
+  steps: SidebarStep[] = [
+    {
+      id: 1,
+      title: 'Upload Method',
+      description: 'Choose upload method',
+      completed: false,
+      active: true
+    },
+    {
+      id: 2,
+      title: 'Document Capture',
+      description: 'Capture or select document',
+      completed: false,
+      active: false
+    },
+    {
+      id: 3,
+      title: 'Quality Check',
+      description: 'Validate document quality',
+      completed: false,
+      active: false
+    },
+    {
+      id: 4,
+      title: 'Upload & Process',
+      description: 'Upload and process document',
+      completed: false,
+      active: false
+    }
+  ];
+  
+  ngOnInit(): void {
+    this.updateSteps();
+  }
+  
+  ngOnChanges(): void {
+    this.updateSteps();
+  }
+  
+  private updateSteps(): void {
+    this.steps = this.steps.map(step => ({
+      ...step,
+      completed: step.id < this.currentStep,
+      active: step.id === this.currentStep
+    }));
+  }
+  
+  onStepClick(stepId: number): void {
+    if (stepId <= this.currentStep) {
+      this.stepChange.emit(stepId);
+    }
+  }
+  
+  onToggleCollapse(): void {
+    this.isCollapsed = !this.isCollapsed;
+    this.toggleCollapse.emit(this.isCollapsed);
+  }
+  
+  getStepIcon(step: SidebarStep): string {
+    if (step.completed) return '✓';
+    if (step.active) return step.id.toString();
+    return step.id.toString();
+  }
+  
+  getStepStatus(step: SidebarStep): string {
+    if (step.completed) return 'completed';
+    if (step.active) return 'active';
+    return 'pending';
+  }
+}
+```
+
+**HTML Structure:**
+```html
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+  <div class="sidebar-header">
+    <h2 class="sidebar-title" *ngIf="!isCollapsed">Upload Progress</h2>
+    <app-button 
+      variant="ghost" 
+      size="small"
+      (click)="onToggleCollapse()"
+      class="collapse-btn"
+      [attr.aria-label]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'">
+      <span class="collapse-icon">{{ isCollapsed ? '→' : '←' }}</span>
+    </app-button>
+  </div>
+  
+  <nav class="sidebar-nav">
+    <app-stepper 
+      [orientation]="'vertical'"
+      [currentStep]="currentStep"
+      class="step-list">
+      
+      <div 
+        *ngFor="let step of steps; trackBy: trackByStepId"
+        class="step-item"
+        [class]="getStepStatus(step)"
+        (click)="onStepClick(step.id)"
+        [attr.aria-current]="step.active ? 'step' : null"
+        role="button"
+        [attr.tabindex]="step.id <= currentStep ? 0 : -1">
+        
+        <div class="step-indicator">
+          <span class="step-icon">{{ getStepIcon(step) }}</span>
+        </div>
+        
+        <div class="step-content" *ngIf="!isCollapsed">
+          <h3 class="step-title">{{ step.title }}</h3>
+          <p class="step-description">{{ step.description }}</p>
+        </div>
+        
+        <div class="step-connector" *ngIf="step.id < totalSteps"></div>
+      </div>
+    </app-stepper>
+  </nav>
+  
+  <div class="sidebar-footer" *ngIf="!isCollapsed">
+    <div class="progress-summary">
+      <span class="progress-text">Step {{ currentStep }} of {{ totalSteps }}</span>
+      <div class="progress-bar">
+        <div 
+          class="progress-fill" 
+          [style.width.%]="(currentStep / totalSteps) * 100">
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
+```
+
+**CSS Specification:**
+```css
+.sidebar {
+  width: 280px;
+  background: white;
+  border-right: 1px solid var(--border-color, #e0e0e0);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 64px;
+}
+
+.sidebar-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary, #333);
+}
+
+.collapse-btn {
+  padding: 8px;
+  min-width: auto;
+}
+
+.collapse-icon {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 24px 0;
+  overflow-y: auto;
+}
+
+.step-list {
+  padding: 0 20px;
+}
+
+.step-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  padding: 16px 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  margin: 0 -8px;
+}
+
+.step-item:hover {
+  background: var(--hover-color, #f5f5f5);
+}
+
+.step-item.completed {
+  opacity: 0.7;
+}
+
+.step-item.active {
+  background: var(--primary-light, #e3f2fd);
+}
+
+.step-item.pending {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.step-indicator {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.step-item.completed .step-indicator {
+  background: var(--success-color, #4caf50);
+  color: white;
+}
+
+.step-item.active .step-indicator {
+  background: var(--primary-color, #1976d2);
+  color: white;
+}
+
+.step-item.pending .step-indicator {
+  background: var(--background-secondary, #f0f0f0);
+  color: var(--text-secondary, #666);
+}
+
+.step-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.step-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  color: var(--text-primary, #333);
+}
+
+.step-description {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.step-connector {
+  position: absolute;
+  left: 15px;
+  top: 48px;
+  width: 2px;
+  height: 32px;
+  background: var(--border-color, #e0e0e0);
+}
+
+.step-item.completed .step-connector {
+  background: var(--success-color, #4caf50);
+}
+
+.sidebar-footer {
+  padding: 16px 20px 24px;
+  border-top: 1px solid var(--border-color, #e0e0e0);
+}
+
+.progress-summary {
+  text-align: center;
+}
+
+.progress-text {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 4px;
+  background: var(--background-secondary, #f0f0f0);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color, #1976d2);
+  transition: width 0.3s ease;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 56px;
+    height: calc(100vh - 56px);
+    z-index: 90;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar.collapsed {
+    width: 280px;
+    transform: translateX(-100%);
+  }
+}
+```
+
+#### 4.4 DocumentUploadComponent (Feature Component)
+
+**Purpose**: Main upload interface with camera and file upload
+
+**Children Components**: CameraComponent, QualityValidationComponent, ProgressComponent
+
+**TypeScript Specification:**
+```typescript
+import { Component, Input, Output, EventEmitter, ViewChild } from '@angular/core';
+import { CameraComponent } from '../CameraComponent/CameraComponent.component';
+
+export interface DocumentUploadComponentProps {
+  sessionId: string;
+  allowedFileTypes: string[];
+  maxFileSize: number;
+  enableCamera: boolean;
+  enableQualityValidation: boolean;
+}
+
+export interface UploadMethod {
+  id: 'camera' | 'file';
+  title: string;
+  description: string;
+  icon: string;
+  enabled: boolean;
+}
+
+export interface DocumentUploadState {
+  currentStep: number;
+  selectedMethod: 'camera' | 'file' | null;
+  uploadedFile: File | null;
+  capturedImage: Blob | null;
+  uploadProgress: number;
+  isUploading: boolean;
+  validationResult: any;
+  error: string | null;
+}
+
+@Component({
+  selector: 'app-document-upload',
+  templateUrl: './DocumentUploadComponent.component.html',
+  styleUrls: ['./DocumentUploadComponent.component.css']
+})
+export class DocumentUploadComponent {
+  @ViewChild(CameraComponent) cameraComponent!: CameraComponent;
+  
+  @Input() sessionId: string = '';
+  @Input() allowedFileTypes: string[] = ['pdf', 'jpg', 'png'];
+  @Input() maxFileSize: number = 10485760; // 10MB
+  @Input() enableCamera: boolean = true;
+  @Input() enableQualityValidation: boolean = true;
+  
+  @Output() stepChange = new EventEmitter<number>();
+  @Output() uploadProgress = new EventEmitter<number>();
+  @Output() uploadComplete = new EventEmitter<void>();
+  @Output() uploadError = new EventEmitter<string>();
+  
+  // State
+  currentStep: number = 1;
+  selectedMethod: 'camera' | 'file' | null = null;
+  uploadedFile: File | null = null;
+  capturedImage: Blob | null = null;
+  uploadProgress: number = 0;
+  isUploading: boolean = false;
+  validationResult: any = null;
+  error: string | null = null;
+  
+  uploadMethods: UploadMethod[] = [
+    {
+      id: 'camera',
+      title: 'Camera Capture',
+      description: 'Take a photo using your device camera',
+      icon: '📷',
+      enabled: this.enableCamera
+    },
+    {
+      id: 'file',
+      title: 'File Upload',
+      description: 'Select a file from your device',
+      icon: '📁',
+      enabled: true
+    }
+  ];
+  
+  constructor(
+    private uploadService: UploadService,
+    private validationService: ValidationService
+  ) {}
+  
+  ngOnInit(): void {
+    this.updateUploadMethods();
+  }
+  
+  private updateUploadMethods(): void {
+    this.uploadMethods = this.uploadMethods.map(method => ({
+      ...method,
+      enabled: method.id === 'camera' ? this.enableCamera : true
+    }));
+  }
+  
+  onMethodSelect(method: 'camera' | 'file'): void {
+    this.selectedMethod = method;
+    this.currentStep = 2;
+    this.stepChange.emit(this.currentStep);
+    this.error = null;
+  }
+  
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      
+      if (this.validateFile(file)) {
+        this.uploadedFile = file;
+        this.proceedToValidation();
+      }
+    }
+  }
+  
+  onImageCaptured(imageBlob: Blob): void {
+    this.capturedImage = imageBlob;
+    this.proceedToValidation();
+  }
+  
+  onCameraError(error: string): void {
+    this.uploadError.emit(`Camera error: ${error}`);
+  }
+  
+  private validateFile(file: File): boolean {
+    // Check file type
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    if (!fileExtension || !this.allowedFileTypes.includes(fileExtension)) {
+      this.uploadError.emit(`File type not allowed. Allowed types: ${this.allowedFileTypes.join(', ')}`);
+      return false;
+    }
+    
+    // Check file size
+    if (file.size > this.maxFileSize) {
+      const maxSizeMB = this.maxFileSize / (1024 * 1024);
+      this.uploadError.emit(`File size too large. Maximum size: ${maxSizeMB}MB`);
+      return false;
+    }
+    
+    return true;
+  }
+  
+  private proceedToValidation(): void {
+    if (this.enableQualityValidation) {
+      this.currentStep = 3;
+      this.stepChange.emit(this.currentStep);
+      this.performQualityValidation();
+    } else {
+      this.proceedToUpload();
+    }
+  }
+  
+  private async performQualityValidation(): Promise<void> {
+    try {
+      const fileToValidate = this.uploadedFile || this.capturedImage;
+      if (!fileToValidate) return;
+      
+      this.validationResult = await this.validationService.validateDocument(fileToValidate);
+      
+      if (this.validationResult.isValid) {
+        this.proceedToUpload();
+      } else {
+        // Show validation issues to user
+        this.error = 'Document quality validation failed. Please retake or reselect.';
+      }
+    } catch (error) {
+      this.uploadError.emit('Quality validation failed');
+    }
+  }
+  
+  onValidationRetry(): void {
+    this.error = null;
+    this.validationResult = null;
+    this.currentStep = 2;
+    this.stepChange.emit(this.currentStep);
+  }
+  
+  onValidationProceed(): void {
+    this.proceedToUpload();
+  }
+  
+  private async proceedToUpload(): Promise<void> {
+    this.currentStep = 4;
+    this.stepChange.emit(this.currentStep);
+    
+    try {
+      this.isUploading = true;
+      const fileToUpload = this.uploadedFile || this.capturedImage;
+      
+      if (!fileToUpload) {
+        throw new Error('No file to upload');
+      }
+      
+      await this.uploadService.uploadDocument(
+        this.sessionId,
+        fileToUpload,
+        (progress) => {
+          this.uploadProgress = progress;
+          this.uploadProgress.emit(progress);
+        }
+      );
+      
+      this.uploadComplete.emit();
+    } catch (error) {
+      this.uploadError.emit('Upload failed');
+    } finally {
+      this.isUploading = false;
+    }
+  }
+  
+  onRetryUpload(): void {
+    this.error = null;
+    this.uploadProgress = 0;
+    this.proceedToUpload();
+  }
+  
+  onStartOver(): void {
+    this.selectedMethod = null;
+    this.uploadedFile = null;
+    this.capturedImage = null;
+    this.uploadProgress = 0;
+    this.validationResult = null;
+    this.error = null;
+    this.currentStep = 1;
+    this.stepChange.emit(this.currentStep);
+  }
+  
+  getAcceptedFileTypes(): string {
+    return this.allowedFileTypes.map(type => `.${type}`).join(',');
+  }
+  
+  formatFileSize(bytes: number): string {
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(1)}MB`;
+  }
+}
+```
+
+**HTML Structure:**
+```html
+<div class="document-upload">
+  <!-- Step 1: Method Selection -->
+  <div class="upload-step" *ngIf="currentStep === 1">
+    <div class="step-header">
+      <h2>Choose Upload Method</h2>
+      <p>Select how you'd like to upload your document</p>
+    </div>
+    
+    <div class="method-selection">
+      <app-card 
+        *ngFor="let method of uploadMethods"
+        class="method-card"
+        [class.disabled]="!method.enabled"
+        (click)="method.enabled && onMethodSelect(method.id)"
+        [attr.tabindex]="method.enabled ? 0 : -1"
+        role="button">
+        
+        <div class="method-icon">{{ method.icon }}</div>
+        <h3 class="method-title">{{ method.title }}</h3>
+        <p class="method-description">{{ method.description }}</p>
+        
+        <div class="method-status" *ngIf="!method.enabled">
+          <span class="status-text">Not Available</span>
+        </div>
+      </app-card>
+    </div>
+  </div>
+  
+  <!-- Step 2: Document Capture/Selection -->
+  <div class="upload-step" *ngIf="currentStep === 2">
+    <div class="step-header">
+      <h2>{{ selectedMethod === 'camera' ? 'Capture Document' : 'Select Document' }}</h2>
+      <app-button variant="ghost" (click)="onStartOver()">← Back to Methods</app-button>
+    </div>
+    
+    <!-- Camera Capture -->
+    <div class="camera-section" *ngIf="selectedMethod === 'camera'">
+      <app-camera
+        [sessionId]="sessionId"
+        (imageCaptured)="onImageCaptured($event)"
+        (error)="onCameraError($event)">
+      </app-camera>
+    </div>
+    
+    <!-- File Upload -->
+    <div class="file-section" *ngIf="selectedMethod === 'file'">
+      <div class="file-upload-area">
+        <input 
+          type="file" 
+          id="file-input"
+          class="file-input"
+          [accept]="getAcceptedFileTypes()"
+          (change)="onFileSelected($event)"
+          hidden>
+        
+        <label for="file-input" class="file-upload-label">
+          <div class="upload-icon">📁</div>
+          <h3>Click to select a file</h3>
+          <p>or drag and drop here</p>
+          <div class="file-constraints">
+            <span>Allowed types: {{ allowedFileTypes.join(', ') }}</span>
+            <span>Maximum size: {{ formatFileSize(maxFileSize) }}</span>
+          </div>
+        </label>
       </div>
     </div>
   </div>
   
-</div>
-```
-
-**CSS SPECIFICATION:**
-
-**Layout:**
-- .kanban-column: flex column, min-height: 500px, flex: 1
-- .column-content: flex: 1, overflow-y: auto, padding: 0.5rem
-
-**Spacing:**
-- padding: 1rem
-- gap: 0.5rem between cards
-- margin: 0.25rem for form elements
-
-**Component Styles:**
-- .kanban-column: background: var(--surface-light), border-radius: 8px, border: 1px solid var(--border-color)
-- .column-header: flex justify-between, padding-bottom: 0.5rem, border-bottom: 1px solid var(--border-light)
-- .drag-over: border-color: var(--primary-color), background: var(--primary-light)
-
-**Responsive:**
-- Desktop: fixed width columns
-- Tablet: flexible width with min-width
-- Mobile: full width stacked
-
-**API INTEGRATION:**
-- onAddCard() → Emit to parent → POST /kanban/cards → Add card to column
-- onCardDrop() → Emit to parent → PUT /kanban/cards/{cardId}/move → Update card position
-
-**ERROR HANDLING:**
-- Card drop failure → revert UI state → show error message
-- Add card failure → show inline error → keep form open
-
-**INTERACTION FLOW:**
-**User Action → UI → API:**
-- Click "Add Card" → show form → enter data → submit → API call
-- Drag card over column → highlight drop zone → drop → move API
-- Scroll column → lazy load more cards if needed
-
-### 3.3 KanbanCardComponent
-
-**Component Type:** Feature
-**Mapped From A1:** Individual task card with drag/drop and edit functionality
-**Purpose:** Represents a single task card that can be dragged between columns and edited
-**Parent:** KanbanColumnComponent
-**Children:** None
-
-**Dependencies:**
-- Angular CDK Drag & Drop
-- Shared UI Components
-
-**Library Components Used:**
-- awe-card → Card container styling
-- Badge → Priority/status badges
-- Button → Action buttons
-
-**TypeScript Specification:**
-
-**Inputs:**
-- card: KanbanCard (card data)
-- draggable: boolean (enable/disable drag)
-
-**Outputs:**
-- onEdit: EventEmitter<KanbanCard> (card edit requested)
-- onDelete: EventEmitter<string> (card deletion requested)
-
-**State:**
-- isDragging: boolean (currently being dragged)
-- isEditing: boolean (in edit mode)
-- editData: Partial<KanbanCard> (edit form data)
-
-**Methods:**
-- onDragStart() → Set dragging state
-- onDragEnd() → Clear dragging state
-- startEdit() → Enter edit mode
-- saveEdit() → Save card changes
-- cancelEdit() → Cancel edit mode
-- deleteCard() → Request card deletion
-
-**HTML STRUCTURE:**
-
-```html
-<div class="kanban-card" 
-     [class.dragging]="isDragging"
-     [class.editing]="isEditing"
-     [attr.aria-label]="'Card: ' + card.title"
-     role="article">
-  
-  <div class="card-content" *ngIf="!isEditing">
-    <div class="card-header">
-      <h3 class="card-title">{{ card.title }}</h3>
-      <div class="card-actions">
-        <button type="button" 
-                class="btn-ghost btn-small"
-                (click)="startEdit()"
-                aria-label="Edit card">
-          Edit
-        </button>
-      </div>
+  <!-- Step 3: Quality Validation -->
+  <div class="upload-step" *ngIf="currentStep === 3 && enableQualityValidation">
+    <div class="step-header">
+      <h2>Quality Validation</h2>
+      <p>Checking document quality...</p>
     </div>
     
-    <div class="card-body" *ngIf="card.description">
-      <p class="card-description">{{ card.description }}</p>
-    </div>
-    
-    <div class="card-footer">
-      <span class="card-priority badge-{{ card.priority }}">{{ card.priority }}</span>
-      <span class="card-assignee" *ngIf="card.assignee">{{ card.assignee }}</span>
-    </div>
+    <app-quality-validation
+      [file]="uploadedFile || capturedImage"
+      [validationResult]="validationResult"
+      (retry)="onValidationRetry()"
+      (proceed)="onValidationProceed()">
+    </app-quality-validation>
   </div>
   
-  <div class="card-edit-form" *ngIf="isEditing">
-    <input type="text" 
-           [(ngModel)]="editData.title"
-           class="edit-title-input"
-           placeholder="Card title">
-    <textarea [(ngModel)]="editData.description"
-              class="edit-description-input"
-              placeholder="Description"></textarea>
-    <div class="edit-actions">
-      <button type="button" class="btn-primary btn-small" (click)="saveEdit()">Save</button>
-      <button type="button" class="btn-ghost btn-small" (click)="cancelEdit()">Cancel</button>
-      <button type="button" class="btn-danger btn-small" (click)="deleteCard()">Delete</button>
-    </div>
-  </div>
-  
-</div>
-```
-
-**CSS SPECIFICATION:**
-
-**Layout:**
-- .kanban-card: flex column, min-height: 120px, cursor: grab
-- .card-content: flex: 1, padding: 0.75rem
-
-**Spacing:**
-- padding: 0.75rem
-- margin: 0.5rem bottom
-- gap: 0.5rem between elements
-
-**Component Styles:**
-- .kanban-card: background: white, border-radius: 6px, box-shadow: 0 2px 4px rgba(0,0,0,0.1)
-- .dragging: opacity: 0.5, transform: rotate(5deg)
-- .editing: border: 2px solid var(--primary-color)
-
-**Responsive:**
-- Desktop: hover effects, larger click targets
-- Tablet: larger touch targets
-- Mobile: simplified layout, touch-friendly
-
-**API INTEGRATION:**
-- saveEdit() → Emit to parent → PUT /kanban/cards/{cardId} → Update card
-- deleteCard() → Emit to parent → DELETE /kanban/cards/{cardId} → Remove card
-
-**ERROR HANDLING:**
-- Edit save failure → show inline error → keep edit mode
-- Delete failure → show confirmation dialog → retry option
-
-**INTERACTION FLOW:**
-**User Action → UI → API:**
-- Click card → show edit form → modify data → save → API update
-- Drag card → visual feedback → drop → move API call
-- Delete card → confirmation dialog → confirm → delete API
-
-### 3.4 ErrorStateComponent
-
-**Component Type:** Shared
-**Mapped From A1:** Error display component for failed operations
-**Purpose:** Display error messages with retry functionality when operations fail
-**Parent:** KanbanBoardComponent
-**Children:** None
-
-**Dependencies:**
-- Shared UI Components
-
-**Library Components Used:**
-- awe-card → Error container styling
-- Button → Retry button
-- Badge → Error type indicator
-
-**TypeScript Specification:**
-
-**Inputs:**
-- error: string (error message)
-- errorType: 'network' | 'api' | 'validation' (error category)
-- retryable: boolean (show retry button)
-
-**Outputs:**
-- onRetry: EventEmitter<void> (retry requested)
-
-**State:** None
-
-**Methods:**
-- retry() → Emit retry event
-
-**HTML STRUCTURE:**
-
-```html
-<div class="error-state-container" 
-     role="alert" 
-     aria-live="polite">
-  
-  <div class="error-content">
-    <div class="error-icon">
-      <span class="icon-warning" aria-hidden="true"></span>
+  <!-- Step 4: Upload Progress -->
+  <div class="upload-step" *ngIf="currentStep === 4">
+    <div class="step-header">
+      <h2>Uploading Document</h2>
+      <p>Please wait while we process your document...</p>
     </div>
     
-    <div class="error-message">
-      <h3>Something went wrong</h3>
+    <app-progress
+      [progress]="uploadProgress"
+      [isUploading]="isUploading"
+      [error]="error"
+      (retry)="onRetryUpload()"
+      (startOver)="onStartOver()">
+    </app-progress>
+  </div>
+  
+  <!-- Error State -->
+  <div class="error-state" *ngIf="error && currentStep !== 4">
+    <app-card class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h3>Error</h3>
       <p>{{ error }}</p>
-    </div>
-    
-    <div class="error-actions" *ngIf="retryable">
-      <button type="button" 
-              class="btn-primary"
-              (click)="retry()"
-              aria-label="Retry operation">
-        Try Again
-      </button>
-    </div>
+      <div class="error-actions">
+        <app-button (click)="onStartOver()">Start Over</app-button>
+        <app-button variant="outline" (click)="error = null">Dismiss</app-button>
+      </div>
+    </app-card>
   </div>
-  
 </div>
 ```
 
-**CSS SPECIFICATION:**
+**CSS Specification:**
+```css
+.document-upload {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
 
-**Layout:**
-- .error-state-container: flex center, min-height: 300px
-- .error-content: flex column, align center, max-width: 400px
+.upload-step {
+  min-height: 400px;
+}
 
-**Spacing:**
-- padding: 2rem
-- gap: 1rem between elements
-- text-align: center
+.step-header {
+  text-align: center;
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
 
-**Component Styles:**
-- .error-state-container: background: var(--surface-light), border-radius: 8px
-- .error-icon: color: var(--danger-color), font-size: 3rem
-- .error-message: color: var(--text-secondary)
+.step-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary, #333);
+}
 
-**Responsive:**
-- All breakpoints: centered layout with responsive padding
+.step-header p {
+  font-size: 16px;
+  color: var(--text-secondary, #666);
+  margin: 0;
+}
 
-**API INTEGRATION:**
-- retry() → Emit to parent → Retry failed operation
+.method-selection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
 
-**ERROR HANDLING:**
-- Component itself handles display of errors
+.method-card {
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
 
-**INTERACTION FLOW:**
-**User Action → UI → API:**
-- Click "Try Again" → emit retry event → parent retries operation
+.method-card:hover:not(.disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary-color, #1976d2);
+}
+
+.method-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.method-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.method-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text-primary, #333);
+}
+
+.method-description {
+  font-size: 14px;
+  color: var(--text-secondary, #666);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.method-status {
+  margin-top: 12px;
+  padding: 4px 8px;
+  background: var(--error-light, #ffebee);
+  color: var(--error-color, #d32f2f);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.camera-section,
+.file-section {
+  margin-top: 24px;
+}
+
+.file-upload-area {
+  border: 2px dashed var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 48px 24px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.file-upload-area:hover {
+  border-color: var(--primary-color, #1976d2);
+  background: var(--primary-light, #f3f8ff);
+}
+
+.file-input {
+  display: none;
+}
+
+.file-upload-label {
+  cursor: pointer;
+  display: block;
+}
+
+.upload-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.file-upload-label h3 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+  color: var(--text-primary, #333);
+}
+
+.file-upload-label p {
+  font-size: 14px;
+  color: var(--text-secondary, #666);
+  margin: 0 0 16px 0;
+}
+
+.file-constraints {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+}
+
+.error-state {
+  margin-top: 24px;
+}
+
+.error-card {
+  text-align: center;
+  padding: 32px 24px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.error-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--error-color, #d32f2f);
+}
+
+.error-card p {
+  font-size: 14px;
+  color: var(--text-secondary, #666);
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.error-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .document-upload {
+    padding: 16px;
+  }
+  
+  .method-selection {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .method-card {
+    padding: 24px 16px;
+  }
+  
+  .file-upload-area {
+    padding: 32px 16px;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+  }
+}
+```
+
+**API Integration:**
+- File upload: `POST /api/documents/upload`
+- Document validation: `POST /api/documents/validate`
+- Progress tracking: WebSocket or polling
+
+**Features:**
+- Multi-method upload (camera/file)
+- Progress tracking with visual feedback
+- Quality validation integration
+- Error handling and retry mechanisms
+- Responsive design for all screen sizes
+
+#### 4.5 CameraComponent (Feature Component)
+
+**Purpose**: Device camera integration for document capture
+
+**TypeScript Specification:**
+```typescript
+import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+
+export interface CameraComponentProps {
+  sessionId: string;
+  facingMode?: 'user' | 'environment';
+  width?: number;
+  height?: number;
+}
+
+export interface CameraState {
+  isInitialized: boolean;
+  isCapturing: boolean;
+  hasPermission: boolean;
+  error: string | null;
+  stream: MediaStream | null;
+  capturedImage: string | null;
+}
+
+@Component({
+  selector: 'app-camera',
+  templateUrl: './CameraComponent.component.html',
+  styleUrls: ['./CameraComponent.component.css']
+})
+export class CameraComponent implements OnDestroy {
+  @ViewChild('videoElement', { static: false }) videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('canvasElement', { static: false }) canvasElement!: ElementRef<HTMLCanvasElement>;
+  
+  @Input() sessionId: string = '';
+  @Input() facingMode: 'user' | 'environment' = 'environment';
+  @Input() width: number = 1280;
+  @Input() height: number = 720;
+  
+  @Output() imageCaptured = new EventEmitter<Blob>();
+  @Output() error = new EventEmitter<string>();
+  
+  // State
+  isInitialized: boolean = false;
+  isCapturing: boolean = false;
+  hasPermission: boolean = false;
+  errorMessage: string | null = null;
+  stream: MediaStream | null = null;
+  capturedImage: string | null = null;
+  
+  private constraints: MediaStreamConstraints = {
+    video: {
+      facingMode: this.facingMode,
+      width: { ideal: this.width },
+      height: { ideal: this.height }
+    },
+    audio: false
+  };
+  
+  ngOnInit(): void {
+    this.initializeCamera();
+  }
+  
+  ngOnDestroy(): void {
+    this.stopCamera();
+  }
+  
+  private async initializeCamera(): Promise<void> {
+    try {
+      // Check if camera is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported on this device');
+      }
+      
+      // Request camera permission
+      this.stream = await navigator.mediaDevices.getUserMedia(this.constraints);
+      this.hasPermission = true;
+      
+      // Wait for video element to be available
+      setTimeout(() => {
+        if (this.videoElement && this.videoElement.nativeElement) {
+          this.videoElement.nativeElement.srcObject = this.stream;
+          this.videoElement.nativeElement.play();
+          this.isInitialized = true;
+        }
+      }, 100);
+      
+    } catch (error: any) {
+      this.handleCameraError(error);
+    }
+  }
+  
+  private handleCameraError(error: any): void {
+    let errorMessage = 'Camera initialization failed';
+    
+    if (error.name === 'NotAllowedError') {
+      errorMessage = 'Camera permission denied. Please allow camera access and try again.';
+    } else if (error.name === 'NotFoundError') {
+      errorMessage = 'No camera found on this device.';
+    } else if (error.name === 'NotReadableError') {
+      errorMessage = 'Camera is already in use by another application.';
+    } else if (error.name === 'OverconstrainedError') {
+      errorMessage = 'Camera does not support the requested configuration.';
+    }
+    
+    this.errorMessage = errorMessage;
+    this.error.emit(errorMessage);
+  }
+  
+  async captureImage(): Promise<void> {
+    if (!this.videoElement || !this.canvasElement || !this.isInitialized) {
+      this.error.emit('Camera not ready');
+      return;
+    }
+    
+    try {
+      this.isCapturing = true;
+      
+      const video = this.videoElement.nativeElement;
+      const canvas = this.canvasElement.nativeElement;
+      const context = canvas.getContext('2d');
+      
+      if (!context) {
+        throw new Error('Canvas context not available');
+      }
+      
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      // Draw video frame to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (blob) {
+          this.capturedImage = canvas.toDataURL('image/jpeg', 0.8);
+          this.imageCaptured.emit(blob);
+        } else {
+          this.error.emit('Failed to capture image');
+        }
+        this.isCapturing = false;
+      }, 'image/jpeg', 0.8);
+      
+    } catch (error) {
+      this.error.emit('Image capture failed');
+      this.isCapturing = false;
+    }
+  }
+  
+  retakeImage(): void {
+    this.capturedImage = null;
+  }
+  
+  switchCamera(): void {
+    this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+    this.constraints.video = {
+      ...this.constraints.video as MediaTrackConstraints,
+      facingMode: this.facingMode
+    };
+    
+    this.stopCamera();
+    this.initializeCamera();
+  }
+  
+  private stopCamera(): void {
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+    this.isInitialized = false;
+  }
+  
+  requestPermission(): void {
+    this.errorMessage = null;
+    this.initializeCamera();
+  }
+  
+  getCameraIcon(): string {
+    return this.facingMode === 'user' ? '🤳' : '📷';
+  }
+  
+  getSwitchCameraLabel(): string {
+    return `Switch to ${this.facingMode === 'user' ? 'back' : 'front'} camera`;
+  }
+}
+```
+
+**HTML Structure:**
+```html
+<div class="camera-component">
+  <!-- Permission Request -->
+  <div class="permission-request" *ngIf="!hasPermission && !isInitialized">
+    <div class="permission-content">
+      <div class="permission-icon">📷</div>
+      <h3>Camera Access Required</h3>
+      <p>We need access to your camera to capture documents.</p>
+      <app-button (click)="requestPermission()" class="permission-btn">
+        Allow Camera Access
+      </app-button>
+    </div>
+  </div>
+  
+  <!-- Error State -->
+  <div class="error-state" *ngIf="errorMessage">
+    <app-card class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h3>Camera Error</h3>
+      <p>{{ errorMessage }}</p>
+      <app-button (click)="requestPermission()" *ngIf="errorMessage.includes('permission')">
+        Try Again
+      </app-button>
+    </app-card>
+  </div>
+  
+  <!-- Camera Interface -->
+  <div class="camera-interface" *ngIf="isInitialized && !errorMessage">
+    <!-- Video Preview -->
+    <div class="video-container" *ngIf="!capturedImage">
+      <video 
+        #videoElement
+        class="video-preview"
+        autoplay
+        playsinline
+        muted
+        [attr.aria-label]="'Camera preview'">
+      </video>
+      
+      <div class="video-overlay">
+        <div class="capture-guide">
+          <div class="guide-frame"></div>
+          <p class="guide-text">Position document within the frame</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Captured Image Preview -->
+    <div class="image-preview" *ngIf="capturedImage">
+      <img 
+        [src]="capturedImage" 
+        alt="Captured document"
+        class="captured-image">
+      
+      <div class="preview-overlay">
+        <div class="preview-actions">
+          <app-button 
+            variant="outline" 
+            (click)="retakeImage()"
+            class="retake-btn">
+            📷 Retake
+          </app-button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Camera Controls -->
+    <div class="camera-controls">
+      <div class="control-row">
+        <!-- Switch Camera -->
+        <app-button 
+          variant="ghost" 
+          (click)="switchCamera()"
+          class="switch-camera-btn"
+          [attr.aria-label]="getSwitchCameraLabel()">
+          🔄
+        </app-button>
+        
+        <!-- Capture Button -->
+        <app-button 
+          *ngIf="!capturedImage"
+          (click)="captureImage()"
+          [disabled]="isCapturing"
+          class="capture-btn"
+          size="large"
+          [attr.aria-label]="'Capture document'">
+          <span class="capture-icon">{{ getCameraIcon() }}</span>
+          <span *ngIf="isCapturing" class="capture-text">Capturing...</span>
+          <span *ngIf="!isCapturing" class="capture-text">Capture</span>
+        </app-button>
+        
+        <!-- Confirm Button -->
+        <app-button 
+          *ngIf="capturedImage"
+          (click)="imageCaptured.emit()"
+          class="confirm-btn"
+          variant="primary"
+          size="large">
+          ✓ Use This Image
+        </app-button>
+        
+        <!-- Placeholder for alignment -->
+        <div class="control-spacer"></div>
+      </div>
+      
+      <!-- Instructions -->
+      <div class="instructions">
+        <p *ngIf="!capturedImage">Ensure good lighting and hold the camera steady</p>
+        <p *ngIf="capturedImage">Review the captured image and retake if needed</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Hidden Canvas for Image Processing -->
+  <canvas #canvasElement class="hidden-canvas" aria-hidden="true"></canvas>
+</div>
+```
+
+**CSS Specification:**
+```css
+.camera-component {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.permission-request,
+.error-state {
+  padding: 48px 24px;
+  text-align: center;
+  background: white;
+}
+
+.permission-content {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.permission-icon,
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.permission-content h3,
+.error-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text-primary, #333);
+}
+
+.permission-content p,
+.error-card p {
+  font-size: 14px;
+  color: var(--text-secondary, #666);
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.permission-btn {
+  width: 100%;
+}
+
+.error-card {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.camera-interface {
+  position: relative;
+  background: #000;
+}
+
+.video-container,
+.image-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  overflow: hidden;
+}
+
+.video-preview,
+.captured-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.video-overlay,
+.preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.capture-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.guide-frame {
+  width: 280px;
+  height: 200px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  margin: 0 auto 16px;
+  position: relative;
+}
+
+.guide-frame::before,
+.guide-frame::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #fff;
+}
+
+.guide-frame::before {
+  top: -3px;
+  left: -3px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.guide-frame::after {
+  bottom: -3px;
+  right: -3px;
+  border-left: none;
+  border-top: none;
+}
+
+.guide-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.preview-overlay {
+  pointer-events: auto;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.3) 100%);
+}
+
+.preview-actions {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+.camera-controls {
+  padding: 24px;
+  background: white;
+}
+
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.switch-camera-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 20px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.capture-btn,
+.confirm-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-weight: 600;
+}
+
+.capture-btn {
+  background: var(--primary-color, #1976d2);
+  color: white;
+  border: none;
+}
+
+.capture-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.confirm-btn {
+  background: var(--success-color, #4caf50);
+  color: white;
+  border: none;
+}
+
+.capture-icon {
+  font-size: 20px;
+}
+
+.capture-text {
+  font-size: 14px;
+}
+
+.control-spacer {
+  width: 48px;
+}
+
+.instructions {
+  text-align: center;
+}
+
+.instructions p {
+  font-size: 12px;
+  color: var(--text-secondary, #666);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.hidden-canvas {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  visibility: hidden;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .camera-component {
+    border-radius: 0;
+  }
+  
+  .video-container,
+  .image-preview {
+    aspect-ratio: 3/4;
+  }
+  
+  .guide-frame {
+    width: 240px;
+    height: 160px;
+  }
+  
+  .camera-controls {
+    padding: 16px;
+  }
+  
+  .capture-btn,
+  .confirm-btn {
+    padding: 16px 32px;
+  }
+}
+
+/* Landscape Mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .video-container,
+  .image-preview {
+    aspect-ratio: 16/9;
+  }
+  
+  .guide-frame {
+    width: 320px;
+    height: 180px;
+  }
+}
+```
+
+**Features:**
+- Camera permission handling
+- Front/back camera switching
+- Image capture with preview
+- Responsive design for mobile and desktop
+- Error handling for various camera issues
+- Accessibility support with ARIA labels
+- Visual capture guide for better document positioning
+
+### COMPONENT MAPPING SUMMARY
+
+**Agent-1 Components → Final Implementation:**
+- HeaderComponent → HeaderComponent (Layout)
+- SidebarComponent → SidebarComponent (Layout)
+- DocumentUploadComponent → DocumentUploadComponent (Feature)
+- CameraComponent → CameraComponent (Feature)
+- ValidationComponent → QualityValidationComponent (Feature)
+- ProgressComponent → ProgressComponent (Feature)
+- FormSessionComponent → Integrated into DocumentUploadPage
+
+### DATA FLOW ARCHITECTURE
+
+**Parent-Child Communication:**
+```
+DocumentUploadPage
+├── @Input: sessionId, userId, config
+├── @Output: navigation events
+└── Children:
+    ├── HeaderComponent
+    │   ├── @Input: userProfile, isLoading
+    │   └── @Output: logout, profileClick
+    ├── SidebarComponent
+    │   ├── @Input: currentStep, totalSteps
+    │   └── @Output: stepChange
+    └── DocumentUploadComponent
+        ├── @Input: sessionId, allowedFileTypes, maxFileSize
+        ├── @Output: stepChange, uploadProgress, uploadComplete
+        └── Children:
+            ├── CameraComponent
+            │   ├── @Input: sessionId, facingMode
+            │   └── @Output: imageCaptured, error
+            ├── QualityValidationComponent
+            │   ├── @Input: file, validationResult
+            │   └── @Output: retry, proceed
+            └── ProgressComponent
+                ├── @Input: progress, isUploading, error
+                └── @Output: retry, startOver
+```
+
+### API USAGE SUMMARY
+
+**Component → API Endpoint Mapping:**
+- DocumentUploadPage: `POST /api/sessions`, `GET /api/users/{userId}`
+- HeaderComponent: `GET /api/notifications`, `POST /api/auth/logout`
+- DocumentUploadComponent: `POST /api/documents/upload`, `POST /api/documents/validate`
+- QualityValidationComponent: `POST /api/documents/validate`
+- ProgressComponent: WebSocket `/api/upload-progress` or polling
+
+### IMPLEMENTATION CONSTRAINTS
+
+1. **HTML Structure**: Provided as structured pseudo-code only, not production HTML
+2. **Component Reuse**: Prioritize existing UI library components (Button, Card, Badge, etc.)
+3. **Responsive Design**: Mobile-first approach with breakpoints at 768px and 1024px
+4. **Accessibility**: WCAG 2.1 AA compliance with proper ARIA attributes
+5. **TypeScript**: Strict typing for all props, state, and method signatures
+6. **Error Handling**: Comprehensive error boundaries and user-friendly error messages
+7. **Loading States**: Proper loading indicators and skeleton screens
+8. **API Integration**: Follow OpenAPI specifications exactly as provided
 
 ## 4. USER FLOW DIAGRAM (FROM AGENT-3)
 
@@ -600,22 +2184,21 @@ src/
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board User Flow Diagram</title>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <title>Document Upload Interface - User Flow Diagram</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f7fa;
+            background-color: #f5f5f5;
             line-height: 1.6;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             overflow: hidden;
         }
         .header {
@@ -635,66 +2218,54 @@ src/
             font-size: 1.1em;
         }
         .content {
-            padding: 40px;
-        }
-        .diagram-container {
-            background: #fafbfc;
-            border-radius: 8px;
             padding: 30px;
-            margin: 20px 0;
-            border: 1px solid #e1e8ed;
         }
-        .section {
-            margin: 30px 0;
-        }
-        .section h2 {
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-        }
-        .flow-description {
-            background: #e8f4fd;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #3498db;
-            margin: 20px 0;
-        }
-        .component-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .component-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e1e8ed;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .component-card h3 {
-            color: #2c3e50;
-            margin-top: 0;
-        }
-        .api-endpoints {
+        .description {
             background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            margin: 10px 0;
-        }
-        .footer {
-            background: #34495e;
-            color: white;
             padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        .description h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .flow-container {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .key-interactions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .key-interactions h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .key-interactions ul {
+            margin-bottom: 0;
+        }
+        .key-interactions li {
+            margin-bottom: 8px;
+        }
+        #mermaid-diagram {
             text-align: center;
-            font-size: 0.9em;
+            min-height: 400px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
         }
         @media (max-width: 768px) {
-            .content {
-                padding: 20px;
+            body {
+                padding: 10px;
             }
             .header {
                 padding: 20px;
@@ -702,255 +2273,187 @@ src/
             .header h1 {
                 font-size: 2em;
             }
+            .content {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔄 Kanban Board User Flow</h1>
-            <p>Complete user interaction patterns and component relationships</p>
+            <h1>Document Upload Interface</h1>
+            <p>Complete User Flow Diagram</p>
         </div>
         
         <div class="content">
-            <div class="section">
-                <h2>📋 Overview</h2>
-                <div class="flow-description">
-                    <p><strong>Purpose:</strong> This diagram illustrates the complete user journey through the Kanban board application, showing all possible user interactions, component relationships, and API integration points.</p>
-                    <p><strong>Scope:</strong> Covers board loading, authentication, card management (CRUD operations), drag & drop functionality, error handling, and real-time updates.</p>
-                </div>
+            <div class="description">
+                <h2>User Flow Overview</h2>
+                <p>This diagram illustrates the complete user journey through the document upload interface, including authentication, upload method selection, document capture/upload, quality validation, processing, and post-upload actions. The flow covers both camera capture and file upload workflows with comprehensive error handling and recovery paths.</p>
             </div>
-
-            <div class="section">
-                <h2>🎯 Key User Journeys</h2>
-                <div class="component-list">
-                    <div class="component-card">
-                        <h3>🔐 Authentication Flow</h3>
-                        <p>User login, session management, and board access authorization</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>📊 Board Loading</h3>
-                        <p>Initial board data fetch, column setup, and card rendering</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>🎴 Card Management</h3>
-                        <p>Create, read, update, delete operations for Kanban cards</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>🔄 Drag & Drop</h3>
-                        <p>Card movement between columns with real-time updates</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>⚠️ Error Handling</h3>
-                        <p>Error states, retry mechanisms, and graceful degradation</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>📱 Responsive Design</h3>
-                        <p>Mobile, tablet, and desktop interaction patterns</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2>🔗 API Integration Points</h2>
-                <div class="api-endpoints">
-                    <strong>Authentication:</strong><br>
-                    POST /auth/login → User authentication<br>
-                    GET /users/profile → User profile data<br><br>
-                    
-                    <strong>Kanban Operations (Missing - Need Implementation):</strong><br>
-                    GET /kanban/boards/{boardId} → Load board data<br>
-                    POST /kanban/cards → Create new card<br>
-                    PUT /kanban/cards/{cardId} → Update card<br>
-                    PUT /kanban/cards/{cardId}/move → Move card between columns<br>
-                    DELETE /kanban/cards/{cardId} → Delete card<br><br>
-                    
-                    <strong>Available Fallback APIs:</strong><br>
-                    POST /forms/sessions → Adapt for board state<br>
-                    GET /forms/sessions/{session_id} → Get board state<br>
-                    PUT /forms/sessions/{session_id} → Update board state
-                </div>
-            </div>
-
-            <div class="diagram-container">
-                <h2>🗺️ Complete User Flow Diagram</h2>
+            
+            <div class="flow-container">
                 <div id="mermaid-diagram">
-                    <script type="text/javascript">
-                        mermaid.initialize({
-                            startOnLoad: true,
-                            theme: 'default',
-                            flowchart: {
-                                useMaxWidth: true,
-                                htmlLabels: true,
-                                curve: 'basis'
-                            },
-                            themeVariables: {
-                                primaryColor: '#3498db',
-                                primaryTextColor: '#2c3e50',
-                                primaryBorderColor: '#2980b9',
-                                lineColor: '#34495e',
-                                secondaryColor: '#ecf0f1',
-                                tertiaryColor: '#f8f9fa'
-                            }
-                        });
-                    </script>
-                    
-                    <div class="mermaid">
-                        flowchart TD
-                            Start(["🚀 User Opens Kanban App"]) --> Auth{"🔐 Authenticated?"}
-                            
-                            Auth -->|No| Login["📝 Show Login Form"]
-                            Login --> LoginAPI["🔗 POST /auth/login"]
-                            LoginAPI -->|Success| LoadBoard["📊 Load Board Data"]
-                            LoginAPI -->|Fail| LoginError["❌ Show Login Error"]
-                            LoginError --> Login
-                            
-                            Auth -->|Yes| LoadBoard
-                            LoadBoard --> BoardAPI["🔗 GET /kanban/boards/{id}"]
-                            BoardAPI -->|Success| RenderBoard["🎨 Render Kanban Board"]
-                            BoardAPI -->|Fail| BoardError["❌ Show Board Error"]
-                            BoardError --> RetryBoard["🔄 Retry Load Board"]
-                            RetryBoard --> BoardAPI
-                            
-                            RenderBoard --> ShowColumns["📋 Display 3 Columns"]
-                            ShowColumns --> TodoCol["📝 To Do Column"]
-                            ShowColumns --> ProgressCol["⚡ In Progress Column"]
-                            ShowColumns --> DoneCol["✅ Done Column"]
-                            
-                            TodoCol --> CardActions{"🎴 Card Actions"}
-                            ProgressCol --> CardActions
-                            DoneCol --> CardActions
-                            
-                            CardActions -->|Add Card| AddForm["➕ Show Add Card Form"]
-                            AddForm --> FillForm["✏️ User Fills Form"]
-                            FillForm --> SubmitCard["📤 Submit New Card"]
-                            SubmitCard --> CreateAPI["🔗 POST /kanban/cards"]
-                            CreateAPI -->|Success| UpdateUI1["🔄 Update UI with New Card"]
-                            CreateAPI -->|Fail| AddError["❌ Show Add Error"]
-                            AddError --> AddForm
-                            UpdateUI1 --> CardActions
-                            
-                            CardActions -->|Edit Card| EditForm["✏️ Show Edit Form"]
-                            EditForm --> ModifyCard["📝 User Modifies Card"]
-                            ModifyCard --> SaveCard["💾 Save Changes"]
-                            SaveCard --> UpdateAPI["🔗 PUT /kanban/cards/{id}"]
-                            UpdateAPI -->|Success| UpdateUI2["🔄 Update Card Display"]
-                            UpdateAPI -->|Fail| EditError["❌ Show Edit Error"]
-                            EditError --> EditForm
-                            UpdateUI2 --> CardActions
-                            
-                            CardActions -->|Delete Card| ConfirmDelete["⚠️ Confirm Deletion"]
-                            ConfirmDelete -->|Yes| DeleteAPI["🔗 DELETE /kanban/cards/{id}"]
-                            ConfirmDelete -->|No| CardActions
-                            DeleteAPI -->|Success| RemoveCard["🗑️ Remove Card from UI"]
-                            DeleteAPI -->|Fail| DeleteError["❌ Show Delete Error"]
-                            DeleteError --> ConfirmDelete
-                            RemoveCard --> CardActions
-                            
-                            CardActions -->|Drag Card| DragStart["🖱️ Start Drag Operation"]
-                            DragStart --> DragOver["🎯 Drag Over Column"]
-                            DragOver --> DropZone{"📍 Valid Drop Zone?"}
-                            DropZone -->|Yes| DropCard["📥 Drop Card"]
-                            DropZone -->|No| DragCancel["❌ Cancel Drag"]
-                            DragCancel --> CardActions
-                            
-                            DropCard --> OptimisticUpdate["⚡ Optimistic UI Update"]
-                            OptimisticUpdate --> MoveAPI["🔗 PUT /kanban/cards/{id}/move"]
-                            MoveAPI -->|Success| ConfirmMove["✅ Confirm Move"]
-                            MoveAPI -->|Fail| RevertMove["↩️ Revert UI Change"]
-                            RevertMove --> MoveError["❌ Show Move Error"]
-                            MoveError --> CardActions
-                            ConfirmMove --> CardActions
-                            
-                            CardActions -->|View Card| CardDetail["👁️ Show Card Details"]
-                            CardDetail --> CardActions
-                            
-                            CardActions -->|Filter Cards| FilterUI["🔍 Show Filter Options"]
-                            FilterUI --> ApplyFilter["✅ Apply Filters"]
-                            ApplyFilter --> UpdateDisplay["🔄 Update Card Display"]
-                            UpdateDisplay --> CardActions
-                            
-                            CardActions -->|Search Cards| SearchUI["🔎 Show Search Box"]
-                            SearchUI --> SearchQuery["📝 Enter Search Query"]
-                            SearchQuery --> SearchResults["📋 Show Search Results"]
-                            SearchResults --> CardActions
-                            
-                            RenderBoard --> ErrorHandling{"⚠️ Error Occurred?"}
-                            ErrorHandling -->|Yes| ErrorState["❌ Show Error State"]
-                            ErrorState --> RetryAction["🔄 User Clicks Retry"]
-                            RetryAction --> LoadBoard
-                            ErrorHandling -->|No| CardActions
-                            
-                            CardActions -->|Logout| LogoutAPI["🔗 POST /auth/logout"]
-                            LogoutAPI --> Start
-                            
-                            CardActions -->|Refresh| RefreshBoard["🔄 Refresh Board Data"]
-                            RefreshBoard --> BoardAPI
-                            
-                            style Start fill:#e8f5e8
-                            style Auth fill:#fff2cc
-                            style RenderBoard fill:#e1f5fe
-                            style CardActions fill:#f3e5f5
-                            style ErrorState fill:#ffebee
-                            style ConfirmMove fill:#e8f5e8
-                            
-                            classDef apiCall fill:#bbdefb,stroke:#1976d2,stroke-width:2px
-                            classDef userAction fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
-                            classDef errorState fill:#ffcdd2,stroke:#d32f2f,stroke-width:2px
-                            classDef successState fill:#dcedc8,stroke:#689f38,stroke-width:2px
-                            
-                            class LoginAPI,BoardAPI,CreateAPI,UpdateAPI,DeleteAPI,MoveAPI,LogoutAPI apiCall
-                            class Login,AddForm,EditForm,DragStart,FilterUI,SearchUI userAction
-                            class LoginError,BoardError,AddError,EditError,DeleteError,MoveError,ErrorState errorState
-                            class UpdateUI1,UpdateUI2,ConfirmMove,RemoveCard successState
-                    </div>
+                    <div class="loading">Loading diagram...</div>
                 </div>
             </div>
-
-            <div class="section">
-                <h2>🏗️ Component Architecture Integration</h2>
-                <div class="flow-description">
-                    <p><strong>KanbanBoardComponent:</strong> Manages overall board state, handles API calls, coordinates between child components</p>
-                    <p><strong>KanbanColumnComponent:</strong> Manages individual column state, handles drag/drop events, renders cards</p>
-                    <p><strong>KanbanCardComponent:</strong> Handles individual card interactions, edit mode, drag operations</p>
-                    <p><strong>ErrorStateComponent:</strong> Displays error messages with retry functionality across all failure scenarios</p>
-                </div>
+            
+            <div class="key-interactions">
+                <h3>Key User Interactions</h3>
+                <ul>
+                    <li><strong>Authentication:</strong> User login and session initialization</li>
+                    <li><strong>Method Selection:</strong> Choice between camera capture and file upload</li>
+                    <li><strong>Camera Workflow:</strong> Camera permission, preview, capture, and image processing</li>
+                    <li><strong>File Upload:</strong> File browser, selection, and drag-and-drop support</li>
+                    <li><strong>Quality Validation:</strong> Automatic quality checking with retry options</li>
+                    <li><strong>Processing:</strong> Upload progress tracking and document validation</li>
+                    <li><strong>Success Actions:</strong> View, download, share documents, or upload additional files</li>
+                    <li><strong>Error Recovery:</strong> Comprehensive error handling with retry mechanisms</li>
+                </ul>
             </div>
-
-            <div class="section">
-                <h2>📱 Responsive Interaction Patterns</h2>
-                <div class="component-list">
-                    <div class="component-card">
-                        <h3>🖥️ Desktop (>1024px)</h3>
-                        <p>• Three columns side by side<br>• Mouse drag & drop<br>• Hover effects<br>• Keyboard shortcuts</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>📱 Tablet (768px-1024px)</h3>
-                        <p>• Two columns with scroll<br>• Touch drag & drop<br>• Larger touch targets<br>• Swipe gestures</p>
-                    </div>
-                    <div class="component-card">
-                        <h3>📱 Mobile (<768px)</h3>
-                        <p>• Single column with tabs<br>• Touch-friendly interface<br>• Simplified interactions<br>• Bottom sheet modals</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <h2>🔄 Real-time Features</h2>
-                <div class="flow-description">
-                    <p><strong>Optimistic Updates:</strong> UI updates immediately on user actions, with API confirmation/rollback</p>
-                    <p><strong>Collaborative Editing:</strong> Multiple users can work on the same board with real-time synchronization</p>
-                    <p><strong>Live Notifications:</strong> Users receive notifications when cards are moved or updated by others</p>
-                    <p><strong>Conflict Resolution:</strong> Handles simultaneous edits with proper conflict resolution strategies</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <p>📊 Kanban Board User Flow Diagram | Generated for Development Team Reference</p>
-            <p>🔧 Includes all component interactions, API endpoints, and responsive design patterns</p>
         </div>
     </div>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+
+        const diagramDefinition = `
+flowchart TD
+    Start([User Accesses Application]) --> Auth{User Authenticated?}
+    Auth -->|No| Login[Login Page]
+    Login --> LoginSuccess{Login Successful?}
+    LoginSuccess -->|No| LoginError[Show Login Error]
+    LoginError --> Login
+    LoginSuccess -->|Yes| InitSession[Initialize Session]
+    Auth -->|Yes| InitSession
+    
+    InitSession --> LoadProfile[Load User Profile]
+    LoadProfile --> SessionReady{Session Ready?}
+    SessionReady -->|No| SessionError[Session Error]
+    SessionError --> RetrySession{Retry Session?}
+    RetrySession -->|Yes| InitSession
+    RetrySession -->|No| ContactSupport[Contact Support]
+    
+    SessionReady -->|Yes| MethodSelection[Upload Method Selection]
+    
+    MethodSelection --> CameraChoice{Choose Camera?}
+    MethodSelection --> FileChoice{Choose File Upload?}
+    
+    %% Camera Flow
+    CameraChoice -->|Yes| CameraPermission{Camera Permission?}
+    CameraPermission -->|Denied| PermissionError[Permission Denied Error]
+    PermissionError --> RequestPermission[Request Permission Again]
+    RequestPermission --> CameraPermission
+    
+    CameraPermission -->|Granted| CameraPreview[Camera Preview]
+    CameraPreview --> CameraReady{Camera Ready?}
+    CameraReady -->|No| CameraError[Camera Error]
+    CameraError --> TryCameraAgain{Try Again?}
+    TryCameraAgain -->|Yes| CameraPreview
+    TryCameraAgain -->|No| MethodSelection
+    
+    CameraReady -->|Yes| CaptureImage[Capture Image]
+    CaptureImage --> ImageCaptured{Image Captured?}
+    ImageCaptured -->|No| CaptureError[Capture Error]
+    CaptureError --> RetryCapture{Retry Capture?}
+    RetryCapture -->|Yes| CaptureImage
+    RetryCapture -->|No| CameraPreview
+    
+    ImageCaptured -->|Yes| PreviewImage[Preview Captured Image]
+    PreviewImage --> ImageAccepted{Accept Image?}
+    ImageAccepted -->|No| CaptureImage
+    ImageAccepted -->|Yes| QualityCheck
+    
+    %% File Upload Flow
+    FileChoice -->|Yes| FileBrowser[Open File Browser]
+    FileBrowser --> FileSelected{File Selected?}
+    FileSelected -->|No| MethodSelection
+    FileSelected -->|Yes| ValidateFile{File Valid?}
+    ValidateFile -->|No| FileError[File Validation Error]
+    FileError --> RetryFile{Select Another File?}
+    RetryFile -->|Yes| FileBrowser
+    RetryFile -->|No| MethodSelection
+    ValidateFile -->|Yes| QualityCheck
+    
+    %% Quality Validation Flow
+    QualityCheck[Quality Validation] --> QualityResult{Quality Check Passed?}
+    QualityResult -->|Failed| QualityIssues[Show Quality Issues]
+    QualityIssues --> QualityRetry{Retry Upload?}
+    QualityRetry -->|Yes| MethodSelection
+    QualityRetry -->|No| ProceedAnyway{Proceed Anyway?}
+    ProceedAnyway -->|No| MethodSelection
+    ProceedAnyway -->|Yes| StartUpload
+    
+    QualityResult -->|Passed| StartUpload[Start Upload Process]
+    
+    %% Upload Process Flow
+    StartUpload --> UploadProgress[Show Upload Progress]
+    UploadProgress --> UploadComplete{Upload Complete?}
+    UploadComplete -->|No| UploadError[Upload Error]
+    UploadError --> RetryUpload{Retry Upload?}
+    RetryUpload -->|Yes| StartUpload
+    RetryUpload -->|No| MethodSelection
+    
+    UploadComplete -->|Yes| ProcessDocument[Process Document]
+    ProcessDocument --> ProcessingComplete{Processing Complete?}
+    ProcessingComplete -->|No| ProcessingError[Processing Error]
+    ProcessingError --> RetryProcessing{Retry Processing?}
+    RetryProcessing -->|Yes| ProcessDocument
+    RetryProcessing -->|No| ContactSupport
+    
+    ProcessingComplete -->|Yes| SuccessPage[Upload Success Page]
+    
+    %% Success Actions
+    SuccessPage --> ViewDocument[View Document]
+    SuccessPage --> DownloadDocument[Download Document]
+    SuccessPage --> ShareDocument[Share Document]
+    SuccessPage --> UploadAnother[Upload Another Document]
+    SuccessPage --> Dashboard[Go to Dashboard]
+    
+    UploadAnother --> MethodSelection
+    ViewDocument --> DocumentViewer[Document Viewer]
+    DownloadDocument --> DownloadComplete[Download Complete]
+    ShareDocument --> ShareOptions[Share Options]
+    Dashboard --> DashboardPage[Dashboard Page]
+    
+    %% Error Recovery
+    ContactSupport --> SupportTicket[Create Support Ticket]
+    SupportTicket --> SupportConfirmation[Support Confirmation]
+    
+    %% Styling
+    classDef startEnd fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef success fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    
+    class Start,SuccessPage,Dashboard startEnd
+    class InitSession,LoadProfile,CameraPreview,CaptureImage,FileBrowser,QualityCheck,StartUpload,ProcessDocument process
+    class Auth,LoginSuccess,SessionReady,CameraChoice,FileChoice,CameraPermission,CameraReady,ImageCaptured,FileSelected,ValidateFile,QualityResult,UploadComplete,ProcessingComplete decision
+    class LoginError,SessionError,PermissionError,CameraError,CaptureError,FileError,QualityIssues,UploadError,ProcessingError error
+    class ViewDocument,DownloadDocument,ShareDocument,UploadAnother success
+`;
+
+        try {
+            const element = document.getElementById('mermaid-diagram');
+            const { svg } = await mermaid.render('user-flow-diagram', diagramDefinition);
+            element.innerHTML = svg;
+        } catch (error) {
+            console.error('Error rendering diagram:', error);
+            document.getElementById('mermaid-diagram').innerHTML = 
+                '<div class="loading">Error loading diagram. Please refresh the page.</div>';
+        }
+    </script>
 </body>
 </html>
 ```
@@ -958,193 +2461,246 @@ src/
 ## 5. QUALITY VALIDATION REPORT (FROM AGENT-4)
 
 ### Validation Summary:
-**Overall Status:** Fail
-**Coverage:**
-- Architecture vs HTML: Critical Mismatch (0% alignment)
-- Architecture vs Specs: Partial Pass (70% alignment)
+Overall Status: **Needs Improvement**
+
+Coverage:
+- Architecture vs HTML: Pass (95% alignment)
+- Architecture vs Specs: **Fail (Critical mismatches identified)**
 - Specs vs User Flow: Pass (90% alignment)
 
 ### Issues Found:
 
 #### HIGH SEVERITY
 
-**Critical Architecture-HTML Mismatch**
-- Description: Architecture defines Kanban board components but HTML structure represents DocuCapture document upload interface with completely different functionality (search fields, navigation sidebar, document upload workflows, camera interfaces)
-- Impact: Complete implementation failure - no alignment between required Kanban functionality and provided HTML structure
-- Affected Components: All components (KanbanBoardComponent, KanbanColumnComponent, KanbanCardComponent)
+**1. Critical Requirement Mismatch**
+- **Description**: Jira requirement DEMO-1060 specifies Kanban board component, but all implementations focus on document upload interface
+- **Impact**: Complete misalignment with business requirements, potential project failure
+- **Affected Components**: All components (KanbanBoardComponent missing, DocumentUploadComponent implemented instead)
 
-**Missing API Endpoints**
-- Description: All Kanban-specific API endpoints are missing from OpenAPI specification (GET /kanban/boards/{boardId}, POST /kanban/cards, PUT /kanban/cards/{cardId}/move, etc.)
-- Impact: Complete backend functionality unavailable, no data persistence or retrieval possible
-- Affected Components: KanbanBoardComponent, KanbanColumnComponent, KanbanCardComponent
+**2. Missing Kanban Board Implementation**
+- **Description**: Architecture defines KanbanBoardComponent but specifications implement DocumentUploadComponent
+- **Impact**: Core functionality not implemented as per requirements
+- **Affected Components**: KanbanBoardComponent, KanbanColumnComponent, KanbanCardComponent
 
-**Incomplete Error Handling Strategy**
-- Description: ErrorStateComponent lacks comprehensive error categorization and recovery mechanisms for different failure scenarios
-- Impact: Poor user experience during failures, no graceful degradation
-- Affected Components: ErrorStateComponent, KanbanBoardComponent
+**3. API Specification Mismatch**
+- **Description**: OpenAPI specs focus on document upload but Kanban requires different endpoints
+- **Impact**: Backend integration will fail for Kanban functionality
+- **Affected Components**: All Kanban-related components
 
 #### MEDIUM SEVERITY
 
-**Missing Drag and Drop Implementation Details**
-- Description: Specifications mention Angular CDK Drag & Drop but lack detailed implementation for cross-column dragging, drop validation, and visual feedback
-- Impact: Core Kanban functionality may not work properly
-- Affected Components: KanbanBoardComponent, KanbanColumnComponent, KanbanCardComponent
+**4. Component Naming Inconsistency**
+- **Description**: Architecture uses 'Component' suffix but specifications mix naming conventions
+- **Impact**: Code maintainability and team confusion
+- **Affected Components**: HeaderComponent, SidebarComponent, CameraComponent
 
-**Insufficient Accessibility Implementation**
-- Description: ARIA attributes are mentioned but detailed keyboard navigation, screen reader support, and focus management are not fully specified
-- Impact: Non-compliance with accessibility standards, poor user experience for disabled users
-- Affected Components: All components
+**5. State Management Strategy Undefined**
+- **Description**: Architecture mentions state management but specifications don't clearly define Redux/Context usage
+- **Impact**: Inconsistent state handling across components
+- **Affected Components**: DocumentUploadComponent, QualityValidationComponent
 
-**Incomplete Responsive Design Specifications**
-- Description: Breakpoints are defined but detailed mobile interaction patterns (touch gestures, swipe actions) are not specified
-- Impact: Poor mobile user experience
-- Affected Components: All components
+**6. Missing Error Boundary Implementation**
+- **Description**: No error boundary components defined in architecture or specifications
+- **Impact**: Poor error handling and user experience
+- **Affected Components**: All feature components
 
 #### LOW SEVERITY
 
-**Missing Performance Optimization Details**
-- Description: Virtual scrolling and lazy loading mentioned but not implemented in specifications
-- Impact: Potential performance issues with large datasets
-- Affected Components: KanbanColumnComponent, KanbanCardComponent
+**7. CSS Methodology Inconsistency**
+- **Description**: Specifications mix CSS-in-JS and traditional CSS approaches
+- **Impact**: Minor styling inconsistencies and maintainability issues
+- **Affected Components**: All styled components
 
-**Incomplete Testing Strategy**
-- Description: Test files mentioned but no detailed testing approach for drag & drop, API integration, or accessibility
-- Impact: Potential quality issues in production
-- Affected Components: All components
+**8. TypeScript Interface Definitions Incomplete**
+- **Description**: Some component props lack complete TypeScript definitions
+- **Impact**: Potential runtime errors and reduced developer experience
+- **Affected Components**: CameraComponent, ValidationComponent
 
 ### Recommendations:
 
-**Critical Actions Required:**
-- Resolve Architecture-HTML Mismatch: Either update HTML structure to match Kanban requirements or revise architecture to align with document upload interface
-- Implement Missing APIs: Develop complete Kanban API endpoints (GET /kanban/boards, POST /kanban/cards, PUT /kanban/cards/{cardId}/move, DELETE /kanban/cards/{cardId})
-- Complete Drag & Drop Implementation: Add detailed Angular CDK implementation with proper event handling, validation, and visual feedback
-- Enhance Error Handling: Implement comprehensive error categorization, retry mechanisms, and graceful degradation strategies
+**CRITICAL - Immediate Action Required:**
+1. **Stakeholder Alignment Meeting**: Urgent meeting needed to clarify requirements - implement Kanban board OR document upload interface, not both
+2. **Requirement Clarification**: Get written confirmation of actual feature requirements
+3. **Architecture Realignment**: Once requirements are clarified, realign all components accordingly
 
-**Immediate Improvements:**
-- Accessibility Compliance: Implement complete keyboard navigation, screen reader support, and ARIA live regions
-- Mobile Optimization: Add touch gesture support, swipe actions, and mobile-specific interaction patterns
-- Performance Optimization: Implement virtual scrolling for large card lists and lazy loading for board data
-- Real-time Features: Add WebSocket integration for collaborative editing and live updates
+**Implementation Fixes:**
+4. **Implement Missing Kanban Components** (if Kanban is confirmed):
+   - KanbanBoardComponent with drag-and-drop functionality
+   - KanbanColumnComponent with add/remove capabilities
+   - KanbanCardComponent with edit/delete actions
+5. **Add Error Boundaries**: Implement ErrorBoundaryComponent for better error handling
+6. **Standardize Naming**: Use consistent 'Component' suffix across all components
+7. **Define State Management**: Choose and implement consistent state management (Redux Toolkit recommended)
+8. **Complete TypeScript Definitions**: Add comprehensive interface definitions for all props
+9. **Add Loading States**: Implement LoadingComponent for better UX
+10. **Implement Toast Notifications**: Add ToastNotificationComponent for user feedback
 
-**Quality Assurance:**
-- Comprehensive Testing: Implement unit tests for all components, integration tests for drag & drop, and E2E tests for complete workflows
-- Security Implementation: Add input sanitization, XSS protection, and proper authorization checks
-- Documentation: Create detailed component API documentation, usage examples, and accessibility guidelines
+**Code Quality Improvements:**
+11. **CSS Methodology**: Standardize on CSS-in-JS or CSS Modules approach
+12. **API Integration**: Align API usage with chosen functionality (Kanban vs Document Upload)
+13. **Responsive Design**: Ensure mobile-first approach for chosen interface
+14. **Accessibility**: Implement WCAG 2.1 AA compliance for all components
+15. **Testing Strategy**: Define unit and integration testing approach
 
 ## 6. PIPELINE ALIGNMENT SUMMARY
 
 ### Architecture ↔ Specs:
-**Alignment:** 70% - Specifications correctly implement the component hierarchy and responsibilities defined in architecture, but lack complete implementation details for drag & drop and API integration.
+**Status**: ❌ **CRITICAL MISMATCH**
+- Architecture defines both Kanban and Document Upload components
+- Specifications implement only Document Upload components
+- Missing: KanbanBoardComponent, KanbanColumnComponent, KanbanCardComponent
+- Mismatch: Core functionality completely different from requirements
 
 ### Specs ↔ User Flow:
-**Alignment:** 90% - User flow diagram accurately represents the component interactions and user journeys defined in specifications, with comprehensive coverage of all major use cases.
+**Status**: ✅ **ALIGNED**
+- User flow perfectly supports document upload specifications
+- All component interactions properly mapped
+- Error handling flows match specification error states
+- Navigation flows align with component hierarchy
 
 ### Validation Coverage:
-**Architecture vs HTML:** 0% - Complete mismatch between Kanban board requirements and document upload HTML structure.
-**Missing Components:** All Kanban-specific components need to be implemented from scratch.
-**API Compatibility:** No Kanban APIs available, requiring complete backend development.
+**Status**: ⚠️ **PARTIAL**
+- Document upload implementation thoroughly validated
+- Kanban board requirements completely unvalidated
+- Quality issues identified across all implementations
+- Critical requirement mismatch flagged for immediate attention
 
 ## 7. IMPLEMENTATION NOTES FOR DEVELOPERS
 
-### Critical Requirements:
-- Follow folder structure from architecture exactly as specified
-- Implement components as per specifications with full code preservation
-- Refer to user flow for navigation logic and interaction patterns
-- Address all validation issues before development begins
+### CRITICAL DECISION REQUIRED
+**Before any development begins, stakeholders must clarify:**
+- Should we implement the Kanban board (per Jira requirement DEMO-1060)?
+- Should we implement the document upload interface (per HTML structure)?
+- This decision affects ALL subsequent development work.
 
-### Development Priority:
-1. **Resolve HTML-Architecture Mismatch** - Create proper Kanban board HTML structure
-2. **Implement Missing APIs** - Develop complete backend API endpoints
-3. **Complete Component Implementation** - Build all components with full functionality
-4. **Add Drag & Drop** - Implement Angular CDK drag and drop with proper validation
-5. **Enhance Error Handling** - Add comprehensive error states and recovery
-6. **Optimize for Mobile** - Implement responsive design with touch gestures
-7. **Add Accessibility** - Complete ARIA implementation and keyboard navigation
-8. **Performance Optimization** - Add virtual scrolling and lazy loading
-9. **Testing Implementation** - Create comprehensive test suite
-10. **Documentation** - Complete API and component documentation
+### If Document Upload Interface is Confirmed:
+1. **Follow folder structure from architecture**:
+   ```
+   src/
+   ├── pages/DocumentUploadPage/
+   ├── layout/HeaderComponent/, SidebarComponent/
+   ├── features/DocumentUploadComponent/, CameraComponent/, QualityValidationComponent/
+   └── shared/Button/, Card/, Badge/, etc.
+   ```
 
-### Technical Stack:
-- Angular 15+ with TypeScript
-- Angular CDK for drag & drop functionality
-- CSS Grid for three-column layout
-- SCSS for styling with design tokens
-- Angular Material (optional) or custom component library
-- NgRx for state management (recommended for complex interactions)
-- WebSocket for real-time collaboration (future enhancement)
+2. **Implement components as per specifications**:
+   - Use provided TypeScript interfaces exactly as defined
+   - Preserve all HTML structure and CSS styling
+   - Implement all event handlers and state management
 
-### API Requirements:
-**Missing Endpoints (High Priority):**
-- GET /kanban/boards/{boardId} - Load board data
-- POST /kanban/cards - Create new card
-- PUT /kanban/cards/{cardId} - Update card
-- PUT /kanban/cards/{cardId}/move - Move card between columns
-- DELETE /kanban/cards/{cardId} - Delete card
+3. **Refer to user flow for navigation logic**:
+   - Follow the step-by-step user journey
+   - Implement all error handling paths
+   - Ensure proper state transitions between steps
 
-**Available Endpoints (Can be adapted):**
-- POST /auth/login - User authentication
-- GET /users/profile - User profile data
-- POST /forms/sessions - Adapt for board state management
+4. **Address validation issues before development**:
+   - Add error boundary components
+   - Standardize component naming conventions
+   - Complete TypeScript interface definitions
+   - Choose consistent CSS methodology
 
-### Security Considerations:
-- Input sanitization for all user-generated content
-- XSS protection for card titles and descriptions
-- Proper authorization checks for board access
-- Rate limiting for API calls
-- CSRF protection for state-changing operations
+### If Kanban Board is Confirmed:
+1. **Discard current specifications** and create new ones for:
+   - KanbanBoardComponent with three columns (To Do, In Progress, Done)
+   - KanbanColumnComponent with add/remove card capabilities
+   - KanbanCardComponent with edit/delete actions
+   - Drag-and-drop functionality between columns
 
-### Performance Guidelines:
-- Implement virtual scrolling for columns with >50 cards
-- Use OnPush change detection strategy
-- Lazy load board data and implement pagination
-- Optimize drag & drop performance with proper event handling
-- Implement efficient state management with minimal re-renders
+2. **Create new user flow diagram** for Kanban interactions:
+   - Board setup and configuration
+   - Card creation, editing, and deletion
+   - Drag-and-drop between columns
+   - Board sharing and collaboration
 
-### Accessibility Requirements:
-- Complete keyboard navigation support
-- Screen reader compatibility with proper ARIA labels
-- High contrast mode support
-- Focus management during drag & drop operations
-- Alternative interaction methods for users who cannot use drag & drop
+3. **Update API integration** to support Kanban functionality:
+   - Board management endpoints
+   - Card CRUD operations
+   - Column management
+   - Real-time updates for collaboration
+
+### Development Best Practices:
+- **Mobile-First**: Start with mobile design and scale up
+- **Accessibility**: Implement WCAG 2.1 AA compliance from the start
+- **Error Handling**: Add comprehensive error boundaries and user feedback
+- **Performance**: Implement lazy loading and code splitting
+- **Testing**: Write unit tests for all components
+- **Documentation**: Document all component APIs and usage patterns
 
 ## 8. ISSUES FOUND
 
-### High Severity:
-- **Critical Architecture-HTML Mismatch:** Complete functional mismatch between Kanban requirements and document upload HTML
-- **Missing API Endpoints:** All Kanban-specific backend APIs are unavailable
-- **Incomplete Error Handling Strategy:** Insufficient error categorization and recovery mechanisms
+### High Severity Issues:
+1. **State management mismatch in TransactionList**
+   - **Severity**: High
+   - **Description**: Component state management doesn't align with architecture definitions
+   - **Resolution**: Implement consistent state management pattern
 
-### Medium Severity:
-- **Missing Drag and Drop Implementation Details:** Lack of detailed Angular CDK implementation
-- **Insufficient Accessibility Implementation:** Incomplete keyboard navigation and screen reader support
-- **Incomplete Responsive Design Specifications:** Missing mobile interaction patterns
+2. **Missing component coverage**
+   - **Severity**: High
+   - **Description**: KanbanBoardComponent and related components missing from specifications
+   - **Resolution**: Implement missing Kanban components or clarify requirements
 
-### Low Severity:
-- **Missing Performance Optimization Details:** Virtual scrolling and lazy loading not implemented
-- **Incomplete Testing Strategy:** No detailed testing approach for complex interactions
+3. **Critical requirement mismatch**
+   - **Severity**: High
+   - **Description**: Jira specifies Kanban board but implementation is document upload
+   - **Resolution**: Urgent stakeholder meeting to clarify actual requirements
+
+### Medium Severity Issues:
+4. **Component naming inconsistency**
+   - **Severity**: Medium
+   - **Description**: Mixed naming conventions across components
+   - **Resolution**: Standardize on consistent naming pattern
+
+5. **Missing error boundaries**
+   - **Severity**: Medium
+   - **Description**: No error boundary components defined
+   - **Resolution**: Implement ErrorBoundaryComponent for better error handling
+
+### Low Severity Issues:
+6. **Design system inconsistency**
+   - **Severity**: Low
+   - **Description**: Mixed CSS methodologies and styling approaches
+   - **Resolution**: Choose and implement consistent design system approach
 
 ## 9. RECOMMENDATIONS
 
-### Critical Actions Required:
-1. **Resolve Architecture-HTML Mismatch:** Create proper Kanban board HTML structure or revise requirements
-2. **Implement Missing APIs:** Develop complete Kanban backend API endpoints
-3. **Complete Drag & Drop Implementation:** Add detailed Angular CDK implementation
-4. **Enhance Error Handling:** Implement comprehensive error management strategies
+### Immediate Actions (Critical):
+1. **Align state management implementation** with architecture definitions
+2. **Implement missing components** or clarify requirements with stakeholders
+3. **Resolve critical requirement mismatch** through stakeholder meeting
+4. **Update styling to follow design system tokens** consistently
 
-### Immediate Improvements:
-1. **Accessibility Compliance:** Complete keyboard navigation and screen reader support
-2. **Mobile Optimization:** Add touch gesture support and mobile-specific interactions
-3. **Performance Optimization:** Implement virtual scrolling and lazy loading
-4. **Real-time Features:** Add WebSocket integration for collaborative editing
+### Implementation Improvements:
+5. **Add comprehensive error boundaries** for better error handling
+6. **Standardize component naming conventions** across all components
+7. **Complete TypeScript interface definitions** for all component props
+8. **Implement consistent state management strategy** (Redux Toolkit recommended)
+9. **Add loading states and skeleton screens** for better UX
+10. **Implement toast notifications** for user feedback
 
-### Quality Assurance:
-1. **Comprehensive Testing:** Unit, integration, and E2E tests for all functionality
-2. **Security Implementation:** Input sanitization and authorization checks
-3. **Documentation:** Complete API and component documentation
-4. **Architecture Alignment:** Ensure consistency across all components and patterns
+### Code Quality Enhancements:
+11. **Choose consistent CSS methodology** (CSS-in-JS or CSS Modules)
+12. **Align API integration** with chosen functionality
+13. **Ensure mobile-first responsive design** for all components
+14. **Implement WCAG 2.1 AA accessibility compliance**
+15. **Define comprehensive testing strategy** for all components
 
 ---
 
-**FINAL PACKAGE STATUS:** Ready for development with critical issues addressed
-**NEXT STEPS:** Resolve HTML-Architecture mismatch and implement missing APIs before proceeding with component development
-**ESTIMATED EFFORT:** High - Complete redesign required due to fundamental misalignment between requirements and provided structure
+## FINAL PACKAGE CONCLUSION
+
+This Final UI Package Bundle provides a comprehensive integration of all pipeline outputs, highlighting both the technical excellence of the document upload implementation and the critical requirement mismatch that must be resolved before development begins.
+
+**Key Deliverables:**
+- ✅ Complete UI Component Architecture (with both Kanban and Document Upload options)
+- ✅ Detailed Component Specifications (full TypeScript, HTML, CSS implementations)
+- ✅ Interactive User Flow Diagram (HTML file with Mermaid visualization)
+- ✅ Comprehensive Quality Validation Report (issues, recommendations, alignment analysis)
+- ⚠️ Critical requirement clarification needed before development
+
+**Next Steps:**
+1. **Immediate**: Stakeholder meeting to resolve Kanban vs Document Upload requirement
+2. **Short-term**: Address high-severity validation issues
+3. **Development**: Implement chosen interface following provided specifications
+4. **Quality**: Address medium and low-severity issues during development
+
+**Developer Readiness**: Once requirements are clarified, this package provides everything needed for efficient implementation with clear architecture, detailed specifications, user flow guidance, and quality validation insights.
