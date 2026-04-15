@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DocUpload Pro — Wireframe</title>
+  <title>Kanban Board — Wireframe</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
       --w-bg:      #f2f2f2;
       --w-surface: #e8e8e8;
@@ -16,16 +17,20 @@
       --w-text:    #444444;
       --w-label:   #888888;
       --w-active:  #555555;
+      --w-todo:    #E3F2FD;
+      --w-progress: #FFF3E0;
+      --w-done:    #E8F5E8;
     }
+
     html, body { height: 100%; font-family: 'Courier New', Courier, monospace; background: var(--w-bg); color: var(--w-text); font-size: 12px; }
-    
+
     /* LAYOUT */
     #app     { display: flex; height: 100vh; overflow: hidden; }
     #sidebar { width: 280px; flex-shrink: 0; background: var(--w-surface); border-right: 2px solid var(--w-border); display: flex; flex-direction: column; overflow-y: auto; }
     #main    { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
     #topbar  { height: 52px; flex-shrink: 0; background: var(--w-surface); border-bottom: 2px solid var(--w-border); display: flex; align-items: center; padding: 0 20px; gap: 12px; justify-content: space-between; }
     #content { flex: 1; overflow-y: auto; background: var(--w-bg); }
-    
+
     /* SIDEBAR */
     .sb-logo     { padding: 16px 18px; border-bottom: 1px dashed var(--w-border); }
     .sb-logo-box { background: var(--w-block); border: 1px solid var(--w-border); height: 28px; display: flex; align-items: center; padding: 0 10px; font-size: 11px; color: var(--w-text); }
@@ -36,1139 +41,1047 @@
     .nav-icon    { width: 10px; height: 10px; background: var(--w-dark); flex-shrink: 0; }
     .sb-footer   { margin-top: auto; padding: 12px 18px; border-top: 1px dashed var(--w-border); display: flex; flex-direction: column; gap: 5px; }
     .sb-fline    { height: 8px; background: var(--w-block); border: 1px solid var(--w-border); }
-    
+
     /* TOPBAR */
     .search-wf    { flex: 1; max-width: 320px; height: 30px; background: var(--w-block); border: 1px dashed var(--w-border); display: flex; align-items: center; padding: 0 10px; font-size: 10px; color: var(--w-label); }
     .topbar-right { display: flex; align-items: center; gap: 10px; }
     .notif-wf     { height: 28px; width: 90px; background: var(--w-block); border: 1px solid var(--w-border); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--w-label); }
     .avatar-wf    { width: 28px; height: 28px; border-radius: 50%; background: var(--w-dark); border: 1px solid var(--w-border); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--w-surface); }
     .topbar-name  { height: 12px; width: 90px; background: var(--w-block); border: 1px solid var(--w-border); }
-    
+
     /* PAGES */
     .page        { display: none; padding: 24px 28px; }
     .page.active { display: block; }
-    
+
     /* PAGE HEADER */
     .ph       { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-    .ph-title { height: 22px; width: 280px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 6px; }
-    .ph-sub   { height: 10px; width: 400px; background: var(--w-surface); border: 1px dashed var(--w-border); }
+    .ph-title { height: 22px; width: 220px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 6px; }
+    .ph-sub   { height: 10px; width: 300px; background: var(--w-surface); border: 1px dashed var(--w-border); }
     .bc-wf    { height: 8px; width: 180px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 10px; }
+
+    /* KANBAN SPECIFIC */
+    .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; height: calc(100vh - 140px); }
+    .kanban-column { background: var(--w-surface); border: 2px solid var(--w-border); border-radius: 4px; display: flex; flex-direction: column; min-height: 0; }
+    .column-header { padding: 16px; border-bottom: 1px solid var(--w-border); display: flex; justify-content: space-between; align-items: center; }
+    .column-title { height: 16px; width: 80px; background: var(--w-block); border: 1px solid var(--w-border); }
+    .task-count { height: 20px; width: 30px; background: var(--w-dark); border: 1px solid var(--w-border); border-radius: 10px; }
+    .column-content { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     
-    /* GRIDS */
-    .g3 { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-bottom: 14px; }
-    .g2 { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-bottom: 14px; }
-    @media (max-width: 860px) { .g3,.g2 { grid-template-columns: 1fr; } }
-    
-    /* CARDS */
-    .card       { background: var(--w-surface); border: 1px solid var(--w-border); padding: 14px 16px; margin-bottom: 14px; }
-    .card-title { height: 9px; width: 120px; background: var(--w-dark); border: 1px solid var(--w-border); margin-bottom: 12px; }
-    
-    /* CAMERA INTERFACE */
-    .camera-view { background: var(--w-block); border: 2px solid var(--w-border); height: 300px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; position: relative; }
-    .doc-overlay { position: absolute; border: 2px dashed var(--w-stroke); width: 80%; height: 70%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--w-label); }
-    .quality-indicator { position: absolute; top: 10px; right: 10px; width: 60px; height: 20px; background: var(--w-dark); border: 1px solid var(--w-border); display: flex; align-items: center; justify-content: center; font-size: 9px; }
-    
+    .todo-column { background: var(--w-todo); }
+    .progress-column { background: var(--w-progress); }
+    .done-column { background: var(--w-done); }
+
+    /* TASK CARDS */
+    .task-card { background: var(--w-surface); border: 1px solid var(--w-border); border-radius: 4px; padding: 12px; cursor: pointer; min-height: 80px; }
+    .task-card:hover { border-color: var(--w-stroke); }
+    .task-card.dragging { opacity: 0.5; }
+    .task-title { height: 12px; width: 100%; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 8px; }
+    .task-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .task-assignee { height: 20px; width: 20px; border-radius: 50%; background: var(--w-dark); border: 1px solid var(--w-border); }
+    .task-priority { height: 8px; width: 40px; background: var(--w-stroke); border: 1px solid var(--w-border); }
+    .task-due { height: 8px; width: 60px; background: var(--w-surface); border: 1px dashed var(--w-border); }
+
     /* BUTTONS */
     .btn  { display: inline-flex; align-items: center; justify-content: center; height: 30px; min-width: 80px; background: var(--w-block); border: 1.5px solid var(--w-stroke); cursor: pointer; font-size: 10px; color: var(--w-text); font-family: inherit; padding: 0 14px; white-space: nowrap; }
     .btn:hover   { background: var(--w-dark); }
     .btn.filled  { background: var(--w-active); color: var(--w-surface); border-color: var(--w-stroke); }
     .btn.sm      { height: 24px; min-width: 50px; font-size: 9px; padding: 0 8px; }
     .btn-grp     { display: flex; gap: 8px; flex-wrap: wrap; }
-    
-    /* DOCUMENT TYPES */
-    .doc-types { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .doc-type { background: var(--w-surface); border: 1px solid var(--w-border); padding: 16px; text-align: center; cursor: pointer; }
-    .doc-type:hover { background: var(--w-block); }
-    .doc-type.selected { border: 2px solid var(--w-stroke); background: var(--w-block); }
-    .doc-icon { width: 40px; height: 30px; background: var(--w-dark); border: 1px solid var(--w-border); margin: 0 auto 8px; }
-    .doc-label { height: 8px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; }
-    
-    /* PROGRESS */
-    .progress-bar { width: 100%; height: 20px; background: var(--w-surface); border: 1px solid var(--w-border); margin-bottom: 10px; position: relative; }
-    .progress-fill { height: 100%; background: var(--w-active); width: 0%; transition: width 0.3s; }
-    .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 9px; }
-    
-    /* STEPS */
-    .steps { display: flex; margin-bottom: 20px; }
-    .step  { flex: 1; height: 32px; background: var(--w-surface); border: 1px solid var(--w-border); border-right: none; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--w-label); }
-    .step:last-child { border-right: 1px solid var(--w-border); }
-    .step.active { background: var(--w-active); color: var(--w-surface); font-weight: bold; }
-    .step.done   { background: var(--w-block);  color: var(--w-text);    font-weight: bold; }
-    
-    /* QUALITY METRICS */
-    .quality-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 14px; }
-    .quality-metric { background: var(--w-surface); border: 1px solid var(--w-border); padding: 10px; text-align: center; }
-    .metric-label { height: 8px; background: var(--w-dark); border: 1px solid var(--w-border); margin-bottom: 6px; }
-    .metric-value { height: 16px; background: var(--w-block); border: 1px solid var(--w-border); }
-    
-    /* DOCUMENT QUEUE */
-    .doc-queue { margin-bottom: 20px; }
-    .queue-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--w-surface); border: 1px solid var(--w-border); margin-bottom: 8px; }
-    .queue-status { width: 12px; height: 12px; border-radius: 50%; background: var(--w-dark); border: 1px solid var(--w-border); }
-    .queue-status.processing { background: var(--w-active); }
-    .queue-status.complete { background: var(--w-stroke); }
-    .queue-info { flex: 1; }
-    .queue-name { height: 10px; width: 120px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 4px; }
-    .queue-details { height: 8px; width: 80px; background: var(--w-surface); border: 1px dashed var(--w-border); }
-    
-    /* ACCESSIBILITY */
-    .acc-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .acc-option { background: var(--w-surface); border: 1px solid var(--w-border); padding: 14px; }
-    .acc-toggle { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .toggle { width: 34px; height: 18px; border: 1.5px solid var(--w-border); background: var(--w-block); display: flex; align-items: center; padding: 0 2px; cursor: pointer; }
-    .toggle::after { content:''; width:12px; height:12px; background:var(--w-dark); border:1px solid var(--w-border); transition:margin .15s; }
-    .toggle.on { background: var(--w-dark); }
-    .toggle.on::after { margin-left: 14px; background: var(--w-surface); }
-    
-    /* ERROR STATES */
-    .error-box { background: var(--w-surface); border: 2px solid var(--w-stroke); padding: 20px; text-align: center; margin-bottom: 20px; }
-    .error-icon { width: 40px; height: 40px; background: var(--w-stroke); border: 1px solid var(--w-border); margin: 0 auto 12px; }
-    .error-title { height: 12px; width: 200px; background: var(--w-block); border: 1px solid var(--w-border); margin: 0 auto 8px; }
-    .error-desc { height: 8px; width: 300px; background: var(--w-surface); border: 1px dashed var(--w-border); margin: 0 auto 16px; }
-    
-    /* LINES */
-    .ln    { height: 10px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 6px; }
-    .lnsm  { height: 8px; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 5px; }
-    .w100  { width:100%; } .w80 { width:80%; } .w60 { width:60%; } .w40 { width:40%; } .w30 { width:30%; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1023px) {
+      .kanban-board { grid-template-columns: 1fr; grid-template-rows: repeat(3, 1fr); }
+      #sidebar { width: 240px; }
+    }
+
+    @media (max-width: 767px) {
+      #app { flex-direction: column; }
+      #sidebar { width: 100%; height: auto; flex-direction: row; overflow-x: auto; }
+      .kanban-board { grid-template-columns: 1fr; grid-template-rows: none; height: auto; }
+      .kanban-column { min-height: 300px; }
+    }
+
+    /* MODAL */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .modal.active { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: var(--w-surface); border: 2px solid var(--w-border); padding: 24px; max-width: 400px; width: 90%; }
+    .modal-header { height: 16px; width: 200px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 16px; }
+    .modal-body { margin-bottom: 20px; }
+    .modal-text { height: 10px; width: 100%; background: var(--w-surface); border: 1px dashed var(--w-border); margin-bottom: 8px; }
+
+    /* ACCESSIBILITY FEATURES */
+    .skip-link { position: absolute; top: -40px; left: 6px; background: var(--w-active); color: var(--w-surface); padding: 8px; text-decoration: none; z-index: 100; }
+    .skip-link:focus { top: 6px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .focus-indicator { outline: 2px solid var(--w-stroke); outline-offset: 2px; }
+
+    /* HIGH CONTRAST MODE */
+    @media (prefers-contrast: high) {
+      :root {
+        --w-bg: #ffffff;
+        --w-surface: #f0f0f0;
+        --w-block: #000000;
+        --w-border: #000000;
+        --w-text: #000000;
+      }
+    }
+
+    /* REDUCED MOTION */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+
+    /* TABS */
+    .tab-bar { display: flex; border-bottom: 2px solid var(--w-border); margin-bottom: 14px; gap: 2px; }
+    .tab     { height: 32px; min-width: 90px; background: var(--w-surface); border: 1px solid var(--w-border); border-bottom: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 10px; color: var(--w-label); padding: 0 14px; }
+    .tab:hover   { background: var(--w-block); }
+    .tab.active  { background: var(--w-block); color: var(--w-text); font-weight: bold; border-bottom: 2px solid var(--w-surface); }
+
+    /* FORM ELEMENTS */
+    .inp  { width: 100%; height: 30px; background: var(--w-block); border: 1px dashed var(--w-border); margin-bottom: 4px; }
+    .txa  { width: 100%; height: 70px; background: var(--w-block); border: 1px dashed var(--w-border); margin-bottom: 4px; }
+    .lbl  { height: 8px; width: 80px; background: var(--w-dark); border: 1px solid var(--w-border); margin-bottom: 5px; }
+    .fgrp { margin-bottom: 12px; }
+
+    /* CONTEXT MENU */
+    .context-menu { position: absolute; background: var(--w-surface); border: 2px solid var(--w-border); padding: 8px 0; min-width: 120px; z-index: 100; }
+    .context-item { padding: 8px 12px; cursor: pointer; font-size: 10px; }
+    .context-item:hover { background: var(--w-block); }
+
+    /* DRAG AND DROP */
+    .drop-zone { border: 2px dashed var(--w-stroke); background: rgba(85, 85, 85, 0.1); }
+    .drag-preview { position: fixed; pointer-events: none; z-index: 1000; opacity: 0.8; }
   </style>
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
   <div id="app">
-    <div id="sidebar">
+    <!-- SIDEBAR -->
+    <nav id="sidebar" role="navigation" aria-label="Main navigation">
       <div class="sb-logo">
-        <div class="sb-logo-box">[ LOGO — DocUpload Pro ]</div>
+        <div class="sb-logo-box">[ LOGO — Kanban Board ]</div>
       </div>
       
-      <div class="sb-section">Main Workflow</div>
-      <div class="nav-link active" onclick="show('landing', this)"><div class="nav-icon"></div>Upload Landing</div>
-      <div class="nav-link" onclick="show('doc-type', this)"><div class="nav-icon"></div>Document Type</div>
-      <div class="nav-link" onclick="show('camera-prep', this)"><div class="nav-icon"></div>Camera Preparation</div>
-      <div class="nav-link" onclick="show('camera-capture', this)"><div class="nav-icon"></div>Camera Interface</div>
-      <div class="nav-link" onclick="show('quality-validation', this)"><div class="nav-icon"></div>Quality Validation</div>
-      <div class="nav-link" onclick="show('upload-progress', this)"><div class="nav-icon"></div>Upload Progress</div>
+      <div class="sb-section">Workflow Views</div>
       
-      <div class="sb-section">Batch Upload</div>
-      <div class="nav-link" onclick="show('batch-planning', this)"><div class="nav-icon"></div>Batch Planning</div>
-      <div class="nav-link" onclick="show('doc-queue', this)"><div class="nav-icon"></div>Document Queue</div>
-      <div class="nav-link" onclick="show('batch-processing', this)"><div class="nav-icon"></div>Batch Processing</div>
+      <a href="#" class="nav-link active" onclick="show('desktop-board', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        Desktop Board
+      </a>
       
-      <div class="sb-section">Quality Issues</div>
-      <div class="nav-link" onclick="show('quality-diagnosis', this)"><div class="nav-icon"></div>Quality Diagnosis</div>
-      <div class="nav-link" onclick="show('assisted-retake', this)"><div class="nav-icon"></div>Assisted Retake</div>
+      <a href="#" class="nav-link" onclick="show('tablet-view', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        Tablet View
+      </a>
+      
+      <a href="#" class="nav-link" onclick="show('mobile-view', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        Mobile View
+      </a>
+      
+      <div class="sb-section">Task Management</div>
+      
+      <a href="#" class="nav-link" onclick="show('drag-drop', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        Drag & Drop
+      </a>
+      
+      <a href="#" class="nav-link" onclick="show('context-menu', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        Context Menu
+      </a>
+      
+      <a href="#" class="nav-link" onclick="show('task-update', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        Task Update
+      </a>
+      
+      <a href="#" class="nav-link" onclick="show('workflow-validation', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        Workflow Rules
+      </a>
       
       <div class="sb-section">Accessibility</div>
-      <div class="nav-link" onclick="show('accessibility-mode', this)"><div class="nav-icon"></div>Accessibility Setup</div>
-      <div class="nav-link" onclick="show('voice-guided', this)"><div class="nav-icon"></div>Voice Guided</div>
-      <div class="nav-link" onclick="show('audio-validation', this)"><div class="nav-icon"></div>Audio Validation</div>
       
-      <div class="sb-section">Environment</div>
-      <div class="nav-link" onclick="show('env-assessment', this)"><div class="nav-icon"></div>Environment Assessment</div>
-      <div class="nav-link" onclick="show('adaptive-camera', this)"><div class="nav-icon"></div>Adaptive Camera</div>
+      <a href="#" class="nav-link" onclick="show('keyboard-nav', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        Keyboard Navigation
+      </a>
       
-      <div class="sb-section">Error States</div>
-      <div class="nav-link" onclick="show('network-error', this)"><div class="nav-icon"></div>Network Error</div>
-      <div class="nav-link" onclick="show('processing-error', this)"><div class="nav-icon"></div>Processing Error</div>
-      <div class="nav-link" onclick="show('storage-error', this)"><div class="nav-icon"></div>Storage Error</div>
+      <a href="#" class="nav-link" onclick="show('screen-reader', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        Screen Reader
+      </a>
+      
+      <a href="#" class="nav-link" onclick="show('high-contrast', this)" role="menuitem">
+        <div class="nav-icon"></div>
+        High Contrast
+      </a>
       
       <div class="sb-footer">
         <div class="sb-fline"></div>
-        <div class="sb-fline w80"></div>
-        <div class="sb-fline w60"></div>
+        <div class="sb-fline"></div>
+        <div style="font-size: 9px; color: var(--w-label);">WCAG 2.1 AA Compliant</div>
       </div>
-    </div>
-    
-    <div id="main">
-      <div id="topbar">
-        <div class="search-wf">[ Search documents... ]</div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main id="main">
+      <!-- TOPBAR -->
+      <header id="topbar" role="banner">
+        <div class="search-wf">[ Search tasks... ]</div>
         <div class="topbar-right">
           <div class="notif-wf">[ Notifications ]</div>
-          <div class="avatar-wf">U</div>
+          <div class="avatar-wf">PM</div>
           <div class="topbar-name"></div>
         </div>
+      </header>
+
+      <!-- CONTENT AREA -->
+      <div id="content" role="main" id="main-content">
+        
+        <!-- DESKTOP KANBAN BOARD -->
+        <div id="desktop-board" class="page active">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <button class="btn sm">[ Filter ]</button>
+              <button class="btn sm filled">[ + New Task ]</button>
+            </div>
+          </div>
+          
+          <div class="kanban-board" role="application" aria-label="Kanban board">
+            <!-- TO DO COLUMN -->
+            <div class="kanban-column todo-column" role="region" aria-label="To Do tasks">
+              <div class="column-header">
+                <div class="column-title" aria-label="To Do"></div>
+                <div class="task-count" aria-label="5 tasks"></div>
+              </div>
+              <div class="column-content" id="todo-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button" aria-label="Task: Implement user authentication">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee" aria-label="Assigned to John"></div>
+                    <div class="task-priority" aria-label="High priority"></div>
+                    <div class="task-due" aria-label="Due: 2 days"></div>
+                  </div>
+                </div>
+                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- IN PROGRESS COLUMN -->
+            <div class="kanban-column progress-column" role="region" aria-label="In Progress tasks">
+              <div class="column-header">
+                <div class="column-title" aria-label="In Progress"></div>
+                <div class="task-count" aria-label="3 tasks"></div>
+              </div>
+              <div class="column-content" id="progress-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- DONE COLUMN -->
+            <div class="kanban-column done-column" role="region" aria-label="Done tasks">
+              <div class="column-header">
+                <div class="column-title" aria-label="Done"></div>
+                <div class="task-count" aria-label="8 tasks"></div>
+              </div>
+              <div class="column-content" id="done-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+                <div class="task-card" draggable="true" ondragstart="drag(event)" tabindex="0" role="button">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLET VIEW -->
+        <div id="tablet-view" class="page">
+          <div class="ph">
+            <div>
+              <div class="bc-wf"></div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <button class="btn sm">[ Filter ]</button>
+              <button class="btn sm filled">[ + New ]</button>
+            </div>
+          </div>
+          
+          <div class="tab-bar">
+            <div class="tab active" onclick="switchTab(this, 'tablet-todo')">To Do (5)</div>
+            <div class="tab" onclick="switchTab(this, 'tablet-progress')">In Progress (3)</div>
+            <div class="tab" onclick="switchTab(this, 'tablet-done')">Done (8)</div>
+          </div>
+          
+          <div id="tablet-todo" class="tab-content">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div class="task-card">
+                <div class="task-title"></div>
+                <div class="task-meta">
+                  <div class="task-assignee"></div>
+                  <div class="task-priority"></div>
+                  <div class="task-due"></div>
+                </div>
+                <div class="btn-grp" style="margin-top: 8px;">
+                  <button class="btn sm">[ Move to Progress ]</button>
+                  <button class="btn sm">[ Edit ]</button>
+                </div>
+              </div>
+              <div class="task-card">
+                <div class="task-title"></div>
+                <div class="task-meta">
+                  <div class="task-assignee"></div>
+                  <div class="task-priority"></div>
+                  <div class="task-due"></div>
+                </div>
+                <div class="btn-grp" style="margin-top: 8px;">
+                  <button class="btn sm">[ Move to Progress ]</button>
+                  <button class="btn sm">[ Edit ]</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="tablet-progress" class="tab-content" style="display: none;">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div class="task-card">
+                <div class="task-title"></div>
+                <div class="task-meta">
+                  <div class="task-assignee"></div>
+                  <div class="task-priority"></div>
+                  <div class="task-due"></div>
+                </div>
+                <div class="btn-grp" style="margin-top: 8px;">
+                  <button class="btn sm">[ Move to Done ]</button>
+                  <button class="btn sm">[ Move to Todo ]</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="tablet-done" class="tab-content" style="display: none;">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div class="task-card">
+                <div class="task-title"></div>
+                <div class="task-meta">
+                  <div class="task-assignee"></div>
+                  <div class="task-priority"></div>
+                  <div class="task-due"></div>
+                </div>
+                <div class="btn-grp" style="margin-top: 8px;">
+                  <button class="btn sm">[ Reopen ]</button>
+                  <button class="btn sm">[ Archive ]</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MOBILE VIEW -->
+        <div id="mobile-view" class="page">
+          <div class="ph">
+            <div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+            <div class="btn-grp">
+              <button class="btn sm filled">[ + ]</button>
+            </div>
+          </div>
+          
+          <div class="tab-bar">
+            <div class="tab active" onclick="switchTab(this, 'mobile-todo')">Todo</div>
+            <div class="tab" onclick="switchTab(this, 'mobile-progress')">Progress</div>
+            <div class="tab" onclick="switchTab(this, 'mobile-done')">Done</div>
+          </div>
+          
+          <div id="mobile-todo" class="tab-content">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div class="task-card">
+                <div class="task-title"></div>
+                <div class="task-meta">
+                  <div class="task-assignee"></div>
+                  <div class="task-priority"></div>
+                </div>
+                <div class="btn-grp" style="margin-top: 8px;">
+                  <button class="btn sm filled">[ → ]</button>
+                  <button class="btn sm">[ ⋯ ]</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="mobile-progress" class="tab-content" style="display: none;">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div class="task-card">
+                <div class="task-title"></div>
+                <div class="task-meta">
+                  <div class="task-assignee"></div>
+                  <div class="task-priority"></div>
+                </div>
+                <div class="btn-grp" style="margin-top: 8px;">
+                  <button class="btn sm filled">[ → ]</button>
+                  <button class="btn sm">[ ← ]</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="mobile-done" class="tab-content" style="display: none;">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div class="task-card">
+                <div class="task-title"></div>
+                <div class="task-meta">
+                  <div class="task-assignee"></div>
+                  <div class="task-priority"></div>
+                </div>
+                <div class="btn-grp" style="margin-top: 8px;">
+                  <button class="btn sm">[ Reopen ]</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DRAG AND DROP INTERACTION -->
+        <div id="drag-drop" class="page">
+          <div class="ph">
+            <div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 20px; padding: 16px; background: var(--w-surface); border: 1px dashed var(--w-border);">
+            <div style="font-size: 10px; margin-bottom: 8px; color: var(--w-label);">DRAG AND DROP INTERACTION STATES</div>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+              <div class="task-card" style="position: relative;">
+                <div class="task-title"></div>
+                <div style="position: absolute; top: -4px; right: -4px; background: var(--w-stroke); color: var(--w-surface); padding: 2px 4px; font-size: 8px;">DRAGGING</div>
+              </div>
+              <div class="kanban-column" style="width: 200px; height: 120px; border-style: dashed; background: rgba(85, 85, 85, 0.1);">
+                <div class="column-header">
+                  <div class="column-title"></div>
+                </div>
+                <div style="text-align: center; padding: 20px; font-size: 10px; color: var(--w-label);">DROP ZONE ACTIVE</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="kanban-board">
+            <div class="kanban-column todo-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card dragging">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column progress-column drop-zone">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div style="text-align: center; padding: 40px; font-size: 10px; color: var(--w-label);">Drop task here to move to In Progress</div>
+              </div>
+            </div>
+            
+            <div class="kanban-column done-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTEXT MENU -->
+        <div id="context-menu" class="page">
+          <div class="ph">
+            <div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 20px; padding: 16px; background: var(--w-surface); border: 1px dashed var(--w-border);">
+            <div style="font-size: 10px; margin-bottom: 8px; color: var(--w-label);">RIGHT-CLICK CONTEXT MENU</div>
+            <div style="position: relative; display: inline-block;">
+              <div class="task-card" style="border-color: var(--w-stroke);">
+                <div class="task-title"></div>
+                <div class="task-meta">
+                  <div class="task-assignee"></div>
+                  <div class="task-priority"></div>
+                  <div class="task-due"></div>
+                </div>
+              </div>
+              <div class="context-menu" style="position: absolute; top: 20px; left: 120px;">
+                <div class="context-item">Move to In Progress</div>
+                <div class="context-item">Move to Done</div>
+                <div class="context-item" style="border-top: 1px solid var(--w-border); margin-top: 4px; padding-top: 8px;">Edit Task</div>
+                <div class="context-item">Assign to...</div>
+                <div class="context-item">Set Priority</div>
+                <div class="context-item" style="border-top: 1px solid var(--w-border); margin-top: 4px; padding-top: 8px; color: #cc0000;">Delete Task</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="kanban-board">
+            <div class="kanban-column todo-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card" oncontextmenu="showContextMenu(event)">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column progress-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column done-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TASK UPDATE -->
+        <div id="task-update" class="page">
+          <div class="ph">
+            <div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px;">
+            <div class="kanban-board" style="grid-template-columns: repeat(3, 1fr);">
+              <div class="kanban-column todo-column">
+                <div class="column-header">
+                  <div class="column-title"></div>
+                  <div class="task-count"></div>
+                </div>
+                <div class="column-content">
+                  <div class="task-card">
+                    <div class="task-title"></div>
+                    <div class="task-meta">
+                      <div class="task-assignee"></div>
+                      <div class="task-priority"></div>
+                      <div class="task-due"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="kanban-column progress-column">
+                <div class="column-header">
+                  <div class="column-title"></div>
+                  <div class="task-count"></div>
+                </div>
+                <div class="column-content">
+                  <div class="task-card" style="border-color: var(--w-stroke); background: #fff;">
+                    <div class="task-title"></div>
+                    <div class="task-meta">
+                      <div class="task-assignee"></div>
+                      <div class="task-priority"></div>
+                      <div class="task-due"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="kanban-column done-column">
+                <div class="column-header">
+                  <div class="column-title"></div>
+                  <div class="task-count"></div>
+                </div>
+                <div class="column-content">
+                  <div class="task-card">
+                    <div class="task-title"></div>
+                    <div class="task-meta">
+                      <div class="task-assignee"></div>
+                      <div class="task-priority"></div>
+                      <div class="task-due"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div style="background: var(--w-surface); border: 2px solid var(--w-border); padding: 16px;">
+              <div style="height: 14px; width: 100px; background: var(--w-block); border: 1px solid var(--w-border); margin-bottom: 16px;"></div>
+              
+              <div class="fgrp">
+                <div class="lbl"></div>
+                <div class="inp"></div>
+              </div>
+              
+              <div class="fgrp">
+                <div class="lbl"></div>
+                <div class="txa"></div>
+              </div>
+              
+              <div class="fgrp">
+                <div class="lbl"></div>
+                <select class="inp">
+                  <option>[ Select Status ]</option>
+                  <option>To Do</option>
+                  <option>In Progress</option>
+                  <option>Done</option>
+                </select>
+              </div>
+              
+              <div class="fgrp">
+                <div class="lbl"></div>
+                <select class="inp">
+                  <option>[ Select Assignee ]</option>
+                  <option>John Doe</option>
+                  <option>Jane Smith</option>
+                </select>
+              </div>
+              
+              <div class="btn-grp">
+                <button class="btn filled">[ Save Changes ]</button>
+                <button class="btn">[ Cancel ]</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WORKFLOW VALIDATION -->
+        <div id="workflow-validation" class="page">
+          <div class="ph">
+            <div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+          </div>
+          
+          <div class="kanban-board">
+            <div class="kanban-column todo-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column progress-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column done-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- VALIDATION MODAL -->
+          <div class="modal active">
+            <div class="modal-content">
+              <div class="modal-header"></div>
+              <div class="modal-body">
+                <div class="modal-text"></div>
+                <div class="modal-text" style="width: 80%;"></div>
+                <div class="modal-text" style="width: 90%;"></div>
+                <div style="margin: 16px 0; padding: 12px; background: #fff3cd; border: 1px solid #ffeaa7;">
+                  <div style="font-size: 10px; color: #856404;">⚠ Warning: This task has dependencies that may be affected</div>
+                </div>
+              </div>
+              <div class="btn-grp">
+                <button class="btn filled">[ Proceed Anyway ]</button>
+                <button class="btn">[ Cancel ]</button>
+                <button class="btn">[ View Dependencies ]</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KEYBOARD NAVIGATION -->
+        <div id="keyboard-nav" class="page">
+          <div class="ph">
+            <div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 20px; padding: 16px; background: var(--w-surface); border: 1px dashed var(--w-border);">
+            <div style="font-size: 10px; margin-bottom: 8px; color: var(--w-label);">KEYBOARD SHORTCUTS</div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 9px;">
+              <div>Tab - Navigate between elements</div>
+              <div>Arrow Keys - Navigate within columns</div>
+              <div>Enter - Activate focused element</div>
+              <div>Space - Select/deselect task</div>
+              <div>Ctrl+M - Move task</div>
+              <div>Ctrl+N - New task</div>
+            </div>
+          </div>
+          
+          <div class="kanban-board">
+            <div class="kanban-column todo-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card focus-indicator" tabindex="0">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+                <div class="task-card" tabindex="0">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column progress-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card" tabindex="0">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column done-column">
+              <div class="column-header">
+                <div class="column-title"></div>
+                <div class="task-count"></div>
+              </div>
+              <div class="column-content">
+                <div class="task-card" tabindex="0">
+                  <div class="task-title"></div>
+                  <div class="task-meta">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN READER -->
+        <div id="screen-reader" class="page">
+          <div class="ph">
+            <div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 20px; padding: 16px; background: var(--w-surface); border: 1px dashed var(--w-border);">
+            <div style="font-size: 10px; margin-bottom: 8px; color: var(--w-label);">SCREEN READER ANNOUNCEMENTS</div>
+            <div style="background: #f0f0f0; padding: 8px; font-size: 9px; font-style: italic;">
+              "Kanban board with 3 columns. To Do column has 5 tasks, In Progress has 3 tasks, Done has 8 tasks. Use arrow keys to navigate between tasks."
+            </div>
+          </div>
+          
+          <div class="kanban-board" role="application" aria-label="Project tasks organized in kanban board">
+            <div class="kanban-column todo-column" role="region" aria-labelledby="todo-header">
+              <div class="column-header">
+                <h2 id="todo-header" class="sr-only">To Do Tasks</h2>
+                <div class="column-title" aria-hidden="true"></div>
+                <div class="task-count" aria-label="5 tasks in To Do column"></div>
+              </div>
+              <div class="column-content" role="list">
+                <div class="task-card" role="listitem" tabindex="0" aria-label="Task: Implement user authentication. Assigned to John Doe. High priority. Due in 2 days.">
+                  <div class="task-title" aria-hidden="true"></div>
+                  <div class="task-meta" aria-hidden="true">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+                <div class="task-card" role="listitem" tabindex="0" aria-label="Task: Design database schema. Assigned to Jane Smith. Medium priority. Due in 5 days.">
+                  <div class="task-title" aria-hidden="true"></div>
+                  <div class="task-meta" aria-hidden="true">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column progress-column" role="region" aria-labelledby="progress-header">
+              <div class="column-header">
+                <h2 id="progress-header" class="sr-only">In Progress Tasks</h2>
+                <div class="column-title" aria-hidden="true"></div>
+                <div class="task-count" aria-label="3 tasks in progress"></div>
+              </div>
+              <div class="column-content" role="list">
+                <div class="task-card" role="listitem" tabindex="0" aria-label="Task: Setup CI/CD pipeline. Assigned to Mike Johnson. High priority. Due tomorrow.">
+                  <div class="task-title" aria-hidden="true"></div>
+                  <div class="task-meta" aria-hidden="true">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column done-column" role="region" aria-labelledby="done-header">
+              <div class="column-header">
+                <h2 id="done-header" class="sr-only">Completed Tasks</h2>
+                <div class="column-title" aria-hidden="true"></div>
+                <div class="task-count" aria-label="8 completed tasks"></div>
+              </div>
+              <div class="column-content" role="list">
+                <div class="task-card" role="listitem" tabindex="0" aria-label="Task: Project setup. Completed by Sarah Wilson. Was high priority.">
+                  <div class="task-title" aria-hidden="true"></div>
+                  <div class="task-meta" aria-hidden="true">
+                    <div class="task-assignee"></div>
+                    <div class="task-priority"></div>
+                    <div class="task-due"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div aria-live="polite" aria-atomic="true" class="sr-only" id="announcements">
+            <!-- Dynamic announcements will appear here -->
+          </div>
+        </div>
+
+        <!-- HIGH CONTRAST -->
+        <div id="high-contrast" class="page">
+          <div class="ph">
+            <div>
+              <div class="ph-title"></div>
+              <div class="ph-sub"></div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 20px; padding: 16px; background: #000; color: #fff; border: 2px solid #fff;">
+            <div style="font-size: 10px; margin-bottom: 8px;">HIGH CONTRAST MODE ACTIVE</div>
+            <div style="font-size: 9px;">All colors meet WCAG AA contrast requirements (4.5:1 ratio minimum)</div>
+          </div>
+          
+          <div class="kanban-board">
+            <div class="kanban-column" style="background: #fff; border: 3px solid #000;">
+              <div class="column-header" style="border-bottom: 2px solid #000;">
+                <div style="background: #000; color: #fff; padding: 4px 8px; font-weight: bold;">TO DO</div>
+                <div style="background: #000; color: #fff; padding: 2px 6px; border-radius: 10px;">5</div>
+              </div>
+              <div class="column-content">
+                <div style="background: #fff; border: 2px solid #000; padding: 12px; margin-bottom: 8px;">
+                  <div style="background: #000; height: 12px; margin-bottom: 8px;"></div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <div style="background: #000; width: 20px; height: 20px; border-radius: 50%;"></div>
+                    <div style="background: #000; width: 40px; height: 8px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column" style="background: #fff; border: 3px solid #000;">
+              <div class="column-header" style="border-bottom: 2px solid #000;">
+                <div style="background: #000; color: #fff; padding: 4px 8px; font-weight: bold;">IN PROGRESS</div>
+                <div style="background: #000; color: #fff; padding: 2px 6px; border-radius: 10px;">3</div>
+              </div>
+              <div class="column-content">
+                <div style="background: #fff; border: 2px solid #000; padding: 12px; margin-bottom: 8px;">
+                  <div style="background: #000; height: 12px; margin-bottom: 8px;"></div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <div style="background: #000; width: 20px; height: 20px; border-radius: 50%;"></div>
+                    <div style="background: #000; width: 40px; height: 8px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column" style="background: #fff; border: 3px solid #000;">
+              <div class="column-header" style="border-bottom: 2px solid #000;">
+                <div style="background: #000; color: #fff; padding: 4px 8px; font-weight: bold;">DONE</div>
+                <div style="background: #000; color: #fff; padding: 2px 6px; border-radius: 10px;">8</div>
+              </div>
+              <div class="column-content">
+                <div style="background: #fff; border: 2px solid #000; padding: 12px; margin-bottom: 8px;">
+                  <div style="background: #000; height: 12px; margin-bottom: 8px;"></div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <div style="background: #000; width: 20px; height: 20px; border-radius: 50%;"></div>
+                    <div style="background: #000; width: 40px; height: 8px;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-      
-      <div id="content">
-        <!-- 1.0 Document Upload Landing -->
-        <div id="landing" class="page active">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn filled" onclick="show('doc-type')">Start Upload</div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w80"></div>
-            <div class="ln w60"></div>
-            <div class="lnsm w40"></div>
-          </div>
-          
-          <div class="g3">
-            <div class="card">
-              <div class="doc-icon"></div>
-              <div class="ln w80"></div>
-              <div class="lnsm w60"></div>
-            </div>
-            <div class="card">
-              <div class="doc-icon"></div>
-              <div class="ln w80"></div>
-              <div class="lnsm w60"></div>
-            </div>
-            <div class="card">
-              <div class="doc-icon"></div>
-              <div class="ln w80"></div>
-              <div class="lnsm w60"></div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w90"></div>
-            <div class="btn-grp">
-              <div class="btn">Need Help?</div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 2.0 Document Type Selection -->
-        <div id="doc-type" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('landing')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="doc-types">
-            <div class="doc-type selected">
-              <div class="doc-icon"></div>
-              <div class="doc-label"></div>
-              <div class="lnsm w80"></div>
-            </div>
-            <div class="doc-type">
-              <div class="doc-icon"></div>
-              <div class="doc-label"></div>
-              <div class="lnsm w80"></div>
-            </div>
-            <div class="doc-type">
-              <div class="doc-icon"></div>
-              <div class="doc-label"></div>
-              <div class="lnsm w80"></div>
-            </div>
-            <div class="doc-type">
-              <div class="doc-icon"></div>
-              <div class="doc-label"></div>
-              <div class="lnsm w80"></div>
-            </div>
-            <div class="doc-type">
-              <div class="doc-icon"></div>
-              <div class="doc-label"></div>
-              <div class="lnsm w80"></div>
-            </div>
-            <div class="doc-type">
-              <div class="doc-icon"></div>
-              <div class="doc-label"></div>
-              <div class="lnsm w80"></div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w80"></div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('camera-prep')">Next: Camera Setup →</div>
-          </div>
-        </div>
-        
-        <!-- 3.0 Camera Preparation Guide -->
-        <div id="camera-prep" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('doc-type')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="steps">
-            <div class="step done">1 — Document Type</div>
-            <div class="step active">2 — Preparation</div>
-            <div class="step">3 — Capture</div>
-            <div class="step">4 — Validation</div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="acc-toggle">
-                <div class="ln w60"></div>
-                <div class="toggle on"></div>
-              </div>
-              <div class="acc-toggle">
-                <div class="ln w80"></div>
-                <div class="toggle"></div>
-              </div>
-              <div class="acc-toggle">
-                <div class="ln w70"></div>
-                <div class="toggle on"></div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w90"></div>
-              <div class="ln w80"></div>
-              <div class="lnsm w60"></div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('camera-capture')">I'm Ready →</div>
-            <div class="btn">Skip Preparation</div>
-          </div>
-        </div>
-        
-        <!-- 4.0 Camera Interface with Overlay Guidance -->
-        <div id="camera-capture" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('camera-prep')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="steps">
-            <div class="step done">1 — Document Type</div>
-            <div class="step done">2 — Preparation</div>
-            <div class="step active">3 — Capture</div>
-            <div class="step">4 — Validation</div>
-          </div>
-          
-          <div class="camera-view">
-            <div class="doc-overlay">[ Position Document Here ]</div>
-            <div class="quality-indicator">[ Quality: Good ]</div>
-          </div>
-          
-          <div class="quality-metrics">
-            <div class="quality-metric">
-              <div class="metric-label"></div>
-              <div class="metric-value"></div>
-            </div>
-            <div class="quality-metric">
-              <div class="metric-label"></div>
-              <div class="metric-value"></div>
-            </div>
-            <div class="quality-metric">
-              <div class="metric-label"></div>
-              <div class="metric-value"></div>
-            </div>
-            <div class="quality-metric">
-              <div class="metric-label"></div>
-              <div class="metric-value"></div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="ln w100"></div>
-            <div class="ln w80"></div>
-            <div class="lnsm w60"></div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('quality-validation')">Capture Document</div>
-            <div class="btn">Switch Camera</div>
-            <div class="btn">Manual Mode</div>
-          </div>
-        </div>
-        
-        <!-- 5.0 Real-Time Quality Validation -->
-        <div id="quality-validation" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('camera-capture')">← Retake</div>
-            </div>
-          </div>
-          
-          <div class="steps">
-            <div class="step done">1 — Document Type</div>
-            <div class="step done">2 — Preparation</div>
-            <div class="step done">3 — Capture</div>
-            <div class="step active">4 — Validation</div>
-          </div>
-          
-          <div class="g2">
-            <div class="camera-view">
-              <div class="doc-overlay">[ Captured Document Preview ]</div>
-            </div>
-            <div>
-              <div class="quality-metrics">
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value"></div>
-                </div>
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value"></div>
-                </div>
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value"></div>
-                </div>
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w90"></div>
-            <div class="ln w80"></div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('upload-progress')">Accept & Upload</div>
-            <div class="btn" onclick="show('quality-diagnosis')">Improve Quality</div>
-            <div class="btn" onclick="show('camera-capture')">Retake Photo</div>
-          </div>
-        </div>
-        
-        <!-- 6.0 Upload Progress and Confirmation -->
-        <div id="upload-progress" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 75%;"></div>
-              <div class="progress-text">Uploading... 75%</div>
-            </div>
-            <div class="ln w100"></div>
-            <div class="ln w80"></div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w90"></div>
-              <div class="ln w70"></div>
-            </div>
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w80"></div>
-              <div class="ln w60"></div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('batch-planning')">Upload Another</div>
-            <div class="btn" onclick="show('landing')">Done</div>
-          </div>
-        </div>
-        
-        <!-- 7.0 Batch Upload Planning -->
-        <div id="batch-planning" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('landing')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="acc-toggle">
-                <div class="ln w80"></div>
-                <div class="toggle on"></div>
-              </div>
-              <div class="acc-toggle">
-                <div class="ln w70"></div>
-                <div class="toggle on"></div>
-              </div>
-              <div class="acc-toggle">
-                <div class="ln w90"></div>
-                <div class="toggle"></div>
-              </div>
-              <div class="acc-toggle">
-                <div class="ln w60"></div>
-                <div class="toggle on"></div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w80"></div>
-              <div class="lnsm w60"></div>
-              <div class="lnsm w40"></div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 0%;"></div>
-              <div class="progress-text">Ready to Start</div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('doc-queue')">Start Batch Upload</div>
-            <div class="btn">Save for Later</div>
-          </div>
-        </div>
-        
-        <!-- 8.0 Document Queue Interface -->
-        <div id="doc-queue" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('batch-planning')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: 40%;"></div>
-            <div class="progress-text">Processing 2 of 5 documents</div>
-          </div>
-          
-          <div class="doc-queue">
-            <div class="queue-item">
-              <div class="queue-status complete"></div>
-              <div class="queue-info">
-                <div class="queue-name"></div>
-                <div class="queue-details"></div>
-              </div>
-              <div class="btn-grp">
-                <div class="btn sm">View</div>
-              </div>
-            </div>
-            <div class="queue-item">
-              <div class="queue-status processing"></div>
-              <div class="queue-info">
-                <div class="queue-name"></div>
-                <div class="queue-details"></div>
-              </div>
-              <div class="btn-grp">
-                <div class="btn sm">Pause</div>
-              </div>
-            </div>
-            <div class="queue-item">
-              <div class="queue-status"></div>
-              <div class="queue-info">
-                <div class="queue-name"></div>
-                <div class="queue-details"></div>
-              </div>
-              <div class="btn-grp">
-                <div class="btn sm">Edit</div>
-                <div class="btn sm">Remove</div>
-              </div>
-            </div>
-            <div class="queue-item">
-              <div class="queue-status"></div>
-              <div class="queue-info">
-                <div class="queue-name"></div>
-                <div class="queue-details"></div>
-              </div>
-              <div class="btn-grp">
-                <div class="btn sm">Edit</div>
-                <div class="btn sm">Remove</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn">Pause All</div>
-            <div class="btn filled" onclick="show('batch-processing')">Continue Processing</div>
-          </div>
-        </div>
-        
-        <!-- 9.0 Batch Processing Status -->
-        <div id="batch-processing" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-          </div>
-          
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: 80%;"></div>
-            <div class="progress-text">Processing... 4 of 5 complete</div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w90"></div>
-              <div class="ln w70"></div>
-              <div class="lnsm w50"></div>
-            </div>
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w80"></div>
-              <div class="ln w60"></div>
-            </div>
-          </div>
-          
-          <div class="doc-queue">
-            <div class="queue-item">
-              <div class="queue-status complete"></div>
-              <div class="queue-info">
-                <div class="queue-name"></div>
-                <div class="queue-details"></div>
-              </div>
-              <div class="btn-grp">
-                <div class="btn sm">View Report</div>
-              </div>
-            </div>
-            <div class="queue-item">
-              <div class="queue-status processing"></div>
-              <div class="queue-info">
-                <div class="queue-name"></div>
-                <div class="queue-details"></div>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 60%;"></div>
-                <div class="progress-text">60%</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn" onclick="show('doc-queue')">← Back to Queue</div>
-            <div class="btn filled" onclick="show('landing')">View Results</div>
-          </div>
-        </div>
-        
-        <!-- 10.0 Quality Issue Diagnosis -->
-        <div id="quality-diagnosis" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('quality-validation')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="g2">
-            <div class="camera-view">
-              <div class="doc-overlay">[ Document with Issues Highlighted ]</div>
-              <div class="quality-indicator" style="background: var(--w-stroke);">[ Issues Found ]</div>
-            </div>
-            <div>
-              <div class="card">
-                <div class="card-title"></div>
-                <div class="ln w100"></div>
-                <div class="ln w90"></div>
-                <div class="ln w80"></div>
-                <div class="lnsm w60"></div>
-              </div>
-              <div class="quality-metrics">
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value" style="background: var(--w-stroke);"></div>
-                </div>
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value"></div>
-                </div>
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value" style="background: var(--w-stroke);"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w90"></div>
-            <div class="ln w80"></div>
-            <div class="ln w70"></div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('assisted-retake')">Try Again with Guidance</div>
-            <div class="btn">Auto-Enhance</div>
-            <div class="btn" onclick="show('camera-capture')">Manual Retake</div>
-          </div>
-        </div>
-        
-        <!-- 11.0 Assisted Retake Interface -->
-        <div id="assisted-retake" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('quality-diagnosis')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="camera-view">
-            <div class="doc-overlay">[ Enhanced Guidance Overlay ]</div>
-            <div class="quality-indicator">[ Real-time Coaching ]</div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w80"></div>
-              <div class="ln w60"></div>
-              <div class="lnsm w40"></div>
-            </div>
-            <div class="quality-metrics">
-              <div class="quality-metric">
-                <div class="metric-label"></div>
-                <div class="metric-value"></div>
-              </div>
-              <div class="quality-metric">
-                <div class="metric-label"></div>
-                <div class="metric-value"></div>
-              </div>
-              <div class="quality-metric">
-                <div class="metric-label"></div>
-                <div class="metric-value"></div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('quality-validation')">Capture Improved Photo</div>
-            <div class="btn">Show Comparison</div>
-          </div>
-        </div>
-        
-        <!-- 12.0 Accessibility Mode Selection -->
-        <div id="accessibility-mode" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('landing')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="acc-options">
-            <div class="acc-option">
-              <div class="acc-toggle">
-                <div class="ln w80"></div>
-                <div class="toggle on"></div>
-              </div>
-              <div class="lnsm w100"></div>
-              <div class="lnsm w90"></div>
-            </div>
-            <div class="acc-option">
-              <div class="acc-toggle">
-                <div class="ln w70"></div>
-                <div class="toggle"></div>
-              </div>
-              <div class="lnsm w100"></div>
-              <div class="lnsm w80"></div>
-            </div>
-            <div class="acc-option">
-              <div class="acc-toggle">
-                <div class="ln w90"></div>
-                <div class="toggle on"></div>
-              </div>
-              <div class="lnsm w100"></div>
-              <div class="lnsm w70"></div>
-            </div>
-            <div class="acc-option">
-              <div class="acc-toggle">
-                <div class="ln w60"></div>
-                <div class="toggle"></div>
-              </div>
-              <div class="lnsm w100"></div>
-              <div class="lnsm w85"></div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w90"></div>
-            <div class="ln w80"></div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('voice-guided')">Start Voice Guided Upload</div>
-            <div class="btn">Test Settings</div>
-          </div>
-        </div>
-        
-        <!-- 13.0 Voice-Guided Camera Interface -->
-        <div id="voice-guided" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('accessibility-mode')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="camera-view">
-            <div class="doc-overlay">[ Voice: "Move document slightly left" ]</div>
-            <div class="quality-indicator">[ Audio Feedback ]</div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w90"></div>
-            <div class="ln w80"></div>
-            <div class="ln w70"></div>
-            <div class="lnsm w60"></div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w80"></div>
-            </div>
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w90"></div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('audio-validation')">Voice Capture</div>
-            <div class="btn">Manual Capture</div>
-            <div class="btn">Pause Voice</div>
-          </div>
-        </div>
-        
-        <!-- 14.0 Audio Quality Validation -->
-        <div id="audio-validation" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('voice-guided')">← Retake</div>
-            </div>
-          </div>
-          
-          <div class="camera-view">
-            <div class="doc-overlay">[ Audio: "Document captured successfully" ]</div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w90"></div>
-            <div class="ln w80"></div>
-            <div class="ln w70"></div>
-            <div class="ln w60"></div>
-            <div class="lnsm w50"></div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w80"></div>
-              <div class="ln w60"></div>
-            </div>
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w90"></div>
-              <div class="ln w70"></div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('upload-progress')">Accept & Upload</div>
-            <div class="btn">Request Description</div>
-            <div class="btn" onclick="show('voice-guided')">Voice Retake</div>
-          </div>
-        </div>
-        
-        <!-- 15.0 Environment Assessment -->
-        <div id="env-assessment" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('landing')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="quality-metrics">
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value" style="background: var(--w-stroke);"></div>
-                </div>
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value"></div>
-                </div>
-                <div class="quality-metric">
-                  <div class="metric-label"></div>
-                  <div class="metric-value" style="background: var(--w-stroke);"></div>
-                </div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w90"></div>
-              <div class="ln w80"></div>
-              <div class="ln w70"></div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w90"></div>
-            <div class="lnsm w80"></div>
-            <div class="lnsm w70"></div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('adaptive-camera')">Continue with Adaptive Mode</div>
-            <div class="btn">Find Better Location</div>
-            <div class="btn">Override Warnings</div>
-          </div>
-        </div>
-        
-        <!-- 16.0 Adaptive Camera Interface -->
-        <div id="adaptive-camera" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-            <div class="btn-grp">
-              <div class="btn" onclick="show('env-assessment')">← Back</div>
-            </div>
-          </div>
-          
-          <div class="camera-view">
-            <div class="doc-overlay">[ Adaptive Enhancement Active ]</div>
-            <div class="quality-indicator">[ Compensating for Environment ]</div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w80"></div>
-              <div class="ln w60"></div>
-            </div>
-            <div class="quality-metrics">
-              <div class="quality-metric">
-                <div class="metric-label"></div>
-                <div class="metric-value"></div>
-              </div>
-              <div class="quality-metric">
-                <div class="metric-label"></div>
-                <div class="metric-value"></div>
-              </div>
-              <div class="quality-metric">
-                <div class="metric-label"></div>
-                <div class="metric-value"></div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w90"></div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled" onclick="show('quality-validation')">Capture with Enhancement</div>
-            <div class="btn">Multiple Shots</div>
-            <div class="btn">Manual Controls</div>
-          </div>
-        </div>
-        
-        <!-- Er.1 Network Connection Error -->
-        <div id="network-error" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-          </div>
-          
-          <div class="error-box">
-            <div class="error-icon"></div>
-            <div class="error-title"></div>
-            <div class="error-desc"></div>
-            <div class="btn-grp">
-              <div class="btn filled">Retry Upload</div>
-              <div class="btn">Save Offline</div>
-            </div>
-          </div>
-          
-          <div class="card">
-            <div class="card-title"></div>
-            <div class="ln w100"></div>
-            <div class="ln w90"></div>
-            <div class="ln w80"></div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn" onclick="show('upload-progress')">← Back to Upload</div>
-            <div class="btn">Check Connection</div>
-          </div>
-        </div>
-        
-        <!-- Er.2 Document Processing Failure -->
-        <div id="processing-error" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-          </div>
-          
-          <div class="error-box">
-            <div class="error-icon"></div>
-            <div class="error-title"></div>
-            <div class="error-desc"></div>
-            <div class="btn-grp">
-              <div class="btn filled">Try Alternative Processing</div>
-              <div class="btn">Contact Support</div>
-            </div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w80"></div>
-              <div class="ln w60"></div>
-            </div>
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w90"></div>
-              <div class="ln w70"></div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn" onclick="show('quality-validation')">← Back to Validation</div>
-            <div class="btn">Download Error Log</div>
-          </div>
-        </div>
-        
-        <!-- Er.3 Storage Quota Exceeded -->
-        <div id="storage-error" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title"></div>
-              <div class="ph-sub"></div>
-            </div>
-          </div>
-          
-          <div class="error-box">
-            <div class="error-icon"></div>
-            <div class="error-title"></div>
-            <div class="error-desc"></div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 95%;"></div>
-              <div class="progress-text">Storage: 95% Full</div>
-            </div>
-          </div>
-          
-          <div class="g2">
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w80"></div>
-              <div class="ln w60"></div>
-              <div class="btn-grp">
-                <div class="btn sm">Delete</div>
-                <div class="btn sm">Archive</div>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-title"></div>
-              <div class="ln w100"></div>
-              <div class="ln w90"></div>
-              <div class="ln w70"></div>
-              <div class="btn-grp">
-                <div class="btn sm">Delete</div>
-                <div class="btn sm">Archive</div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="btn-grp">
-            <div class="btn filled">Upgrade Storage</div>
-            <div class="btn">Manage Files</div>
-            <div class="btn" onclick="show('upload-progress')">← Back</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    </main>
   </div>
-  
+
   <script>
     function show(id, el) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1176,31 +1089,90 @@
       document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
       if (el) el.classList.add('active');
     }
+
+    function switchTab(el, panelId) {
+      el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      var prefix = panelId.substring(0, panelId.lastIndexOf('-'));
+      document.querySelectorAll('[id^="'+prefix+'-"]').forEach(p => p.style.display='none');
+      var t = document.getElementById(panelId);
+      if (t) t.style.display = 'block';
+    }
+
+    // Drag and Drop Functions
+    function allowDrop(ev) {
+      ev.preventDefault();
+      ev.target.closest('.kanban-column').classList.add('drop-zone');
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+      ev.target.classList.add('dragging');
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      var data = ev.dataTransfer.getData("text");
+      ev.target.appendChild(document.getElementById(data));
+      document.querySelectorAll('.drop-zone').forEach(zone => zone.classList.remove('drop-zone'));
+      document.querySelectorAll('.dragging').forEach(item => item.classList.remove('dragging'));
+    }
+
+    // Context Menu
+    function showContextMenu(event) {
+      event.preventDefault();
+      // Context menu logic would go here
+      console.log('Context menu triggered');
+    }
+
+    // Keyboard Navigation
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.key === 'm') {
+        e.preventDefault();
+        console.log('Move task shortcut triggered');
+      }
+      if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault();
+        console.log('New task shortcut triggered');
+      }
+    });
+
+    // Screen Reader Announcements
+    function announce(message) {
+      const announcer = document.getElementById('announcements');
+      if (announcer) {
+        announcer.textContent = message;
+        setTimeout(() => announcer.textContent = '', 1000);
+      }
+    }
+
+    // Focus Management
+    document.addEventListener('focusin', function(e) {
+      if (e.target.classList.contains('task-card')) {
+        announce(`Focused on task: ${e.target.getAttribute('aria-label') || 'Task details'}`);
+      }
+    });
   </script>
 </body>
 </html>
 
-<!-- 
+<!--
 SUMMARY TABLE:
 Step → Screen Name → File Reference → Navigates To
 
-1.0 → Document Upload Landing → landing → doc-type
-2.0 → Document Type Selection → doc-type → camera-prep
-3.0 → Camera Preparation Guide → camera-prep → camera-capture
-4.0 → Camera Interface with Overlay → camera-capture → quality-validation
-5.0 → Real-Time Quality Validation → quality-validation → upload-progress
-6.0 → Upload Progress and Confirmation → upload-progress → batch-planning/landing
-7.0 → Batch Upload Planning → batch-planning → doc-queue
-8.0 → Document Queue Interface → doc-queue → batch-processing
-9.0 → Batch Processing Status → batch-processing → landing
-10.0 → Quality Issue Diagnosis → quality-diagnosis → assisted-retake
-11.0 → Assisted Retake Interface → assisted-retake → quality-validation
-12.0 → Accessibility Mode Selection → accessibility-mode → voice-guided
-13.0 → Voice-Guided Camera Interface → voice-guided → audio-validation
-14.0 → Audio Quality Validation → audio-validation → upload-progress
-15.0 → Environment Assessment → env-assessment → adaptive-camera
-16.0 → Adaptive Camera Interface → adaptive-camera → quality-validation
-Er.1 → Network Connection Error → network-error → upload-progress
-Er.2 → Document Processing Failure → processing-error → quality-validation
-Er.3 → Storage Quota Exceeded → storage-error → upload-progress
+1.0 → Desktop Kanban Board → desktop-board → tablet-view, mobile-view, drag-drop
+2.0 → Tablet Responsive View → tablet-view → desktop-board, mobile-view
+3.0 → Mobile Responsive View → mobile-view → desktop-board, tablet-view
+4.0 → Drag and Drop Interaction → drag-drop → context-menu, task-update
+5.0 → Context Menu Actions → context-menu → task-update, workflow-validation
+6.0 → Task Status Update → task-update → workflow-validation, desktop-board
+7.0 → Workflow Validation → workflow-validation → desktop-board, task-update
+8.0 → Keyboard Navigation → keyboard-nav → screen-reader, high-contrast
+9.0 → Screen Reader Optimization → screen-reader → keyboard-nav, high-contrast
+10.0 → High Contrast Mode → high-contrast → screen-reader, keyboard-nav
+
+All screens support bidirectional navigation through the sidebar menu.
+Each screen represents a key workflow step from the user journey scenarios.
+Accessibility features are integrated throughout all screens.
+Responsive behavior is demonstrated across desktop, tablet, and mobile viewports.
 -->
