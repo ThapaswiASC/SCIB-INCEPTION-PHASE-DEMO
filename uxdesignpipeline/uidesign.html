@@ -1,1498 +1,1817 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>TaskFlow — Kanban Project Management</title>
-<meta name="description" content="TaskFlow Kanban Board — Professional project management with Play UI components"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Mulish:wght@600;700;800&display=swap" rel="stylesheet"/>
-<style>
-/* ── Play+ Dark Theme Tokens ── */
-:root {
-  /* Brand Colors */
-  --color-brand-primary: #D41B5A;
-  --rgb-brand-primary: 212,27,90;
-  
-  /* Glass Effects */
-  --glass-background-color: rgba(0, 0, 0, 0.4);
-  --glass-background-heavy: rgba(0, 0, 0, 0.55);
-  --glass-border-color: rgba(255,255,255,.10);
-  --glass-border-color-hi: rgba(255,255,255,.18);
-  --glass-backdrop-blur: 16px;
-  --glass-backdrop-blur-heavy: 24px;
-  --glass-box-shadow: 0 8px 32px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
-  --glass-box-shadow-md: 0 4px 16px rgba(0,0,0,.35);
-  
-  /* Backgrounds */
-  --global-background: #0e0f14;
-  --color-input-background: rgba(0,0,0,.25);
-  
-  /* Text Colors */
-  --color-text-primary: #F0F1F2;
-  --color-text-muted: #9CA1AA;
-  --color-text-subtle: #616874;
-  
-  /* Border Colors */
-  --color-border-default: rgba(255,255,255,.09);
-  --color-border-focus: var(--color-brand-primary);
-  
-  /* Status Colors */
-  --global-color-green-500: #37AB87;
-  --global-color-red-500: #E86E6E;
-  --global-color-yellow-500: #E19238;
-  --global-color-blue-500: #5082EF;
-  --global-color-deep-purple-500: #8561C5;
-  --green-bg: rgba(55,171,135,.15);
-  --red-bg: rgba(232,110,110,.13);
-  --amber-bg: rgba(225,146,56,.13);
-  --blue-bg: rgba(80,130,239,.13);
-  --purple-bg: rgba(133,97,197,.13);
-  
-  /* Gradients */
-  --gradient-brand: linear-gradient(135deg, var(--color-brand-primary), #7b1fa2);
-  --gradient-mesh: radial-gradient(ellipse at 20% 50%, rgba(212,27,90,.18) 0%, transparent 60%),
-                   radial-gradient(ellipse at 80% 20%, rgba(133,97,197,.15) 0%, transparent 55%),
-                   radial-gradient(ellipse at 60% 90%, rgba(80,130,239,.12) 0%, transparent 50%);
-  
-  /* Typography */
-  --global-font-family-body: 'Inter', sans-serif;
-  --global-font-family-heading: 'Mulish', sans-serif;
-  
-  /* Spacing */
-  --global-spacing-1:4px;--global-spacing-2:8px;--global-spacing-3:12px;--global-spacing-4:16px;
-  --global-spacing-5:20px;--global-spacing-6:24px;--global-spacing-7:28px;--global-spacing-8:32px;
-  
-  /* Radius */
-  --global-radius-sm:6px;--global-radius-md:8px;--global-radius-lg:12px;--global-radius-xl:16px;
-  --global-radius-pill:9999px;--global-radius-circle:50%;
-  
-  /* Motion */
-  --global-motion-duration-swift: .2s;
-  --global-motion-easing-standard: cubic-bezier(.4,0,.2,1);
-  
-  /* Accessibility */
-  --focus-outline-color: #5082EF;
-  --focus-outline-style: solid;
-  --focus-outline-width: 3px;
-}
-
-/* ── Reset ── */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:var(--global-font-family-body);color:var(--color-text-primary);font-size:14px;line-height:1.5;
-  height:100vh;overflow:hidden;display:flex;
-  background:var(--global-background);
-}
-body::before{
-  content:'';position:fixed;inset:0;
-  background:var(--gradient-mesh);
-  pointer-events:none;z-index:0;
-}
-@media (prefers-reduced-motion: no-preference){
-  body::before{animation:meshShift 14s ease-in-out infinite alternate}
-}
-@keyframes meshShift{
-  0%{opacity:.8;transform:scale(1)}
-  100%{opacity:1;transform:scale(1.06) rotate(1deg)}
-}
-
-/* ── Skip link ── */
-.skip-link{
-  position:absolute;top:-999px;left:8px;z-index:9999;
-  background:var(--global-background);color:var(--color-text-primary);
-  padding:8px 16px;border-radius:var(--global-radius-md);
-  font-weight:700;font-size:13px;text-decoration:none;
-  border:2px solid var(--focus-outline-color);
-}
-.skip-link:focus{top:8px}
-
-/* ── Global focus ring ── */
-:focus-visible{
-  outline:var(--focus-outline-width) var(--focus-outline-style) var(--focus-outline-color);
-  outline-offset:2px;
-  border-radius:var(--global-radius-sm);
-}
-
-/* ── Layout ── */
-#app{display:flex;width:100%;height:100vh;overflow:hidden;position:relative;z-index:1}
-
-/* ── SIDEBAR ── */
-.sidebar{
-  width:260px;flex-shrink:0;display:flex;flex-direction:column;
-  padding:var(--global-spacing-5) var(--global-spacing-4);overflow-y:auto;
-  background:rgba(20,21,30,.85);
-  backdrop-filter:blur(var(--glass-backdrop-blur-heavy));
-  -webkit-backdrop-filter:blur(var(--glass-backdrop-blur-heavy));
-  border-right:1px solid var(--glass-border-color);
-  box-shadow:var(--glass-box-shadow-md);
-}
-.brand{display:flex;align-items:center;gap:var(--global-spacing-3);padding-bottom:var(--global-spacing-5);border-bottom:1px solid var(--glass-border-color);margin-bottom:var(--global-spacing-4)}
-.brand-ico{width:36px;height:36px;border-radius:var(--global-radius-md);background:var(--gradient-brand);display:grid;place-items:center;font-weight:800;font-family:var(--global-font-family-heading);color:#fff;font-size:16px;flex-shrink:0;box-shadow:0 4px 12px rgba(var(--rgb-brand-primary),.35)}
-.brand-name{font-family:var(--global-font-family-heading);font-weight:800;font-size:16px;color:var(--color-text-primary)}.brand-name b{color:var(--color-brand-primary)}
-.nav-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--color-text-subtle);padding:var(--global-spacing-4) 0 var(--global-spacing-2)}
-.nav-list{list-style:none;display:flex;flex-direction:column;gap:2px}
-.nav-list li{
-  display:flex;align-items:center;gap:var(--global-spacing-3);
-  padding:10px var(--global-spacing-3);border-radius:var(--global-radius-md);cursor:pointer;
-  font-size:13px;font-weight:500;color:var(--color-text-muted);
-  transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);border:1px solid transparent;
-}
-.nav-list li:hover{background:var(--glass-background-color);border-color:var(--glass-border-color);color:var(--color-text-primary)}
-.nav-list li.active{
-  background:linear-gradient(135deg,rgba(var(--rgb-brand-primary),.2),rgba(133,97,197,.12));
-  border-color:rgba(var(--rgb-brand-primary),.3);color:var(--color-brand-primary);font-weight:600;
-  box-shadow:0 2px 12px rgba(var(--rgb-brand-primary),.15);
-}
-.nav-pill{margin-left:auto;background:var(--color-brand-primary);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--global-radius-pill);box-shadow:0 2px 8px rgba(var(--rgb-brand-primary),.35)}
-.sb-foot{margin-top:auto;padding-top:var(--global-spacing-4);border-top:1px solid var(--glass-border-color);font-size:11px;color:var(--color-text-subtle);line-height:1.7}
-
-/* ── MAIN ── */
-#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-
-/* ── HEADER ── */
-.header{
-  height:56px;flex-shrink:0;
-  background:rgba(14,15,20,.8);
-  backdrop-filter:blur(var(--glass-backdrop-blur));
-  -webkit-backdrop-filter:blur(var(--glass-backdrop-blur));
-  border-bottom:1px solid var(--glass-border-color);
-  display:flex;align-items:center;padding:0 var(--global-spacing-5);gap:var(--global-spacing-3);
-}
-.search{
-  display:flex;align-items:center;gap:var(--global-spacing-2);flex:1;max-width:380px;
-  background:var(--glass-background-color);border:1px solid var(--glass-border-color);
-  border-radius:var(--global-radius-sm);padding:var(--global-spacing-2) var(--global-spacing-3);
-  transition:border-color var(--global-motion-duration-swift) var(--global-motion-easing-standard),box-shadow var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-}
-.search:focus-within{border-color:rgba(var(--rgb-brand-primary),.4);box-shadow:0 0 0 3px rgba(var(--rgb-brand-primary),.08)}
-.search input{border:none;background:transparent;outline:none;font-size:13px;font-family:var(--global-font-family-body);color:var(--color-text-primary);flex:1}
-.search input::placeholder{color:var(--color-text-subtle)}
-.h-right{display:flex;align-items:center;gap:var(--global-spacing-3);margin-left:auto}
-.ico-btn{width:36px;height:36px;border-radius:var(--global-radius-circle);border:1px solid var(--glass-border-color);background:var(--glass-background-color);display:grid;place-items:center;cursor:pointer;position:relative;color:var(--color-text-muted);transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard)}
-.ico-btn:hover{background:var(--glass-background-heavy);border-color:var(--glass-border-color-hi);color:var(--color-text-primary)}
-.notif-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;background:var(--global-color-red-500);border-radius:var(--global-radius-circle);border:1.5px solid var(--global-background);box-shadow:0 0 6px rgba(232,110,110,.6)}
-.avatar{width:32px;height:32px;border-radius:var(--global-radius-circle);background:var(--gradient-brand);display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;box-shadow:0 3px 10px rgba(var(--rgb-brand-primary),.35)}
-.av-chip{display:flex;align-items:center;gap:var(--global-spacing-2);padding:3px 12px 3px 3px;border:1px solid var(--glass-border-color);border-radius:var(--global-radius-pill);background:var(--glass-background-color);cursor:pointer;font-size:13px;font-weight:500;color:var(--color-text-primary);transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard)}
-.av-chip:hover{background:var(--glass-background-heavy);border-color:var(--glass-border-color-hi)}
-
-/* ── CONTENT ── */
-#content{flex:1;overflow-y:auto;background:transparent}
-.page{display:none;padding:var(--global-spacing-5) var(--global-spacing-6)}.page.active{display:block}
-
-/* ── Glass CARD ── */
-.card{
-  background:var(--glass-background-color);
-  backdrop-filter:blur(var(--glass-backdrop-blur));
-  -webkit-backdrop-filter:blur(var(--glass-backdrop-blur));
-  border:1px solid var(--glass-border-color);
-  border-radius:var(--global-radius-xl);padding:var(--global-spacing-4);
-  box-shadow:var(--glass-box-shadow);
-  transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-}
-.card:hover{background:var(--glass-background-heavy);border-color:var(--glass-border-color-hi);box-shadow:0 12px 40px rgba(0,0,0,.5)}
-.card-title{font-family:var(--global-font-family-heading);font-size:15px;font-weight:700;color:var(--color-text-primary);margin-bottom:var(--global-spacing-4)}
-
-/* ── Page header ── */
-.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--global-spacing-5)}
-.ph-title{font-family:var(--global-font-family-heading);font-size:22px;font-weight:800;color:var(--color-text-primary)}
-.ph-sub{font-size:13px;color:var(--color-text-muted);margin-top:3px}
-
-/* ── BUTTONS ── */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;
-  border-radius:var(--global-radius-md);font-family:var(--global-font-family-body);font-weight:600;
-  cursor:pointer;white-space:nowrap;font-size:13px;padding:8px 16px;height:36px;border:none;
-  transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-}
-.btn .button-content{display:flex;align-items:center;justify-content:center;gap:var(--global-spacing-2);position:relative;z-index:1}
-.btn-primary{
-  background:linear-gradient(135deg,var(--color-brand-primary),#7b1fa2);color:#fff;
-  border:1px solid rgba(var(--rgb-brand-primary),.3);
-  box-shadow:0 2px 12px rgba(var(--rgb-brand-primary),.35);
-}
-.btn-primary:hover{box-shadow:0 4px 20px rgba(var(--rgb-brand-primary),.5);transform:translateY(-1px) scale(1.02)}
-.btn-secondary{background:var(--glass-background-color);border:1px solid var(--glass-border-color);color:var(--color-text-primary)}
-.btn-secondary:hover{background:var(--glass-background-heavy);border-color:rgba(var(--rgb-brand-primary),.3);color:var(--color-brand-primary)}
-.btn-danger{background:rgba(232,110,110,.12);border:1px solid rgba(232,110,110,.25);color:var(--global-color-red-500)}
-.btn-ghost{background:transparent;border:none;color:var(--color-text-muted);padding:8px 12px}
-.btn-ghost:hover{background:rgba(var(--rgb-brand-primary),.15);color:var(--color-brand-primary)}
-.btn-sm{height:30px;padding:5px 12px;font-size:12px}
-.btn-xs{height:26px;padding:4px 8px;font-size:11px}
-
-/* ── BADGES ── */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:var(--global-radius-pill);font-size:11px;font-weight:600}
-.badge-success{background:var(--green-bg);color:var(--global-color-green-500);border:1px solid rgba(55,171,135,.2)}
-.badge-danger{background:var(--red-bg);color:var(--global-color-red-500);border:1px solid rgba(232,110,110,.2)}
-.badge-warning{background:var(--amber-bg);color:var(--global-color-yellow-500);border:1px solid rgba(225,146,56,.2)}
-.badge-info{background:var(--blue-bg);color:var(--global-color-blue-500);border:1px solid rgba(80,130,239,.2)}
-.badge-neutral{background:rgba(255,255,255,.06);border:1px solid var(--glass-border-color);color:var(--color-text-muted)}
-.badge-brand{background:rgba(var(--rgb-brand-primary),.15);color:var(--color-brand-primary);border:1px solid rgba(var(--rgb-brand-primary),.25)}
-.badge-purple{background:var(--purple-bg);color:var(--global-color-deep-purple-500);border:1px solid rgba(133,97,197,.2)}
-.dot::before{content:'';width:5px;height:5px;border-radius:var(--global-radius-circle);background:currentColor;display:inline-block}
-
-/* ── KANBAN BOARD ── */
-.kanban-board{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--global-spacing-4);height:100%;overflow:hidden}
-.kanban-column{
-  background:var(--glass-background-color);
-  backdrop-filter:blur(var(--glass-backdrop-blur));
-  -webkit-backdrop-filter:blur(var(--glass-backdrop-blur));
-  border:1px solid var(--glass-border-color);
-  border-radius:var(--global-radius-xl);
-  display:flex;flex-direction:column;
-  overflow:hidden;
-  box-shadow:var(--glass-box-shadow);
-}
-.column-header{
-  padding:var(--global-spacing-4);
-  border-bottom:1px solid var(--glass-border-color);
-  display:flex;align-items:center;justify-content:space-between;
-  background:rgba(255,255,255,.02);
-}
-.column-title{font-family:var(--global-font-family-heading);font-size:14px;font-weight:700;color:var(--color-text-primary)}
-.column-count{background:rgba(255,255,255,.1);color:var(--color-text-muted);font-size:11px;font-weight:600;padding:2px 6px;border-radius:var(--global-radius-pill)}
-.column-body{flex:1;padding:var(--global-spacing-3);overflow-y:auto;display:flex;flex-direction:column;gap:var(--global-spacing-3)}
-
-/* ── TASK CARD ── */
-.task-card{
-  background:rgba(255,255,255,.03);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:var(--global-radius-lg);
-  padding:var(--global-spacing-3);
-  cursor:grab;
-  transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-  position:relative;
-}
-.task-card:hover{
-  background:rgba(255,255,255,.06);
-  border-color:rgba(var(--rgb-brand-primary),.3);
-  transform:translateY(-2px);
-  box-shadow:0 8px 24px rgba(0,0,0,.3);
-}
-.task-card:active{cursor:grabbing}
-.task-card.dragging{opacity:.7;transform:rotate(3deg) scale(1.02)}
-.task-title{font-size:13px;font-weight:600;color:var(--color-text-primary);margin-bottom:var(--global-spacing-2);line-height:1.4}
-.task-meta{display:flex;align-items:center;justify-content:space-between;margin-top:var(--global-spacing-2)}
-.task-assignee{display:flex;align-items:center;gap:var(--global-spacing-2)}
-.task-avatar{width:20px;height:20px;border-radius:var(--global-radius-circle);font-size:9px;font-weight:700;display:grid;place-items:center;color:#fff}
-.task-priority{width:8px;height:8px;border-radius:var(--global-radius-circle);flex-shrink:0}
-.priority-high{background:var(--global-color-red-500);box-shadow:0 0 8px rgba(232,110,110,.4)}
-.priority-medium{background:var(--global-color-yellow-500);box-shadow:0 0 8px rgba(225,146,56,.4)}
-.priority-low{background:var(--global-color-green-500);box-shadow:0 0 8px rgba(55,171,135,.4)}
-
-/* ── MODAL ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center;padding:var(--global-spacing-4)}
-.modal-overlay.active{display:flex}
-.modal{
-  background:var(--glass-background-heavy);
-  backdrop-filter:blur(var(--glass-backdrop-blur-heavy));
-  -webkit-backdrop-filter:blur(var(--glass-backdrop-blur-heavy));
-  border:1px solid var(--glass-border-color-hi);
-  border-radius:var(--global-radius-xl);
-  box-shadow:0 20px 60px rgba(0,0,0,.7);
-  max-width:500px;width:100%;
-  max-height:90vh;overflow-y:auto;
-}
-.modal-header{padding:var(--global-spacing-5) var(--global-spacing-5) 0;display:flex;align-items:center;justify-content:space-between}
-.modal-title{font-family:var(--global-font-family-heading);font-size:18px;font-weight:700;color:var(--color-text-primary)}
-.modal-close{width:32px;height:32px;border-radius:var(--global-radius-circle);border:1px solid var(--glass-border-color);background:var(--glass-background-color);display:grid;place-items:center;cursor:pointer;color:var(--color-text-muted);transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard)}
-.modal-close:hover{background:var(--glass-background-heavy);color:var(--color-text-primary)}
-.modal-body{padding:var(--global-spacing-5)}
-
-/* ── FORM ── */
-.field{margin-bottom:var(--global-spacing-4)}
-.field label{display:block;font-size:12px;font-weight:500;color:var(--color-text-muted);margin-bottom:var(--global-spacing-1)}
-.field input,.field select,.field textarea{
-  width:100%;padding:var(--global-spacing-2) var(--global-spacing-3);
-  border:1px solid var(--glass-border-color);border-radius:var(--global-radius-sm);
-  font-family:var(--global-font-family-body);font-size:13px;color:var(--color-text-primary);
-  background:var(--color-input-background);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  outline:none;transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-}
-.field input:focus,.field select:focus,.field textarea:focus{
-  border-color:rgba(var(--rgb-brand-primary),.6);
-  box-shadow:0 0 0 3px rgba(var(--rgb-brand-primary),.12),0 0 20px rgba(var(--rgb-brand-primary),.06);
-}
-.field textarea{resize:vertical;min-height:80px}
-
-/* ── TABS ── */
-.tabs{display:flex;border-bottom:1px solid var(--glass-border-color);margin-bottom:var(--global-spacing-4);gap:2px}
-.tab{padding:var(--global-spacing-3) var(--global-spacing-4);font-size:13px;font-weight:500;color:var(--color-text-subtle);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard)}
-.tab:hover{color:var(--color-text-primary)}
-.tab.active{color:var(--color-brand-primary);border-bottom-color:var(--color-brand-primary);font-weight:600;text-shadow:0 0 20px rgba(var(--rgb-brand-primary),.4)}
-
-/* ── STATS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--global-spacing-4);margin-bottom:var(--global-spacing-5)}
-.stat-card{background:var(--glass-background-color);backdrop-filter:blur(var(--glass-backdrop-blur));-webkit-backdrop-filter:blur(var(--glass-backdrop-blur));border:1px solid var(--glass-border-color);border-radius:var(--global-radius-xl);padding:var(--global-spacing-4);box-shadow:var(--glass-box-shadow)}
-.stat-icon{width:40px;height:40px;border-radius:var(--global-radius-md);display:grid;place-items:center;margin-bottom:var(--global-spacing-3);font-size:18px}
-.stat-label{font-size:11px;color:var(--color-text-muted);font-weight:500;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em}
-.stat-value{font-family:var(--global-font-family-heading);font-size:28px;font-weight:800;line-height:1;color:var(--color-text-primary)}
-.stat-change{font-size:11px;color:var(--color-text-muted);margin-top:4px}
-
-/* ── ACTIVITY FEED ── */
-.activity-item{display:flex;align-items:flex-start;gap:var(--global-spacing-3);padding:var(--global-spacing-3);border-radius:var(--global-radius-md);margin-bottom:var(--global-spacing-2);transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard)}
-.activity-item:hover{background:rgba(255,255,255,.03)}
-.activity-avatar{width:32px;height:32px;border-radius:var(--global-radius-circle);flex-shrink:0}
-.activity-content{flex:1;min-width:0}
-.activity-text{font-size:13px;color:var(--color-text-primary);margin-bottom:2px}
-.activity-time{font-size:11px;color:var(--color-text-subtle)}
-.activity-meta{font-size:11px;color:var(--color-text-muted);margin-top:2px}
-
-/* ── MOBILE RESPONSIVE ── */
-@media (max-width: 1023px) {
-  .sidebar{width:240px}
-  .kanban-board{grid-template-columns:1fr;overflow-x:auto;overflow-y:hidden;display:flex;gap:var(--global-spacing-3)}
-  .kanban-column{min-width:280px;flex-shrink:0}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-}
-
-@media (max-width: 767px) {
-  .sidebar{display:none}
-  .header{padding:0 var(--global-spacing-4)}
-  .search{max-width:none;flex:1}
-  .page{padding:var(--global-spacing-4)}
-  .kanban-column{min-width:260px}
-  .stats-grid{grid-template-columns:1fr}
-  .ph{flex-direction:column;gap:var(--global-spacing-3);align-items:stretch}
-}
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar{width:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:var(--global-radius-pill)}
-::-webkit-scrollbar-thumb:hover{background:rgba(var(--rgb-brand-primary),.4)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow — Three-Column Kanban Board</title>
+    <style>
+        /* ── Play+ Design System Tokens ── */
+        :root {
+            /* Brand Colors */
+            --color-brand-primary: #6366F1;
+            --color-brand-secondary: #8B5CF6;
+            --rgb-brand-primary: 99,102,241;
+            
+            /* Backgrounds */
+            --global-background: #0F172A;
+            --color-surface-primary: #1E293B;
+            --color-surface-secondary: #334155;
+            --color-surface-tertiary: #475569;
+            
+            /* Glass Effects */
+            --glass-background-color: rgba(30, 41, 59, 0.6);
+            --glass-background-heavy: rgba(30, 41, 59, 0.8);
+            --glass-border-color: rgba(148, 163, 184, 0.1);
+            --glass-border-color-hi: rgba(148, 163, 184, 0.2);
+            --glass-backdrop-blur: 16px;
+            --glass-box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            
+            /* Text Colors */
+            --color-text-primary: #F8FAFC;
+            --color-text-secondary: #CBD5E1;
+            --color-text-muted: #94A3B8;
+            --color-text-subtle: #64748B;
+            
+            /* Status Colors */
+            --color-success: #10B981;
+            --color-warning: #F59E0B;
+            --color-error: #EF4444;
+            --color-info: #3B82F6;
+            
+            /* Typography */
+            --global-font-family-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --global-font-family-heading: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            
+            /* Spacing */
+            --global-spacing-1: 4px;
+            --global-spacing-2: 8px;
+            --global-spacing-3: 12px;
+            --global-spacing-4: 16px;
+            --global-spacing-5: 20px;
+            --global-spacing-6: 24px;
+            --global-spacing-8: 32px;
+            --global-spacing-12: 48px;
+            
+            /* Border Radius */
+            --global-radius-sm: 6px;
+            --global-radius-md: 8px;
+            --global-radius-lg: 12px;
+            --global-radius-xl: 16px;
+            --global-radius-pill: 9999px;
+            --global-radius-circle: 50%;
+            
+            /* Motion */
+            --global-motion-duration-swift: 0.2s;
+            --global-motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Focus */
+            --focus-outline-color: var(--color-brand-primary);
+            --focus-outline-width: 2px;
+            --focus-outline-offset: 2px;
+        }
+        
+        /* ── Reset & Base ── */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: var(--global-font-family-body);
+            background: var(--global-background);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        /* ── Skip Link (WCAG) ── */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: var(--color-brand-primary);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            border-radius: var(--global-radius-sm);
+            z-index: 1000;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
+        }
+        
+        /* ── Focus Management ── */
+        :focus-visible {
+            outline: var(--focus-outline-width) solid var(--focus-outline-color);
+            outline-offset: var(--focus-outline-offset);
+            border-radius: var(--global-radius-sm);
+        }
+        
+        /* ── Layout ── */
+        #app {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* ── Sidebar Navigation ── */
+        .sidebar {
+            width: 280px;
+            background: var(--glass-background-heavy);
+            backdrop-filter: blur(var(--glass-backdrop-blur));
+            border-right: 1px solid var(--glass-border-color);
+            padding: var(--global-spacing-6);
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-3);
+            margin-bottom: var(--global-spacing-8);
+            padding-bottom: var(--global-spacing-6);
+            border-bottom: 1px solid var(--glass-border-color);
+        }
+        
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-secondary));
+            border-radius: var(--global-radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .brand-name {
+            font-family: var(--global-font-family-heading);
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--color-text-primary);
+        }
+        
+        .nav-section {
+            margin-bottom: var(--global-spacing-6);
+        }
+        
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-muted);
+            margin-bottom: var(--global-spacing-3);
+        }
+        
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-3);
+            padding: var(--global-spacing-3) var(--global-spacing-4);
+            border-radius: var(--global-radius-md);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+            border: 1px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background: var(--glass-background-color);
+            border-color: var(--glass-border-color);
+            color: var(--color-text-primary);
+        }
+        
+        .nav-item.active {
+            background: rgba(var(--rgb-brand-primary), 0.15);
+            border-color: rgba(var(--rgb-brand-primary), 0.3);
+            color: var(--color-brand-primary);
+            font-weight: 600;
+        }
+        
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        /* ── Main Content ── */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+        
+        /* ── Header ── */
+        .header {
+            height: 64px;
+            background: var(--glass-background-heavy);
+            backdrop-filter: blur(var(--glass-backdrop-blur));
+            border-bottom: 1px solid var(--glass-border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 var(--global-spacing-6);
+            gap: var(--global-spacing-4);
+            flex-shrink: 0;
+        }
+        
+        .search-container {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-2);
+            background: var(--glass-background-color);
+            border: 1px solid var(--glass-border-color);
+            border-radius: var(--global-radius-md);
+            padding: var(--global-spacing-2) var(--global-spacing-4);
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .search-container:focus-within {
+            border-color: var(--color-brand-primary);
+            box-shadow: 0 0 0 3px rgba(var(--rgb-brand-primary), 0.1);
+        }
+        
+        .search-input {
+            border: none;
+            background: transparent;
+            outline: none;
+            color: var(--color-text-primary);
+            font-size: 14px;
+            flex: 1;
+        }
+        
+        .search-input::placeholder {
+            color: var(--color-text-muted);
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-3);
+            margin-left: auto;
+        }
+        
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--global-radius-circle);
+            border: 1px solid var(--glass-border-color);
+            background: var(--glass-background-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--color-text-muted);
+            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+        }
+        
+        .icon-button:hover {
+            background: var(--glass-background-heavy);
+            border-color: var(--glass-border-color-hi);
+            color: var(--color-text-primary);
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-3);
+            padding: var(--global-spacing-2);
+            border-radius: var(--global-radius-pill);
+            background: var(--glass-background-color);
+            border: 1px solid var(--glass-border-color);
+            cursor: pointer;
+            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+        }
+        
+        .user-profile:hover {
+            background: var(--glass-background-heavy);
+            border-color: var(--glass-border-color-hi);
+        }
+        
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--global-radius-circle);
+            background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 12px;
+        }
+        
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text-primary);
+        }
+        
+        /* ── Content Area ── */
+        #content {
+            flex: 1;
+            overflow-y: auto;
+            background: transparent;
+        }
+        
+        .page {
+            display: none;
+            padding: var(--global-spacing-6);
+            height: 100%;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* ── Page Header ── */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--global-spacing-8);
+        }
+        
+        .page-title {
+            font-family: var(--global-font-family-heading);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            margin-bottom: var(--global-spacing-2);
+        }
+        
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--color-text-muted);
+        }
+        
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--global-spacing-2);
+            padding: var(--global-spacing-3) var(--global-spacing-5);
+            border-radius: var(--global-radius-md);
+            font-family: var(--global-font-family-body);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+            border: none;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-secondary));
+            color: white;
+            box-shadow: 0 4px 12px rgba(var(--rgb-brand-primary), 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(var(--rgb-brand-primary), 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--glass-background-color);
+            border: 1px solid var(--glass-border-color);
+            color: var(--color-text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--glass-background-heavy);
+            border-color: var(--glass-border-color-hi);
+        }
+        
+        /* ── Kanban Board ── */
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--global-spacing-6);
+            height: calc(100vh - 200px);
+            overflow: hidden;
+        }
+        
+        .kanban-column {
+            background: var(--glass-background-color);
+            backdrop-filter: blur(var(--glass-backdrop-blur));
+            border: 1px solid var(--glass-border-color);
+            border-radius: var(--global-radius-xl);
+            padding: var(--global-spacing-5);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--global-spacing-5);
+            padding-bottom: var(--global-spacing-4);
+            border-bottom: 1px solid var(--glass-border-color);
+        }
+        
+        .column-title {
+            font-family: var(--global-font-family-heading);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-2);
+        }
+        
+        .column-count {
+            background: var(--color-surface-secondary);
+            color: var(--color-text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: var(--global-radius-pill);
+        }
+        
+        .column-actions {
+            display: flex;
+            gap: var(--global-spacing-2);
+        }
+        
+        .column-action {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--global-radius-sm);
+            border: 1px solid var(--glass-border-color);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--color-text-muted);
+            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+        }
+        
+        .column-action:hover {
+            background: var(--glass-background-heavy);
+            border-color: var(--color-brand-primary);
+            color: var(--color-brand-primary);
+        }
+        
+        .task-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--global-spacing-4);
+            padding-right: var(--global-spacing-2);
+        }
+        
+        /* ── Task Cards ── */
+        .task-card {
+            background: var(--color-surface-primary);
+            border: 1px solid var(--glass-border-color);
+            border-radius: var(--global-radius-lg);
+            padding: var(--global-spacing-4);
+            cursor: pointer;
+            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+            position: relative;
+        }
+        
+        .task-card:hover {
+            background: var(--color-surface-secondary);
+            border-color: var(--color-brand-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--glass-box-shadow);
+        }
+        
+        .task-priority {
+            position: absolute;
+            top: var(--global-spacing-4);
+            right: var(--global-spacing-4);
+            width: 8px;
+            height: 8px;
+            border-radius: var(--global-radius-circle);
+        }
+        
+        .priority-high { background: var(--color-error); }
+        .priority-medium { background: var(--color-warning); }
+        .priority-low { background: var(--color-success); }
+        
+        .task-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: var(--global-spacing-2);
+            padding-right: var(--global-spacing-4);
+            line-height: 1.4;
+        }
+        
+        .task-description {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            margin-bottom: var(--global-spacing-4);
+            line-height: 1.5;
+        }
+        
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+        
+        .task-assignee {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-2);
+        }
+        
+        .assignee-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: var(--global-radius-circle);
+            background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .assignee-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+        
+        .task-due {
+            font-size: 11px;
+            color: var(--color-text-muted);
+            background: var(--color-surface-secondary);
+            padding: 2px 6px;
+            border-radius: var(--global-radius-sm);
+        }
+        
+        .task-tags {
+            display: flex;
+            gap: var(--global-spacing-2);
+            margin-top: var(--global-spacing-3);
+            flex-wrap: wrap;
+        }
+        
+        .task-tag {
+            font-size: 10px;
+            font-weight: 500;
+            padding: 2px 6px;
+            border-radius: var(--global-radius-sm);
+            background: rgba(var(--rgb-brand-primary), 0.1);
+            color: var(--color-brand-primary);
+            border: 1px solid rgba(var(--rgb-brand-primary), 0.2);
+        }
+        
+        /* ── Modal ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--color-surface-primary);
+            border: 1px solid var(--glass-border-color);
+            border-radius: var(--global-radius-xl);
+            padding: var(--global-spacing-8);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--global-spacing-6);
+        }
+        
+        .modal-title {
+            font-family: var(--global-font-family-heading);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--color-text-primary);
+        }
+        
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--global-radius-sm);
+            border: none;
+            background: transparent;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+        }
+        
+        .modal-close:hover {
+            background: var(--color-surface-secondary);
+            color: var(--color-text-primary);
+        }
+        
+        /* ── Form Elements ── */
+        .form-group {
+            margin-bottom: var(--global-spacing-5);
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: var(--global-spacing-2);
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: var(--global-spacing-3) var(--global-spacing-4);
+            border: 1px solid var(--glass-border-color);
+            border-radius: var(--global-radius-md);
+            background: var(--color-surface-secondary);
+            color: var(--color-text-primary);
+            font-size: 14px;
+            font-family: var(--global-font-family-body);
+            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--color-brand-primary);
+            box-shadow: 0 0 0 3px rgba(var(--rgb-brand-primary), 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        /* ── Responsive Design ── */
+        @media (max-width: 1023px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .kanban-board {
+                grid-template-columns: 1fr;
+                gap: var(--global-spacing-4);
+                overflow-y: auto;
+                height: auto;
+            }
+            
+            .kanban-column {
+                min-height: 400px;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                z-index: 999;
+                transition: left var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .header {
+                padding: 0 var(--global-spacing-4);
+            }
+            
+            .search-container {
+                max-width: 200px;
+            }
+            
+            .page {
+                padding: var(--global-spacing-4);
+            }
+            
+            .kanban-board {
+                display: flex;
+                overflow-x: auto;
+                gap: var(--global-spacing-4);
+                padding-bottom: var(--global-spacing-4);
+            }
+            
+            .kanban-column {
+                min-width: 280px;
+                flex-shrink: 0;
+            }
+        }
+        
+        /* ── Accessibility Enhancements ── */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* ── High Contrast Mode ── */
+        @media (prefers-contrast: high) {
+            :root {
+                --glass-border-color: rgba(255, 255, 255, 0.3);
+                --glass-border-color-hi: rgba(255, 255, 255, 0.5);
+                --color-text-muted: #B0B0B0;
+            }
+        }
+        
+        /* ── Scrollbar Styling ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-surface-tertiary);
+            border-radius: var(--global-radius-pill);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-text-muted);
+        }
+    </style>
 </head>
 <body>
-<a href="#main-content" class="skip-link">Skip to main content</a>
-<div id="app">
-
-<!-- SIDEBAR -->
-<div class="sidebar" role="complementary" aria-label="Project navigation">
-  <div class="brand">
-    <div class="brand-ico">T</div>
-    <div class="brand-name">Task<b>Flow</b></div>
-  </div>
-  
-  <div class="nav-label">Workspace</div>
-  <nav aria-label="Main navigation">
-  <ul class="nav-list" role="menu">
-    <li class="active" onclick="nav(this,'kanban')" onkeydown="navKey(event,this,'kanban')" tabindex="0" role="menuitem" aria-current="page">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Kanban Board
-    </li>
-    <li onclick="nav(this,'dashboard')" onkeydown="navKey(event,this,'dashboard')" tabindex="0" role="menuitem">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-      Dashboard
-    </li>
-    <li onclick="nav(this,'mobile')" onkeydown="navKey(event,this,'mobile')" tabindex="0" role="menuitem">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-      Mobile View
-    </li>
-  </ul>
-  </nav>
-  
-  <div class="nav-label">Team</div>
-  <nav aria-label="Team navigation">
-  <ul class="nav-list" role="menu">
-    <li onclick="nav(this,'personal')" onkeydown="navKey(event,this,'personal')" tabindex="0" role="menuitem">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      My Tasks
-    </li>
-    <li onclick="nav(this,'activity')" onkeydown="navKey(event,this,'activity')" tabindex="0" role="menuitem">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-      Team Activity
-      <span class="nav-pill" aria-label="3 new activities">3</span>
-    </li>
-  </ul>
-  </nav>
-  
-  <div class="nav-label">Management</div>
-  <nav aria-label="Management navigation">
-  <ul class="nav-list" role="menu">
-    <li onclick="nav(this,'portfolio')" onkeydown="navKey(event,this,'portfolio')" tabindex="0" role="menuitem">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      Portfolio
-    </li>
-    <li onclick="nav(this,'reports')" onkeydown="navKey(event,this,'reports')" tabindex="0" role="menuitem">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
-      Reports
-    </li>
-  </ul>
-  </nav>
-  
-  <div class="sb-foot">TaskFlow Pro v3.2<br/>© 2026 TaskFlow Inc.</div>
-</div>
-
-<!-- MAIN -->
-<main id="main" aria-label="TaskFlow workspace">
-  <header class="header" role="banner" aria-label="TaskFlow header">
-    <div class="search" role="search">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Search tasks, projects, team members..." aria-label="Search tasks and projects"/>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <div id="app">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="brand">
+                <div class="brand-icon" aria-hidden="true">TF</div>
+                <div class="brand-name">TaskFlow</div>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-label">Workflow Scenarios</div>
+                <ul class="nav-list" role="menubar">
+                    <li class="nav-item active" role="menuitem" tabindex="0" onclick="showPage('desktop-power')" onkeydown="handleNavKey(event, this)">
+                        <span class="nav-icon" aria-hidden="true">🖥️</span>
+                        Desktop Power User
+                    </li>
+                    <li class="nav-item" role="menuitem" tabindex="-1" onclick="showPage('simplified-focus')" onkeydown="handleNavKey(event, this)">
+                        <span class="nav-icon" aria-hidden="true">✨</span>
+                        Simplified Focus
+                    </li>
+                    <li class="nav-item" role="menuitem" tabindex="-1" onclick="showPage('mobile-first')" onkeydown="handleNavKey(event, this)">
+                        <span class="nav-icon" aria-hidden="true">📱</span>
+                        Mobile-First
+                    </li>
+                    <li class="nav-item" role="menuitem" tabindex="-1" onclick="showPage('tablet-hybrid')" onkeydown="handleNavKey(event, this)">
+                        <span class="nav-icon" aria-hidden="true">📟</span>
+                        Tablet Hybrid
+                    </li>
+                    <li class="nav-item" role="menuitem" tabindex="-1" onclick="showPage('screen-reader')" onkeydown="handleNavKey(event, this)">
+                        <span class="nav-icon" aria-hidden="true">♿</span>
+                        Screen Reader Optimized
+                    </li>
+                    <li class="nav-item" role="menuitem" tabindex="-1" onclick="showPage('high-contrast')" onkeydown="handleNavKey(event, this)">
+                        <span class="nav-icon" aria-hidden="true">🔆</span>
+                        High Contrast & Motor
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-label">Quick Actions</div>
+                <ul class="nav-list" role="menubar">
+                    <li class="nav-item" role="menuitem" tabindex="-1" onclick="openTaskModal()" onkeydown="handleNavKey(event, this)">
+                        <span class="nav-icon" aria-hidden="true">➕</span>
+                        Create Task
+                    </li>
+                    <li class="nav-item" role="menuitem" tabindex="-1" onclick="toggleFilters()" onkeydown="handleNavKey(event, this)">
+                        <span class="nav-icon" aria-hidden="true">🔍</span>
+                        Filter Tasks
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main id="main" role="main">
+            <!-- Header -->
+            <header class="header" role="banner">
+                <div class="search-container">
+                    <span aria-hidden="true">🔍</span>
+                    <input type="search" class="search-input" placeholder="Search tasks, assignees, or projects..." aria-label="Search tasks">
+                </div>
+                
+                <div class="header-actions">
+                    <button class="icon-button" aria-label="Notifications" title="Notifications">
+                        <span aria-hidden="true">🔔</span>
+                    </button>
+                    <button class="icon-button" aria-label="Settings" title="Settings">
+                        <span aria-hidden="true">⚙️</span>
+                    </button>
+                    <div class="user-profile" role="button" tabindex="0" aria-label="User profile menu">
+                        <div class="avatar" aria-hidden="true">SM</div>
+                        <span class="user-name">Sarah Miller</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content Area -->
+            <div id="content" id="main-content">
+                <!-- Desktop Power User Experience -->
+                <div id="desktop-power" class="page active">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Sprint Planning Board</h1>
+                            <p class="page-subtitle">Manage your team's tasks with full-featured desktop experience</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openTaskModal()">
+                            <span aria-hidden="true">➕</span>
+                            Create Task
+                        </button>
+                    </div>
+                    
+                    <div class="kanban-board" role="application" aria-label="Kanban task board">
+                        <!-- To Do Column -->
+                        <div class="kanban-column" role="region" aria-labelledby="todo-header">
+                            <div class="column-header">
+                                <div class="column-title" id="todo-header">
+                                    📋 To Do
+                                    <span class="column-count" aria-label="8 tasks">8</span>
+                                </div>
+                                <div class="column-actions">
+                                    <button class="column-action" aria-label="Add task to To Do" title="Add task">
+                                        <span aria-hidden="true">➕</span>
+                                    </button>
+                                    <button class="column-action" aria-label="Column options" title="Options">
+                                        <span aria-hidden="true">⋯</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="task-list" role="list" aria-label="To Do tasks">
+                                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskDetails('task-1')" onkeydown="handleTaskKey(event, this)">
+                                    <div class="task-priority priority-high" aria-label="High priority"></div>
+                                    <h3 class="task-title">Implement user authentication system</h3>
+                                    <p class="task-description">Set up OAuth 2.0 integration with social login providers and implement secure session management.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Backend</span>
+                                        <span class="task-tag">Security</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                            <span class="assignee-name">John Doe</span>
+                                        </div>
+                                        <span class="task-due">Due Oct 30</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskDetails('task-2')" onkeydown="handleTaskKey(event, this)">
+                                    <div class="task-priority priority-medium" aria-label="Medium priority"></div>
+                                    <h3 class="task-title">Design mobile responsive layout</h3>
+                                    <p class="task-description">Create responsive design components for mobile and tablet viewports.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Design</span>
+                                        <span class="task-tag">Frontend</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">SM</div>
+                                            <span class="assignee-name">Sarah Miller</span>
+                                        </div>
+                                        <span class="task-due">Due Nov 2</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskDetails('task-3')" onkeydown="handleTaskKey(event, this)">
+                                    <div class="task-priority priority-low" aria-label="Low priority"></div>
+                                    <h3 class="task-title">Update documentation</h3>
+                                    <p class="task-description">Review and update API documentation with latest endpoint changes.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Documentation</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">MJ</div>
+                                            <span class="assignee-name">Mike Johnson</span>
+                                        </div>
+                                        <span class="task-due">Due Nov 5</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- In Progress Column -->
+                        <div class="kanban-column" role="region" aria-labelledby="progress-header">
+                            <div class="column-header">
+                                <div class="column-title" id="progress-header">
+                                    🔄 In Progress
+                                    <span class="column-count" aria-label="5 tasks">5</span>
+                                </div>
+                                <div class="column-actions">
+                                    <button class="column-action" aria-label="Add task to In Progress" title="Add task">
+                                        <span aria-hidden="true">➕</span>
+                                    </button>
+                                    <button class="column-action" aria-label="Column options" title="Options">
+                                        <span aria-hidden="true">⋯</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="task-list" role="list" aria-label="In Progress tasks">
+                                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskDetails('task-4')" onkeydown="handleTaskKey(event, this)">
+                                    <div class="task-priority priority-high" aria-label="High priority"></div>
+                                    <h3 class="task-title">Database optimization</h3>
+                                    <p class="task-description">Optimize database queries and implement caching layer for better performance.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Backend</span>
+                                        <span class="task-tag">Performance</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">AL</div>
+                                            <span class="assignee-name">Alex Lee</span>
+                                        </div>
+                                        <span class="task-due">Due Oct 28</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskDetails('task-5')" onkeydown="handleTaskKey(event, this)">
+                                    <div class="task-priority priority-medium" aria-label="Medium priority"></div>
+                                    <h3 class="task-title">User interface testing</h3>
+                                    <p class="task-description">Conduct usability testing sessions with target users and gather feedback.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Testing</span>
+                                        <span class="task-tag">UX</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">EM</div>
+                                            <span class="assignee-name">Emma Wilson</span>
+                                        </div>
+                                        <span class="task-due">Due Nov 1</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Done Column -->
+                        <div class="kanban-column" role="region" aria-labelledby="done-header">
+                            <div class="column-header">
+                                <div class="column-title" id="done-header">
+                                    ✅ Done
+                                    <span class="column-count" aria-label="12 tasks">12</span>
+                                </div>
+                                <div class="column-actions">
+                                    <button class="column-action" aria-label="Archive completed tasks" title="Archive">
+                                        <span aria-hidden="true">📦</span>
+                                    </button>
+                                    <button class="column-action" aria-label="Column options" title="Options">
+                                        <span aria-hidden="true">⋯</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="task-list" role="list" aria-label="Completed tasks">
+                                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskDetails('task-6')" onkeydown="handleTaskKey(event, this)">
+                                    <div class="task-priority priority-medium" aria-label="Medium priority"></div>
+                                    <h3 class="task-title">Project setup and configuration</h3>
+                                    <p class="task-description">Initialize project structure, configure build tools, and set up development environment.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Setup</span>
+                                        <span class="task-tag">DevOps</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                            <span class="assignee-name">John Doe</span>
+                                        </div>
+                                        <span class="task-due">Completed Oct 25</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskDetails('task-7')" onkeydown="handleTaskKey(event, this)">
+                                    <div class="task-priority priority-low" aria-label="Low priority"></div>
+                                    <h3 class="task-title">Initial wireframes</h3>
+                                    <p class="task-description">Create low-fidelity wireframes for main user flows and key application screens.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag">Design</span>
+                                        <span class="task-tag">Planning</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">SM</div>
+                                            <span class="assignee-name">Sarah Miller</span>
+                                        </div>
+                                        <span class="task-due">Completed Oct 22</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simplified Focus Experience -->
+                <div id="simplified-focus" class="page">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Focus Mode</h1>
+                            <p class="page-subtitle">Minimalist view for distraction-free task management</p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="openTaskModal()">
+                            ➕ Add Task
+                        </button>
+                    </div>
+                    
+                    <div class="kanban-board" role="application" aria-label="Simplified Kanban board">
+                        <!-- Simplified columns with minimal visual noise -->
+                        <div class="kanban-column" role="region" aria-labelledby="simple-todo">
+                            <div class="column-header">
+                                <div class="column-title" id="simple-todo">To Do <span class="column-count">3</span></div>
+                            </div>
+                            <div class="task-list" role="list">
+                                <div class="task-card" role="listitem" tabindex="0">
+                                    <h3 class="task-title">Authentication system</h3>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar">JD</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="task-card" role="listitem" tabindex="0">
+                                    <h3 class="task-title">Mobile layout design</h3>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar">SM</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" aria-labelledby="simple-progress">
+                            <div class="column-header">
+                                <div class="column-title" id="simple-progress">In Progress <span class="column-count">2</span></div>
+                            </div>
+                            <div class="task-list" role="list">
+                                <div class="task-card" role="listitem" tabindex="0">
+                                    <h3 class="task-title">Database optimization</h3>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar">AL</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" aria-labelledby="simple-done">
+                            <div class="column-header">
+                                <div class="column-title" id="simple-done">Done <span class="column-count">5</span></div>
+                            </div>
+                            <div class="task-list" role="list">
+                                <div class="task-card" role="listitem" tabindex="0">
+                                    <h3 class="task-title">Project setup</h3>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar">JD</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mobile-First Experience -->
+                <div id="mobile-first" class="page">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Mobile Kanban</h1>
+                            <p class="page-subtitle">Touch-optimized task management for mobile devices</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openTaskModal()">
+                            ➕
+                        </button>
+                    </div>
+                    
+                    <div class="kanban-board" role="application" aria-label="Mobile Kanban board" style="display: flex; overflow-x: auto;">
+                        <div class="kanban-column" role="region" style="min-width: 280px; flex-shrink: 0;">
+                            <div class="column-header">
+                                <div class="column-title">📋 To Do <span class="column-count">8</span></div>
+                            </div>
+                            <div class="task-list" role="list">
+                                <div class="task-card" role="listitem" tabindex="0" style="touch-action: manipulation;">
+                                    <h3 class="task-title">Authentication system</h3>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar">JD</div>
+                                            <span class="assignee-name">John</span>
+                                        </div>
+                                        <span class="task-due">Oct 30</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" style="min-width: 280px; flex-shrink: 0;">
+                            <div class="column-header">
+                                <div class="column-title">🔄 In Progress <span class="column-count">5</span></div>
+                            </div>
+                            <div class="task-list" role="list">
+                                <div class="task-card" role="listitem" tabindex="0" style="touch-action: manipulation;">
+                                    <h3 class="task-title">Database optimization</h3>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar">AL</div>
+                                            <span class="assignee-name">Alex</span>
+                                        </div>
+                                        <span class="task-due">Oct 28</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" style="min-width: 280px; flex-shrink: 0;">
+                            <div class="column-header">
+                                <div class="column-title">✅ Done <span class="column-count">12</span></div>
+                            </div>
+                            <div class="task-list" role="list">
+                                <div class="task-card" role="listitem" tabindex="0" style="touch-action: manipulation;">
+                                    <h3 class="task-title">Project setup</h3>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar">JD</div>
+                                            <span class="assignee-name">John</span>
+                                        </div>
+                                        <span class="task-due">Completed</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tablet Hybrid Experience -->
+                <div id="tablet-hybrid" class="page">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Tablet View</h1>
+                            <p class="page-subtitle">Hybrid experience optimized for tablet form factor</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openTaskModal()">
+                            ➕ Create Task
+                        </button>
+                    </div>
+                    
+                    <div style="display: flex; gap: var(--global-spacing-6); height: calc(100vh - 200px);">
+                        <!-- 60% Board View -->
+                        <div style="flex: 0 0 60%;">
+                            <div class="kanban-board" role="application" style="height: 100%;">
+                                <div class="kanban-column" role="region">
+                                    <div class="column-header">
+                                        <div class="column-title">To Do <span class="column-count">8</span></div>
+                                    </div>
+                                    <div class="task-list" role="list">
+                                        <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('task-1')">
+                                            <h3 class="task-title">Authentication system</h3>
+                                            <div class="task-meta">
+                                                <div class="task-assignee">
+                                                    <div class="assignee-avatar">JD</div>
+                                                    <span class="assignee-name">John Doe</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="kanban-column" role="region">
+                                    <div class="column-header">
+                                        <div class="column-title">In Progress <span class="column-count">5</span></div>
+                                    </div>
+                                    <div class="task-list" role="list">
+                                        <div class="task-card" role="listitem" tabindex="0">
+                                            <h3 class="task-title">Database optimization</h3>
+                                            <div class="task-meta">
+                                                <div class="task-assignee">
+                                                    <div class="assignee-avatar">AL</div>
+                                                    <span class="assignee-name">Alex Lee</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="kanban-column" role="region">
+                                    <div class="column-header">
+                                        <div class="column-title">Done <span class="column-count">12</span></div>
+                                    </div>
+                                    <div class="task-list" role="list">
+                                        <div class="task-card" role="listitem" tabindex="0">
+                                            <h3 class="task-title">Project setup</h3>
+                                            <div class="task-meta">
+                                                <div class="task-assignee">
+                                                    <div class="assignee-avatar">JD</div>
+                                                    <span class="assignee-name">John Doe</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 40% Detail Panel -->
+                        <div style="flex: 0 0 40%; background: var(--glass-background-color); border: 1px solid var(--glass-border-color); border-radius: var(--global-radius-xl); padding: var(--global-spacing-6);">
+                            <div id="task-detail-panel">
+                                <h2 style="font-size: 20px; font-weight: 700; margin-bottom: var(--global-spacing-4); color: var(--color-text-primary);">Task Details</h2>
+                                <p style="color: var(--color-text-muted);">Select a task from the board to view details here.</p>
+                                
+                                <div id="task-detail-content" style="display: none;">
+                                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: var(--global-spacing-3); color: var(--color-text-primary);">Implement user authentication system</h3>
+                                    <p style="color: var(--color-text-secondary); margin-bottom: var(--global-spacing-4); line-height: 1.6;">Set up OAuth 2.0 integration with social login providers and implement secure session management for the application.</p>
+                                    
+                                    <div style="margin-bottom: var(--global-spacing-4);">
+                                        <h4 style="font-size: 14px; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--global-spacing-2);">Assignee</h4>
+                                        <div style="display: flex; align-items: center; gap: var(--global-spacing-2);">
+                                            <div class="assignee-avatar">JD</div>
+                                            <span style="color: var(--color-text-secondary);">John Doe</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="margin-bottom: var(--global-spacing-4);">
+                                        <h4 style="font-size: 14px; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--global-spacing-2);">Due Date</h4>
+                                        <span style="color: var(--color-text-secondary);">October 30, 2024</span>
+                                    </div>
+                                    
+                                    <div style="margin-bottom: var(--global-spacing-4);">
+                                        <h4 style="font-size: 14px; font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--global-spacing-2);">Tags</h4>
+                                        <div style="display: flex; gap: var(--global-spacing-2);">
+                                            <span class="task-tag">Backend</span>
+                                            <span class="task-tag">Security</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="display: flex; gap: var(--global-spacing-3); margin-top: var(--global-spacing-6);">
+                                        <button class="btn btn-primary" style="flex: 1;">Edit Task</button>
+                                        <button class="btn btn-secondary">Move to In Progress</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Screen Reader Optimized Experience -->
+                <div id="screen-reader" class="page">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">Accessible Kanban Board</h1>
+                            <p class="page-subtitle">Fully accessible task management with screen reader support</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openTaskModal()" aria-describedby="create-task-help">
+                            <span aria-hidden="true">➕</span>
+                            Create Task
+                        </button>
+                        <div id="create-task-help" class="sr-only">Opens task creation dialog</div>
+                    </div>
+                    
+                    <!-- Keyboard shortcuts info -->
+                    <div style="background: var(--glass-background-color); border: 1px solid var(--glass-border-color); border-radius: var(--global-radius-md); padding: var(--global-spacing-4); margin-bottom: var(--global-spacing-6);">
+                        <h2 style="font-size: 16px; font-weight: 600; margin-bottom: var(--global-spacing-2); color: var(--color-text-primary);">Keyboard Shortcuts</h2>
+                        <ul style="color: var(--color-text-secondary); font-size: 14px; line-height: 1.6;">
+                            <li><kbd style="background: var(--color-surface-secondary); padding: 2px 6px; border-radius: var(--global-radius-sm); font-size: 12px;">Tab</kbd> - Navigate between elements</li>
+                            <li><kbd style="background: var(--color-surface-secondary); padding: 2px 6px; border-radius: var(--global-radius-sm); font-size: 12px;">Arrow Keys</kbd> - Navigate within columns</li>
+                            <li><kbd style="background: var(--color-surface-secondary); padding: 2px 6px; border-radius: var(--global-radius-sm); font-size: 12px;">Enter</kbd> - Open task details</li>
+                            <li><kbd style="background: var(--color-surface-secondary); padding: 2px 6px; border-radius: var(--global-radius-sm); font-size: 12px;">Ctrl+N</kbd> - Create new task</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="kanban-board" role="application" aria-label="Accessible Kanban task board with keyboard navigation">
+                        <div class="kanban-column" role="region" aria-labelledby="accessible-todo">
+                            <div class="column-header">
+                                <div class="column-title" id="accessible-todo">
+                                    <span aria-hidden="true">📋</span> To Do Column
+                                    <span class="column-count" aria-label="Contains 8 tasks">8</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-list" role="list" aria-label="To Do tasks, use arrow keys to navigate">
+                                <div class="task-card" role="listitem" tabindex="0" 
+                                     aria-label="High priority task: Implement user authentication system, assigned to John Doe, due October 30"
+                                     onkeydown="handleAccessibleTaskKey(event, this)">
+                                    <div class="task-priority priority-high" aria-label="High priority" role="img"></div>
+                                    <h3 class="task-title">Implement user authentication system</h3>
+                                    <p class="task-description">Set up OAuth 2.0 integration with social login providers and implement secure session management.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag" role="tag">Backend</span>
+                                        <span class="task-tag" role="tag">Security</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                            <span class="assignee-name">John Doe</span>
+                                        </div>
+                                        <span class="task-due">Due October 30</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" role="listitem" tabindex="0" 
+                                     aria-label="Medium priority task: Design mobile responsive layout, assigned to Sarah Miller, due November 2"
+                                     onkeydown="handleAccessibleTaskKey(event, this)">
+                                    <div class="task-priority priority-medium" aria-label="Medium priority" role="img"></div>
+                                    <h3 class="task-title">Design mobile responsive layout</h3>
+                                    <p class="task-description">Create responsive design components for mobile and tablet viewports.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag" role="tag">Design</span>
+                                        <span class="task-tag" role="tag">Frontend</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">SM</div>
+                                            <span class="assignee-name">Sarah Miller</span>
+                                        </div>
+                                        <span class="task-due">Due November 2</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" aria-labelledby="accessible-progress">
+                            <div class="column-header">
+                                <div class="column-title" id="accessible-progress">
+                                    <span aria-hidden="true">🔄</span> In Progress Column
+                                    <span class="column-count" aria-label="Contains 5 tasks">5</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-list" role="list" aria-label="In Progress tasks, use arrow keys to navigate">
+                                <div class="task-card" role="listitem" tabindex="0" 
+                                     aria-label="High priority task: Database optimization, assigned to Alex Lee, due October 28"
+                                     onkeydown="handleAccessibleTaskKey(event, this)">
+                                    <div class="task-priority priority-high" aria-label="High priority" role="img"></div>
+                                    <h3 class="task-title">Database optimization</h3>
+                                    <p class="task-description">Optimize database queries and implement caching layer for better performance.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag" role="tag">Backend</span>
+                                        <span class="task-tag" role="tag">Performance</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">AL</div>
+                                            <span class="assignee-name">Alex Lee</span>
+                                        </div>
+                                        <span class="task-due">Due October 28</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" aria-labelledby="accessible-done">
+                            <div class="column-header">
+                                <div class="column-title" id="accessible-done">
+                                    <span aria-hidden="true">✅</span> Done Column
+                                    <span class="column-count" aria-label="Contains 12 completed tasks">12</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-list" role="list" aria-label="Completed tasks, use arrow keys to navigate">
+                                <div class="task-card" role="listitem" tabindex="0" 
+                                     aria-label="Completed task: Project setup and configuration, assigned to John Doe, completed October 25"
+                                     onkeydown="handleAccessibleTaskKey(event, this)">
+                                    <div class="task-priority priority-medium" aria-label="Medium priority" role="img"></div>
+                                    <h3 class="task-title">Project setup and configuration</h3>
+                                    <p class="task-description">Initialize project structure, configure build tools, and set up development environment.</p>
+                                    <div class="task-tags">
+                                        <span class="task-tag" role="tag">Setup</span>
+                                        <span class="task-tag" role="tag">DevOps</span>
+                                    </div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                            <span class="assignee-name">John Doe</span>
+                                        </div>
+                                        <span class="task-due">Completed October 25</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- High Contrast and Motor Accessibility -->
+                <div id="high-contrast" class="page">
+                    <div class="page-header">
+                        <div>
+                            <h1 class="page-title">High Contrast Kanban</h1>
+                            <p class="page-subtitle">Enhanced visibility and motor accessibility features</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openTaskModal()" style="min-height: 44px; min-width: 120px;">
+                            <span aria-hidden="true">➕</span>
+                            Create Task
+                        </button>
+                    </div>
+                    
+                    <div class="kanban-board" role="application" aria-label="High contrast Kanban board with enhanced accessibility">
+                        <div class="kanban-column" role="region" style="border: 2px solid var(--glass-border-color-hi);">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    <span style="font-size: 18px; margin-right: var(--global-spacing-2);" aria-hidden="true">📋</span>
+                                    To Do
+                                    <span class="column-count" style="background: var(--color-text-primary); color: var(--global-background); font-weight: 700;">8</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-list" role="list">
+                                <div class="task-card" role="listitem" tabindex="0" 
+                                     style="border: 2px solid var(--glass-border-color-hi); min-height: 44px; padding: var(--global-spacing-5);">
+                                    <!-- Pattern-based priority indicator for color-blind users -->
+                                    <div style="position: absolute; top: var(--global-spacing-4); right: var(--global-spacing-4); width: 12px; height: 12px; background: var(--color-error); border: 2px solid white; border-radius: 0;" aria-label="High priority" role="img"></div>
+                                    <h3 class="task-title" style="font-size: 16px; font-weight: 700;">Implement user authentication system</h3>
+                                    <p class="task-description" style="font-size: 14px; line-height: 1.8;">Set up OAuth 2.0 integration with social login providers and implement secure session management.</p>
+                                    <div class="task-tags" style="margin-top: var(--global-spacing-4);">
+                                        <span class="task-tag" style="border: 2px solid var(--color-brand-primary); font-weight: 600;">Backend</span>
+                                        <span class="task-tag" style="border: 2px solid var(--color-brand-primary); font-weight: 600;">Security</span>
+                                    </div>
+                                    <div class="task-meta" style="margin-top: var(--global-spacing-4);">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" style="width: 32px; height: 32px; font-size: 14px; font-weight: 700;">JD</div>
+                                            <span class="assignee-name" style="font-size: 14px; font-weight: 600;">John Doe</span>
+                                        </div>
+                                        <span class="task-due" style="font-size: 12px; font-weight: 600; padding: 4px 8px;">Due Oct 30</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" style="border: 2px solid var(--glass-border-color-hi);">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    <span style="font-size: 18px; margin-right: var(--global-spacing-2);" aria-hidden="true">🔄</span>
+                                    In Progress
+                                    <span class="column-count" style="background: var(--color-text-primary); color: var(--global-background); font-weight: 700;">5</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-list" role="list">
+                                <div class="task-card" role="listitem" tabindex="0" 
+                                     style="border: 2px solid var(--glass-border-color-hi); min-height: 44px; padding: var(--global-spacing-5);">
+                                    <!-- Circle pattern for medium priority -->
+                                    <div style="position: absolute; top: var(--global-spacing-4); right: var(--global-spacing-4); width: 12px; height: 12px; background: var(--color-warning); border: 2px solid white; border-radius: 50%;" aria-label="Medium priority" role="img"></div>
+                                    <h3 class="task-title" style="font-size: 16px; font-weight: 700;">Database optimization</h3>
+                                    <p class="task-description" style="font-size: 14px; line-height: 1.8;">Optimize database queries and implement caching layer for better performance.</p>
+                                    <div class="task-tags" style="margin-top: var(--global-spacing-4);">
+                                        <span class="task-tag" style="border: 2px solid var(--color-brand-primary); font-weight: 600;">Backend</span>
+                                        <span class="task-tag" style="border: 2px solid var(--color-brand-primary); font-weight: 600;">Performance</span>
+                                    </div>
+                                    <div class="task-meta" style="margin-top: var(--global-spacing-4);">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" style="width: 32px; height: 32px; font-size: 14px; font-weight: 700;">AL</div>
+                                            <span class="assignee-name" style="font-size: 14px; font-weight: 600;">Alex Lee</span>
+                                        </div>
+                                        <span class="task-due" style="font-size: 12px; font-weight: 600; padding: 4px 8px;">Due Oct 28</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" style="border: 2px solid var(--glass-border-color-hi);">
+                            <div class="column-header">
+                                <div class="column-title">
+                                    <span style="font-size: 18px; margin-right: var(--global-spacing-2);" aria-hidden="true">✅</span>
+                                    Done
+                                    <span class="column-count" style="background: var(--color-text-primary); color: var(--global-background); font-weight: 700;">12</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-list" role="list">
+                                <div class="task-card" role="listitem" tabindex="0" 
+                                     style="border: 2px solid var(--glass-border-color-hi); min-height: 44px; padding: var(--global-spacing-5);">
+                                    <!-- Triangle pattern for low priority -->
+                                    <div style="position: absolute; top: var(--global-spacing-4); right: var(--global-spacing-4); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 12px solid var(--color-success);" aria-label="Low priority" role="img"></div>
+                                    <h3 class="task-title" style="font-size: 16px; font-weight: 700;">Project setup and configuration</h3>
+                                    <p class="task-description" style="font-size: 14px; line-height: 1.8;">Initialize project structure, configure build tools, and set up development environment.</p>
+                                    <div class="task-tags" style="margin-top: var(--global-spacing-4);">
+                                        <span class="task-tag" style="border: 2px solid var(--color-brand-primary); font-weight: 600;">Setup</span>
+                                        <span class="task-tag" style="border: 2px solid var(--color-brand-primary); font-weight: 600;">DevOps</span>
+                                    </div>
+                                    <div class="task-meta" style="margin-top: var(--global-spacing-4);">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" style="width: 32px; height: 32px; font-size: 14px; font-weight: 700;">JD</div>
+                                            <span class="assignee-name" style="font-size: 14px; font-weight: 600;">John Doe</span>
+                                        </div>
+                                        <span class="task-due" style="font-size: 12px; font-weight: 600; padding: 4px 8px;">Completed Oct 25</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
     
-    <div class="h-right">
-      <div class="ico-btn" role="button" tabindex="0" aria-label="Notifications, 3 unread" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <div class="notif-dot" aria-hidden="true"></div>
-      </div>
-      
-      <div class="av-chip" role="button" tabindex="0" aria-label="Profile menu for Sarah Chen" aria-haspopup="true" onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
-        <div class="avatar" role="img" aria-label="Sarah Chen">SC</div>
-        Sarah Chen
-      </div>
+    <!-- Task Creation Modal -->
+    <div id="task-modal" class="modal-overlay" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title">Create New Task</h2>
+                <button class="modal-close" onclick="closeTaskModal()" aria-label="Close dialog">
+                    <span aria-hidden="true">✕</span>
+                </button>
+            </div>
+            
+            <form onsubmit="createTask(event)">
+                <div class="form-group">
+                    <label for="task-title-input" class="form-label">Task Title *</label>
+                    <input type="text" id="task-title-input" class="form-input" required placeholder="Enter task title...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-description-input" class="form-label">Description</label>
+                    <textarea id="task-description-input" class="form-textarea" placeholder="Describe the task..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-assignee-select" class="form-label">Assignee</label>
+                    <select id="task-assignee-select" class="form-select">
+                        <option value="">Select assignee...</option>
+                        <option value="john-doe">John Doe</option>
+                        <option value="sarah-miller">Sarah Miller</option>
+                        <option value="alex-lee">Alex Lee</option>
+                        <option value="emma-wilson">Emma Wilson</option>
+                        <option value="mike-johnson">Mike Johnson</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-priority-select" class="form-label">Priority</label>
+                    <select id="task-priority-select" class="form-select">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-due-date" class="form-label">Due Date</label>
+                    <input type="date" id="task-due-date" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-column-select" class="form-label">Column</label>
+                    <select id="task-column-select" class="form-select">
+                        <option value="todo" selected>To Do</option>
+                        <option value="progress">In Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: var(--global-spacing-3); margin-top: var(--global-spacing-6);">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Create Task</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
     </div>
-  </header>
-
-  <div id="content" id="main-content">
-
-    <!-- KANBAN BOARD -->
-    <div class="page active" id="kanban">
-      <div class="ph">
-        <div>
-          <div class="ph-title">Project Alpha - Sprint 12</div>
-          <div class="ph-sub">15 tasks • 3 team members • Due Dec 15, 2026</div>
-        </div>
-        <button class="btn btn-primary" onclick="openModal('taskModal')">
-          <div class="button-content">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span class="button-label">Add Task</span>
-          </div>
-        </button>
-      </div>
-      
-      <div class="kanban-board">
-        <!-- TO DO COLUMN -->
-        <div class="kanban-column">
-          <div class="column-header">
-            <div class="column-title">📋 To Do</div>
-            <div class="column-count">6</div>
-          </div>
-          <div class="column-body" id="todo-column">
-            <div class="task-card" draggable="true" onclick="openModal('taskDetailModal')">
-              <div class="task-title">Implement user authentication system</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--gradient-brand)">SC</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Sarah Chen</span>
-                </div>
-                <div class="task-priority priority-high"></div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Design mobile responsive layouts</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-blue-500)">MJ</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Mike Johnson</span>
-                </div>
-                <div class="task-priority priority-medium"></div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Set up CI/CD pipeline</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-green-500)">AL</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Alex Lee</span>
-                </div>
-                <div class="task-priority priority-low"></div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Write API documentation</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-deep-purple-500)">EM</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Emma Martinez</span>
-                </div>
-                <div class="task-priority priority-medium"></div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Conduct user testing sessions</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-yellow-500)">DW</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">David Wilson</span>
-                </div>
-                <div class="task-priority priority-high"></div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Optimize database queries</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-red-500)">JD</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Jane Davis</span>
-                </div>
-                <div class="task-priority priority-low"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- IN PROGRESS COLUMN -->
-        <div class="kanban-column">
-          <div class="column-header">
-            <div class="column-title">⚡ In Progress</div>
-            <div class="column-count">4</div>
-          </div>
-          <div class="column-body" id="progress-column">
-            <div class="task-card" draggable="true">
-              <div class="task-title">Build payment integration</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--gradient-brand)">SC</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Sarah Chen</span>
-                </div>
-                <div class="task-priority priority-high"></div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Create dashboard analytics</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-blue-500)">MJ</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Mike Johnson</span>
-                </div>
-                <div class="task-priority priority-medium"></div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Implement search functionality</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-green-500)">AL</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Alex Lee</span>
-                </div>
-                <div class="task-priority priority-medium"></div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Design notification system</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-deep-purple-500)">EM</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Emma Martinez</span>
-                </div>
-                <div class="task-priority priority-low"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- DONE COLUMN -->
-        <div class="kanban-column">
-          <div class="column-header">
-            <div class="column-title">✅ Done</div>
-            <div class="column-count">5</div>
-          </div>
-          <div class="column-body" id="done-column">
-            <div class="task-card" draggable="true">
-              <div class="task-title">Setup project repository</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-green-500)">AL</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Alex Lee</span>
-                </div>
-                <div class="badge badge-success dot">Completed</div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Create wireframes</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-deep-purple-500)">EM</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Emma Martinez</span>
-                </div>
-                <div class="badge badge-success dot">Completed</div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Define project requirements</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--gradient-brand)">SC</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Sarah Chen</span>
-                </div>
-                <div class="badge badge-success dot">Completed</div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Setup development environment</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-blue-500)">MJ</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">Mike Johnson</span>
-                </div>
-                <div class="badge badge-success dot">Completed</div>
-              </div>
-            </div>
-            
-            <div class="task-card" draggable="true">
-              <div class="task-title">Initial project planning</div>
-              <div class="task-meta">
-                <div class="task-assignee">
-                  <div class="task-avatar" style="background:var(--global-color-yellow-500)">DW</div>
-                  <span style="font-size:11px;color:var(--color-text-muted)">David Wilson</span>
-                </div>
-                <div class="badge badge-success dot">Completed</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- DASHBOARD -->
-    <div class="page" id="dashboard">
-      <div class="ph">
-        <div>
-          <div class="ph-title">Project Dashboard</div>
-          <div class="ph-sub">Overview of all active projects and team performance</div>
-        </div>
-        <button class="btn btn-primary">
-          <div class="button-content">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span class="button-label">New Project</span>
-          </div>
-        </button>
-      </div>
-      
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(var(--rgb-brand-primary),.12);color:var(--color-brand-primary)">📊</div>
-          <div class="stat-label">Active Projects</div>
-          <div class="stat-value">12</div>
-          <div class="stat-change">+2 this month</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--green-bg);color:var(--global-color-green-500)">✅</div>
-          <div class="stat-label">Completed Tasks</div>
-          <div class="stat-value">247</div>
-          <div class="stat-change">+18 this week</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--blue-bg);color:var(--global-color-blue-500)">👥</div>
-          <div class="stat-label">Team Members</div>
-          <div class="stat-value">8</div>
-          <div class="stat-change">All active</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--amber-bg);color:var(--global-color-yellow-500)">⏱️</div>
-          <div class="stat-label">Avg. Completion</div>
-          <div class="stat-value">3.2<span style="font-size:14px;color:var(--color-text-muted)">d</span></div>
-          <div class="stat-change">-0.5d improvement</div>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="card-title">Recent Projects</div>
-        <div style="display:grid;gap:var(--global-spacing-3)">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--global-spacing-3);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md)">
-            <div>
-              <div style="font-weight:600;font-size:13px;margin-bottom:2px">Project Alpha - Sprint 12</div>
-              <div style="font-size:11px;color:var(--color-text-muted)">15 tasks • 60% complete</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--global-spacing-2)">
-              <div class="badge badge-success">On Track</div>
-              <button class="btn btn-secondary btn-sm" onclick="nav(null,'kanban')"><div class="button-content"><span class="button-label">View</span></div></button>
-            </div>
-          </div>
-          
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--global-spacing-3);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md)">
-            <div>
-              <div style="font-weight:600;font-size:13px;margin-bottom:2px">Mobile App Redesign</div>
-              <div style="font-size:11px;color:var(--color-text-muted)">23 tasks • 85% complete</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--global-spacing-2)">
-              <div class="badge badge-warning">At Risk</div>
-              <button class="btn btn-secondary btn-sm"><div class="button-content"><span class="button-label">View</span></div></button>
-            </div>
-          </div>
-          
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--global-spacing-3);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md)">
-            <div>
-              <div style="font-weight:600;font-size:13px;margin-bottom:2px">API Integration</div>
-              <div style="font-size:11px;color:var(--color-text-muted)">8 tasks • 30% complete</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:var(--global-spacing-2)">
-              <div class="badge badge-info">Planning</div>
-              <button class="btn btn-secondary btn-sm"><div class="button-content"><span class="button-label">View</span></div></button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MOBILE VIEW -->
-    <div class="page" id="mobile">
-      <div class="ph">
-        <div>
-          <div class="ph-title">Mobile Kanban View</div>
-          <div class="ph-sub">Optimized for mobile and tablet devices</div>
-        </div>
-      </div>
-      
-      <div class="tabs" role="tablist" aria-label="Kanban columns">
-        <div class="tab active" role="tab" aria-selected="true" aria-controls="mob-todo" tabindex="0" onclick="switchMobileTab(this,'todo')" onkeydown="tabKey(event,this)">To Do (6)</div>
-        <div class="tab" role="tab" aria-selected="false" aria-controls="mob-progress" tabindex="-1" onclick="switchMobileTab(this,'progress')" onkeydown="tabKey(event,this)">In Progress (4)</div>
-        <div class="tab" role="tab" aria-selected="false" aria-controls="mob-done" tabindex="-1" onclick="switchMobileTab(this,'done')" onkeydown="tabKey(event,this)">Done (5)</div>
-      </div>
-      
-      <div id="mob-todo">
-        <div style="display:grid;gap:var(--global-spacing-3)">
-          <div class="task-card">
-            <div class="task-title">Implement user authentication system</div>
-            <div class="task-meta">
-              <div class="task-assignee">
-                <div class="task-avatar" style="background:var(--gradient-brand)">SC</div>
-                <span style="font-size:11px;color:var(--color-text-muted)">Sarah Chen</span>
-              </div>
-              <div class="badge badge-danger">High Priority</div>
-            </div>
-          </div>
-          
-          <div class="task-card">
-            <div class="task-title">Design mobile responsive layouts</div>
-            <div class="task-meta">
-              <div class="task-assignee">
-                <div class="task-avatar" style="background:var(--global-color-blue-500)">MJ</div>
-                <span style="font-size:11px;color:var(--color-text-muted)">Mike Johnson</span>
-              </div>
-              <div class="badge badge-warning">Medium Priority</div>
-            </div>
-          </div>
-          
-          <div class="task-card">
-            <div class="task-title">Set up CI/CD pipeline</div>
-            <div class="task-meta">
-              <div class="task-assignee">
-                <div class="task-avatar" style="background:var(--global-color-green-500)">AL</div>
-                <span style="font-size:11px;color:var(--color-text-muted)">Alex Lee</span>
-              </div>
-              <div class="badge badge-success">Low Priority</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div id="mob-progress" style="display:none">
-        <div style="display:grid;gap:var(--global-spacing-3)">
-          <div class="task-card">
-            <div class="task-title">Build payment integration</div>
-            <div class="task-meta">
-              <div class="task-assignee">
-                <div class="task-avatar" style="background:var(--gradient-brand)">SC</div>
-                <span style="font-size:11px;color:var(--color-text-muted)">Sarah Chen</span>
-              </div>
-              <div class="badge badge-info">In Progress</div>
-            </div>
-          </div>
-          
-          <div class="task-card">
-            <div class="task-title">Create dashboard analytics</div>
-            <div class="task-meta">
-              <div class="task-assignee">
-                <div class="task-avatar" style="background:var(--global-color-blue-500)">MJ</div>
-                <span style="font-size:11px;color:var(--color-text-muted)">Mike Johnson</span>
-              </div>
-              <div class="badge badge-info">In Progress</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div id="mob-done" style="display:none">
-        <div style="display:grid;gap:var(--global-spacing-3)">
-          <div class="task-card">
-            <div class="task-title">Setup project repository</div>
-            <div class="task-meta">
-              <div class="task-assignee">
-                <div class="task-avatar" style="background:var(--global-color-green-500)">AL</div>
-                <span style="font-size:11px;color:var(--color-text-muted)">Alex Lee</span>
-              </div>
-              <div class="badge badge-success dot">Completed</div>
-            </div>
-          </div>
-          
-          <div class="task-card">
-            <div class="task-title">Create wireframes</div>
-            <div class="task-meta">
-              <div class="task-assignee">
-                <div class="task-avatar" style="background:var(--global-color-deep-purple-500)">EM</div>
-                <span style="font-size:11px;color:var(--color-text-muted)">Emma Martinez</span>
-              </div>
-              <div class="badge badge-success dot">Completed</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PERSONAL TASKS -->
-    <div class="page" id="personal">
-      <div class="ph">
-        <div>
-          <div class="ph-title">My Tasks</div>
-          <div class="ph-sub">Personal task dashboard and progress tracking</div>
-        </div>
-        <button class="btn btn-primary">
-          <div class="button-content">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span class="button-label">Add Task</span>
-          </div>
-        </button>
-      </div>
-      
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--blue-bg);color:var(--global-color-blue-500)">📋</div>
-          <div class="stat-label">Assigned Tasks</div>
-          <div class="stat-value">8</div>
-          <div class="stat-change">2 due today</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--green-bg);color:var(--global-color-green-500)">✅</div>
-          <div class="stat-label">Completed</div>
-          <div class="stat-value">24</div>
-          <div class="stat-change">This month</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--amber-bg);color:var(--global-color-yellow-500)">⏱️</div>
-          <div class="stat-label">In Progress</div>
-          <div class="stat-value">3</div>
-          <div class="stat-change">Active now</div>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="card-title">My Active Tasks</div>
-        <div style="display:grid;gap:var(--global-spacing-3)">
-          <div class="task-card">
-            <div class="task-title">Implement user authentication system</div>
-            <div style="font-size:11px;color:var(--color-text-muted);margin:var(--global-spacing-2) 0">Project Alpha - Sprint 12</div>
-            <div class="task-meta">
-              <div class="badge badge-danger">High Priority</div>
-              <div class="badge badge-neutral">Due Today</div>
-            </div>
-          </div>
-          
-          <div class="task-card">
-            <div class="task-title">Build payment integration</div>
-            <div style="font-size:11px;color:var(--color-text-muted);margin:var(--global-spacing-2) 0">Project Alpha - Sprint 12</div>
-            <div class="task-meta">
-              <div class="badge badge-info">In Progress</div>
-              <div class="badge badge-neutral">Due Dec 10</div>
-            </div>
-          </div>
-          
-          <div class="task-card">
-            <div class="task-title">Code review for mobile app</div>
-            <div style="font-size:11px;color:var(--color-text-muted);margin:var(--global-spacing-2) 0">Mobile App Redesign</div>
-            <div class="task-meta">
-              <div class="badge badge-warning">Medium Priority</div>
-              <div class="badge badge-neutral">Due Dec 8</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TEAM ACTIVITY -->
-    <div class="page" id="activity">
-      <div class="ph">
-        <div>
-          <div class="ph-title">Team Activity</div>
-          <div class="ph-sub">Real-time updates and team collaboration</div>
-        </div>
-        <button class="btn btn-secondary">
-          <div class="button-content">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18l-2 13H5L3 6z"/><path d="M3 6L2 2H1"/></svg>
-            <span class="button-label">Filter</span>
-          </div>
-        </button>
-      </div>
-      
-      <div class="card">
-        <div class="card-title">Recent Activity</div>
-        <div>
-          <div class="activity-item">
-            <div class="activity-avatar" style="background:var(--gradient-brand)">SC</div>
-            <div class="activity-content">
-              <div class="activity-text"><strong>Sarah Chen</strong> moved "Implement user authentication" to In Progress</div>
-              <div class="activity-time">2 minutes ago</div>
-              <div class="activity-meta">Project Alpha - Sprint 12</div>
-            </div>
-          </div>
-          
-          <div class="activity-item">
-            <div class="activity-avatar" style="background:var(--global-color-blue-500)">MJ</div>
-            <div class="activity-content">
-              <div class="activity-text"><strong>Mike Johnson</strong> completed "Create dashboard analytics"</div>
-              <div class="activity-time">15 minutes ago</div>
-              <div class="activity-meta">Project Alpha - Sprint 12</div>
-            </div>
-          </div>
-          
-          <div class="activity-item">
-            <div class="activity-avatar" style="background:var(--global-color-green-500)">AL</div>
-            <div class="activity-content">
-              <div class="activity-text"><strong>Alex Lee</strong> added a comment to "Set up CI/CD pipeline"</div>
-              <div class="activity-time">1 hour ago</div>
-              <div class="activity-meta">Project Alpha - Sprint 12</div>
-            </div>
-          </div>
-          
-          <div class="activity-item">
-            <div class="activity-avatar" style="background:var(--global-color-deep-purple-500)">EM</div>
-            <div class="activity-content">
-              <div class="activity-text"><strong>Emma Martinez</strong> created new task "Design notification system"</div>
-              <div class="activity-time">2 hours ago</div>
-              <div class="activity-meta">Project Alpha - Sprint 12</div>
-            </div>
-          </div>
-          
-          <div class="activity-item">
-            <div class="activity-avatar" style="background:var(--global-color-yellow-500)">DW</div>
-            <div class="activity-content">
-              <div class="activity-text"><strong>David Wilson</strong> assigned "Conduct user testing" to himself</div>
-              <div class="activity-time">3 hours ago</div>
-              <div class="activity-meta">Mobile App Redesign</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- PORTFOLIO -->
-    <div class="page" id="portfolio">
-      <div class="ph">
-        <div>
-          <div class="ph-title">Project Portfolio</div>
-          <div class="ph-sub">Executive overview of all projects and performance metrics</div>
-        </div>
-        <button class="btn btn-primary">
-          <div class="button-content">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-            <span class="button-label">Export Report</span>
-          </div>
-        </button>
-      </div>
-      
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(var(--rgb-brand-primary),.12);color:var(--color-brand-primary)">📊</div>
-          <div class="stat-label">Total Projects</div>
-          <div class="stat-value">12</div>
-          <div class="stat-change">8 active, 4 completed</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--green-bg);color:var(--global-color-green-500)">💰</div>
-          <div class="stat-label">Total Budget</div>
-          <div class="stat-value">$2.4M</div>
-          <div class="stat-change">$1.8M allocated</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--blue-bg);color:var(--global-color-blue-500)">⚡</div>
-          <div class="stat-label">Team Velocity</div>
-          <div class="stat-value">85%</div>
-          <div class="stat-change">+12% this quarter</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon" style="background:var(--amber-bg);color:var(--global-color-yellow-500)">⚠️</div>
-          <div class="stat-label">At Risk</div>
-          <div class="stat-value">2</div>
-          <div class="stat-change">Require attention</div>
-        </div>
-      </div>
-      
-      <div class="card">
-        <div class="card-title">Project Status Overview</div>
-        <div style="display:grid;gap:var(--global-spacing-3)">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--global-spacing-4);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md);border-left:4px solid var(--color-brand-primary)">
-            <div>
-              <div style="font-weight:700;font-size:14px;margin-bottom:4px">Project Alpha - Sprint 12</div>
-              <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:6px">15 tasks • 60% complete • $180k budget</div>
-              <div style="display:flex;gap:var(--global-spacing-2)">
-                <div class="badge badge-success">On Track</div>
-                <div class="badge badge-neutral">Due Dec 15</div>
-              </div>
-            </div>
-            <button class="btn btn-secondary btn-sm" onclick="nav(null,'kanban')"><div class="button-content"><span class="button-label">View Details</span></div></button>
-          </div>
-          
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--global-spacing-4);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md);border-left:4px solid var(--global-color-yellow-500)">
-            <div>
-              <div style="font-weight:700;font-size:14px;margin-bottom:4px">Mobile App Redesign</div>
-              <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:6px">23 tasks • 85% complete • $320k budget</div>
-              <div style="display:flex;gap:var(--global-spacing-2)">
-                <div class="badge badge-warning">At Risk</div>
-                <div class="badge badge-neutral">Due Dec 20</div>
-              </div>
-            </div>
-            <button class="btn btn-secondary btn-sm"><div class="button-content"><span class="button-label">View Details</span></div></button>
-          </div>
-          
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:var(--global-spacing-4);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md);border-left:4px solid var(--global-color-blue-500)">
-            <div>
-              <div style="font-weight:700;font-size:14px;margin-bottom:4px">API Integration Platform</div>
-              <div style="font-size:12px;color:var(--color-text-muted);margin-bottom:6px">8 tasks • 30% complete • $150k budget</div>
-              <div style="display:flex;gap:var(--global-spacing-2)">
-                <div class="badge badge-info">Planning</div>
-                <div class="badge badge-neutral">Due Jan 15</div>
-              </div>
-            </div>
-            <button class="btn btn-secondary btn-sm"><div class="button-content"><span class="button-label">View Details</span></div></button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- REPORTS -->
-    <div class="page" id="reports">
-      <div class="ph">
-        <div>
-          <div class="ph-title">Report Builder</div>
-          <div class="ph-sub">Create custom reports and analytics dashboards</div>
-        </div>
-        <button class="btn btn-primary">
-          <div class="button-content">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span class="button-label">New Report</span>
-          </div>
-        </button>
-      </div>
-      
-      <div style="display:grid;grid-template-columns:1fr 2fr;gap:var(--global-spacing-4)">
-        <div class="card">
-          <div class="card-title">Report Templates</div>
-          <div style="display:grid;gap:var(--global-spacing-2)">
-            <div style="padding:var(--global-spacing-3);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md);cursor:pointer;transition:all var(--global-motion-duration-swift)" onmouseover="this.style.background='rgba(var(--rgb-brand-primary),.1)'" onmouseout="this.style.background='rgba(255,255,255,.02)'">
-              <div style="font-weight:600;font-size:13px;margin-bottom:2px">📊 Project Performance</div>
-              <div style="font-size:11px;color:var(--color-text-muted)">Task completion, velocity, burndown</div>
-            </div>
-            
-            <div style="padding:var(--global-spacing-3);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md);cursor:pointer;transition:all var(--global-motion-duration-swift)" onmouseover="this.style.background='rgba(var(--rgb-brand-primary),.1)'" onmouseout="this.style.background='rgba(255,255,255,.02)'">
-              <div style="font-weight:600;font-size:13px;margin-bottom:2px">👥 Team Productivity</div>
-              <div style="font-size:11px;color:var(--color-text-muted)">Individual and team metrics</div>
-            </div>
-            
-            <div style="padding:var(--global-spacing-3);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md);cursor:pointer;transition:all var(--global-motion-duration-swift)" onmouseover="this.style.background='rgba(var(--rgb-brand-primary),.1)'" onmouseout="this.style.background='rgba(255,255,255,.02)'">
-              <div style="font-weight:600;font-size:13px;margin-bottom:2px">💰 Budget Analysis</div>
-              <div style="font-size:11px;color:var(--color-text-muted)">Cost tracking and forecasting</div>
-            </div>
-            
-            <div style="padding:var(--global-spacing-3);background:rgba(255,255,255,.02);border-radius:var(--global-radius-md);cursor:pointer;transition:all var(--global-motion-duration-swift)" onmouseover="this.style.background='rgba(var(--rgb-brand-primary),.1)'" onmouseout="this.style.background='rgba(255,255,255,.02)'">
-              <div style="font-weight:600;font-size:13px;margin-bottom:2px">📈 Executive Summary</div>
-              <div style="font-size:11px;color:var(--color-text-muted)">High-level overview for stakeholders</div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="card">
-          <div class="card-title">Report Preview</div>
-          <div style="background:rgba(255,255,255,.02);border-radius:var(--global-radius-md);padding:var(--global-spacing-4);min-height:300px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:var(--global-spacing-3)">
-            <div style="width:64px;height:64px;border-radius:var(--global-radius-circle);background:rgba(var(--rgb-brand-primary),.1);display:grid;place-items:center;font-size:24px">📊</div>
-            <div style="text-align:center">
-              <div style="font-weight:600;font-size:14px;margin-bottom:4px">Select a Template</div>
-              <div style="font-size:12px;color:var(--color-text-muted)">Choose a report template to see the preview</div>
-            </div>
-          </div>
-          
-          <div style="margin-top:var(--global-spacing-4);display:flex;gap:var(--global-spacing-2)">
-            <button class="btn btn-secondary" style="flex:1"><div class="button-content"><span class="button-label">Customize</span></div></button>
-            <button class="btn btn-primary" style="flex:1"><div class="button-content"><span class="button-label">Generate Report</span></div></button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</main>
-
-<!-- TASK CREATION MODAL -->
-<div class="modal-overlay" id="taskModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Create New Task</div>
-      <div class="modal-close" onclick="closeModal('taskModal')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </div>
-    </div>
-    <div class="modal-body">
-      <div class="field">
-        <label for="task-title">Task Title *</label>
-        <input id="task-title" type="text" placeholder="Enter task title..." required/>
-      </div>
-      
-      <div class="field">
-        <label for="task-description">Description</label>
-        <textarea id="task-description" placeholder="Describe the task..."></textarea>
-      </div>
-      
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--global-spacing-3)">
-        <div class="field">
-          <label for="task-assignee">Assignee</label>
-          <select id="task-assignee">
-            <option value="">Select assignee...</option>
-            <option value="sc">Sarah Chen</option>
-            <option value="mj">Mike Johnson</option>
-            <option value="al">Alex Lee</option>
-            <option value="em">Emma Martinez</option>
-            <option value="dw">David Wilson</option>
-          </select>
-        </div>
-        
-        <div class="field">
-          <label for="task-priority">Priority</label>
-          <select id="task-priority">
-            <option value="low">Low</option>
-            <option value="medium" selected>Medium</option>
-            <option value="high">High</option>
-          </select>
-        </div>
-      </div>
-      
-      <div class="field">
-        <label for="task-due">Due Date</label>
-        <input id="task-due" type="date"/>
-      </div>
-      
-      <div style="display:flex;gap:var(--global-spacing-2);justify-content:flex-end;margin-top:var(--global-spacing-4)">
-        <button class="btn btn-secondary" onclick="closeModal('taskModal')">
-          <div class="button-content"><span class="button-label">Cancel</span></div>
-        </button>
-        <button class="btn btn-primary" onclick="createTask()">
-          <div class="button-content"><span class="button-label">Create Task</span></div>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TASK DETAIL MODAL -->
-<div class="modal-overlay" id="taskDetailModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Task Details</div>
-      <div class="modal-close" onclick="closeModal('taskDetailModal')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </div>
-    </div>
-    <div class="modal-body">
-      <div style="margin-bottom:var(--global-spacing-4)">
-        <div style="font-weight:700;font-size:16px;margin-bottom:var(--global-spacing-2)">Implement user authentication system</div>
-        <div style="display:flex;gap:var(--global-spacing-2);margin-bottom:var(--global-spacing-3)">
-          <div class="badge badge-danger">High Priority</div>
-          <div class="badge badge-neutral">To Do</div>
-        </div>
-        <div style="font-size:13px;color:var(--color-text-muted);line-height:1.6">
-          Create a secure authentication system with login, registration, password reset, and session management. Include OAuth integration for Google and GitHub.
-        </div>
-      </div>
-      
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--global-spacing-4);margin-bottom:var(--global-spacing-4)">
-        <div>
-          <div style="font-size:11px;color:var(--color-text-muted);font-weight:600;margin-bottom:var(--global-spacing-1)">ASSIGNEE</div>
-          <div style="display:flex;align-items:center;gap:var(--global-spacing-2)">
-            <div class="task-avatar" style="background:var(--gradient-brand);width:24px;height:24px;font-size:10px">SC</div>
-            <span style="font-size:13px">Sarah Chen</span>
-          </div>
-        </div>
-        
-        <div>
-          <div style="font-size:11px;color:var(--color-text-muted);font-weight:600;margin-bottom:var(--global-spacing-1)">DUE DATE</div>
-          <div style="font-size:13px">December 8, 2026</div>
-        </div>
-      </div>
-      
-      <div style="border-top:1px solid var(--glass-border-color);padding-top:var(--global-spacing-4)">
-        <div style="font-size:12px;font-weight:600;margin-bottom:var(--global-spacing-2)">Comments</div>
-        <div style="background:rgba(255,255,255,.02);border-radius:var(--global-radius-md);padding:var(--global-spacing-3);margin-bottom:var(--global-spacing-3)">
-          <div style="display:flex;align-items:center;gap:var(--global-spacing-2);margin-bottom:var(--global-spacing-2)">
-            <div class="task-avatar" style="background:var(--gradient-brand);width:20px;height:20px;font-size:9px">SC</div>
-            <span style="font-size:12px;font-weight:600">Sarah Chen</span>
-            <span style="font-size:11px;color:var(--color-text-subtle)">2 hours ago</span>
-          </div>
-          <div style="font-size:12px;color:var(--color-text-muted)">Started working on the OAuth integration. Should have the Google login ready by tomorrow.</div>
-        </div>
-        
-        <div style="display:flex;gap:var(--global-spacing-2)">
-          <input type="text" placeholder="Add a comment..." style="flex:1;padding:var(--global-spacing-2) var(--global-spacing-3);border:1px solid var(--glass-border-color);border-radius:var(--global-radius-sm);font-size:12px;background:var(--color-input-background)"/>
-          <button class="btn btn-primary btn-sm"><div class="button-content"><span class="button-label">Comment</span></div></button>
-        </div>
-      </div>
-      
-      <div style="display:flex;gap:var(--global-spacing-2);justify-content:flex-end;margin-top:var(--global-spacing-4);border-top:1px solid var(--glass-border-color);padding-top:var(--global-spacing-4)">
-        <button class="btn btn-secondary">
-          <div class="button-content"><span class="button-label">Edit Task</span></div>
-        </button>
-        <button class="btn btn-primary">
-          <div class="button-content"><span class="button-label">Move to In Progress</span></div>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-</div>
-
-<script>
-/* ── Navigation ── */
-var pages = ['kanban', 'dashboard', 'mobile', 'personal', 'activity', 'portfolio', 'reports'];
-
-function navTo(id) {
-  pages.forEach(p => {
-    var el = document.getElementById(p);
-    if (el) el.classList.toggle('active', p === id);
-  });
-  document.querySelectorAll('.nav-list li').forEach(li => {
-    li.classList.toggle('active', li.getAttribute('onclick') && li.getAttribute('onclick').includes("'" + id + "'"));
-  });
-}
-
-function nav(el, id) {
-  pages.forEach(p => {
-    var pg = document.getElementById(p);
-    if (pg) pg.classList.remove('active');
-  });
-  var pg = document.getElementById(id);
-  if (pg) pg.classList.add('active');
-  document.querySelectorAll('.nav-list li').forEach(n => n.classList.remove('active'));
-  if (el) el.classList.add('active');
-}
-
-/* ── Modal Management ── */
-function openModal(id) {
-  document.getElementById(id).classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('active');
-  document.body.style.overflow = '';
-}
-
-/* ── Task Creation ── */
-function createTask() {
-  var title = document.getElementById('task-title').value;
-  if (!title.trim()) {
-    alert('Please enter a task title');
-    return;
-  }
-  
-  // Simulate task creation
-  alert('Task "' + title + '" created successfully!');
-  closeModal('taskModal');
-  
-  // Reset form
-  document.getElementById('task-title').value = '';
-  document.getElementById('task-description').value = '';
-  document.getElementById('task-assignee').value = '';
-  document.getElementById('task-priority').value = 'medium';
-  document.getElementById('task-due').value = '';
-}
-
-/* ── Mobile Tab Switching ── */
-function switchMobileTab(el, id) {
-  var tablist = el.closest('[role="tablist"]');
-  tablist.querySelectorAll('[role="tab"]').forEach(t => {
-    t.classList.remove('active');
-    t.setAttribute('aria-selected', 'false');
-    t.setAttribute('tabindex', '-1');
-  });
-  
-  el.classList.add('active');
-  el.setAttribute('aria-selected', 'true');
-  el.setAttribute('tabindex', '0');
-  
-  document.querySelectorAll('[id^="mob-"]').forEach(p => p.style.display = 'none');
-  document.getElementById('mob-' + id).style.display = 'block';
-}
-
-/* ── Drag and Drop ── */
-let draggedElement = null;
-
-document.addEventListener('DOMContentLoaded', function() {
-  // Add drag event listeners to all task cards
-  document.querySelectorAll('.task-card').forEach(card => {
-    card.addEventListener('dragstart', function(e) {
-      draggedElement = this;
-      this.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
     
-    card.addEventListener('dragend', function(e) {
-      this.classList.remove('dragging');
-      draggedElement = null;
-    });
-  });
-  
-  // Add drop event listeners to columns
-  document.querySelectorAll('.column-body').forEach(column => {
-    column.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      this.style.background = 'rgba(var(--rgb-brand-primary), .05)';
-    });
-    
-    column.addEventListener('dragleave', function(e) {
-      this.style.background = '';
-    });
-    
-    column.addEventListener('drop', function(e) {
-      e.preventDefault();
-      this.style.background = '';
-      
-      if (draggedElement) {
-        this.appendChild(draggedElement);
+    <script>
+        // Page navigation
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                item.setAttribute('tabindex', '-1');
+            });
+            
+            // Set active nav item
+            event.target.classList.add('active');
+            event.target.setAttribute('tabindex', '0');
+            
+            // Announce page change for screen readers
+            const pageTitle = document.querySelector(`#${pageId} .page-title`).textContent;
+            announceToScreenReader(`Switched to ${pageTitle}`);
+        }
         
-        // Update column counts
-        updateColumnCounts();
+        // Modal management
+        function openTaskModal() {
+            document.getElementById('task-modal').classList.add('active');
+            document.getElementById('task-title-input').focus();
+            document.body.style.overflow = 'hidden';
+        }
         
-        // Show success message
-        showNotification('Task moved successfully!');
-      }
-    });
-  });
-});
-
-function updateColumnCounts() {
-  document.querySelectorAll('.kanban-column').forEach(column => {
-    var count = column.querySelectorAll('.task-card').length;
-    var countEl = column.querySelector('.column-count');
-    if (countEl) countEl.textContent = count;
-  });
-}
-
-function showNotification(message) {
-  // Simple notification - in a real app, you'd use a proper notification system
-  var notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--glass-background-heavy);
-    color: var(--color-text-primary);
-    padding: 12px 20px;
-    border-radius: var(--global-radius-md);
-    border: 1px solid var(--glass-border-color);
-    backdrop-filter: blur(16px);
-    z-index: 10000;
-    font-size: 13px;
-    font-weight: 500;
-    box-shadow: var(--glass-box-shadow);
-  `;
-  notification.textContent = message;
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
-}
-
-/* ── Keyboard Navigation ── */
-function navKey(e, el, id) {
-  if (e.key === 'Enter' || e.key === ' ') {
-    e.preventDefault();
-    nav(el, id);
-    return;
-  }
-  
-  var items = Array.from(el.closest('ul').querySelectorAll('[role="menuitem"]'));
-  var i = items.indexOf(el);
-  
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    var next = items[Math.min(i + 1, items.length - 1)];
-    next.focus();
-  }
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    var prev = items[Math.max(i - 1, 0)];
-    prev.focus();
-  }
-  if (e.key === 'Home') {
-    e.preventDefault();
-    items[0].focus();
-  }
-  if (e.key === 'End') {
-    e.preventDefault();
-    items[items.length - 1].focus();
-  }
-}
-
-function tabKey(e, el) {
-  var tabs = Array.from(el.closest('[role="tablist"]').querySelectorAll('[role="tab"]'));
-  var i = tabs.indexOf(el);
-  
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-    e.preventDefault();
-    var n = tabs[(i + 1) % tabs.length];
-    n.focus();
-    n.click();
-  }
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-    e.preventDefault();
-    var p = tabs[(i - 1 + tabs.length) % tabs.length];
-    p.focus();
-    p.click();
-  }
-  if (e.key === 'Home') {
-    e.preventDefault();
-    tabs[0].focus();
-    tabs[0].click();
-  }
-  if (e.key === 'End') {
-    e.preventDefault();
-    tabs[tabs.length - 1].focus();
-    tabs[tabs.length - 1].click();
-  }
-}
-
-/* ── Close modals on escape ── */
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-overlay.active').forEach(modal => {
-      modal.classList.remove('active');
-      document.body.style.overflow = '';
-    });
-  }
-});
-
-/* ── Close modals on backdrop click ── */
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', function(e) {
-    if (e.target === this) {
-      this.classList.remove('active');
-      document.body.style.overflow = '';
-    }
-  });
-});
-</script>
+        function closeTaskModal() {
+            document.getElementById('task-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        function createTask(event) {
+            event.preventDefault();
+            // Task creation logic would go here
+            announceToScreenReader('Task created successfully');
+            closeTaskModal();
+        }
+        
+        // Accessibility functions
+        function handleNavKey(event, element) {
+            const items = Array.from(element.closest('.nav-list').querySelectorAll('.nav-item'));
+            const currentIndex = items.indexOf(element);
+            
+            switch(event.key) {
+                case 'ArrowDown':
+                    event.preventDefault();
+                    const nextIndex = (currentIndex + 1) % items.length;
+                    items[nextIndex].focus();
+                    break;
+                case 'ArrowUp':
+                    event.preventDefault();
+                    const prevIndex = (currentIndex - 1 + items.length) % items.length;
+                    items[prevIndex].focus();
+                    break;
+                case 'Enter':
+                case ' ':
+                    event.preventDefault();
+                    element.click();
+                    break;
+            }
+        }
+        
+        function handleTaskKey(event, element) {
+            switch(event.key) {
+                case 'Enter':
+                case ' ':
+                    event.preventDefault();
+                    element.click();
+                    break;
+            }
+        }
+        
+        function handleAccessibleTaskKey(event, element) {
+            const tasks = Array.from(element.closest('.task-list').querySelectorAll('.task-card'));
+            const currentIndex = tasks.indexOf(element);
+            
+            switch(event.key) {
+                case 'ArrowDown':
+                    event.preventDefault();
+                    if (currentIndex < tasks.length - 1) {
+                        tasks[currentIndex + 1].focus();
+                    }
+                    break;
+                case 'ArrowUp':
+                    event.preventDefault();
+                    if (currentIndex > 0) {
+                        tasks[currentIndex - 1].focus();
+                    }
+                    break;
+                case 'Enter':
+                case ' ':
+                    event.preventDefault();
+                    openTaskDetails(element);
+                    break;
+            }
+        }
+        
+        function announceToScreenReader(message) {
+            const announcement = document.createElement('div');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.setAttribute('aria-atomic', 'true');
+            announcement.className = 'sr-only';
+            announcement.textContent = message;
+            document.body.appendChild(announcement);
+            
+            setTimeout(() => {
+                document.body.removeChild(announcement);
+            }, 1000);
+        }
+        
+        function openTaskDetails(taskElement) {
+            // Task details logic would go here
+            announceToScreenReader('Task details opened');
+        }
+        
+        function showTaskDetail(taskId) {
+            const detailContent = document.getElementById('task-detail-content');
+            const placeholder = document.querySelector('#task-detail-panel p');
+            
+            if (detailContent && placeholder) {
+                placeholder.style.display = 'none';
+                detailContent.style.display = 'block';
+            }
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            if (event.ctrlKey && event.key === 'n') {
+                event.preventDefault();
+                openTaskModal();
+            }
+            
+            if (event.key === 'Escape') {
+                closeTaskModal();
+            }
+        });
+        
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+        }
+        
+        // Initialize focus management
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set initial focus for keyboard users
+            const firstNavItem = document.querySelector('.nav-item');
+            if (firstNavItem) {
+                firstNavItem.setAttribute('tabindex', '0');
+            }
+        });
+        
+        // Handle modal focus trap
+        document.getElementById('task-modal').addEventListener('keydown', function(event) {
+            if (event.key === 'Tab') {
+                const focusableElements = this.querySelectorAll('input, select, textarea, button');
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+                
+                if (event.shiftKey && document.activeElement === firstElement) {
+                    event.preventDefault();
+                    lastElement.focus();
+                } else if (!event.shiftKey && document.activeElement === lastElement) {
+                    event.preventDefault();
+                    firstElement.focus();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
