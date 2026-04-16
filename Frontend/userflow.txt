@@ -6,7 +6,14 @@
     <title>Kanban Board User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true });
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
     </script>
     <style>
         body {
@@ -26,7 +33,7 @@
         }
         .mermaid {
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin: 20px 0;
@@ -54,116 +61,110 @@
         
         <div class="description">
             <h2>User Flow Overview</h2>
-            <p>This diagram illustrates the complete user journey through the Kanban board application, from initial authentication to task management operations. The flow shows how users navigate between different sections, create and manage tasks, and interact with various features of the application.</p>
+            <p>This diagram illustrates the complete user journey through the Kanban board application, showing all possible interactions from initial access to task management, including creation, editing, drag-and-drop operations, and profile management.</p>
         </div>
 
         <div class="mermaid">
             flowchart TD
-                Start[User Opens Application]
-                Start --> CheckAuth{User Authenticated?}
-                CheckAuth -->|No| Login[Login Page]
-                CheckAuth -->|Yes| Dashboard[Load Dashboard]
-                Login --> AuthAPI[POST /auth/login]
-                AuthAPI --> AuthSuccess{Login Success?}
-                AuthSuccess -->|No| LoginError[Show Login Error]
-                LoginError --> Login
-                AuthSuccess -->|Yes| Dashboard
+                Start[User Opens Kanban Dashboard]
+                Start --> LoadBoard[Load Kanban Board]
+                LoadBoard --> ViewColumns[View Three Columns]
+                ViewColumns --> TodoColumn[To Do Column]
+                ViewColumns --> InProgressColumn[In Progress Column]
+                ViewColumns --> DoneColumn[Done Column]
                 
-                Dashboard --> LoadProfile[GET /users/profile]
-                LoadProfile --> LoadBoard[Load Kanban Board]
-                LoadBoard --> GetBoardData[GET /forms/sessions/sessionId]
-                GetBoardData --> RenderBoard[Render Three Columns]
-                
-                RenderBoard --> TodoColumn[To Do Column]
-                RenderBoard --> InProgressColumn[In Progress Column]
-                RenderBoard --> DoneColumn[Done Column]
-                
-                TodoColumn --> ViewTasks[Display Task Cards]
+                TodoColumn --> ViewTasks[View Tasks in Column]
                 InProgressColumn --> ViewTasks
                 DoneColumn --> ViewTasks
                 
-                ViewTasks --> UserActions{User Action?}
+                ViewTasks --> ClickTask[Click on Task Card]
+                ViewTasks --> DragTask[Drag Task to Another Column]
+                ViewTasks --> SearchTasks[Search for Tasks]
+                ViewTasks --> AddNewTask[Click Add Task Button]
                 
-                UserActions -->|Click Add Task| CreateTask[Open Task Creation Modal]
-                UserActions -->|Click Task Card| ViewTaskDetail[Open Task Detail Modal]
-                UserActions -->|Drag Task| DragTask[Start Drag Operation]
-                UserActions -->|Use Search| SearchTasks[Filter Tasks]
-                UserActions -->|Click Profile| UserProfile[Open Profile Menu]
-                UserActions -->|Click Sidebar| Navigate[Navigate to Section]
+                ClickTask --> ViewTaskDetails[View Task Details Modal]
+                ViewTaskDetails --> EditTask[Edit Task]
+                ViewTaskDetails --> DeleteTask[Delete Task]
+                ViewTaskDetails --> CloseModal[Close Modal]
                 
-                CreateTask --> TaskForm[Fill Task Form]
-                TaskForm --> HasAttachment{Has Attachment?}
-                HasAttachment -->|Yes| UploadDoc[POST /documents/upload]
-                HasAttachment -->|No| SaveTask[PUT /forms/sessions/sessionId]
-                UploadDoc --> SaveTask
-                SaveTask --> TaskCreated[Task Created Successfully]
-                TaskCreated --> RefreshBoard[Refresh Board State]
-                RefreshBoard --> RenderBoard
+                EditTask --> TaskForm[Open Task Form]
+                AddNewTask --> TaskForm
+                TaskForm --> FillTitle[Fill Task Title]
+                TaskForm --> FillDescription[Fill Task Description]
+                TaskForm --> SetPriority[Set Task Priority]
+                TaskForm --> SetDueDate[Set Due Date]
+                TaskForm --> UploadDocument[Upload Document]
                 
-                ViewTaskDetail --> EditTask{Edit Task?}
-                EditTask -->|Yes| UpdateTask[Modify Task Data]
-                EditTask -->|No| CloseModal[Close Modal]
-                UpdateTask --> SaveChanges[PUT /forms/sessions/sessionId]
-                SaveChanges --> RefreshBoard
-                CloseModal --> ViewTasks
+                FillTitle --> ValidateForm[Validate Form]
+                FillDescription --> ValidateForm
+                SetPriority --> ValidateForm
+                SetDueDate --> ValidateForm
+                UploadDocument --> ValidateForm
                 
-                DragTask --> DropZone{Valid Drop Zone?}
-                DropZone -->|Yes| MoveTask[Update Task Position]
-                DropZone -->|No| CancelDrag[Cancel Drag Operation]
-                MoveTask --> UpdatePosition[PUT /forms/sessions/sessionId]
-                UpdatePosition --> RefreshBoard
-                CancelDrag --> ViewTasks
+                ValidateForm --> FormValid{Form Valid?}
+                FormValid -->|Yes| SaveTask[Save Task]
+                FormValid -->|No| ShowErrors[Show Validation Errors]
+                ShowErrors --> TaskForm
                 
-                SearchTasks --> FilterResults[Show Filtered Results]
-                FilterResults --> ViewTasks
+                SaveTask --> TaskSaved[Task Saved Successfully]
+                TaskSaved --> RefreshBoard[Refresh Board View]
+                RefreshBoard --> ViewColumns
                 
-                UserProfile --> ProfileActions{Profile Action?}
-                ProfileActions -->|Settings| UserSettings[Open Settings]
-                ProfileActions -->|Logout| LogoutUser[Logout User]
-                ProfileActions -->|Close| CloseProfile[Close Profile Menu]
-                UserSettings --> ViewTasks
-                LogoutUser --> Start
-                CloseProfile --> ViewTasks
+                DeleteTask --> ConfirmDelete[Confirm Delete Action]
+                ConfirmDelete --> TaskDeleted[Task Deleted]
+                TaskDeleted --> RefreshBoard
                 
-                Navigate --> SidebarOptions{Navigation Option?}
-                SidebarOptions -->|Workspace| WorkspaceView[Switch Workspace]
-                SidebarOptions -->|Mobile Views| MobileView[Mobile Kanban View]
-                SidebarOptions -->|Collaboration| TeamView[Team Collaboration]
-                SidebarOptions -->|Analytics| AnalyticsView[Analytics Dashboard]
-                SidebarOptions -->|Accessibility| AccessibilityView[Accessibility Features]
+                DragTask --> DropZone[Drop in New Column]
+                DropZone --> UpdateTaskStatus[Update Task Status]
+                UpdateTaskStatus --> RefreshBoard
                 
-                WorkspaceView --> LoadBoard
-                MobileView --> LoadBoard
-                TeamView --> LoadTeamData[Load Team Data]
-                AnalyticsView --> LoadAnalytics[Load Analytics Data]
-                AccessibilityView --> LoadAccessibility[Load Accessibility Options]
+                SearchTasks --> EnterQuery[Enter Search Query]
+                EnterQuery --> FilterResults[Filter Task Results]
+                FilterResults --> ViewFilteredTasks[View Filtered Tasks]
+                ViewFilteredTasks --> ClearSearch[Clear Search]
+                ClearSearch --> ViewColumns
+                ViewFilteredTasks --> ClickTask
                 
-                LoadTeamData --> TeamDashboard[Display Team Dashboard]
-                LoadAnalytics --> AnalyticsDashboard[Display Analytics]
-                LoadAccessibility --> AccessibilityPanel[Display Accessibility Panel]
+                Start --> AccessProfile[Click User Profile]
+                AccessProfile --> ViewProfile[View Profile Details]
+                ViewProfile --> EditProfile[Edit Profile]
+                ViewProfile --> Logout[Logout]
+                EditProfile --> UpdateProfile[Update Profile Info]
+                UpdateProfile --> ProfileSaved[Profile Saved]
+                ProfileSaved --> ViewColumns
                 
-                TeamDashboard --> UserActions
-                AnalyticsDashboard --> UserActions
-                AccessibilityPanel --> UserActions
+                CloseModal --> ViewColumns
+                Logout --> LoginPage[Return to Login]
                 
-                style Start fill:#e1f5fe
-                style Dashboard fill:#f3e5f5
-                style RenderBoard fill:#e8f5e8
-                style CreateTask fill:#fff3e0
-                style ViewTaskDetail fill:#fff3e0
-                style DragTask fill:#fce4ec
-                style SearchTasks fill:#f1f8e9
-                style UserProfile fill:#e0f2f1
+                ViewColumns --> MobileView{Mobile Device?}
+                MobileView -->|Yes| SingleColumn[Single Column View]
+                MobileView -->|No| ThreeColumns[Three Column Grid]
+                SingleColumn --> SwipeColumns[Swipe Between Columns]
+                SwipeColumns --> ViewTasks
+                ThreeColumns --> ViewTasks
+                
+                TaskForm --> CancelForm[Cancel Form]
+                CancelForm --> ViewColumns
+                
+                LoadBoard --> LoadError{Loading Error?}
+                LoadError -->|Yes| ShowErrorMessage[Show Error Message]
+                LoadError -->|No| ViewColumns
+                ShowErrorMessage --> RetryLoad[Retry Loading]
+                RetryLoad --> LoadBoard
+                
+                SaveTask --> SaveError{Save Error?}
+                SaveError -->|Yes| ShowSaveError[Show Save Error]
+                SaveError -->|No| TaskSaved
+                ShowSaveError --> TaskForm
         </div>
         
         <div class="description">
             <h2>Key User Interactions</h2>
-            <p><strong>Authentication Flow:</strong> Users start by logging in, which triggers API authentication and profile loading.</p>
-            <p><strong>Board Management:</strong> The main kanban board displays three columns (To Do, In Progress, Done) with task cards that users can interact with.</p>
-            <p><strong>Task Operations:</strong> Users can create new tasks, edit existing ones, and move tasks between columns using drag-and-drop functionality.</p>
-            <p><strong>Navigation:</strong> The sidebar provides access to different views including workspace management, mobile views, team collaboration, and analytics.</p>
-            <p><strong>Search & Filter:</strong> Users can search for specific tasks using the header search functionality.</p>
-            <p><strong>Profile Management:</strong> Users can access their profile, settings, and logout functionality through the header menu.</p>
+            <p><strong>Task Management:</strong> Users can create, edit, delete, and move tasks between columns using drag-and-drop functionality.</p>
+            <p><strong>Search & Filter:</strong> Real-time search allows users to quickly find specific tasks across all columns.</p>
+            <p><strong>Responsive Design:</strong> The interface adapts to mobile devices with single-column view and swipe navigation.</p>
+            <p><strong>Profile Management:</strong> Users can access and update their profile information and logout when needed.</p>
+            <p><strong>Error Handling:</strong> Comprehensive error handling ensures users receive feedback for failed operations and can retry actions.</p>
         </div>
     </div>
 </body>
