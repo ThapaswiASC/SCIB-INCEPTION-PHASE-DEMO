@@ -2,283 +2,290 @@
 
 1. INPUT REFERENCE (FROM AGENT-1)
 
-Page Name: Youth Account Management Dashboard
+Page Name: Kanban Board Dashboard
 
-Mapped Layout: Grid-based responsive layout with sidebar navigation
+Mapped Layout: Three-column CSS Grid layout with sidebar navigation
 
 Components from A1:
-- YouthAccountApp (Root application component)
-- HeaderComponent (Application header with navigation)
-- DashboardOverviewComponent (Main dashboard showing account summary)
-- AccountBalanceCard (Display current account balance)
-- SpendingLimitCard (Display and manage spending limits)
-- FundTransferComponent (Handle fund transfers to youth account)
-- ActivityTimelineComponent (Display transaction history and activity)
-- TransactionListComponent (Render list of transactions)
-- ButtonComponent (from library - Reusable button with various styles)
-- AvatarComponent (from library - User profile image display)
-- SearchBarComponent (from library - Search input with integrated icons)
+- KanbanBoardComponent (Main Container)
+- HeaderComponent
+- SidebarComponent
+- KanbanColumnComponent
+- TaskCardComponent
+- TaskModalComponent
+- SearchComponent
+- NavigationComponent
+- UserProfileComponent
 
 2. GLOBAL ARCHITECTURE SUMMARY
 
-Layout Type: Grid-based responsive layout with sidebar navigation
+Layout Type: CSS Grid for kanban board, Flexbox for overall layout
 
 Main Sections:
-- Header (Navigation, Search, User Profile)
-- Sidebar (Account Navigation)
-- Main Content (Dashboard Overview, Fund Transfer, Activity, Settings)
-- Modals (Fund Transfer Modal, Spending Limit Configuration)
+- Header (search, notifications, user profile)
+- Sidebar (navigation, brand, quick actions)
+- Main Content (page header, kanban board)
+- Modals (task creation/editing)
 
-Component Strategy: Hybrid approach using existing library components where possible and creating custom components for youth account specific functionality
+Component Strategy: Hybrid approach using library components and custom components
 
 Reused Components:
-- ButtonComponent (from @aava/play-core)
-- AvatarComponent (from @aava/play-core)
-- SearchBarComponent (from @aava/play-core)
+- Button (from uicomplibraryplay)
+- Dialog (from uicomplibraryplay)
+- Dropdown (from uicomplibraryplay)
+- Popover (from uicomplibraryplay)
 
 New Components (if any):
-- AccountBalanceCard
-- SpendingLimitCard
-- FundTransferComponent
-- ActivityTimelineComponent
-- TransactionListComponent
-- CardComponent
-- ModalComponent
-- FormComponents
-- AlertComponent
+- KanbanBoardComponent
+- KanbanColumnComponent
+- TaskCardComponent
+- HeaderComponent
+- SidebarComponent
 
 3. FOLDER STRUCTURE
 
 src/
  ├── pages/
- │    └── YouthAccountDashboard/
- │         ├── YouthAccountDashboard.tsx
- │         ├── YouthAccountDashboard.module.css
- │         └── index.ts
+ │    └── kanban/
+ │         ├── kanban-board.page.tsx
  │
  ├── components/
  │    ├── layout/
- │    │   ├── HeaderComponent/
- │    │   ├── SidebarComponent/
- │    │   └── NavigationComponent/
+ │    │    ├── HeaderComponent.tsx
+ │    │    └── SidebarComponent.tsx
  │    ├── feature/
- │    │   ├── DashboardOverviewComponent/
- │    │   ├── AccountBalanceCard/
- │    │   ├── SpendingLimitCard/
- │    │   ├── FundTransferComponent/
- │    │   ├── ActivityTimelineComponent/
- │    │   └── SettingsComponent/
+ │    │    ├── KanbanColumnComponent.tsx
+ │    │    ├── TaskCardComponent.tsx
+ │    │    └── TaskModalComponent.tsx
  │    ├── shared/
- │    │   ├── ButtonComponent/ (from @aava/play-core)
- │    │   ├── AvatarComponent/ (from @aava/play-core)
- │    │   ├── SearchBarComponent/ (from @aava/play-core)
- │    │   ├── CardComponent/
- │    │   ├── ModalComponent/
- │    │   ├── FormComponents/
- │    │   └── AlertComponent/
- │    └── ui/
- │        ├── icons/
- │        ├── tokens/
- │        └── themes/
- ├── hooks/
- │    ├── useYouthAccount.ts
- │    ├── useFundTransfer.ts
- │    ├── useTransactionHistory.ts
- │    └── useSpendingLimit.ts
- ├── services/
- │    ├── youthAccountApi.ts
- │    ├── fundTransferApi.ts
- │    └── transactionApi.ts
- ├── types/
- │    ├── youthAccount.types.ts
- │    ├── transaction.types.ts
- │    └── api.types.ts
- └── utils/
-     ├── formatCurrency.ts
-     ├── formatDate.ts
-     └── validation.ts
+ │    │    ├── SearchComponent.tsx
+ │    │    ├── AvatarComponent.tsx
+ │    │    ├── TagComponent.tsx
+ │    │    └── LoadingSpinnerComponent.tsx
 
 4. COMPONENT IMPLEMENTATION
 
-### 4.1 YouthAccountApp
+### 4.1 KanbanBoardComponent
 
 Component Type: Page
 
-Mapped From A1: Root application component managing global state and routing
+Mapped From A1: Main container for the three-column kanban layout
 
-Purpose: Root application component that manages global state, routing, and provides context to child components
+Purpose: Root component that orchestrates the entire kanban board functionality
 
-Parent: None (Root component)
+Parent: App
 
 Children:
 - HeaderComponent
 - SidebarComponent
-- MainDashboardContainer
+- KanbanColumnComponent (3 instances)
+- TaskModalComponent
 
 Dependencies:
-- React Router for navigation
-- Context API for state management
-- Authentication service
+- React/Angular framework
+- CSS Grid layout
+- State management
+- API service
 
 Library Components Used:
-- None directly → Uses child components that consume library components
+- Dialog → TaskModalComponent
 
 TypeScript Specification
 
 Inputs:
-- userId: string (User identifier)
-- youthAccountId: string (Youth account identifier)
-- initialRoute?: string (Optional initial route)
+- youthAccountId: string
+- initialColumns: KanbanColumn[]
 
 Outputs:
-- onViewChange: (view: string) => void (View change event)
-- onSessionExpire: () => void (Session expiration event)
+- onTaskCreated: (task: Task) => void
+- onTaskUpdated: (task: Task) => void
+- onError: (error: string) => void
 
 State:
-- currentView: string (Current active view)
-- userSession: UserSession (User session data)
-- dashboardData: DashboardData (Dashboard state)
-- isLoading: boolean (Loading state)
+- columns: KanbanColumn[]
+- selectedTask: Task | null
+- modalOpen: boolean
+- loading: boolean
+- error: string | null
+- searchQuery: string
 
 Methods:
-- handleViewChange() → Updates current view
-- handleSessionExpire() → Handles session expiration
-- refreshDashboard() → Refreshes dashboard data
+- loadDashboardData() → Promise<void>
+- handleTaskCreate(taskData: TaskFormData) → Promise<void>
+- handleTaskUpdate(taskId: string, updates: Partial<Task>) → Promise<void>
+- handleSearchChange(query: string) → void
+- openTaskModal(task?: Task) → void
+- closeTaskModal() → void
 
 HTML STRUCTURE (PSEUDO CODE ONLY)
 
-<div className="youth-account-app">
+<div class="app-container">
   <HeaderComponent 
-    userName={userSession.name}
-    userAvatar={userSession.avatar}
-    onSearch={handleSearch}
+    user={currentUser}
+    searchQuery={searchQuery}
+    onSearchChange={handleSearchChange}
   />
-  <div className="app-layout">
+  
+  <div class="main-layout">
     <SidebarComponent 
-      currentView={currentView}
-      onViewChange={handleViewChange}
+      navigationItems={navItems}
+      activeItem="kanban"
+      onNavigationChange={handleNavChange}
     />
-    <main className="main-content">
-      <Router>
-        <Routes>
-          <Route path="/dashboard" component={DashboardOverviewComponent} />
-          <Route path="/transfer" component={FundTransferComponent} />
-          <Route path="/activity" component={ActivityTimelineComponent} />
-        </Routes>
-      </Router>
+    
+    <main class="content-area">
+      <div class="page-header">
+        <h1>TaskFlow Kanban Board</h1>
+        <Button variant="primary" onClick={openTaskModal}>
+          Create Task
+        </Button>
+      </div>
+      
+      <div class="kanban-board" role="region" aria-label="Kanban Board">
+        {columns.map(column => (
+          <KanbanColumnComponent 
+            key={column.id}
+            column={column}
+            tasks={getTasksForColumn(column.id)}
+            onTaskClick={openTaskModal}
+            onAddTask={openTaskModal}
+          />
+        ))}
+      </div>
+      
+      {error && (
+        <div class="error-message" role="alert">
+          {error}
+        </div>
+      )}
     </main>
   </div>
+  
+  <TaskModalComponent 
+    isOpen={modalOpen}
+    task={selectedTask}
+    onSave={handleTaskSave}
+    onClose={closeTaskModal}
+  />
 </div>
 
 CSS SPECIFICATION
 
 Layout:
-- display: grid
-- grid-template-rows: auto 1fr
-- grid-template-areas: "header" "content"
-- min-height: 100vh
+- .app-container: flex column layout
+- .main-layout: flex row layout
+- .kanban-board: grid-template-columns: repeat(3, 1fr)
+- gap: 1rem between columns
 
 Spacing:
-- padding: 0
-- gap: 0
+- padding: 1rem on main containers
+- gap: 0.75rem between elements
 
 Component Styles:
-- .youth-account-app: main container
-- .app-layout: grid layout for sidebar and content
-- .main-content: scrollable content area
+- .kanban-board: min-height: 70vh
+- .page-header: flex justify-between align-center
+- .error-message: background-color: error-light
 
 Responsive:
-- Mobile: stack layout, collapsible sidebar
-- Tablet: 768px breakpoint
-- Desktop: 1024px+ full layout
+- Desktop (>1024px): 3-column grid
+- Tablet (768px-1024px): 2-column grid, sidebar collapsible
+- Mobile (<768px): 1-column stack, sidebar overlay
 
 API INTEGRATION
 
-- initializeApp() → GET /api/auth/validate → Validate user session
-- loadDashboard() → GET /api/youth-accounts/{youthAccountId}/dashboard → Load initial dashboard data
+- loadDashboardData() → GET /api/youth-accounts/{id}/dashboard → fetch initial kanban data
+- handleTaskCreate() → POST /api/youth-accounts/{id}/fund-transfer → create new task
+- handleTaskUpdate() → PUT /api/youth-accounts/{id}/spending-limit → update task properties
 
 ERROR HANDLING
 
-- Authentication failure → redirect to login
-- API failure → show global error boundary
-- Network error → show offline indicator
+- API failure → show error snackbar with retry option
+- Network timeout → display offline indicator
+- Validation error → inline form validation messages
 
 INTERACTION FLOW
 
 User Action → UI → API
-- App load → validate session → GET /api/auth/validate
-- Route change → update view → load route-specific data
+- Page load → loadDashboardData() → GET /dashboard → populate columns
+- Click "Create Task" → open TaskModalComponent → form submission → POST /fund-transfer
+- Click task card → open TaskModalComponent with task data → edit and save → PUT /spending-limit
 
 ### 4.2 HeaderComponent
 
 Component Type: Layout
 
-Mapped From A1: Application header with navigation and user info
+Mapped From A1: Top navigation and search functionality
 
-Purpose: Provides application header with navigation, search, and user profile access
+Purpose: Provides global navigation, search, and user actions
 
-Parent: YouthAccountApp
+Parent: KanbanBoardComponent
 
 Children:
-- NavigationComponent
-- SearchBarComponent (from library)
-- AvatarComponent (from library)
+- SearchComponent
+- NotificationButton
+- UserProfileComponent
 
 Dependencies:
-- @aava/play-core (for SearchBarComponent, AvatarComponent)
+- Button component from library
+- Popover component from library
 
 Library Components Used:
-- SearchBarComponent → Search functionality
-- AvatarComponent → User profile display
+- Button → notification and settings buttons
+- Popover → user profile dropdown
 
 TypeScript Specification
 
 Inputs:
-- userName: string (User display name)
-- userAvatar: string (User avatar URL)
-- showSearch: boolean (Whether to show search)
-- onSearch?: (query: string) => void (Search callback)
+- user: User
+- searchQuery: string
+- searchPlaceholder: string
 
 Outputs:
-- onSearch: (query: string) => void (Search event)
-- onProfileClick: () => void (Profile click event)
+- onSearchChange: (query: string) => void
+- onNotificationClick: () => void
+- onUserMenuClick: () => void
 
 State:
-- searchQuery: string (Current search query)
-- isProfileMenuOpen: boolean (Profile menu state)
+- notificationCount: number
+- userMenuOpen: boolean
 
 Methods:
-- handleSearch() → Processes search input
-- handleProfileClick() → Opens profile menu
-- clearSearch() → Clears search query
+- handleSearchInput(event: InputEvent) → void
+- toggleUserMenu() → void
+- handleLogout() → Promise<void>
 
 HTML STRUCTURE (PSEUDO CODE ONLY)
 
-<header className="app-header">
-  <div className="header-content">
-    <div className="header-left">
-      <div className="brand-section">
-        <h1>Youth Account</h1>
-      </div>
-      <NavigationComponent />
-    </div>
-    <div className="header-center">
-      {showSearch && (
-        <SearchBarComponent 
-          label="Search transactions"
-          value={searchQuery}
-          onChange={handleSearch}
-        />
-      )}
-    </div>
-    <div className="header-right">
-      <AvatarComponent 
-        imageUrl={userAvatar}
-        altText={userName}
-        size="medium"
-        onClick={handleProfileClick}
-      />
-    </div>
+<header class="header">
+  <div class="brand-section">
+    <img src="/logo.svg" alt="TaskFlow" class="logo" />
+    <span class="brand-text">TaskFlow</span>
+  </div>
+  
+  <SearchComponent 
+    value={searchQuery}
+    placeholder={searchPlaceholder}
+    onChange={onSearchChange}
+  />
+  
+  <div class="header-actions">
+    <Button 
+      variant="ghost" 
+      icon="notification"
+      badge={notificationCount}
+      onClick={onNotificationClick}
+    />
+    
+    <Button 
+      variant="ghost" 
+      icon="settings"
+      onClick={handleSettingsClick}
+    />
+    
+    <Popover 
+      trigger={<UserAvatar user={user} />}
+      content={<UserMenuContent onLogout={handleLogout} />}
+    />
   </div>
 </header>
 
@@ -288,891 +295,643 @@ Layout:
 - display: flex
 - justify-content: space-between
 - align-items: center
-- position: sticky
-- top: 0
 
 Spacing:
-- padding: 1rem 2rem
-- gap: 1rem
+- padding: 1rem 1.5rem
+- gap: 1rem between sections
 
 Component Styles:
-- .app-header: main header container
-- .header-content: flex container for header items
-- .header-left, .header-center, .header-right: flex sections
+- height: 64px
+- background: white
+- border-bottom: 1px solid border-color
+- box-shadow: 0 2px 4px rgba(0,0,0,0.1)
 
 Responsive:
-- Mobile: hide search, show hamburger menu
-- Tablet: show condensed navigation
-- Desktop: full header layout
+- Mobile: hide brand text, reduce padding
 
 API INTEGRATION
 
-- None (receives data from parent)
+- handleLogout() → POST /api/auth/logout → clear session
 
 ERROR HANDLING
 
-- Avatar load failure → show default avatar
-- Search error → show inline error message
+- Logout failure → show error toast
+- Search API error → graceful degradation to local search
 
 INTERACTION FLOW
 
 User Action → UI → API
-- Search input → debounced search → parent handles search logic
-- Profile click → open profile menu → no API call
+- Type in search → debounced search → filter tasks locally
+- Click notifications → open notification panel
+- Click user avatar → show user menu → logout → POST /auth/logout
 
-### 4.3 DashboardOverviewComponent
+### 4.3 SidebarComponent
 
-Component Type: Feature
+Component Type: Layout
 
-Mapped From A1: Main dashboard showing account summary
+Mapped From A1: Navigation and quick actions
 
-Purpose: Displays youth account overview including balance, spending limits, and quick actions
+Purpose: Provides main navigation and workflow scenarios
 
-Parent: YouthAccountApp (via routing)
+Parent: KanbanBoardComponent
 
 Children:
-- AccountBalanceCard
-- SpendingLimitCard
-- QuickActionsPanel
+- BrandComponent
+- NavigationComponent
+- QuickActionsComponent
 
 Dependencies:
-- Custom hook useYouthAccount
-- API service youthAccountApi
+- Button component from library
+- Navigation state management
 
 Library Components Used:
-- ButtonComponent → Quick action buttons
+- Button → navigation items and quick actions
 
 TypeScript Specification
 
 Inputs:
-- youthAccountId: string (Account identifier)
-- currency: string (Display currency)
-- refreshInterval?: number (Auto-refresh interval)
+- navigationItems: NavigationItem[]
+- activeItem: string
+- collapsed: boolean
 
 Outputs:
-- onRefresh: () => void (Manual refresh event)
-- onAddFunds: () => void (Add funds action)
-- onSetLimit: () => void (Set limit action)
-- onViewActivity: () => void (View activity action)
+- onNavigationChange: (itemId: string) => void
+- onQuickAction: (actionId: string) => void
+- onToggleCollapse: () => void
 
 State:
-- dashboardData: DashboardData (Account data)
-- isLoading: boolean (Loading state)
-- refreshing: boolean (Refresh in progress)
-- error: string | null (Error state)
+- hoveredItem: string | null
+- expandedSections: string[]
 
 Methods:
-- loadDashboardData() → Fetches dashboard data
-- handleRefresh() → Manual refresh
-- handleAddFunds() → Opens fund transfer
-- handleSetLimit() → Opens limit configuration
+- handleNavItemClick(itemId: string) → void
+- handleQuickActionClick(actionId: string) → void
+- toggleSection(sectionId: string) → void
 
 HTML STRUCTURE (PSEUDO CODE ONLY)
 
-<div className="dashboard-overview">
-  <div className="dashboard-header">
-    <h2>Account Overview</h2>
-    <ButtonComponent 
-      label="Refresh"
-      variant="secondary"
-      onClick={handleRefresh}
-      processing={refreshing}
-    />
+<aside class="sidebar" class:collapsed={collapsed}>
+  <div class="brand-section">
+    <img src="/logo.svg" alt="TaskFlow" />
+    {!collapsed && <span>TaskFlow</span>}
   </div>
   
-  <div className="dashboard-grid">
-    <AccountBalanceCard 
-      balance={dashboardData.balance}
-      currency={currency}
-      lastUpdated={dashboardData.lastUpdated}
-      onRefresh={handleRefresh}
-    />
-    
-    <SpendingLimitCard 
-      currentLimit={dashboardData.spendingLimit}
-      currency={currency}
-      weeklySpent={dashboardData.weeklySpent}
-      onEditLimit={handleSetLimit}
-    />
-    
-    <div className="quick-actions">
-      <ButtonComponent 
-        label="Add Funds"
-        variant="primary"
-        onClick={handleAddFunds}
-      />
-      <ButtonComponent 
-        label="View Activity"
-        variant="secondary"
-        onClick={handleViewActivity}
-      />
+  <nav class="navigation">
+    <div class="nav-section">
+      <h3>Workflow Scenarios</h3>
+      {navigationItems.map(item => (
+        <Button 
+          key={item.id}
+          variant={activeItem === item.id ? 'primary' : 'ghost'}
+          icon={item.icon}
+          onClick={() => onNavigationChange(item.id)}
+        >
+          {!collapsed && item.label}
+        </Button>
+      ))}
     </div>
-  </div>
-  
-  {error && (
-    <AlertComponent 
-      type="error"
-      message={error}
-      onDismiss={() => setError(null)}
-    />
-  )}
-</div>
+    
+    <div class="quick-actions">
+      <h3>Quick Actions</h3>
+      <Button variant="outline" icon="plus">
+        {!collapsed && "New Project"}
+      </Button>
+      <Button variant="outline" icon="import">
+        {!collapsed && "Import Tasks"}
+      </Button>
+    </div>
+  </nav>
+</aside>
 
 CSS SPECIFICATION
 
 Layout:
-- display: grid
-- grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))
-- gap: 1.5rem
+- width: 280px (expanded), 64px (collapsed)
+- display: flex flex-column
+- transition: width 0.3s ease
 
 Spacing:
-- padding: 2rem
-- margin-bottom: 2rem
+- padding: 1rem
+- gap: 0.5rem between nav items
 
 Component Styles:
-- .dashboard-overview: main container
-- .dashboard-header: flex header with title and refresh
-- .dashboard-grid: responsive grid layout
-- .quick-actions: flex container for action buttons
+- background: sidebar-bg
+- border-right: 1px solid border-color
+- height: 100vh
 
 Responsive:
-- Mobile: single column layout
-- Tablet: 2-column grid
-- Desktop: 3-column grid
+- Mobile: overlay mode, full-width when open
+- Tablet: collapsible with toggle button
 
 API INTEGRATION
 
-- loadDashboardData() → GET /api/youth-accounts/{youthAccountId}/dashboard → Fetch complete dashboard data
-- handleRefresh() → GET /api/youth-accounts/{youthAccountId}/dashboard → Refresh dashboard data
+- Navigation changes → update route/view state
+- Quick actions → trigger respective API calls
 
 ERROR HANDLING
 
-- API failure → show error alert with retry option
-- Network error → show offline indicator
-- Data validation error → show specific field errors
+- Navigation failure → show error toast
+- Quick action failure → inline error message
 
 INTERACTION FLOW
 
 User Action → UI → API
-- Component mount → load dashboard → GET /api/youth-accounts/{id}/dashboard
-- Refresh click → refresh data → GET /api/youth-accounts/{id}/dashboard
-- Add funds click → navigate to fund transfer → no API call
-- Set limit click → open limit modal → no immediate API call
+- Click nav item → update active state → change view
+- Click "New Project" → open project creation modal
+- Click "Import Tasks" → open file upload dialog
 
-### 4.4 AccountBalanceCard
+### 4.4 KanbanColumnComponent
 
 Component Type: Feature
 
-Mapped From A1: Display current account balance
+Mapped From A1: Individual column container with header and task list
 
-Purpose: Shows current account balance with formatting and last updated timestamp
+Purpose: Represents a single kanban column (To Do, In Progress, Done)
 
-Parent: DashboardOverviewComponent
+Parent: KanbanBoardComponent
 
 Children:
-- None (leaf component)
+- ColumnHeaderComponent
+- TaskListComponent
+- TaskCardComponent (multiple)
 
 Dependencies:
-- Utility functions (formatCurrency, formatDate)
+- Drag and drop functionality
+- Task filtering
 
 Library Components Used:
-- ButtonComponent → Refresh button
+- Button → column actions
+- Dropdown → column menu
 
 TypeScript Specification
 
 Inputs:
-- balance: number (Account balance amount)
-- currency: string (Currency code)
-- lastUpdated: string (Last update timestamp)
-- isLoading?: boolean (Loading state)
+- column: KanbanColumn
+- tasks: Task[]
+- dragEnabled: boolean
 
 Outputs:
-- onRefresh: () => void (Refresh balance event)
+- onTaskClick: (task: Task) => void
+- onAddTask: (columnId: string) => void
+- onTaskMove: (taskId: string, targetColumnId: string) => void
 
 State:
-- None (stateless component)
+- dragOver: boolean
+- expanded: boolean
+- filteredTasks: Task[]
 
 Methods:
-- None (pure component)
+- handleTaskDrop(event: DragEvent) → void
+- handleAddTaskClick() → void
+- filterTasks(searchQuery: string) → Task[]
 
 HTML STRUCTURE (PSEUDO CODE ONLY)
 
-<div className="account-balance-card">
-  <div className="card-header">
-    <h3>Current Balance</h3>
-    <ButtonComponent 
-      label="Refresh"
-      variant="ghost"
-      size="small"
-      onClick={onRefresh}
+<div class="kanban-column" 
+     role="region" 
+     aria-labelledby={`column-${column.id}-title`}
+     onDrop={handleTaskDrop}
+     onDragOver={handleDragOver}>
+  
+  <div class="column-header">
+    <h2 id={`column-${column.id}-title`}>{column.title}</h2>
+    <span class="task-count">{tasks.length}</span>
+    
+    <Dropdown 
+      trigger={<Button variant="ghost" icon="more" />}
+      items={[
+        { label: "Add Task", onClick: handleAddTaskClick },
+        { label: "Clear Column", onClick: handleClearColumn }
+      ]}
     />
   </div>
   
-  <div className="balance-display">
-    <span className="currency-symbol">{getCurrencySymbol(currency)}</span>
-    <span className="balance-amount">{formatCurrency(balance, currency)}</span>
-  </div>
-  
-  <div className="card-footer">
-    <span className="last-updated">
-      Last updated: {formatDate(lastUpdated)}
-    </span>
-  </div>
-</div>
-
-CSS SPECIFICATION
-
-Layout:
-- display: flex
-- flex-direction: column
-- border: 1px solid var(--border-color)
-- border-radius: 8px
-
-Spacing:
-- padding: 1.5rem
-- gap: 1rem
-
-Component Styles:
-- .account-balance-card: main card container
-- .card-header: flex header with title and action
-- .balance-display: large balance text
-- .balance-amount: prominent balance styling
-- .card-footer: muted footer text
-
-Responsive:
-- Mobile: full width, larger text
-- Desktop: fixed width, standard text
-
-API INTEGRATION
-
-- None (receives data from parent)
-
-ERROR HANDLING
-
-- Invalid balance → show "--" placeholder
-- Missing currency → default to USD
-- Invalid date → show "Unknown" for last updated
-
-INTERACTION FLOW
-
-User Action → UI → API
-- Refresh click → trigger parent refresh → parent handles API call
-
-### 4.5 SpendingLimitCard
-
-Component Type: Feature
-
-Mapped From A1: Display and manage spending limits
-
-Purpose: Shows current spending limit, weekly spent amount, and provides limit editing capability
-
-Parent: DashboardOverviewComponent
-
-Children:
-- None (leaf component)
-
-Dependencies:
-- Utility functions (formatCurrency)
-- Custom hook useSpendingLimit
-
-Library Components Used:
-- ButtonComponent → Edit limit button
-
-TypeScript Specification
-
-Inputs:
-- currentLimit: number (Current spending limit)
-- currency: string (Currency code)
-- weeklySpent: number (Amount spent this week)
-- onEditLimit: () => void (Edit limit callback)
-
-Outputs:
-- onEditLimit: () => void (Edit limit event)
-- onSaveLimit: (newLimit: number) => void (Save limit event)
-
-State:
-- isEditing: boolean (Edit mode state)
-- editValue: number (Temporary edit value)
-
-Methods:
-- handleEditClick() → Enters edit mode
-- handleSaveLimit() → Saves new limit
-- handleCancelEdit() → Cancels edit mode
-- calculateProgress() → Calculates spending progress
-
-HTML STRUCTURE (PSEUDO CODE ONLY)
-
-<div className="spending-limit-card">
-  <div className="card-header">
-    <h3>Weekly Spending Limit</h3>
-    <ButtonComponent 
-      label={isEditing ? "Save" : "Edit"}
-      variant="secondary"
-      size="small"
-      onClick={isEditing ? handleSaveLimit : handleEditClick}
-    />
-  </div>
-  
-  <div className="limit-display">
-    {isEditing ? (
-      <input 
-        type="number"
-        value={editValue}
-        onChange={(e) => setEditValue(Number(e.target.value))}
-        className="limit-input"
+  <div class="task-list">
+    {filteredTasks.map(task => (
+      <TaskCardComponent 
+        key={task.id}
+        task={task}
+        draggable={dragEnabled}
+        onClick={() => onTaskClick(task)}
       />
-    ) : (
-      <span className="limit-amount">
-        {formatCurrency(currentLimit, currency)}
-      </span>
+    ))}
+    
+    {tasks.length === 0 && (
+      <div class="empty-state">
+        <p>No tasks in {column.title}</p>
+        <Button variant="outline" onClick={handleAddTaskClick}>
+          Add First Task
+        </Button>
+      </div>
     )}
   </div>
+</div>
+
+CSS SPECIFICATION
+
+Layout:
+- display: flex flex-column
+- min-height: 500px
+- flex: 1
+
+Spacing:
+- padding: 1rem
+- gap: 0.75rem between tasks
+
+Component Styles:
+- background: column-bg
+- border-radius: 8px
+- border: 2px dashed transparent (drag over: border-primary)
+
+Responsive:
+- Mobile: full-width stacked
+- Tablet: min-width: 250px
+
+API INTEGRATION
+
+- handleTaskMove() → PUT /api/tasks/{id}/status → update task column
+- handleAddTaskClick() → trigger parent task creation
+
+ERROR HANDLING
+
+- Task move failure → revert UI state, show error
+- Column load error → show retry button
+
+INTERACTION FLOW
+
+User Action → UI → API
+- Drag task to column → update task status → PUT /tasks/{id}/status
+- Click "Add Task" → trigger parent onAddTask → open modal
+- Click task card → trigger parent onTaskClick → open task details
+
+### 4.5 TaskCardComponent
+
+Component Type: Feature
+
+Mapped From A1: Individual task display with all task information
+
+Purpose: Displays task details in a card format with all relevant information
+
+Parent: KanbanColumnComponent
+
+Children:
+- PriorityIndicator
+- TaskTags
+- AssigneeAvatar
+- DueDateBadge
+
+Dependencies:
+- Avatar component
+- Tag component
+- Date formatting utilities
+
+Library Components Used:
+- Popover → task quick actions
+
+TypeScript Specification
+
+Inputs:
+- task: Task
+- draggable: boolean
+- clickable: boolean
+
+Outputs:
+- onClick: (task: Task) => void
+- onQuickEdit: (taskId: string, field: string, value: any) => void
+
+State:
+- hovered: boolean
+- dragging: boolean
+
+Methods:
+- handleCardClick() → void
+- handleDragStart(event: DragEvent) → void
+- formatDueDate(date: Date) → string
+- getPriorityColor(priority: Priority) → string
+
+HTML STRUCTURE (PSEUDO CODE ONLY)
+
+<div class="task-card" 
+     class:dragging={dragging}
+     class:hovered={hovered}
+     draggable={draggable}
+     onClick={handleCardClick}
+     onDragStart={handleDragStart}>
   
-  <div className="spending-progress">
-    <div className="progress-bar">
-      <div 
-        className="progress-fill"
-        style={{width: `${calculateProgress()}%`}}
-      />
+  <div class="task-header">
+    <div class="priority-indicator" 
+         style={`background-color: ${getPriorityColor(task.priority)}`}>
     </div>
-    <span className="spent-amount">
-      {formatCurrency(weeklySpent, currency)} spent this week
-    </span>
+    
+    <Popover 
+      trigger={<Button variant="ghost" icon="more" size="sm" />}
+      content={<TaskQuickActions task={task} />}
+    />
+  </div>
+  
+  <div class="task-content">
+    <h3 class="task-title">{task.title}</h3>
+    <p class="task-description">{task.description}</p>
+    
+    <div class="task-tags">
+      {task.tags.map(tag => (
+        <TagComponent key={tag.id} tag={tag} size="sm" />
+      ))}
+    </div>
+  </div>
+  
+  <div class="task-footer">
+    <div class="assignee-info">
+      <AvatarComponent 
+        user={task.assignee}
+        size="sm"
+        showTooltip={true}
+      />
+      <span class="assignee-name">{task.assignee.name}</span>
+    </div>
+    
+    {task.dueDate && (
+      <div class="due-date" class:overdue={isOverdue(task.dueDate)}>
+        {formatDueDate(task.dueDate)}
+      </div>
+    )}
   </div>
 </div>
 
 CSS SPECIFICATION
 
 Layout:
-- display: flex
-- flex-direction: column
-- border: 1px solid var(--border-color)
-- border-radius: 8px
+- display: flex flex-column
+- gap: 0.75rem
 
 Spacing:
-- padding: 1.5rem
-- gap: 1rem
+- padding: 1rem
+- margin-bottom: 0.75rem
 
 Component Styles:
-- .spending-limit-card: main card container
-- .limit-display: prominent limit display
-- .progress-bar: visual progress indicator
-- .progress-fill: dynamic width based on spending
-- .limit-input: inline edit input
+- background: white
+- border-radius: 6px
+- box-shadow: 0 2px 4px rgba(0,0,0,0.1)
+- border-left: 4px solid priority-color
+- cursor: pointer
+- transition: transform 0.2s, box-shadow 0.2s
 
 Responsive:
-- Mobile: full width layout
-- Desktop: fixed width
+- Mobile: reduce padding, stack footer items
 
 API INTEGRATION
 
-- handleSaveLimit() → PUT /api/youth-accounts/{youthAccountId}/spending-limit → Update spending limit
+- onQuickEdit() → PATCH /api/tasks/{id} → update specific field
 
 ERROR HANDLING
 
-- Invalid limit value → show validation error
-- API save failure → revert to previous value, show error
-- Network error → show retry option
+- Quick edit failure → revert change, show inline error
+- Card load error → show placeholder with retry
 
 INTERACTION FLOW
 
 User Action → UI → API
-- Edit click → enter edit mode → no API call
-- Save limit → validate input → PUT /api/youth-accounts/{id}/spending-limit
-- Cancel edit → revert changes → no API call
+- Click card → trigger parent onClick → open task modal
+- Drag card → start drag operation → move to new column
+- Quick edit field → PATCH /tasks/{id} → update task
 
-### 4.6 FundTransferComponent
+### 4.6 TaskModalComponent
 
 Component Type: Feature
 
-Mapped From A1: Handle fund transfers to youth account
+Mapped From A1: Task creation and editing modal
 
-Purpose: Manages fund transfers from parent accounts to youth account with validation and confirmation
+Purpose: Provides form interface for creating and editing tasks
 
-Parent: YouthAccountApp (via routing)
+Parent: KanbanBoardComponent
 
 Children:
-- FundTransferModal
-- TransferFormComponent
+- TaskFormComponent
+- FormInput
+- FormTextarea
+- FormSelect
 
 Dependencies:
-- Custom hook useFundTransfer
-- API service fundTransferApi
-- Form validation utilities
+- Form validation
+- Date picker
+- User selection
 
 Library Components Used:
-- ButtonComponent → Transfer and cancel buttons
+- Dialog → modal container
+- Button → form actions
+- Dropdown → assignee selection
 
 TypeScript Specification
 
 Inputs:
-- sourceAccounts: Account[] (Available source accounts)
-- youthAccountId: string (Target account ID)
-- maxTransferAmount?: number (Maximum transfer limit)
+- isOpen: boolean
+- task: Task | null
+- assignees: User[]
+- columns: KanbanColumn[]
 
 Outputs:
-- onTransferSubmit: (transferData: TransferRequest) => void (Transfer submission)
-- onTransferCancel: () => void (Transfer cancellation)
-- onTransferComplete: (result: TransferResult) => void (Transfer completion)
+- onSave: (taskData: TaskFormData) => void
+- onClose: () => void
+- onDelete: (taskId: string) => void
 
 State:
-- transferAmount: number (Transfer amount)
-- selectedSource: string (Selected source account ID)
-- isProcessing: boolean (Transfer in progress)
-- transferResult: TransferResult | null (Transfer result)
-- validationErrors: ValidationErrors (Form validation errors)
+- formData: TaskFormData
+- submitting: boolean
+- errors: FormErrors
+- isDirty: boolean
 
 Methods:
-- handleAmountChange() → Validates and updates amount
-- handleSourceChange() → Updates selected source account
-- handleTransferSubmit() → Submits transfer request
-- validateTransfer() → Validates transfer data
-- resetForm() → Resets form to initial state
+- handleSubmit(event: FormEvent) → Promise<void>
+- handleFieldChange(field: string, value: any) → void
+- validateForm() → FormErrors
+- resetForm() → void
 
 HTML STRUCTURE (PSEUDO CODE ONLY)
 
-<div className="fund-transfer-component">
-  <div className="transfer-header">
-    <h2>Add Funds to Youth Account</h2>
-  </div>
+<Dialog 
+  isOpen={isOpen}
+  onClose={onClose}
+  title={task ? "Edit Task" : "Create Task"}
+  size="lg">
   
-  <form className="transfer-form" onSubmit={handleTransferSubmit}>
-    <div className="form-group">
-      <label htmlFor="source-account">From Account</label>
-      <select 
-        id="source-account"
-        value={selectedSource}
-        onChange={handleSourceChange}
-        className="account-select"
-      >
-        {sourceAccounts.map(account => (
-          <option key={account.id} value={account.id}>
-            {account.name} - {formatCurrency(account.balance, account.currency)}
-          </option>
-        ))}
-      </select>
+  <form onSubmit={handleSubmit} class="task-form">
+    <div class="form-section">
+      <FormInput 
+        label="Task Title"
+        value={formData.title}
+        onChange={(value) => handleFieldChange('title', value)}
+        error={errors.title}
+        required
+      />
+      
+      <FormTextarea 
+        label="Description"
+        value={formData.description}
+        onChange={(value) => handleFieldChange('description', value)}
+        rows={4}
+      />
     </div>
     
-    <div className="form-group">
-      <label htmlFor="transfer-amount">Amount</label>
-      <input 
-        id="transfer-amount"
-        type="number"
-        value={transferAmount}
-        onChange={handleAmountChange}
-        className="amount-input"
-        min="0"
-        step="0.01"
+    <div class="form-row">
+      <Dropdown 
+        label="Priority"
+        value={formData.priority}
+        options={priorityOptions}
+        onChange={(value) => handleFieldChange('priority', value)}
       />
-      {validationErrors.amount && (
-        <span className="error-message">{validationErrors.amount}</span>
+      
+      <Dropdown 
+        label="Assignee"
+        value={formData.assigneeId}
+        options={assigneeOptions}
+        onChange={(value) => handleFieldChange('assigneeId', value)}
+        searchable
+      />
+    </div>
+    
+    <div class="form-row">
+      <FormInput 
+        type="date"
+        label="Due Date"
+        value={formData.dueDate}
+        onChange={(value) => handleFieldChange('dueDate', value)}
+      />
+      
+      <Dropdown 
+        label="Column"
+        value={formData.columnId}
+        options={columnOptions}
+        onChange={(value) => handleFieldChange('columnId', value)}
+      />
+    </div>
+    
+    <div class="form-section">
+      <TagInput 
+        label="Tags"
+        value={formData.tags}
+        onChange={(value) => handleFieldChange('tags', value)}
+        suggestions={tagSuggestions}
+      />
+    </div>
+    
+    <div class="modal-actions">
+      {task && (
+        <Button 
+          variant="danger" 
+          onClick={() => onDelete(task.id)}
+          disabled={submitting}>
+          Delete Task
+        </Button>
       )}
-    </div>
-    
-    <div className="form-actions">
-      <ButtonComponent 
-        label="Cancel"
-        variant="secondary"
-        onClick={onTransferCancel}
-        disabled={isProcessing}
-      />
-      <ButtonComponent 
-        label="Transfer Funds"
-        variant="primary"
-        type="submit"
-        processing={isProcessing}
-        disabled={!isFormValid()}
-      />
+      
+      <div class="action-group">
+        <Button 
+          variant="outline" 
+          onClick={onClose}
+          disabled={submitting}>
+          Cancel
+        </Button>
+        
+        <Button 
+          type="submit" 
+          variant="primary"
+          loading={submitting}
+          disabled={!isDirty || Object.keys(errors).length > 0}>
+          {task ? "Update Task" : "Create Task"}
+        </Button>
+      </div>
     </div>
   </form>
-  
-  {transferResult && (
-    <div className="transfer-result">
-      <AlertComponent 
-        type={transferResult.success ? "success" : "error"}
-        message={transferResult.message}
-        onDismiss={() => setTransferResult(null)}
-      />
-    </div>
-  )}
-</div>
+</Dialog>
 
 CSS SPECIFICATION
 
 Layout:
-- display: flex
-- flex-direction: column
-- max-width: 500px
-- margin: 0 auto
+- .task-form: display flex flex-column, gap: 1.5rem
+- .form-row: display flex, gap: 1rem
+- .modal-actions: display flex justify-between
 
 Spacing:
-- padding: 2rem
-- gap: 1.5rem
+- padding: 1.5rem
+- gap: 1rem between form sections
 
 Component Styles:
-- .fund-transfer-component: main container
-- .transfer-form: form layout
-- .form-group: input group styling
-- .form-actions: button group layout
-- .account-select, .amount-input: form input styling
+- max-width: 600px
+- min-height: 400px
 
 Responsive:
-- Mobile: full width, stacked layout
-- Desktop: centered, fixed width
+- Mobile: single column layout, full-width modal
 
 API INTEGRATION
 
-- handleTransferSubmit() → POST /api/youth-accounts/{youthAccountId}/fund-transfer → Execute fund transfer
-- loadSourceAccounts() → GET /api/accounts/parent → Get available source accounts
+- handleSubmit() → POST /api/youth-accounts/{id}/fund-transfer (create)
+- handleSubmit() → PUT /api/youth-accounts/{id}/spending-limit (update)
+- onDelete() → DELETE /api/tasks/{id} → remove task
 
 ERROR HANDLING
 
-- Insufficient funds → show specific error message with available balance
-- Invalid amount → show validation error inline
-- API failure → show error alert with retry option
-- Network error → show offline message
+- Form validation → inline field errors
+- API failure → show error banner in modal
+- Network timeout → show retry option
 
 INTERACTION FLOW
 
 User Action → UI → API
-- Component load → load source accounts → GET /api/accounts/parent
-- Amount input → validate amount → no API call
-- Source change → update form → no API call
-- Submit transfer → validate → POST /api/youth-accounts/{id}/fund-transfer
-- Transfer success → show confirmation → refresh parent dashboard
-
-### 4.7 ActivityTimelineComponent
-
-Component Type: Feature
-
-Mapped From A1: Display transaction history and activity
-
-Purpose: Shows paginated transaction history with filtering and search capabilities
-
-Parent: YouthAccountApp (via routing)
-
-Children:
-- TransactionListComponent
-- TransactionFilterComponent
-
-Dependencies:
-- Custom hook useTransactionHistory
-- API service transactionApi
-- Pagination utilities
-
-Library Components Used:
-- SearchBarComponent → Transaction search
-- ButtonComponent → Pagination and filter buttons
-
-TypeScript Specification
-
-Inputs:
-- youthAccountId: string (Account identifier)
-- pageSize: number (Items per page)
-- initialFilters?: TransactionFilters (Initial filter state)
-
-Outputs:
-- onPageChange: (page: number) => void (Page change event)
-- onFilterChange: (filters: TransactionFilters) => void (Filter change event)
-- onTransactionClick: (transaction: Transaction) => void (Transaction selection)
-
-State:
-- transactions: Transaction[] (Transaction list)
-- currentPage: number (Current page number)
-- totalPages: number (Total page count)
-- isLoading: boolean (Loading state)
-- filters: TransactionFilters (Active filters)
-- searchQuery: string (Search query)
-
-Methods:
-- loadTransactions() → Fetches transaction data
-- handlePageChange() → Changes current page
-- handleFilterChange() → Updates filters
-- handleSearch() → Performs transaction search
-- exportTransactions() → Exports transaction data
-
-HTML STRUCTURE (PSEUDO CODE ONLY)
-
-<div className="activity-timeline">
-  <div className="activity-header">
-    <h2>Transaction History</h2>
-    <div className="activity-controls">
-      <SearchBarComponent 
-        label="Search transactions"
-        value={searchQuery}
-        onChange={handleSearch}
-      />
-      <ButtonComponent 
-        label="Export"
-        variant="secondary"
-        onClick={exportTransactions}
-      />
-    </div>
-  </div>
-  
-  <TransactionFilterComponent 
-    filters={filters}
-    onFilterChange={handleFilterChange}
-  />
-  
-  <div className="transaction-content">
-    {isLoading ? (
-      <div className="loading-state">Loading transactions...</div>
-    ) : (
-      <TransactionListComponent 
-        transactions={transactions}
-        currency="USD"
-        onTransactionClick={onTransactionClick}
-      />
-    )}
-  </div>
-  
-  <div className="pagination-controls">
-    <ButtonComponent 
-      label="Previous"
-      variant="secondary"
-      onClick={() => handlePageChange(currentPage - 1)}
-      disabled={currentPage === 1}
-    />
-    <span className="page-info">
-      Page {currentPage} of {totalPages}
-    </span>
-    <ButtonComponent 
-      label="Next"
-      variant="secondary"
-      onClick={() => handlePageChange(currentPage + 1)}
-      disabled={currentPage === totalPages}
-    />
-  </div>
-</div>
-
-CSS SPECIFICATION
-
-Layout:
-- display: flex
-- flex-direction: column
-- gap: 1.5rem
-
-Spacing:
-- padding: 2rem
-- margin-bottom: 2rem
-
-Component Styles:
-- .activity-timeline: main container
-- .activity-header: flex header with title and controls
-- .activity-controls: flex container for search and export
-- .transaction-content: scrollable content area
-- .pagination-controls: flex pagination layout
-
-Responsive:
-- Mobile: stacked layout, simplified controls
-- Desktop: full layout with all features
-
-API INTEGRATION
-
-- loadTransactions() → GET /api/youth-accounts/{youthAccountId}/transactions → Fetch paginated transactions
-- handleSearch() → GET /api/youth-accounts/{youthAccountId}/transactions?search={query} → Search transactions
-- handleFilterChange() → GET /api/youth-accounts/{youthAccountId}/transactions?filters={filters} → Filter transactions
-- exportTransactions() → GET /api/youth-accounts/{youthAccountId}/transactions/export → Export transaction data
-
-ERROR HANDLING
-
-- API failure → show error message with retry option
-- No transactions → show empty state message
-- Search no results → show "no results found" message
-- Export failure → show error alert
-
-INTERACTION FLOW
-
-User Action → UI → API
-- Component load → load first page → GET /api/youth-accounts/{id}/transactions
-- Page change → load new page → GET /api/youth-accounts/{id}/transactions?page={page}
-- Search input → debounced search → GET /api/youth-accounts/{id}/transactions?search={query}
-- Filter change → apply filters → GET /api/youth-accounts/{id}/transactions?filters={filters}
-- Export click → download data → GET /api/youth-accounts/{id}/transactions/export
-
-### 4.8 TransactionListComponent
-
-Component Type: Feature
-
-Mapped From A1: Render list of transactions
-
-Purpose: Displays formatted list of transactions with details and interaction capabilities
-
-Parent: ActivityTimelineComponent
-
-Children:
-- None (leaf component)
-
-Dependencies:
-- Utility functions (formatCurrency, formatDate)
-- Transaction type definitions
-
-Library Components Used:
-- None (uses native HTML elements with custom styling)
-
-TypeScript Specification
-
-Inputs:
-- transactions: Transaction[] (List of transactions)
-- currency: string (Display currency)
-- onTransactionClick?: (transaction: Transaction) => void (Transaction click handler)
-
-Outputs:
-- onTransactionSelect: (transaction: Transaction) => void (Transaction selection event)
-
-State:
-- selectedTransaction: string | null (Selected transaction ID)
-
-Methods:
-- handleTransactionClick() → Handles transaction selection
-- getTransactionIcon() → Returns appropriate icon for transaction type
-- getTransactionColor() → Returns color based on transaction type
-
-HTML STRUCTURE (PSEUDO CODE ONLY)
-
-<div className="transaction-list">
-  {transactions.length === 0 ? (
-    <div className="empty-state">
-      <p>No transactions found</p>
-    </div>
-  ) : (
-    <ul className="transaction-items">
-      {transactions.map(transaction => (
-        <li 
-          key={transaction.id}
-          className={`transaction-item ${selectedTransaction === transaction.id ? 'selected' : ''}`}
-          onClick={() => handleTransactionClick(transaction)}
-        >
-          <div className="transaction-icon">
-            <span className={`icon ${getTransactionIcon(transaction.type)}`} />
-          </div>
-          
-          <div className="transaction-details">
-            <div className="transaction-main">
-              <span className="transaction-description">{transaction.description}</span>
-              <span className={`transaction-amount ${getTransactionColor(transaction.type)}`}>
-                {transaction.type === 'debit' ? '-' : '+'}{formatCurrency(transaction.amount, currency)}
-              </span>
-            </div>
-            
-            <div className="transaction-meta">
-              <span className="transaction-date">{formatDate(transaction.date)}</span>
-              <span className="transaction-category">{transaction.category}</span>
-            </div>
-          </div>
-          
-          <div className="transaction-status">
-            <span className={`status-badge ${transaction.status}`}>
-              {transaction.status}
-            </span>
-          </div>
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
-
-CSS SPECIFICATION
-
-Layout:
-- display: flex
-- flex-direction: column
-- gap: 0.5rem
-
-Spacing:
-- padding: 0
-- margin: 0
-
-Component Styles:
-- .transaction-list: main container
-- .transaction-item: flex item layout with hover effects
-- .transaction-icon: icon container
-- .transaction-details: main content area
-- .transaction-amount: prominent amount display
-- .status-badge: status indicator styling
-
-Responsive:
-- Mobile: simplified layout, smaller text
-- Desktop: full layout with all details
-
-API INTEGRATION
-
-- None (receives data from parent)
-
-ERROR HANDLING
-
-- Invalid transaction data → skip rendering problematic items
-- Missing required fields → show placeholder values
-- Image load failure → show default transaction icon
-
-INTERACTION FLOW
-
-User Action → UI → API
-- Transaction click → select transaction → parent handles details view
-- No direct API calls (data comes from parent)
+- Fill form and submit → validate → POST/PUT API → close modal → refresh parent
+- Click delete → confirm dialog → DELETE API → close modal → refresh parent
+- Click cancel → check dirty state → confirm if needed → close modal
 
 5. COMPONENT MAPPING SUMMARY
 
 | A1 Component | Final Component | Type |
 |--------------|----------------|---------|
-| YouthAccountApp | YouthAccountApp | Page |
+| KanbanBoardComponent | KanbanBoardComponent | Page |
 | HeaderComponent | HeaderComponent | Layout |
-| DashboardOverviewComponent | DashboardOverviewComponent | Feature |
-| AccountBalanceCard | AccountBalanceCard | Feature |
-| SpendingLimitCard | SpendingLimitCard | Feature |
-| FundTransferComponent | FundTransferComponent | Feature |
-| ActivityTimelineComponent | ActivityTimelineComponent | Feature |
-| TransactionListComponent | TransactionListComponent | Feature |
-| ButtonComponent | ButtonComponent (from @aava/play-core) | Shared |
-| AvatarComponent | AvatarComponent (from @aava/play-core) | Shared |
-| SearchBarComponent | SearchBarComponent (from @aava/play-core) | Shared |
+| SidebarComponent | SidebarComponent | Layout |
+| KanbanColumnComponent | KanbanColumnComponent | Feature |
+| TaskCardComponent | TaskCardComponent | Feature |
+| TaskModalComponent | TaskModalComponent | Feature |
+| SearchComponent | SearchComponent | Shared |
+| NavigationComponent | NavigationComponent | Shared |
+| UserProfileComponent | UserProfileComponent | Shared |
+| Button (Library) | Button | Library |
+| Dialog (Library) | Dialog | Library |
+| Dropdown (Library) | Dropdown | Library |
 
 6. DATA FLOW (FROM AGENT-1)
 
 Parent → Child:
-- YouthAccountApp → HeaderComponent (userName, userAvatar, showSearch)
-- YouthAccountApp → DashboardOverviewComponent (youthAccountId, currency)
-- YouthAccountApp → FundTransferComponent (sourceAccounts, youthAccountId)
-- YouthAccountApp → ActivityTimelineComponent (youthAccountId, pageSize)
-- DashboardOverviewComponent → AccountBalanceCard (balance, currency, lastUpdated)
-- DashboardOverviewComponent → SpendingLimitCard (currentLimit, currency, weeklySpent)
-- ActivityTimelineComponent → TransactionListComponent (transactions, currency)
-- HeaderComponent → SearchBarComponent (search configuration props)
-- HeaderComponent → AvatarComponent (user avatar props)
-- All action components → ButtonComponent (button configuration props)
+KanbanBoardComponent → HeaderComponent (user, searchQuery, onSearchChange)
+KanbanBoardComponent → SidebarComponent (navigationItems, activeItem, onNavigationChange)
+KanbanBoardComponent → KanbanColumnComponent (column, tasks, onTaskClick)
+KanbanColumnComponent → TaskCardComponent (task, draggable, onClick)
+KanbanBoardComponent → TaskModalComponent (isOpen, task, assignees, onSave)
+TaskCardComponent → AvatarComponent (user, size)
+TaskCardComponent → TagComponent (tags)
+HeaderComponent → Button (notifications, settings)
+TaskModalComponent → Button (save, cancel, delete)
+TaskModalComponent → Dropdown (assignee, priority, column)
 
 7. API USAGE SUMMARY
 
 Component → API:
-- YouthAccountApp → GET /api/auth/validate (Authentication validation)
-- DashboardOverviewComponent → GET /api/youth-accounts/{youthAccountId}/dashboard (Dashboard data)
-- SpendingLimitCard → PUT /api/youth-accounts/{youthAccountId}/spending-limit (Update spending limit)
-- FundTransferComponent → POST /api/youth-accounts/{youthAccountId}/fund-transfer (Execute fund transfer)
-- FundTransferComponent → GET /api/accounts/parent (Get source accounts)
-- ActivityTimelineComponent → GET /api/youth-accounts/{youthAccountId}/transactions (Transaction history)
-- ActivityTimelineComponent → GET /api/youth-accounts/{youthAccountId}/transactions/export (Export transactions)
+- KanbanBoardComponent → GET /api/youth-accounts/{id}/dashboard (initial load)
+- TaskModalComponent → POST /api/youth-accounts/{id}/fund-transfer (create task)
+- TaskModalComponent → PUT /api/youth-accounts/{id}/spending-limit (update task)
+- TaskCardComponent → PATCH /api/tasks/{id} (quick edit)
+- KanbanColumnComponent → PUT /api/tasks/{id}/status (move task)
+- HeaderComponent → POST /api/auth/logout (logout)
 
 8. NOTES & CONSTRAINTS
 
-- HTML must follow A1 structure strictly - all components are derived from the provided architecture
-- Do NOT create new components unnecessarily - reuse existing library components where possible
-- Prefer reusable library components from @aava/play-core (ButtonComponent, AvatarComponent, SearchBarComponent)
-- HTML must be pseudo-code ONLY (NOT real framework code) - represents structure and component relationships
-- All monetary values must use proper currency formatting utilities
-- All date/time values must use localization utilities
-- Implement proper error boundaries for graceful error handling
-- Follow accessibility guidelines (ARIA labels, keyboard navigation)
-- Implement loading states for all API interactions
-- Use TypeScript strict mode for type safety
-- Follow responsive design principles for mobile-first approach
-- Implement proper form validation with real-time feedback
-- Use debouncing for search inputs to optimize API calls
-- Implement optimistic updates where appropriate for better UX
-- Follow secure coding practices for financial data handling
-- Implement proper error logging and monitoring
-- Use semantic HTML elements for better accessibility
-- Follow component composition patterns for maintainability
-- Implement proper state management using React hooks and context
-- Use CSS modules for component-scoped styling
-- Follow naming conventions for consistency across the application
+- HTML must follow A1 structure strictly with CSS Grid layout for kanban board
+- Do NOT create new components unnecessarily - reuse library components where possible
+- Prefer Button, Dialog, Dropdown from uicomplibraryplay library
+- HTML must be pseudo-code ONLY (NOT real framework code)
+- Implement proper ARIA attributes for accessibility compliance
+- Error handling must follow OpenAPI specification guidelines with standardized error objects
+- All API calls must include proper error handling and loading states
+- Responsive design must support desktop (>1024px), tablet (768px-1024px), and mobile (<768px)
+- Component compilation and linting compliance required
+- Follow DRY principle for component reusability
+- Implement zero-touch onboarding with comprehensive documentation
