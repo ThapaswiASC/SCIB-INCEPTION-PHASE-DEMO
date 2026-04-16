@@ -54,136 +54,89 @@
         
         <div class="description">
             <h2>User Flow Overview</h2>
-            <p>This diagram illustrates the complete user journey through the Kanban board application, from initial login to task management and collaboration features. The flow covers authentication, navigation, task operations, and system interactions.</p>
+            <p>This diagram illustrates the primary user interaction flows within the Kanban Board Management System. The flow covers user authentication, task management, navigation, and key feature interactions across the three-column layout (To Do, In Progress, Done).</p>
         </div>
 
         <div class="mermaid">
-flowchart TD
-    Start[User Opens Application]
-    Start --> Login[User Login Page]
-    Login --> Auth{Authentication}
-    Auth -->|Success| Dashboard[Load Kanban Dashboard]
-    Auth -->|Failure| LoginError[Show Login Error]
-    LoginError --> Login
-    
-    Dashboard --> InitSession[Initialize Form Session]
-    InitSession --> LoadBoard[Load Board State]
-    LoadBoard --> DisplayBoard[Display Kanban Board]
-    
-    DisplayBoard --> HeaderActions[Header Actions Available]
-    DisplayBoard --> SidebarNav[Sidebar Navigation Available]
-    DisplayBoard --> KanbanColumns[Three Kanban Columns Displayed]
-    
-    HeaderActions --> Search[User Searches Tasks]
-    HeaderActions --> Notifications[User Checks Notifications]
-    HeaderActions --> UserMenu[User Opens Profile Menu]
-    
-    Search --> FilterTasks[Filter Tasks by Query]
-    FilterTasks --> UpdateDisplay[Update Task Display]
-    
-    Notifications --> NotificationPanel[Open Notification Panel]
-    NotificationPanel --> MarkRead[Mark Notifications as Read]
-    
-    UserMenu --> UserProfile[View User Profile]
-    UserMenu --> Logout[User Logout]
-    Logout --> Login
-    
-    SidebarNav --> KanbanBoard[Navigate to Kanban Board]
-    SidebarNav --> TestingSuite[Navigate to Testing Suite]
-    SidebarNav --> ValidationTools[Navigate to Validation Tools]
-    
-    KanbanColumns --> TodoColumn[To Do Column]
-    KanbanColumns --> InProgressColumn[In Progress Column]
-    KanbanColumns --> DoneColumn[Done Column]
-    
-    TodoColumn --> ViewTodoTasks[View To Do Tasks]
-    InProgressColumn --> ViewProgressTasks[View In Progress Tasks]
-    DoneColumn --> ViewDoneTasks[View Done Tasks]
-    
-    ViewTodoTasks --> TaskCard[Click Task Card]
-    ViewProgressTasks --> TaskCard
-    ViewDoneTasks --> TaskCard
-    
-    TaskCard --> TaskModal[Open Task Detail Modal]
-    TaskModal --> EditTask[Edit Task Details]
-    TaskModal --> ViewAttachments[View Task Attachments]
-    TaskModal --> DeleteTask[Delete Task]
-    
-    EditTask --> UpdateTaskForm[Update Task Form]
-    UpdateTaskForm --> SaveTask[Save Task Changes]
-    SaveTask --> UpdateSession[Update Form Session]
-    UpdateSession --> RefreshBoard[Refresh Board Display]
-    
-    ViewAttachments --> DownloadFile[Download Attachment]
-    ViewAttachments --> UploadFile[Upload New Attachment]
-    UploadFile --> ValidateDocument[Validate Document]
-    ValidateDocument --> SaveAttachment[Save Attachment]
-    SaveAttachment --> UpdateTask[Update Task with Attachment]
-    
-    DeleteTask --> ConfirmDelete[Confirm Task Deletion]
-    ConfirmDelete --> RemoveTask[Remove Task from Session]
-    RemoveTask --> RefreshBoard
-    
-    TodoColumn --> AddTodoTask[Add New Task to To Do]
-    InProgressColumn --> AddProgressTask[Add New Task to In Progress]
-    DoneColumn --> AddDoneTask[Add New Task to Done]
-    
-    AddTodoTask --> CreateTaskModal[Open Create Task Modal]
-    AddProgressTask --> CreateTaskModal
-    AddDoneTask --> CreateTaskModal
-    
-    CreateTaskModal --> FillTaskForm[Fill Task Form]
-    FillTaskForm --> SetPriority[Set Task Priority]
-    FillTaskForm --> SetAssignee[Set Task Assignee]
-    FillTaskForm --> SetDueDate[Set Due Date]
-    FillTaskForm --> AddTags[Add Task Tags]
-    
-    SetPriority --> CreateTask[Create New Task]
-    SetAssignee --> CreateTask
-    SetDueDate --> CreateTask
-    AddTags --> CreateTask
-    
-    CreateTask --> SaveNewTask[Save New Task to Session]
-    SaveNewTask --> RefreshBoard
-    
-    ViewTodoTasks --> DragTask[Drag Task Card]
-    ViewProgressTasks --> DragTask
-    ViewDoneTasks --> DragTask
-    
-    DragTask --> DropZone[Drop Task in New Column]
-    DropZone --> ValidateDrop{Valid Drop Zone}
-    ValidateDrop -->|Yes| UpdateTaskStatus[Update Task Status]
-    ValidateDrop -->|No| RevertDrag[Revert Task Position]
-    
-    UpdateTaskStatus --> UpdateSession
-    RevertDrag --> DisplayBoard
-    
-    RefreshBoard --> DisplayBoard
-    UpdateDisplay --> DisplayBoard
-    
-    DisplayBoard --> ErrorHandling{Check for Errors}
-    ErrorHandling -->|API Error| ShowError[Show Error Message]
-    ErrorHandling -->|Network Error| ShowOffline[Show Offline Indicator]
-    ErrorHandling -->|Session Timeout| RedirectLogin[Redirect to Login]
-    
-    ShowError --> RetryAction[User Clicks Retry]
-    RetryAction --> LoadBoard
-    
-    ShowOffline --> CheckConnection[Check Network Connection]
-    CheckConnection --> LoadBoard
-    
-    RedirectLogin --> Login
+            flowchart TD
+                Start[User Opens Application]
+                Start --> LoadApp[Load Application]
+                LoadApp --> CheckAuth{User Authenticated?}
+                CheckAuth -->|No| Login[Show Login Screen]
+                Login --> AuthAPI[Call Auth API]
+                AuthAPI --> Dashboard[Load Dashboard]
+                CheckAuth -->|Yes| Dashboard
+                
+                Dashboard --> LoadProfile[Load User Profile]
+                LoadProfile --> LoadTasks[Load Kanban Board]
+                LoadTasks --> DisplayBoard[Display Three Column Board]
+                
+                DisplayBoard --> UserActions{User Action}
+                
+                UserActions --> CreateTask[Click Create Task Button]
+                CreateTask --> OpenModal[Open Task Creation Modal]
+                OpenModal --> FillForm[Fill Task Form]
+                FillForm --> SubmitTask[Submit New Task]
+                SubmitTask --> SaveTask[Save Task via API]
+                SaveTask --> RefreshBoard[Refresh Kanban Board]
+                RefreshBoard --> DisplayBoard
+                
+                UserActions --> ViewTask[Click Task Card]
+                ViewTask --> ShowDetails[Show Task Details]
+                ShowDetails --> EditTask{Edit Task?}
+                EditTask -->|Yes| OpenEditModal[Open Edit Modal]
+                OpenEditModal --> UpdateForm[Update Task Form]
+                UpdateForm --> SaveChanges[Save Changes via API]
+                SaveChanges --> RefreshBoard
+                EditTask -->|No| DisplayBoard
+                
+                UserActions --> DragTask[Drag Task Card]
+                DragTask --> DropColumn[Drop in New Column]
+                DropColumn --> UpdateStatus[Update Task Status]
+                UpdateStatus --> SaveMove[Save Move via API]
+                SaveMove --> RefreshBoard
+                
+                UserActions --> SearchTasks[Use Search Bar]
+                SearchTasks --> FilterResults[Filter Task Results]
+                FilterResults --> DisplayFiltered[Display Filtered Tasks]
+                DisplayFiltered --> ClearSearch{Clear Search?}
+                ClearSearch -->|Yes| DisplayBoard
+                ClearSearch -->|No| DisplayFiltered
+                
+                UserActions --> NavigateMenu[Use Sidebar Navigation]
+                NavigateMenu --> ChangeView[Change Workflow View]
+                ChangeView --> LoadNewView[Load New View Data]
+                LoadNewView --> DisplayBoard
+                
+                UserActions --> UserProfile[Click User Avatar]
+                UserProfile --> ShowProfileMenu[Show Profile Menu]
+                ShowProfileMenu --> ProfileActions{Profile Action}
+                ProfileActions --> ViewProfile[View Profile]
+                ProfileActions --> Settings[Access Settings]
+                ProfileActions --> Logout[Logout]
+                ViewProfile --> DisplayBoard
+                Settings --> DisplayBoard
+                Logout --> Start
+                
+                UserActions --> ErrorState[Error Occurred]
+                ErrorState --> ShowError[Display Error Message]
+                ShowError --> RetryAction{Retry Action?}
+                RetryAction -->|Yes| UserActions
+                RetryAction -->|No| DisplayBoard
         </div>
         
         <div class="description">
-            <h2>Key User Interactions</h2>
-            <p><strong>Authentication Flow:</strong> Users start by logging into the application, with error handling for failed attempts.</p>
-            <p><strong>Dashboard Navigation:</strong> Once authenticated, users can navigate through the sidebar menu to access different sections of the application.</p>
-            <p><strong>Task Management:</strong> Users can view, create, edit, and delete tasks across three Kanban columns (To Do, In Progress, Done).</p>
-            <p><strong>Drag and Drop:</strong> Tasks can be moved between columns using drag-and-drop functionality with validation.</p>
-            <p><strong>File Management:</strong> Users can upload and download task attachments with document validation.</p>
-            <p><strong>Search and Filter:</strong> The header search allows users to filter tasks across all columns.</p>
-            <p><strong>Error Handling:</strong> Comprehensive error handling for API failures, network issues, and session timeouts.</p>
+            <h2>Key User Interaction Points</h2>
+            <p><strong>Primary Flows:</strong></p>
+            <ul>
+                <li><strong>Task Creation:</strong> Create Task Button → Modal Form → API Save → Board Refresh</li>
+                <li><strong>Task Management:</strong> Task Card Click → View/Edit → Update → Save Changes</li>
+                <li><strong>Drag & Drop:</strong> Drag Task → Drop in Column → Status Update → API Save</li>
+                <li><strong>Search & Filter:</strong> Search Bar → Filter Results → Display Filtered View</li>
+                <li><strong>Navigation:</strong> Sidebar Menu → Change View → Load Data → Display Board</li>
+                <li><strong>User Management:</strong> Profile Avatar → Menu → Profile/Settings/Logout</li>
+            </ul>
+            <p><strong>Error Handling:</strong> All actions include error states with retry mechanisms and user feedback.</p>
         </div>
     </div>
 </body>
