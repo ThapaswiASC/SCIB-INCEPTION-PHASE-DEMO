@@ -1,933 +1,746 @@
 ## UI COMPONENT SPECIFICATIONS
 
-1. INPUT REFERENCE (FROM AGENT-1)
+### 1. INPUT REFERENCE (FROM AGENT-1)
 
-Page Name: Kanban Dashboard
+**Page Name:** Kanban Board Management System
 
-Mapped Layout: Three-column CSS Grid layout with sidebar navigation
+**Mapped Layout:** CSS Grid with Flexbox for responsive design
 
-Components from A1:
-- KanbanBoardComponent (main container)
-- KanbanColumnComponent (individual columns)
-- TaskCardComponent (task display)
-- TaskModalComponent (task creation/editing)
-- HeaderComponent (top navigation)
-- SidebarComponent (navigation menu)
-- MainContentComponent (content wrapper)
-
-2. GLOBAL ARCHITECTURE SUMMARY
-
-Layout Type: CSS Grid for kanban board (grid-template-columns: repeat(3, 1fr)), Flexbox for header and sidebar
-
-Main Sections:
-- Header (search, notifications, user profile)
-- Sidebar (navigation menu, brand section, quick actions)
-- Main Content (page header, kanban board)
-- Modals (task creation/editing)
-
-Component Strategy: Hybrid approach using library components where available and custom components for specific functionality
-
-Reused Components:
-- Button Component (from uicomplibraryplay)
-- Sidebar Component (from uicomplibraryplay)
-- Popover Component (from uicomplibraryplay)
-
-New Components (if any):
-- KanbanBoardComponent
-- KanbanColumnComponent
+**Components from A1:**
+- KanbanBoardComponent (Main Container)
+- HeaderComponent
+- SidebarComponent
 - TaskCardComponent
 - TaskModalComponent
-- HeaderComponent
-- MainContentComponent
-- CardComponent
-- ModalComponent
+- SearchBarComponent (from library)
+- ButtonComponent (from library)
+- DialogComponent (from library)
+
+### 2. GLOBAL ARCHITECTURE SUMMARY
+
+**Layout Type:** CSS Grid / Flexbox / Mixed
+
+**Main Sections:**
+- Header (Search, User Actions, Notifications)
+- Sidebar (Navigation, Brand, Quick Actions)
+- Main Content (Kanban Board with Three Columns)
+- Modals (Task Creation/Edit Dialog)
+
+**Component Strategy:**
+
+**Reused Components:**
+- SearchBarComponent → uicomplibraryplay/search-bar
+- ButtonComponent → uicomplibraryplay/button
+- DialogComponent → uicomplibraryplay/dialog
+- TextboxComponent → uicomplibraryplay/textbox
+- IconComponent → uicomplibraryplay/icon
+
+**New Components (if any):**
+- TaskCardComponent
+- KanbanColumnComponent
 - AvatarComponent
 - TagComponent
+- NavigationItemComponent
 
-3. FOLDER STRUCTURE
+### 3. FOLDER STRUCTURE
 
+```
 src/
- ├── app/
- │   ├── components/
- │   │   ├── layout/
- │   │   │   ├── header/
- │   │   │   ├── main-content/
- │   │   │   └── sidebar/ (using library)
- │   │   ├── features/
- │   │   │   └── kanban/
- │   │   │       ├── components/
- │   │   │       │   ├── kanban-board/
- │   │   │       │   ├── kanban-column/
- │   │   │       │   ├── task-card/
- │   │   │       │   └── task-modal/
- │   │   │       ├── services/
- │   │   │       └── models/
- │   │   └── shared/
- │   │       ├── components/
- │   │       │   ├── card/
- │   │       │   ├── modal/
- │   │       │   ├── avatar/
- │   │       │   └── tag/
- │   │       └── services/
- │   └── pages/
- │       └── dashboard/
+ ├── pages/
+ │    └── kanban/
+ │         ├── kanban-board.page.tsx
+ │
+ ├── components/
+ │    ├── layout/
+ │    │    ├── HeaderComponent.tsx
+ │    │    └── SidebarComponent.tsx
+ │    ├── feature/
+ │    │    ├── KanbanBoardComponent.tsx
+ │    │    ├── KanbanColumnComponent.tsx
+ │    │    ├── TaskCardComponent.tsx
+ │    │    ├── TaskModalComponent.tsx
+ │    │    └── TaskFormComponent.tsx
+ │    ├── shared/
+ │    │    ├── AvatarComponent.tsx
+ │    │    ├── TagComponent.tsx
+ │    │    └── NavigationItemComponent.tsx
+```
 
-4. COMPONENT IMPLEMENTATION
+### 4. COMPONENT IMPLEMENTATION
 
-### 4.1 KanbanBoardComponent
+#### 4.1 KanbanBoardComponent
 
-Component Type: Feature
+**Component Type:** Page
 
-Mapped From A1: Main container for three-column kanban layout
+**Mapped From A1:** KanbanBoardComponent (Main Container)
 
-Purpose: Orchestrates the entire kanban board with three columns (To Do, In Progress, Done) and handles task management operations
+**Purpose:** Main container for the three-column Kanban board with responsive layout and state management
 
-Parent: MainContentComponent
+**Parent:** KanbanPage
 
-Children:
-- KanbanColumnComponent (3 instances)
+**Children:**
+- KanbanColumnComponent (x3)
 - TaskModalComponent
 
-Dependencies:
+**Dependencies:**
 - KanbanService
-- TaskModel
-- KanbanColumnModel
+- TaskService
+- ApiService
 
-Library Components Used:
-- Button Component → Create Task button
+**Library Components Used:**
+- DialogComponent → uicomplibraryplay/dialog
+- ButtonComponent → uicomplibraryplay/button
 
-TypeScript Specification
+**TypeScript Specification**
 
-Inputs:
+**Inputs:**
+- youthAccountId: string
+- initialColumns: KanbanColumn[]
+
+**Outputs:**
+- taskMoved: EventEmitter<TaskMoveEvent> (payload: {taskId, fromColumn, toColumn})
+- taskCreated: EventEmitter<Task> (payload: Task)
+- taskUpdated: EventEmitter<Task> (payload: Task)
+
+**State:**
 - columns: KanbanColumn[]
-- isLoading: boolean
+- loading: boolean
 - error: string | null
-
-Outputs:
-- taskSelected: EventEmitter<Task> (when task is clicked)
-- taskMoved: EventEmitter<{task: Task, fromColumn: string, toColumn: string}> (when task is moved)
-- taskCreated: EventEmitter<Task> (when new task is created)
-
-State:
 - selectedTask: Task | null
-- draggedTask: Task | null
 - isModalOpen: boolean
-- availableAssignees: User[]
 
-Methods:
-- ngOnInit() → Initialize columns and load data
-- onTaskSelected(task: Task) → Handle task selection
-- onTaskMoved(event: TaskMoveEvent) → Handle task movement between columns
-- openTaskModal() → Open task creation modal
-- closeTaskModal() → Close task modal
-- onTaskCreated(task: Task) → Handle new task creation
+**Methods:**
+- ngOnInit() → Initialize component and load data
+- loadDashboardData() → Fetch initial kanban data
+- onTaskMove(event: TaskMoveEvent) → Handle task movement between columns
+- openTaskModal(task?: Task) → Open task creation/edit modal
+- closeTaskModal() → Close modal and refresh data
+- handleError(error: any) → Process and display errors
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+**HTML STRUCTURE (PSEUDO CODE ONLY)**
 
-<div class="kanban-board" role="region" aria-label="Kanban Board">
-  <div class="board-header">
-    <h2>Kanban Board</h2>
-    <app-button (click)="openTaskModal()" variant="primary">Create Task</app-button>
+```html
+<div class="kanban-board-container" role="region" aria-label="Kanban Board">
+  <div class="kanban-header">
+    <h1>Task Management Board</h1>
+    <app-button (click)="openTaskModal()" variant="primary">
+      Create Task
+    </app-button>
   </div>
   
-  <div class="board-grid" [class.loading]="isLoading">
+  <div class="kanban-columns" *ngIf="!loading; else loadingTemplate">
     <app-kanban-column 
       *ngFor="let column of columns" 
       [column]="column"
-      [tasks]="getTasksForColumn(column.id)"
-      (taskDropped)="onTaskMoved($event)"
-      (addTaskClicked)="openTaskModal($event)">
+      [tasks]="column.tasks"
+      (taskMoved)="onTaskMove($event)"
+      (taskSelected)="openTaskModal($event)">
     </app-kanban-column>
   </div>
   
-  <div *ngIf="error" class="error-message" role="alert">
+  <ng-template #loadingTemplate>
+    <div class="loading-spinner">Loading...</div>
+  </ng-template>
+  
+  <div class="error-message" *ngIf="error">
     {{ error }}
   </div>
+  
+  <app-task-modal 
+    [isOpen]="isModalOpen"
+    [task]="selectedTask"
+    (taskSave)="closeTaskModal()"
+    (modalClose)="closeTaskModal()">
+  </app-task-modal>
 </div>
+```
 
-<app-task-modal
-  [isOpen]="isModalOpen"
-  [availableAssignees]="availableAssignees"
-  (taskCreated)="onTaskCreated($event)"
-  (modalClosed)="closeTaskModal()">
-</app-task-modal>
+**CSS SPECIFICATION**
 
-CSS SPECIFICATION
+**Layout:**
+- display: grid
+- grid-template-columns: repeat(3, 1fr)
+- gap: 1rem
+- min-height: 100vh
 
-Layout:
-- .board-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-- .board-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-
-Spacing:
+**Spacing:**
 - padding: 1rem
 - gap: 1rem between columns
 
-Component Styles:
-- .kanban-board { min-height: 100vh; background: #f5f5f5; }
-- .loading { opacity: 0.6; pointer-events: none; }
-- .error-message { background: #fee; color: #c33; padding: 1rem; border-radius: 4px; }
+**Component Styles:**
+- .kanban-board-container
+- .kanban-columns
+- .kanban-header
+- .loading-spinner
+- .error-message
 
-Responsive:
-- Desktop (>1024px): 3 columns, full width
-- Tablet (768px-1024px): 3 columns, reduced padding
-- Mobile (<768px): 1 column, stacked layout
+**Responsive:**
+- Desktop (>1024px): 3 columns
+- Tablet (768px-1024px): 2 columns, scrollable
+- Mobile (<768px): 1 column, stack layout
 
-API INTEGRATION
+**API INTEGRATION**
 
-- ngOnInit() → GET /api/youth-accounts/{id}/dashboard → Load initial kanban data
-- onTaskCreated() → POST /api/youth-accounts/{id}/fund-transfer → Create new task
-- onTaskMoved() → PUT /api/youth-accounts/{id}/spending-limit → Update task status
+- loadDashboardData() → GET /api/youth-accounts/{youthAccountId}/dashboard → Load initial board data
+- createTask() → POST /api/youth-accounts/{youthAccountId}/fund-transfer → Create new task
+- updateSpendingLimit() → PUT /api/youth-accounts/{youthAccountId}/spending-limit → Update task limits
 
-ERROR HANDLING
+**ERROR HANDLING**
 
-- API failure → show error message in .error-message div
-- Network timeout → display retry button
-- Validation error → show inline validation messages
+- API failure → show error snackbar with retry option
+- Network error → display offline message
+- Validation error → inline form validation messages
 
-INTERACTION FLOW
+**INTERACTION FLOW**
 
-User Action → UI → API
-- Page load → initialize component → GET dashboard data → populate columns
-- Click "Create Task" → open modal → fill form → POST task data → refresh board
-- Drag task → update UI immediately → PUT task update → handle response
+**User Action → UI → API**
+- Load page → ngOnInit() → GET dashboard API → Display columns
+- Click "Create Task" → open TaskModalComponent → submit form → POST fund-transfer API → refresh board
+- Drag task → update local state → PUT task API (when available) → update UI
 
-### 4.2 KanbanColumnComponent
+#### 4.2 TaskCardComponent
 
-Component Type: Feature
+**Component Type:** Feature
 
-Mapped From A1: Individual column container with header and task list
+**Mapped From A1:** TaskCardComponent
 
-Purpose: Displays a single kanban column with header, task count, and list of tasks
+**Purpose:** Individual task display with priority indicators, assignee info, and interactive elements
 
-Parent: KanbanBoardComponent
+**Parent:** KanbanColumnComponent
 
-Children:
-- TaskCardComponent (multiple instances)
-- ColumnHeaderComponent
-
-Dependencies:
-- TaskModel
-- KanbanColumnModel
-
-Library Components Used:
-- Button Component → Add task button
-- Popover Component → Column actions menu
-
-TypeScript Specification
-
-Inputs:
-- column: KanbanColumn
-- tasks: Task[]
-- columnId: string
-
-Outputs:
-- taskDropped: EventEmitter<{task: Task, columnId: string}> (when task is dropped)
-- addTaskClicked: EventEmitter<string> (when add task is clicked)
-- taskSelected: EventEmitter<Task> (when task is selected)
-
-State:
-- isDropTarget: boolean
-- isHovered: boolean
-- showActions: boolean
-
-Methods:
-- onDragOver(event: DragEvent) → Handle drag over events
-- onDrop(event: DragEvent) → Handle task drop
-- onTaskClick(task: Task) → Handle task selection
-- toggleActions() → Show/hide column actions
-
-HTML STRUCTURE (PSEUDO CODE ONLY)
-
-<div class="kanban-column" 
-     [class.drop-target]="isDropTarget"
-     (dragover)="onDragOver($event)"
-     (drop)="onDrop($event)">
-  
-  <div class="column-header" [attr.aria-labelledby]="column.id + '-header'">
-    <h3 [id]="column.id + '-header'">{{ column.title }}</h3>
-    <span class="task-count">{{ tasks.length }}</span>
-    <app-button size="small" (click)="addTaskClicked.emit(column.id)">+</app-button>
-  </div>
-  
-  <div class="task-list" role="list">
-    <app-task-card
-      *ngFor="let task of tasks; trackBy: trackByTaskId"
-      [task]="task"
-      [isSelected]="selectedTaskId === task.id"
-      (taskClicked)="onTaskClick($event)"
-      (taskDragStart)="onTaskDragStart($event)">
-    </app-task-card>
-  </div>
-  
-  <div *ngIf="tasks.length === 0" class="empty-state">
-    <p>No tasks in this column</p>
-    <app-button (click)="addTaskClicked.emit(column.id)">Add First Task</app-button>
-  </div>
-</div>
-
-CSS SPECIFICATION
-
-Layout:
-- .kanban-column { display: flex; flex-direction: column; min-height: 500px; }
-- .column-header { display: flex; justify-content: space-between; align-items: center; }
-- .task-list { flex: 1; overflow-y: auto; }
-
-Spacing:
-- padding: 1rem
-- margin-bottom: 0.5rem between tasks
-
-Component Styles:
-- .kanban-column { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-- .drop-target { border: 2px dashed #007bff; background: #f8f9ff; }
-- .empty-state { text-align: center; padding: 2rem; color: #666; }
-
-Responsive:
-- Desktop: fixed width with scrolling
-- Tablet: flexible width
-- Mobile: full width, stacked
-
-API INTEGRATION
-
-- None (receives data from parent component)
-
-ERROR HANDLING
-
-- Empty state → show "Add First Task" message
-- Drag/drop errors → show temporary error toast
-
-INTERACTION FLOW
-
-User Action → UI → API
-- Drop task → emit taskDropped event → parent handles API call
-- Click add task → emit addTaskClicked → parent opens modal
-- Click task → emit taskSelected → parent shows details
-
-### 4.3 TaskCardComponent
-
-Component Type: Feature
-
-Mapped From A1: Individual task display with all task information
-
-Purpose: Displays task details including title, description, priority, tags, assignee, and due date
-
-Parent: KanbanColumnComponent
-
-Children:
+**Children:**
 - PriorityIndicatorComponent
-- TaskTagComponent (multiple)
-- AssigneeAvatarComponent
+- AvatarComponent
+- TagComponent
 
-Dependencies:
-- TaskModel
-- UserModel
+**Dependencies:**
+- Task model
+- User model
 
-Library Components Used:
-- Avatar Component → Assignee display
-- Tag Component → Task categories
+**Library Components Used:**
+- IconComponent → uicomplibraryplay/icon
+- ButtonComponent → uicomplibraryplay/button
 
-TypeScript Specification
+**TypeScript Specification**
 
-Inputs:
+**Inputs:**
 - task: Task
-- isSelected: boolean
-- isDraggable: boolean = true
+- draggable: boolean = true
+- selectable: boolean = true
 
-Outputs:
-- taskClicked: EventEmitter<Task> (when card is clicked)
-- taskDragStart: EventEmitter<Task> (when drag starts)
-- taskDragEnd: EventEmitter<Task> (when drag ends)
+**Outputs:**
+- taskClick: EventEmitter<Task> (payload: Task)
+- taskSelect: EventEmitter<Task> (payload: Task)
+- dragStart: EventEmitter<DragEvent> (payload: DragEvent)
+- dragEnd: EventEmitter<DragEvent> (payload: DragEvent)
 
-State:
-- isHovered: boolean
-- isDragging: boolean
+**State:**
+- selected: boolean = false
+- dragging: boolean = false
+- hovered: boolean = false
 
-Methods:
-- onClick() → Emit task clicked event
+**Methods:**
+- onClick() → Emit taskClick event
 - onDragStart(event: DragEvent) → Handle drag start
 - onDragEnd(event: DragEvent) → Handle drag end
-- getPriorityColor() → Return color based on priority
-- formatDueDate() → Format due date for display
+- getPriorityColor() → Return priority indicator color
+- formatDueDate() → Format due date display
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+**HTML STRUCTURE (PSEUDO CODE ONLY)**
 
-<div class="task-card"
-     [class.selected]="isSelected"
-     [class.dragging]="isDragging"
-     [class.high-priority]="task.priority === 'high'"
-     [draggable]="isDraggable"
+```html
+<div class="task-card" 
+     [class.selected]="selected"
+     [class.dragging]="dragging"
+     [draggable]="draggable"
      (click)="onClick()"
      (dragstart)="onDragStart($event)"
-     (dragend)="onDragEnd($event)"
-     role="listitem"
-     [attr.aria-label]="task.title">
+     (dragend)="onDragEnd($event)">
   
   <div class="task-header">
     <div class="priority-indicator" [style.background-color]="getPriorityColor()"></div>
-    <h4 class="task-title">{{ task.title }}</h4>
+    <span class="task-id">#{{ task.id }}</span>
   </div>
   
-  <p class="task-description" *ngIf="task.description">{{ task.description }}</p>
+  <div class="task-content">
+    <h3 class="task-title">{{ task.title }}</h3>
+    <p class="task-description">{{ task.description }}</p>
+  </div>
   
-  <div class="task-tags" *ngIf="task.tags?.length">
-    <app-tag *ngFor="let tag of task.tags" [label]="tag" size="small"></app-tag>
+  <div class="task-tags">
+    <app-tag *ngFor="let tag of task.tags" [label]="tag.name" [color]="tag.color"></app-tag>
   </div>
   
   <div class="task-footer">
-    <app-avatar 
-      *ngIf="task.assignee"
-      [user]="task.assignee"
-      size="small"
-      [showTooltip]="true">
-    </app-avatar>
-    
-    <span class="due-date" *ngIf="task.dueDate" [class.overdue]="isOverdue(task.dueDate)">
-      {{ formatDueDate(task.dueDate) }}
-    </span>
+    <app-avatar [user]="task.assignee" size="small"></app-avatar>
+    <span class="due-date">{{ formatDueDate(task.dueDate) }}</span>
   </div>
 </div>
+```
 
-CSS SPECIFICATION
+**CSS SPECIFICATION**
 
-Layout:
-- .task-card { display: flex; flex-direction: column; gap: 0.5rem; }
-- .task-header { display: flex; align-items: center; gap: 0.5rem; }
-- .task-footer { display: flex; justify-content: space-between; align-items: center; }
+**Layout:**
+- display: flex
+- flex-direction: column
+- border-radius: 8px
+- box-shadow: 0 2px 4px rgba(0,0,0,0.1)
 
-Spacing:
+**Spacing:**
 - padding: 1rem
 - margin-bottom: 0.5rem
-- gap: 0.5rem between elements
+- gap: 0.5rem between sections
 
-Component Styles:
-- .task-card { background: white; border-radius: 6px; border: 1px solid #e1e5e9; cursor: pointer; transition: all 0.2s; }
-- .task-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.15); transform: translateY(-1px); }
-- .selected { border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.25); }
-- .dragging { opacity: 0.5; transform: rotate(5deg); }
-- .high-priority { border-left: 4px solid #dc3545; }
-- .priority-indicator { width: 8px; height: 8px; border-radius: 50%; }
-- .overdue { color: #dc3545; font-weight: bold; }
+**Component Styles:**
+- .task-card
+- .task-header
+- .task-content
+- .task-tags
+- .task-footer
+- .priority-indicator
 
-Responsive:
-- Desktop: fixed width, hover effects
-- Tablet: flexible width, touch-friendly
-- Mobile: full width, larger touch targets
+**Responsive:**
+- Mobile: Reduced padding, smaller text
+- Tablet: Standard layout
+- Desktop: Hover effects, larger clickable area
 
-API INTEGRATION
+**API INTEGRATION**
 
-- None (receives data from parent)
+- No direct API calls (data passed from parent)
+- Task updates handled by parent component
 
-ERROR HANDLING
+**ERROR HANDLING**
 
-- Missing data → show placeholder content
-- Image load errors → show default avatar
+- Missing task data → show placeholder content
+- Invalid assignee → show default avatar
+- Missing due date → hide due date section
 
-INTERACTION FLOW
+**INTERACTION FLOW**
 
-User Action → UI → API
-- Click card → emit taskClicked → parent shows details/modal
-- Start drag → emit taskDragStart → parent tracks dragged task
-- End drag → emit taskDragEnd → parent handles drop logic
+**User Action → UI → API**
+- Click card → emit taskClick → parent opens TaskModalComponent
+- Drag card → update dragging state → parent handles API call
+- Hover card → show additional details → no API call
 
-### 4.4 TaskModalComponent
+#### 4.3 HeaderComponent
 
-Component Type: Feature
+**Component Type:** Layout
 
-Mapped From A1: Modal for creating and editing tasks
+**Mapped From A1:** HeaderComponent
 
-Purpose: Provides form interface for creating new tasks or editing existing ones
+**Purpose:** Top navigation with search functionality and user actions
 
-Parent: KanbanBoardComponent
+**Parent:** AppComponent
 
-Children:
+**Children:**
+- SearchBarComponent (from library)
+- UserProfileComponent
+- NotificationComponent
+
+**Dependencies:**
+- AuthService
+- SearchService
+
+**Library Components Used:**
+- SearchBarComponent → uicomplibraryplay/search-bar
+- ButtonComponent → uicomplibraryplay/button
+- IconComponent → uicomplibraryplay/icon
+
+**TypeScript Specification**
+
+**Inputs:**
+- user: User
+- searchPlaceholder: string = "Search tasks..."
+- showNotifications: boolean = true
+
+**Outputs:**
+- searchInput: EventEmitter<string> (payload: searchQuery)
+- userMenuClick: EventEmitter<void>
+- notificationClick: EventEmitter<void>
+- settingsClick: EventEmitter<void>
+
+**State:**
+- searchQuery: string = ""
+- isSearchFocused: boolean = false
+- notificationCount: number = 0
+
+**Methods:**
+- onSearchInput(query: string) → Handle search input
+- onSearchFocus() → Handle search focus
+- onSearchBlur() → Handle search blur
+- toggleUserMenu() → Toggle user dropdown
+- handleNotificationClick() → Open notifications panel
+
+**HTML STRUCTURE (PSEUDO CODE ONLY)**
+
+```html
+<header class="app-header">
+  <div class="header-left">
+    <div class="brand-section">
+      <app-icon name="logo" size="medium"></app-icon>
+      <span class="brand-name">TaskBoard</span>
+    </div>
+  </div>
+  
+  <div class="header-center">
+    <app-search-bar
+      [placeholder]="searchPlaceholder"
+      [value]="searchQuery"
+      (input)="onSearchInput($event)"
+      (focus)="onSearchFocus()"
+      (blur)="onSearchBlur()">
+    </app-search-bar>
+  </div>
+  
+  <div class="header-right">
+    <app-button 
+      variant="ghost" 
+      (click)="handleNotificationClick()"
+      [badge]="notificationCount">
+      <app-icon name="bell"></app-icon>
+    </app-button>
+    
+    <app-button variant="ghost" (click)="settingsClick.emit()">
+      <app-icon name="settings"></app-icon>
+    </app-button>
+    
+    <app-user-profile 
+      [user]="user"
+      (menuClick)="toggleUserMenu()">
+    </app-user-profile>
+  </div>
+</header>
+```
+
+**CSS SPECIFICATION**
+
+**Layout:**
+- display: flex
+- justify-content: space-between
+- align-items: center
+- height: 64px
+
+**Spacing:**
+- padding: 0 1rem
+- gap: 1rem between sections
+
+**Component Styles:**
+- .app-header
+- .header-left, .header-center, .header-right
+- .brand-section
+- .brand-name
+
+**Responsive:**
+- Mobile: Hide brand text, smaller search
+- Tablet: Standard layout
+- Desktop: Full layout with all elements
+
+**API INTEGRATION**
+
+- No direct API calls
+- Search handled by parent component
+- User data passed as input
+
+**ERROR HANDLING**
+
+- Missing user data → show default avatar
+- Search service error → disable search temporarily
+
+**INTERACTION FLOW**
+
+**User Action → UI → API**
+- Type in search → emit searchInput → parent filters tasks
+- Click notifications → emit notificationClick → parent opens panel
+- Click user profile → emit userMenuClick → parent shows menu
+
+#### 4.4 TaskModalComponent
+
+**Component Type:** Feature
+
+**Mapped From A1:** TaskModalComponent
+
+**Purpose:** Task creation and editing dialog with form validation
+
+**Parent:** KanbanBoardComponent
+
+**Children:**
 - TaskFormComponent
-- ModalComponent (wrapper)
 
-Dependencies:
-- TaskModel
-- UserModel
-- FormBuilder
-- Validators
+**Dependencies:**
+- TaskService
+- ValidationService
 
-Library Components Used:
-- Button Component → Save/Cancel buttons
-- Modal Component → Modal wrapper
+**Library Components Used:**
+- DialogComponent → uicomplibraryplay/dialog
+- ButtonComponent → uicomplibraryplay/button
 
-TypeScript Specification
+**TypeScript Specification**
 
-Inputs:
+**Inputs:**
 - isOpen: boolean
-- task: Task | null (for editing)
-- availableAssignees: User[]
-- columnId: string | null (for new tasks)
+- task: Task | null = null
+- mode: 'create' | 'edit' = 'create'
 
-Outputs:
-- taskCreated: EventEmitter<Task> (when new task is created)
-- taskUpdated: EventEmitter<Task> (when task is updated)
-- modalClosed: EventEmitter<void> (when modal is closed)
+**Outputs:**
+- taskSave: EventEmitter<Task> (payload: Task)
+- modalClose: EventEmitter<void>
 
-State:
-- taskForm: FormGroup
-- isSubmitting: boolean
-- validationErrors: {[key: string]: string}
+**State:**
+- formData: TaskForm
+- isSubmitting: boolean = false
+- validationErrors: ValidationError[] = []
 
-Methods:
-- ngOnInit() → Initialize form
-- ngOnChanges() → Update form when task changes
-- onSubmit() → Handle form submission
+**Methods:**
+- ngOnInit() → Initialize form data
+- onFormSubmit(formData: TaskForm) → Handle form submission
 - onCancel() → Close modal without saving
 - validateForm() → Validate form data
 - resetForm() → Reset form to initial state
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+**HTML STRUCTURE (PSEUDO CODE ONLY)**
 
-<app-modal [isOpen]="isOpen" (modalClosed)="onCancel()" size="medium">
-  <div class="modal-header">
-    <h3>{{ task ? 'Edit Task' : 'Create New Task' }}</h3>
+```html
+<app-dialog 
+  [isOpen]="isOpen"
+  [title]="mode === 'create' ? 'Create Task' : 'Edit Task'"
+  (close)="onCancel()">
+  
+  <div class="modal-content">
+    <app-task-form
+      [initialData]="task"
+      [mode]="mode"
+      [isSubmitting]="isSubmitting"
+      [validationErrors]="validationErrors"
+      (formSubmit)="onFormSubmit($event)"
+      (formCancel)="onCancel()">
+    </app-task-form>
   </div>
   
-  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-form">
-    <div class="form-group">
-      <label for="title">Title *</label>
-      <input 
-        id="title"
-        type="text" 
-        formControlName="title"
-        [class.error]="taskForm.get('title')?.invalid && taskForm.get('title')?.touched"
-        placeholder="Enter task title">
-      <div class="error-message" *ngIf="taskForm.get('title')?.invalid && taskForm.get('title')?.touched">
-        Title is required
-      </div>
-    </div>
+  <div class="modal-actions">
+    <app-button 
+      variant="secondary" 
+      (click)="onCancel()"
+      [disabled]="isSubmitting">
+      Cancel
+    </app-button>
     
-    <div class="form-group">
-      <label for="description">Description</label>
-      <textarea 
-        id="description"
-        formControlName="description"
-        rows="3"
-        placeholder="Enter task description">
-      </textarea>
-    </div>
-    
-    <div class="form-row">
-      <div class="form-group">
-        <label for="priority">Priority</label>
-        <select id="priority" formControlName="priority">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label for="assignee">Assignee</label>
-        <select id="assignee" formControlName="assigneeId">
-          <option value="">Unassigned</option>
-          <option *ngFor="let user of availableAssignees" [value]="user.id">
-            {{ user.name }}
-          </option>
-        </select>
-      </div>
-    </div>
-    
-    <div class="form-group">
-      <label for="dueDate">Due Date</label>
-      <input 
-        id="dueDate"
-        type="date" 
-        formControlName="dueDate">
-    </div>
-    
-    <div class="form-group">
-      <label for="tags">Tags</label>
-      <input 
-        id="tags"
-        type="text" 
-        formControlName="tags"
-        placeholder="Enter tags separated by commas">
-    </div>
-    
-    <div class="modal-actions">
-      <app-button type="button" variant="secondary" (click)="onCancel()">Cancel</app-button>
-      <app-button 
-        type="submit" 
-        variant="primary" 
-        [disabled]="taskForm.invalid || isSubmitting"
-        [loading]="isSubmitting">
-        {{ task ? 'Update Task' : 'Create Task' }}
-      </app-button>
-    </div>
-  </form>
-</app-modal>
-
-CSS SPECIFICATION
-
-Layout:
-- .task-form { display: flex; flex-direction: column; gap: 1rem; }
-- .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-- .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
-
-Spacing:
-- padding: 1.5rem
-- gap: 1rem between form groups
-
-Component Styles:
-- .form-group { display: flex; flex-direction: column; gap: 0.25rem; }
-- .form-group label { font-weight: 500; color: #333; }
-- .form-group input, .form-group textarea, .form-group select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
-- .error { border-color: #dc3545; }
-- .error-message { color: #dc3545; font-size: 0.875rem; }
-
-Responsive:
-- Desktop: two-column form layout
-- Tablet: single column layout
-- Mobile: full-width modal, larger touch targets
-
-API INTEGRATION
-
-- onSubmit() → POST /api/youth-accounts/{id}/fund-transfer (create task)
-- onSubmit() → PUT /api/youth-accounts/{id}/spending-limit (update task)
-
-ERROR HANDLING
-
-- API failure → show error message above form
-- Validation errors → show inline field errors
-- Network timeout → show retry option
-
-INTERACTION FLOW
-
-User Action → UI → API
-- Open modal → initialize form → load assignee data
-- Fill form → validate in real-time → show validation errors
-- Submit form → POST/PUT API call → close modal on success → refresh parent
-
-### 4.5 HeaderComponent
-
-Component Type: Layout
-
-Mapped From A1: Top navigation with search and user actions
-
-Purpose: Provides global navigation, search functionality, and user account access
-
-Parent: AppComponent
-
-Children:
-- SearchComponent
-- NotificationButtonComponent
-- SettingsButtonComponent
-- UserProfileComponent
-
-Dependencies:
-- UserModel
-- SearchService
-
-Library Components Used:
-- Button Component → Action buttons
-- Popover Component → User menu dropdown
-
-TypeScript Specification
-
-Inputs:
-- user: User
-- notificationCount: number
-- searchPlaceholder: string = 'Search tasks...'
-
-Outputs:
-- searchChanged: EventEmitter<string> (when search query changes)
-- notificationClicked: EventEmitter<void> (when notifications clicked)
-- settingsClicked: EventEmitter<void> (when settings clicked)
-- userProfileClicked: EventEmitter<void> (when profile clicked)
-- logoutClicked: EventEmitter<void> (when logout clicked)
-
-State:
-- searchQuery: string
-- showUserMenu: boolean
-- isSearchFocused: boolean
-
-Methods:
-- onSearchInput(query: string) → Handle search input
-- toggleUserMenu() → Show/hide user menu
-- onNotificationClick() → Handle notification click
-- onSettingsClick() → Handle settings click
-- onLogout() → Handle logout
-
-HTML STRUCTURE (PSEUDO CODE ONLY)
-
-<header class="app-header" role="banner">
-  <div class="header-content">
-    <div class="search-container">
-      <input 
-        type="text"
-        class="search-input"
-        [placeholder]="searchPlaceholder"
-        [(ngModel)]="searchQuery"
-        (input)="onSearchInput($event.target.value)"
-        (focus)="isSearchFocused = true"
-        (blur)="isSearchFocused = false"
-        aria-label="Search tasks">
-      <i class="search-icon" aria-hidden="true"></i>
-    </div>
-    
-    <div class="header-actions">
-      <app-button 
-        variant="ghost" 
-        size="small"
-        (click)="onNotificationClick()"
-        [attr.aria-label]="'Notifications' + (notificationCount > 0 ? ' (' + notificationCount + ' unread)' : '')">
-        <i class="notification-icon" aria-hidden="true"></i>
-        <span class="notification-badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
-      </app-button>
-      
-      <app-button 
-        variant="ghost" 
-        size="small"
-        (click)="onSettingsClick()"
-        aria-label="Settings">
-        <i class="settings-icon" aria-hidden="true"></i>
-      </app-button>
-      
-      <div class="user-menu-container">
-        <app-button 
-          variant="ghost" 
-          size="small"
-          (click)="toggleUserMenu()"
-          [attr.aria-expanded]="showUserMenu"
-          aria-label="User menu">
-          <app-avatar [user]="user" size="small"></app-avatar>
-          <span class="user-name">{{ user.name }}</span>
-        </app-button>
-        
-        <app-popover [isOpen]="showUserMenu" position="bottom-right">
-          <div class="user-menu">
-            <div class="user-info">
-              <app-avatar [user]="user" size="medium"></app-avatar>
-              <div>
-                <div class="user-name">{{ user.name }}</div>
-                <div class="user-email">{{ user.email }}</div>
-              </div>
-            </div>
-            <hr>
-            <button class="menu-item" (click)="onSettingsClick()">Settings</button>
-            <button class="menu-item" (click)="onLogout()">Logout</button>
-          </div>
-        </app-popover>
-      </div>
-    </div>
+    <app-button 
+      variant="primary" 
+      type="submit"
+      [loading]="isSubmitting"
+      form="task-form">
+      {{ mode === 'create' ? 'Create' : 'Update' }} Task
+    </app-button>
   </div>
-</header>
+</app-dialog>
+```
 
-CSS SPECIFICATION
+**CSS SPECIFICATION**
 
-Layout:
-- .app-header { display: flex; align-items: center; justify-content: space-between; }
-- .header-content { display: flex; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; }
-- .header-actions { display: flex; align-items: center; gap: 0.5rem; }
+**Layout:**
+- Modal overlay with centered dialog
+- Max-width: 600px
+- Min-height: 400px
 
-Spacing:
-- padding: 1rem 2rem
+**Spacing:**
+- padding: 1.5rem
+- gap: 1rem between form sections
+
+**Component Styles:**
+- .modal-content
+- .modal-actions
+- .form-section
+
+**Responsive:**
+- Mobile: Full-screen modal
+- Tablet: Centered with margins
+- Desktop: Standard dialog size
+
+**API INTEGRATION**
+
+- onFormSubmit() → POST /api/youth-accounts/{id}/fund-transfer → Create task
+- onFormSubmit() → PUT /api/youth-accounts/{id}/spending-limit → Update task
+
+**ERROR HANDLING**
+
+- API validation errors → display inline form errors
+- Network errors → show retry option
+- Form validation → prevent submission, show errors
+
+**INTERACTION FLOW**
+
+**User Action → UI → API**
+- Open modal → initialize form → no API call
+- Submit form → validate → API call → close modal on success
+- Cancel → close modal → no API call
+
+#### 4.5 SidebarComponent
+
+**Component Type:** Layout
+
+**Mapped From A1:** SidebarComponent
+
+**Purpose:** Left navigation with menu items, brand, and quick actions
+
+**Parent:** AppComponent
+
+**Children:**
+- BrandComponent
+- NavigationMenuComponent
+- QuickActionsComponent
+
+**Dependencies:**
+- NavigationService
+- AuthService
+
+**Library Components Used:**
+- ButtonComponent → uicomplibraryplay/button
+- IconComponent → uicomplibraryplay/icon
+
+**TypeScript Specification**
+
+**Inputs:**
+- activeView: string
+- menuItems: MenuItem[]
+- isCollapsed: boolean = false
+
+**Outputs:**
+- viewChange: EventEmitter<string> (payload: viewName)
+- menuToggle: EventEmitter<boolean> (payload: isCollapsed)
+
+**State:**
+- isMobileOpen: boolean = false
+- hoveredItem: string | null = null
+
+**Methods:**
+- onMenuItemClick(item: MenuItem) → Handle navigation
+- toggleSidebar() → Toggle collapsed state
+- closeMobileSidebar() → Close mobile sidebar
+- onItemHover(itemId: string) → Handle item hover
+
+**HTML STRUCTURE (PSEUDO CODE ONLY)**
+
+```html
+<aside class="sidebar" 
+       [class.collapsed]="isCollapsed"
+       [class.mobile-open]="isMobileOpen">
+  
+  <div class="sidebar-header">
+    <app-brand-component [collapsed]="isCollapsed"></app-brand-component>
+    
+    <app-button 
+      variant="ghost" 
+      size="small"
+      (click)="toggleSidebar()"
+      class="toggle-button">
+      <app-icon name="menu"></app-icon>
+    </app-button>
+  </div>
+  
+  <nav class="sidebar-nav">
+    <app-navigation-menu
+      [items]="menuItems"
+      [activeView]="activeView"
+      [collapsed]="isCollapsed"
+      (itemClick)="onMenuItemClick($event)">
+    </app-navigation-menu>
+  </nav>
+  
+  <div class="sidebar-footer">
+    <app-quick-actions [collapsed]="isCollapsed"></app-quick-actions>
+  </div>
+</aside>
+
+<div class="sidebar-overlay" 
+     *ngIf="isMobileOpen"
+     (click)="closeMobileSidebar()">
+</div>
+```
+
+**CSS SPECIFICATION**
+
+**Layout:**
+- position: fixed
+- height: 100vh
+- width: 280px (expanded), 64px (collapsed)
+- transition: width 0.3s ease
+
+**Spacing:**
+- padding: 1rem
 - gap: 1rem between sections
 
-Component Styles:
-- .app-header { background: white; border-bottom: 1px solid #e1e5e9; height: 64px; }
-- .search-container { position: relative; flex: 1; max-width: 400px; }
-- .search-input { width: 100%; padding: 0.5rem 2.5rem 0.5rem 1rem; border: 1px solid #ddd; border-radius: 20px; }
-- .search-icon { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); }
-- .notification-badge { position: absolute; top: -4px; right: -4px; background: #dc3545; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.75rem; }
-- .user-menu { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; min-width: 200px; }
+**Component Styles:**
+- .sidebar
+- .sidebar-header
+- .sidebar-nav
+- .sidebar-footer
+- .sidebar-overlay
 
-Responsive:
-- Desktop: full search bar, all actions visible
-- Tablet: condensed search, icon-only actions
-- Mobile: collapsible search, minimal actions
+**Responsive:**
+- Mobile: Overlay sidebar, full-width
+- Tablet: Collapsible sidebar
+- Desktop: Standard sidebar with hover expand
 
-API INTEGRATION
+**API INTEGRATION**
 
-- None (receives data from parent)
+- No direct API calls
+- Navigation handled by routing
 
-ERROR HANDLING
+**ERROR HANDLING**
 
-- Search errors → show "No results found" message
-- User data missing → show placeholder avatar
+- Missing menu items → show default navigation
+- Route errors → highlight current valid route
 
-INTERACTION FLOW
+**INTERACTION FLOW**
 
-User Action → UI → API
-- Type in search → debounce input → emit searchChanged → parent filters data
-- Click notifications → emit notificationClicked → parent shows notification panel
-- Click settings → emit settingsClicked → parent navigates to settings
-- Click logout → emit logoutClicked → parent handles authentication
+**User Action → UI → API**
+- Click menu item → emit viewChange → parent handles routing
+- Toggle sidebar → update collapsed state → save preference
+- Mobile overlay click → close sidebar → no API call
 
-### 4.6 MainContentComponent
-
-Component Type: Layout
-
-Mapped From A1: Content wrapper for main application area
-
-Purpose: Provides layout structure for main content area and page headers
-
-Parent: AppComponent
-
-Children:
-- PageHeaderComponent
-- KanbanBoardComponent
-
-Dependencies:
-- None (layout component)
-
-Library Components Used:
-- None
-
-TypeScript Specification
-
-Inputs:
-- pageTitle: string
-- showBackButton: boolean = false
-- breadcrumbs: Breadcrumb[] = []
-
-Outputs:
-- backClicked: EventEmitter<void> (when back button clicked)
-
-State:
-- isLoading: boolean
-
-Methods:
-- onBackClick() → Handle back navigation
-
-HTML STRUCTURE (PSEUDO CODE ONLY)
-
-<main class="main-content" role="main">
-  <div class="page-header" *ngIf="pageTitle">
-    <div class="header-left">
-      <app-button 
-        *ngIf="showBackButton"
-        variant="ghost" 
-        size="small"
-        (click)="onBackClick()"
-        aria-label="Go back">
-        <i class="back-icon" aria-hidden="true"></i>
-      </app-button>
-      
-      <div class="title-section">
-        <nav class="breadcrumbs" *ngIf="breadcrumbs.length" aria-label="Breadcrumb">
-          <ol>
-            <li *ngFor="let crumb of breadcrumbs; let last = last">
-              <a *ngIf="!last" [routerLink]="crumb.path">{{ crumb.label }}</a>
-              <span *ngIf="last" aria-current="page">{{ crumb.label }}</span>
-            </li>
-          </ol>
-        </nav>
-        <h1 class="page-title">{{ pageTitle }}</h1>
-      </div>
-    </div>
-  </div>
-  
-  <div class="content-area">
-    <ng-content></ng-content>
-  </div>
-</main>
-
-CSS SPECIFICATION
-
-Layout:
-- .main-content { display: flex; flex-direction: column; flex: 1; }
-- .page-header { display: flex; justify-content: space-between; align-items: center; }
-- .header-left { display: flex; align-items: center; gap: 1rem; }
-- .content-area { flex: 1; overflow: auto; }
-
-Spacing:
-- padding: 2rem
-- margin-bottom: 2rem for page header
-
-Component Styles:
-- .main-content { background: #f8f9fa; min-height: 100vh; }
-- .page-title { font-size: 1.75rem; font-weight: 600; color: #333; margin: 0; }
-- .breadcrumbs ol { display: flex; list-style: none; padding: 0; margin: 0; gap: 0.5rem; }
-- .breadcrumbs li:not(:last-child)::after { content: '/'; margin-left: 0.5rem; color: #666; }
-
-Responsive:
-- Desktop: full padding, horizontal layout
-- Tablet: reduced padding, responsive title
-- Mobile: minimal padding, stacked layout
-
-API INTEGRATION
-
-- None (layout component)
-
-ERROR HANDLING
-
-- None (layout component)
-
-INTERACTION FLOW
-
-User Action → UI → API
-- Click back button → emit backClicked → parent handles navigation
-
-5. COMPONENT MAPPING SUMMARY
+### 5. COMPONENT MAPPING SUMMARY
 
 | A1 Component | Final Component | Type |
 |--------------|----------------|---------|
-| KanbanBoardComponent | KanbanBoardComponent | Feature |
-| KanbanColumnComponent | KanbanColumnComponent | Feature |
+| KanbanBoardComponent | KanbanBoardComponent | Page |
+| HeaderComponent | HeaderComponent | Layout |
+| SidebarComponent | SidebarComponent | Layout |
 | TaskCardComponent | TaskCardComponent | Feature |
 | TaskModalComponent | TaskModalComponent | Feature |
-| HeaderComponent | HeaderComponent | Layout |
-| SidebarComponent | SidebarComponent (Library) | Layout |
-| MainContentComponent | MainContentComponent | Layout |
-| Button | Button (Library) | Shared |
-| Popover | Popover (Library) | Shared |
-| Card | CardComponent | Shared |
-| Modal | ModalComponent | Shared |
-| Avatar | AvatarComponent | Shared |
-| Tag | TagComponent | Shared |
+| SearchBarComponent | SearchBarComponent (library) | Shared |
+| ButtonComponent | ButtonComponent (library) | Shared |
+| DialogComponent | DialogComponent (library) | Shared |
 
-6. DATA FLOW (FROM AGENT-1)
+### 6. DATA FLOW (FROM AGENT-1)
 
-Parent → Child:
-- AppComponent → SidebarComponent (menuItems, isCollapsed, user)
-- AppComponent → HeaderComponent (user, notificationCount)
-- AppComponent → MainContentComponent (pageTitle, breadcrumbs)
-- MainContentComponent → KanbanBoardComponent (columns, tasks, isLoading, error)
-- KanbanBoardComponent → KanbanColumnComponent (column, tasks, columnId)
-- KanbanColumnComponent → TaskCardComponent (task, isSelected, isDraggable)
-- KanbanBoardComponent → TaskModalComponent (isOpen, task, availableAssignees)
+**Parent → Child:**
+- KanbanBoardComponent → KanbanColumnComponent (columns: KanbanColumn[])
+- KanbanColumnComponent → TaskCardComponent (task: Task)
+- HeaderComponent → SearchBarComponent (placeholder: string, value: string)
+- TaskModalComponent → TaskFormComponent (initialData: Task, mode: string)
+- SidebarComponent → NavigationMenuComponent (items: MenuItem[], activeView: string)
 
-Child → Parent Events:
-- TaskCardComponent → KanbanColumnComponent (taskClicked, taskDragStart)
-- KanbanColumnComponent → KanbanBoardComponent (taskDropped, addTaskClicked, taskSelected)
-- KanbanBoardComponent → MainContentComponent (taskCreated, taskUpdated)
-- TaskModalComponent → KanbanBoardComponent (taskCreated, taskUpdated, modalClosed)
-- HeaderComponent → AppComponent (searchChanged, notificationClicked, settingsClicked)
+### 7. API USAGE SUMMARY
 
-7. API USAGE SUMMARY
+**Component → API:**
+- KanbanBoardComponent → GET /api/youth-accounts/{id}/dashboard (load board data)
+- TaskModalComponent → POST /api/youth-accounts/{id}/fund-transfer (create fund transfer task)
+- TaskModalComponent → PUT /api/youth-accounts/{id}/spending-limit (update spending limits)
+- TaskListComponent → GET /api/youth-accounts/{id}/transactions (load transaction history)
 
-Component → API:
-- KanbanBoardComponent → GET /api/youth-accounts/{id}/dashboard (load initial data)
-- TaskModalComponent → POST /api/youth-accounts/{id}/fund-transfer (create task)
-- TaskModalComponent → PUT /api/youth-accounts/{id}/spending-limit (update task)
-- KanbanBoardComponent → PUT /api/youth-accounts/{id}/spending-limit (move task)
-- TaskCardComponent → GET /api/youth-accounts/{id}/transactions (task history)
+### 8. NOTES & CONSTRAINTS
 
-API Data Transformations:
-- Dashboard API → Kanban columns and tasks
-- Fund transfer API → Task creation payload
-- Spending limit API → Task update payload
-- Transaction API → Task history and audit trail
-
-8. NOTES & CONSTRAINTS
-
-- HTML must follow A1 structure strictly - three-column CSS Grid layout is mandatory
+- HTML must follow A1 structure strictly with three-column Kanban layout
 - Do NOT create new components unnecessarily - reuse library components where possible
-- Prefer reusable library components (Button, Sidebar, Popover) over custom implementations
-- HTML must be pseudo-code ONLY (NOT real framework code) - structured representation only
+- Prefer reusable library components from uicomplibraryplay
+- HTML must be pseudo-code ONLY (NOT real framework code)
 - CSS should include only key classes and layout rules, not full stylesheets
 - All components must implement proper ARIA attributes for accessibility
-- Responsive design is mandatory with breakpoints at 768px and 1024px
-- Error handling must be implemented for all API calls and user interactions
-- Form validation must be client-side with real-time feedback
-- Drag and drop functionality should use native HTML5 APIs with Angular CDK as fallback
-- All user actions must provide immediate UI feedback before API calls
-- Component state should be managed locally with events for parent communication
-- API integration must handle loading states, errors, and retry mechanisms
-- Performance considerations: implement trackBy functions for *ngFor loops
-- Security: sanitize all user inputs and implement proper XSS protection
-- Testing: all components must be unit testable with proper mocking of dependencies
+- Responsive design is mandatory with mobile-first approach
+- Error handling must be implemented for all API interactions
+- Form validation required for all user inputs
+- Loading states must be shown during API calls
+- Component reusability should follow DRY principles
+- API integration must follow OpenAPI specification guidelines
+- State management should be handled at appropriate component levels
+- Event handling must bubble up through component hierarchy properly
