@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Youth Account Dashboard - User Flow Diagram</title>
+    <title>Youth Account Management - User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true });
@@ -50,78 +50,95 @@
 </head>
 <body>
     <div class="container">
-        <h1>Youth Account Dashboard - User Flow Diagram</h1>
+        <h1>Youth Account Management - User Flow Diagram</h1>
         
         <div class="description">
             <h2>User Flow Overview</h2>
-            <p>This diagram illustrates the complete user journey for parents managing their child's youth account. The flow covers all major interactions including dashboard access, fund allocation, spending limit configuration, activity monitoring, and error handling scenarios.</p>
+            <p>This diagram illustrates the complete user journey for parents managing their child's youth account. The flow covers dashboard access, fund management, spending limit configuration, transaction monitoring, and error handling scenarios.</p>
         </div>
 
         <div class="mermaid">
             flowchart TD
-                Start[Parent Logs into Banking App]
-                Start --> Navigate[Navigate to Youth Account Section]
-                Navigate --> Dashboard[Youth Account Dashboard Loads]
-                Dashboard --> ViewBalance[View Current Balance and Overview]
+                Start[User Opens Banking Application]
+                Start --> Login[User Authentication]
+                Login --> Dashboard[Youth Account Dashboard]
                 
-                Dashboard --> AddFunds[Click Add Funds Button]
-                AddFunds --> FundModal[Fund Transfer Modal Opens]
-                FundModal --> SelectAccount[Select Source Parent Account]
-                SelectAccount --> EnterAmount[Enter Transfer Amount]
-                EnterAmount --> ValidateBalance{Sufficient Balance?}
-                ValidateBalance -->|No| InsufficientError[Display Insufficient Funds Error]
+                Dashboard --> ViewBalance[View Account Balance]
+                Dashboard --> ViewLimits[View Spending Limits]
+                Dashboard --> ViewActivity[View Recent Activity]
+                Dashboard --> AddFunds[Add Funds Action]
+                Dashboard --> SetLimits[Set Spending Limits]
+                Dashboard --> ViewTransactions[View All Transactions]
+                
+                ViewBalance --> BalanceCard[Account Balance Card Display]
+                BalanceCard --> RefreshBalance[Refresh Balance Data]
+                RefreshBalance --> Dashboard
+                
+                ViewLimits --> LimitCard[Spending Limit Card Display]
+                LimitCard --> EditLimit[Edit Spending Limit]
+                EditLimit --> LimitForm[Spending Limit Form]
+                LimitForm --> SaveLimit[Save New Limit]
+                SaveLimit --> LimitSuccess[Limit Updated Successfully]
+                LimitSuccess --> Dashboard
+                
+                AddFunds --> FundModal[Fund Transfer Modal]
+                FundModal --> SelectSource[Select Source Account]
+                SelectSource --> EnterAmount[Enter Transfer Amount]
+                EnterAmount --> ValidateAmount[Validate Amount]
+                ValidateAmount --> SufficientFunds{Sufficient Funds?}
+                
+                SufficientFunds -->|Yes| ProcessTransfer[Process Fund Transfer]
+                SufficientFunds -->|No| InsufficientError[Display Insufficient Funds Error]
                 InsufficientError --> FundModal
-                ValidateBalance -->|Yes| ProcessTransfer[Process Fund Transfer]
-                ProcessTransfer --> TransferSuccess[Transfer Success Notification]
-                TransferSuccess --> RefreshDashboard[Dashboard Refreshes with New Balance]
                 
-                Dashboard --> ConfigureLimit[Click Configure Spending Limit]
-                ConfigureLimit --> LimitModal[Spending Limit Modal Opens]
-                LimitModal --> SetWeeklyLimit[Set Weekly Spending Limit]
-                SetWeeklyLimit --> SaveLimit[Save Spending Limit]
-                SaveLimit --> LimitSuccess[Limit Saved Successfully]
-                LimitSuccess --> UpdateDashboard[Dashboard Updates Limit Display]
+                ProcessTransfer --> TransferSuccess[Transfer Successful]
+                TransferSuccess --> UpdateBalance[Update Account Balance]
+                UpdateBalance --> Dashboard
                 
-                Dashboard --> ViewActivity[Click Activity Section]
-                ViewActivity --> ActivityTimeline[Activity Timeline Loads]
-                ActivityTimeline --> LoadTransactions[Load Transaction History]
-                LoadTransactions --> DisplayTransactions[Display Paginated Transactions]
-                DisplayTransactions --> FilterTransactions[Apply Filters if Needed]
-                FilterTransactions --> LoadMore[Load More Transactions]
-                LoadMore --> DisplayTransactions
+                SetLimits --> LimitConfig[Spending Limit Configuration]
+                LimitConfig --> WeeklyLimit[Set Weekly Spending Limit]
+                WeeklyLimit --> SaveLimitConfig[Save Limit Configuration]
+                SaveLimitConfig --> Dashboard
                 
-                ViewBalance --> Notifications[Check for Spending Alerts]
-                Notifications --> AlertsDisplay[Display Spending Notifications]
+                ViewActivity --> ActivityPanel[Recent Activity Panel]
+                ActivityPanel --> TransactionList[Transaction List Display]
                 
-                RefreshDashboard --> Dashboard
-                UpdateDashboard --> Dashboard
-                DisplayTransactions --> Dashboard
-                AlertsDisplay --> Dashboard
+                ViewTransactions --> ActivityTimeline[Activity Timeline Component]
+                ActivityTimeline --> FilterTransactions[Filter Transactions]
+                FilterTransactions --> PaginatedList[Paginated Transaction List]
+                PaginatedList --> TransactionDetails[View Transaction Details]
+                TransactionDetails --> ActivityTimeline
                 
-                Dashboard --> Logout[Logout from Application]
-                Logout --> End[Session Ends]
+                ActivityTimeline --> SearchTransactions[Search Transactions]
+                SearchTransactions --> FilteredResults[Filtered Results]
+                FilteredResults --> ActivityTimeline
+                
+                Dashboard --> UserProfile[User Profile Access]
+                UserProfile --> ProfileSettings[Profile Settings]
+                ProfileSettings --> Dashboard
+                
+                Dashboard --> Notifications[View Notifications]
+                Notifications --> AlertsPanel[Alerts and Notifications Panel]
+                AlertsPanel --> Dashboard
+                
+                Dashboard --> Logout[User Logout]
+                Logout --> End[Session Ended]
+                
+                style Start fill:#e1f5fe
+                style Dashboard fill:#f3e5f5
+                style TransferSuccess fill:#e8f5e8
+                style LimitSuccess fill:#e8f5e8
+                style InsufficientError fill:#ffebee
+                style End fill:#fce4ec
         </div>
         
         <div class="description">
             <h2>Key User Interactions</h2>
-            <p><strong>Primary Flows:</strong></p>
-            <ul>
-                <li><strong>Dashboard Access:</strong> Parent navigates to youth account section and views current balance, spending limits, and recent activity</li>
-                <li><strong>Fund Allocation:</strong> Parent transfers funds from their primary account to the youth account with balance validation</li>
-                <li><strong>Spending Limit Management:</strong> Parent configures weekly spending limits for the youth account</li>
-                <li><strong>Activity Monitoring:</strong> Parent reviews transaction history with filtering and pagination capabilities</li>
-                <li><strong>Error Handling:</strong> System handles insufficient balance scenarios with appropriate error messaging</li>
-            </ul>
-            
-            <p><strong>Technical Components:</strong></p>
-            <ul>
-                <li>YouthAccountDashboard - Main container component</li>
-                <li>AccountOverviewCard - Balance and summary display</li>
-                <li>FundTransferModal - Fund transfer functionality</li>
-                <li>SpendingLimitConfigModal - Limit configuration</li>
-                <li>ActivityTimeline - Transaction history display</li>
-                <li>TransactionCard - Individual transaction details</li>
-            </ul>
+            <p><strong>Dashboard Navigation:</strong> Central hub for all youth account management activities</p>
+            <p><strong>Fund Management:</strong> Secure transfer of funds from parent account to youth account with validation</p>
+            <p><strong>Spending Controls:</strong> Configuration and monitoring of weekly spending limits</p>
+            <p><strong>Activity Monitoring:</strong> Comprehensive transaction history with search and filter capabilities</p>
+            <p><strong>Error Handling:</strong> Graceful handling of insufficient funds and other error scenarios</p>
         </div>
     </div>
 </body>
