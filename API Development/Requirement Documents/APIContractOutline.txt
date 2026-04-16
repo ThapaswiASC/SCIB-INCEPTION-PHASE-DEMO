@@ -1,462 +1,368 @@
 # API Contract Outline
-## Document Upload Interface with Quality Validation System
+## Youth Account Management System
 
-### Version: 1.0
-### Date: 2024
-### API Version: v1
+### Document Information
+- **Version**: 1.0
+- **Date**: 2024
+- **Based on ADRs**: SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30
 
 ---
 
-## Base URL
+## API Overview
+
+### Base URL
 ```
-Production: https://api.tasheel.com/v1
-Staging: https://staging-api.tasheel.com/v1
-Development: https://dev-api.tasheel.com/v1
+https://api.bank.com/v1
 ```
 
-## Authentication
-- **Type**: Bearer Token (JWT)
-- **Header**: `Authorization: Bearer <token>`
-- **Token Expiry**: 24 hours
-- **Refresh**: Required before expiry
+### Authentication
+- **Type**: OAuth 2.0 Bearer Token
+- **Header**: `Authorization: Bearer {token}`
+- **Token Expiry**: 1 hour
+- **Refresh**: Automatic token refresh supported
 
-## Common Headers
+### Common Headers
 ```
 Content-Type: application/json
 Accept: application/json
-Authorization: Bearer <jwt_token>
-X-Request-ID: <unique_request_id>
-X-Client-Version: <client_version>
+X-Request-ID: {unique-request-id}
+X-API-Version: v1
 ```
 
 ---
 
-## 1. Authentication Endpoints
+## API Endpoints
 
-### 1.1 User Login
-- **Endpoint**: `POST /auth/login`
-- **Description**: Authenticate user and receive JWT token
-- **Request Schema**:
+### 1. Youth Account Dashboard
+
+**Endpoint**: `GET /api/youth-accounts/{youthAccountId}/dashboard`
+
+**Description**: Retrieves consolidated youth account information including balance, spending limit, and recent transactions.
+
+**Path Parameters**:
+- `youthAccountId` (string, required): Unique identifier for the youth account
+
+**Query Parameters**: None
+
+**Request Headers**:
 ```json
 {
-  "email": "string (required, email format)",
-  "password": "string (required, min 8 chars)",
-  "device_id": "string (optional)",
-  "remember_me": "boolean (optional, default: false)"
+  "Authorization": "Bearer {oauth_token}",
+  "Content-Type": "application/json",
+  "X-Request-ID": "req-12345-67890"
 }
 ```
-- **Response Schema**:
+
+**Request Body**: None (GET request)
+
+**Response Schema** (200 OK):
 ```json
 {
-  "access_token": "string",
-  "refresh_token": "string",
-  "token_type": "Bearer",
-  "expires_in": "number (seconds)",
-  "user": {
-    "id": "uuid",
-    "email": "string",
-    "name": "string",
-    "role": "string"
-  }
-}
-```
-- **Error Handling**:
-  - `400 Bad Request`: Invalid request format
-  - `401 Unauthorized`: Invalid credentials
-  - `429 Too Many Requests`: Rate limit exceeded
-  - `500 Internal Server Error`: Server error
-
-### 1.2 Token Refresh
-- **Endpoint**: `POST /auth/refresh`
-- **Description**: Refresh expired JWT token
-- **Request Schema**:
-```json
-{
-  "refresh_token": "string (required)"
-}
-```
-- **Response Schema**:
-```json
-{
-  "access_token": "string",
-  "token_type": "Bearer",
-  "expires_in": "number (seconds)"
-}
-```
-- **Error Handling**:
-  - `400 Bad Request`: Invalid refresh token
-  - `401 Unauthorized`: Expired refresh token
-  - `500 Internal Server Error`: Server error
-
----
-
-## 2. Form Session Management
-
-### 2.1 Create Form Session
-- **Endpoint**: `POST /forms/sessions`
-- **Description**: Initialize a new multi-step form session
-- **Request Schema**:
-```json
-{
-  "form_type": "string (required, enum: ['document_upload', 'application', 'verification'])",
-  "initial_data": "object (optional)",
-  "metadata": "object (optional)"
-}
-```
-- **Response Schema**:
-```json
-{
-  "session_id": "uuid",
-  "form_type": "string",
-  "current_step": "string",
-  "total_steps": "number",
-  "completion_percentage": "number (0-100)",
-  "expires_at": "string (ISO 8601)",
-  "created_at": "string (ISO 8601)"
-}
-```
-- **Error Handling**:
-  - `400 Bad Request`: Invalid form type or data
-  - `401 Unauthorized`: Invalid or missing token
-  - `500 Internal Server Error`: Server error
-
-### 2.2 Update Form Session
-- **Endpoint**: `PUT /forms/sessions/{session_id}`
-- **Description**: Update form session with step data
-- **Request Schema**:
-```json
-{
-  "step_id": "string (required)",
-  "step_data": "object (required)",
-  "is_complete": "boolean (required)",
-  "validation_errors": "array (optional)"
-}
-```
-- **Response Schema**:
-```json
-{
-  "session_id": "uuid",
-  "current_step": "string",
-  "next_step": "string",
-  "completion_percentage": "number (0-100)",
-  "is_valid": "boolean",
-  "validation_errors": "array",
-  "updated_at": "string (ISO 8601)"
-}
-```
-- **Error Handling**:
-  - `400 Bad Request`: Invalid step data or validation errors
-  - `401 Unauthorized`: Invalid or missing token
-  - `404 Not Found`: Session not found or expired
-  - `409 Conflict`: Step sequence violation
-  - `500 Internal Server Error`: Server error
-
-### 2.3 Get Form Session
-- **Endpoint**: `GET /forms/sessions/{session_id}`
-- **Description**: Retrieve current form session state
-- **Request Schema**: N/A (URL parameters only)
-- **Response Schema**:
-```json
-{
-  "session_id": "uuid",
-  "form_type": "string",
-  "current_step": "string",
-  "total_steps": "number",
-  "completion_percentage": "number (0-100)",
-  "form_data": "object",
-  "validation_state": "object",
-  "expires_at": "string (ISO 8601)",
-  "created_at": "string (ISO 8601)",
-  "updated_at": "string (ISO 8601)"
-}
-```
-- **Error Handling**:
-  - `401 Unauthorized`: Invalid or missing token
-  - `404 Not Found`: Session not found or expired
-  - `500 Internal Server Error`: Server error
-
----
-
-## 3. Document Upload Endpoints
-
-### 3.1 Upload Document
-- **Endpoint**: `POST /documents/upload`
-- **Description**: Upload document with quality validation
-- **Content-Type**: `multipart/form-data`
-- **Request Schema**:
-```
-file: File (required, max 10MB, formats: jpg, png, pdf)
-session_id: string (required, uuid)
-document_type: string (required, enum: ['passport', 'id_card', 'driver_license', 'utility_bill'])
-metadata: string (optional, JSON string)
-```
-- **Response Schema**:
-```json
-{
-  "document_id": "uuid",
-  "session_id": "uuid",
-  "document_type": "string",
-  "original_filename": "string",
-  "file_size": "number (bytes)",
-  "upload_status": "string (enum: ['uploaded', 'processing', 'validated', 'rejected'])",
-  "quality_score": "number (0-100)",
-  "validation_result": {
-    "is_valid": "boolean",
-    "confidence": "number (0-1)",
-    "detected_type": "string",
-    "quality_checks": {
-      "brightness": "string (enum: ['pass', 'fail', 'warning'])",
-      "contrast": "string (enum: ['pass', 'fail', 'warning'])",
-      "blur": "string (enum: ['pass', 'fail', 'warning'])",
-      "completeness": "string (enum: ['pass', 'fail', 'warning'])"
-    },
-    "suggestions": "array of strings"
-  },
-  "uploaded_at": "string (ISO 8601)"
-}
-```
-- **Error Handling**:
-  - `400 Bad Request`: Invalid file format, size, or missing required fields
-  - `401 Unauthorized`: Invalid or missing token
-  - `404 Not Found`: Session not found
-  - `413 Payload Too Large`: File size exceeds limit
-  - `415 Unsupported Media Type`: Invalid file format
-  - `422 Unprocessable Entity`: Document quality too low
-  - `500 Internal Server Error`: Server error
-
-### 3.2 Get Document Status
-- **Endpoint**: `GET /documents/{document_id}`
-- **Description**: Retrieve document processing status and validation results
-- **Request Schema**: N/A (URL parameters only)
-- **Response Schema**:
-```json
-{
-  "document_id": "uuid",
-  "session_id": "uuid",
-  "document_type": "string",
-  "upload_status": "string",
-  "quality_score": "number (0-100)",
-  "validation_result": {
-    "is_valid": "boolean",
-    "confidence": "number (0-1)",
-    "detected_type": "string",
-    "quality_checks": "object",
-    "suggestions": "array",
-    "processing_time": "number (milliseconds)"
-  },
-  "metadata": "object",
-  "uploaded_at": "string (ISO 8601)",
-  "validated_at": "string (ISO 8601)"
-}
-```
-- **Error Handling**:
-  - `401 Unauthorized`: Invalid or missing token
-  - `403 Forbidden`: Access denied to document
-  - `404 Not Found`: Document not found
-  - `500 Internal Server Error`: Server error
-
-### 3.3 Delete Document
-- **Endpoint**: `DELETE /documents/{document_id}`
-- **Description**: Securely delete uploaded document
-- **Request Schema**: N/A (URL parameters only)
-- **Response Schema**:
-```json
-{
-  "document_id": "uuid",
-  "deleted": "boolean",
-  "deleted_at": "string (ISO 8601)",
-  "message": "string"
-}
-```
-- **Error Handling**:
-  - `401 Unauthorized`: Invalid or missing token
-  - `403 Forbidden`: Access denied to document
-  - `404 Not Found`: Document not found
-  - `409 Conflict`: Document cannot be deleted (e.g., processing in progress)
-  - `500 Internal Server Error`: Server error
-
-### 3.4 Validate Document Quality
-- **Endpoint**: `POST /documents/validate`
-- **Description**: Real-time document quality validation without upload
-- **Content-Type**: `multipart/form-data`
-- **Request Schema**:
-```
-file: File (required, max 5MB for validation)
-document_type: string (optional)
-```
-- **Response Schema**:
-```json
-{
-  "validation_id": "uuid",
-  "quality_score": "number (0-100)",
-  "is_valid": "boolean",
-  "confidence": "number (0-1)",
-  "detected_type": "string",
-  "quality_checks": {
-    "brightness": {
-      "status": "string (enum: ['pass', 'fail', 'warning'])",
-      "score": "number (0-100)",
-      "message": "string"
-    },
-    "contrast": {
-      "status": "string",
-      "score": "number (0-100)",
-      "message": "string"
-    },
-    "blur": {
-      "status": "string",
-      "score": "number (0-100)",
-      "message": "string"
-    },
-    "completeness": {
-      "status": "string",
-      "score": "number (0-100)",
-      "message": "string"
-    }
-  },
-  "suggestions": [
+  "youthAccountId": "string",
+  "accountBalance": "decimal",
+  "spendingLimit": "decimal",
+  "currency": "string",
+  "recentTransactions": [
     {
-      "type": "string (enum: ['lighting', 'positioning', 'focus', 'cropping'])",
-      "message": "string",
-      "priority": "string (enum: ['high', 'medium', 'low'])"
-    }
-  ],
-  "processing_time": "number (milliseconds)"
-}
-```
-- **Error Handling**:
-  - `400 Bad Request`: Invalid file format or size
-  - `401 Unauthorized`: Invalid or missing token
-  - `413 Payload Too Large`: File size exceeds validation limit
-  - `415 Unsupported Media Type`: Invalid file format
-  - `429 Too Many Requests`: Rate limit exceeded
-  - `500 Internal Server Error`: Server error
-
----
-
-## 4. Component Library Endpoints
-
-### 4.1 Get Component Metadata
-- **Endpoint**: `GET /components/metadata`
-- **Description**: Retrieve available UI components and their configurations
-- **Request Schema**: N/A
-- **Response Schema**:
-```json
-{
-  "components": [
-    {
-      "name": "string",
-      "version": "string",
-      "category": "string (enum: ['input', 'button', 'navigation', 'feedback', 'layout'])",
-      "states": "array of strings",
-      "props": "object",
-      "accessibility_features": "array",
-      "browser_support": "object"
-    }
-  ],
-  "themes": [
-    {
-      "name": "string",
+      "transactionId": "string",
+      "date": "datetime (ISO 8601)",
       "description": "string",
-      "variables": "object"
+      "amount": "decimal",
+      "transactionType": "debit | credit"
     }
-  ]
+  ],
+  "metadata": {
+    "lastUpdated": "datetime (ISO 8601)",
+    "transactionCount": "integer"
+  }
 }
 ```
-- **Error Handling**:
-  - `500 Internal Server Error`: Server error
+
+**Example Response**:
+```json
+{
+  "youthAccountId": "ya-123456789",
+  "accountBalance": 150.75,
+  "spendingLimit": 50.00,
+  "currency": "USD",
+  "recentTransactions": [
+    {
+      "transactionId": "txn-987654321",
+      "date": "2024-01-15T14:30:00Z",
+      "description": "Coffee Shop Purchase",
+      "amount": -4.50,
+      "transactionType": "debit"
+    }
+  ],
+  "metadata": {
+    "lastUpdated": "2024-01-15T15:00:00Z",
+    "transactionCount": 1
+  }
+}
+```
+
+**Error Handling**:
+- `400 Bad Request`: Invalid youth account ID format
+- `401 Unauthorized`: Invalid or expired OAuth token
+- `403 Forbidden`: Parent not authorized to access this youth account
+- `404 Not Found`: Youth account not found
+- `500 Internal Server Error`: Server processing error
 
 ---
 
-## 5. User Management Endpoints
+### 2. Fund Transfer to Youth Account
 
-### 5.1 Get User Profile
-- **Endpoint**: `GET /users/profile`
-- **Description**: Retrieve current user profile information
-- **Request Schema**: N/A
-- **Response Schema**:
+**Endpoint**: `POST /api/youth-accounts/{youthAccountId}/fund-transfer`
+
+**Description**: Allows parents to transfer funds from their primary account to a youth account.
+
+**Path Parameters**:
+- `youthAccountId` (string, required): Target youth account identifier
+
+**Request Headers**:
 ```json
 {
-  "id": "uuid",
-  "email": "string",
-  "name": "string",
-  "phone": "string",
-  "role": "string",
-  "preferences": {
-    "language": "string",
-    "theme": "string",
-    "notifications": "object"
+  "Authorization": "Bearer {oauth_token}",
+  "Content-Type": "application/json",
+  "X-Request-ID": "req-transfer-12345",
+  "X-Idempotency-Key": "idem-key-67890"
+}
+```
+
+**Request Schema**:
+```json
+{
+  "sourceAccountId": "string (required)",
+  "transferAmount": "decimal (required, min: 0.01, max: 1000.00)",
+  "currency": "string (required, enum: ['USD', 'EUR', 'GBP'])",
+  "description": "string (optional, max: 255 chars)"
+}
+```
+
+**Example Request**:
+```json
+{
+  "sourceAccountId": "pa-987654321",
+  "transferAmount": 25.00,
+  "currency": "USD",
+  "description": "Weekly allowance"
+}
+```
+
+**Response Schema** (201 Created):
+```json
+{
+  "transferId": "string",
+  "status": "SUCCESS | PENDING | FAILED",
+  "updatedBalance": "decimal",
+  "transferAmount": "decimal",
+  "currency": "string",
+  "timestamp": "datetime (ISO 8601)",
+  "confirmationNumber": "string"
+}
+```
+
+**Example Response**:
+```json
+{
+  "transferId": "tf-123456789",
+  "status": "SUCCESS",
+  "updatedBalance": 175.75,
+  "transferAmount": 25.00,
+  "currency": "USD",
+  "timestamp": "2024-01-15T16:00:00Z",
+  "confirmationNumber": "CONF-ABC123"
+}
+```
+
+**Error Handling**:
+- `400 Bad Request`: Invalid request data or insufficient funds
+- `401 Unauthorized`: Invalid or expired OAuth token
+- `403 Forbidden`: Parent not authorized for source account
+- `404 Not Found`: Source or target account not found
+- `409 Conflict`: Duplicate transfer (idempotency key already used)
+- `422 Unprocessable Entity`: Transfer amount exceeds limits
+- `500 Internal Server Error`: Transfer processing failed
+
+---
+
+### 3. Configure Spending Limit
+
+**Endpoint**: `PUT /api/youth-accounts/{youthAccountId}/spending-limit`
+
+**Description**: Allows parents to configure weekly spending limits for youth accounts.
+
+**Path Parameters**:
+- `youthAccountId` (string, required): Youth account identifier
+
+**Request Headers**:
+```json
+{
+  "Authorization": "Bearer {oauth_token}",
+  "Content-Type": "application/json",
+  "X-Request-ID": "req-limit-12345"
+}
+```
+
+**Request Schema**:
+```json
+{
+  "weeklyLimit": "decimal (required, min: 0.00, max: 500.00)",
+  "currency": "string (required, enum: ['USD', 'EUR', 'GBP'])",
+  "effectiveDate": "date (optional, ISO 8601 date format)"
+}
+```
+
+**Example Request**:
+```json
+{
+  "weeklyLimit": 75.00,
+  "currency": "USD",
+  "effectiveDate": "2024-01-16"
+}
+```
+
+**Response Schema** (200 OK):
+```json
+{
+  "youthAccountId": "string",
+  "weeklyLimit": "decimal",
+  "currency": "string",
+  "effectiveDate": "date (ISO 8601)",
+  "status": "UPDATED | PENDING",
+  "previousLimit": "decimal",
+  "updatedTimestamp": "datetime (ISO 8601)"
+}
+```
+
+**Example Response**:
+```json
+{
+  "youthAccountId": "ya-123456789",
+  "weeklyLimit": 75.00,
+  "currency": "USD",
+  "effectiveDate": "2024-01-16",
+  "status": "UPDATED",
+  "previousLimit": 50.00,
+  "updatedTimestamp": "2024-01-15T16:30:00Z"
+}
+```
+
+**Error Handling**:
+- `400 Bad Request`: Invalid limit value or date format
+- `401 Unauthorized`: Invalid or expired OAuth token
+- `403 Forbidden`: Parent not authorized to modify this account
+- `404 Not Found`: Youth account not found
+- `422 Unprocessable Entity`: Limit exceeds maximum allowed
+- `500 Internal Server Error`: Limit update failed
+
+---
+
+### 4. Retrieve Transaction History
+
+**Endpoint**: `GET /api/youth-accounts/{youthAccountId}/transactions`
+
+**Description**: Returns paginated transaction history for youth accounts.
+
+**Path Parameters**:
+- `youthAccountId` (string, required): Youth account identifier
+
+**Query Parameters**:
+- `startDate` (string, optional): Start date filter (ISO 8601 date)
+- `endDate` (string, optional): End date filter (ISO 8601 date)
+- `page` (integer, optional, default: 1): Page number for pagination
+- `pageSize` (integer, optional, default: 20, max: 100): Number of records per page
+- `transactionType` (string, optional): Filter by type ('debit', 'credit', 'all')
+
+**Request Headers**:
+```json
+{
+  "Authorization": "Bearer {oauth_token}",
+  "Accept": "application/json",
+  "X-Request-ID": "req-history-12345"
+}
+```
+
+**Request Example**:
+```
+GET /api/youth-accounts/ya-123456789/transactions?startDate=2024-01-01&endDate=2024-01-15&page=1&pageSize=10&transactionType=all
+```
+
+**Response Schema** (200 OK):
+```json
+{
+  "transactions": [
+    {
+      "transactionId": "string",
+      "date": "datetime (ISO 8601)",
+      "merchant": "string",
+      "amount": "decimal",
+      "transactionType": "debit | credit",
+      "category": "string",
+      "description": "string",
+      "balanceAfter": "decimal"
+    }
+  ],
+  "pagination": {
+    "page": "integer",
+    "pageSize": "integer",
+    "totalRecords": "integer",
+    "totalPages": "integer",
+    "hasNext": "boolean",
+    "hasPrevious": "boolean"
   },
-  "created_at": "string (ISO 8601)",
-  "updated_at": "string (ISO 8601)",
-  "last_login": "string (ISO 8601)"
-}
-```
-- **Error Handling**:
-  - `401 Unauthorized`: Invalid or missing token
-  - `500 Internal Server Error`: Server error
-
-### 5.2 Update User Profile
-- **Endpoint**: `PUT /users/profile`
-- **Description**: Update user profile information
-- **Request Schema**:
-```json
-{
-  "name": "string (optional)",
-  "phone": "string (optional)",
-  "preferences": {
-    "language": "string (optional, enum: ['en', 'ar'])",
-    "theme": "string (optional, enum: ['light', 'dark', 'auto'])",
-    "notifications": "object (optional)"
+  "summary": {
+    "totalDebits": "decimal",
+    "totalCredits": "decimal",
+    "netAmount": "decimal",
+    "transactionCount": "integer"
   }
 }
 ```
-- **Response Schema**:
+
+**Example Response**:
 ```json
 {
-  "id": "uuid",
-  "email": "string",
-  "name": "string",
-  "phone": "string",
-  "preferences": "object",
-  "updated_at": "string (ISO 8601)"
-}
-```
-- **Error Handling**:
-  - `400 Bad Request`: Invalid profile data
-  - `401 Unauthorized`: Invalid or missing token
-  - `409 Conflict`: Phone number already exists
-  - `500 Internal Server Error`: Server error
-
----
-
-## 6. System Health and Monitoring
-
-### 6.1 Health Check
-- **Endpoint**: `GET /health`
-- **Description**: System health status
-- **Authentication**: Not required
-- **Request Schema**: N/A
-- **Response Schema**:
-```json
-{
-  "status": "string (enum: ['healthy', 'degraded', 'unhealthy'])",
-  "timestamp": "string (ISO 8601)",
-  "version": "string",
-  "services": {
-    "database": "string (enum: ['up', 'down', 'degraded'])",
-    "cache": "string (enum: ['up', 'down', 'degraded'])",
-    "storage": "string (enum: ['up', 'down', 'degraded'])",
-    "validation_service": "string (enum: ['up', 'down', 'degraded'])"
+  "transactions": [
+    {
+      "transactionId": "txn-987654321",
+      "date": "2024-01-15T14:30:00Z",
+      "merchant": "Coffee Shop",
+      "amount": -4.50,
+      "transactionType": "debit",
+      "category": "Food & Dining",
+      "description": "Coffee and pastry",
+      "balanceAfter": 146.25
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 10,
+    "totalRecords": 1,
+    "totalPages": 1,
+    "hasNext": false,
+    "hasPrevious": false
+  },
+  "summary": {
+    "totalDebits": -4.50,
+    "totalCredits": 0.00,
+    "netAmount": -4.50,
+    "transactionCount": 1
   }
 }
 ```
-- **Error Handling**:
-  - `503 Service Unavailable`: System unhealthy
+
+**Error Handling**:
+- `400 Bad Request`: Invalid date range or pagination parameters
+- `401 Unauthorized`: Invalid or expired OAuth token
+- `403 Forbidden`: Parent not authorized to access transaction history
+- `404 Not Found`: Youth account not found
+- `422 Unprocessable Entity`: Date range exceeds maximum allowed period
+- `500 Internal Server Error`: Transaction retrieval failed
 
 ---
 
-## Error Response Format
+## Common Error Response Format
 
 All error responses follow a consistent format:
 
@@ -465,102 +371,99 @@ All error responses follow a consistent format:
   "error": {
     "code": "string (error code)",
     "message": "string (human-readable message)",
-    "details": "string or object (additional error details)",
-    "timestamp": "string (ISO 8601)",
-    "request_id": "string (for tracking)"
-  }
+    "details": "string (additional context)",
+    "timestamp": "datetime (ISO 8601)",
+    "requestId": "string (from X-Request-ID header)"
+  },
+  "validationErrors": [
+    {
+      "field": "string (field name)",
+      "message": "string (validation error message)",
+      "rejectedValue": "any (the invalid value)"
+    }
+  ]
 }
 ```
 
-### Common Error Codes
-- `INVALID_REQUEST`: Malformed request
-- `AUTHENTICATION_FAILED`: Invalid credentials
-- `AUTHORIZATION_FAILED`: Insufficient permissions
-- `RESOURCE_NOT_FOUND`: Requested resource not found
-- `VALIDATION_FAILED`: Request validation failed
-- `RATE_LIMIT_EXCEEDED`: Too many requests
-- `FILE_TOO_LARGE`: File size exceeds limit
-- `INVALID_FILE_TYPE`: Unsupported file format
-- `DOCUMENT_QUALITY_LOW`: Document quality below threshold
-- `SESSION_EXPIRED`: Form session expired
-- `INTERNAL_ERROR`: Server error
+**Example Error Response**:
+```json
+{
+  "error": {
+    "code": "INSUFFICIENT_FUNDS",
+    "message": "The source account does not have sufficient funds for this transfer",
+    "details": "Available balance: $45.00, Requested transfer: $50.00",
+    "timestamp": "2024-01-15T16:45:00Z",
+    "requestId": "req-transfer-12345"
+  },
+  "validationErrors": []
+}
+```
 
 ---
 
 ## Rate Limiting
 
-### Rate Limits by Endpoint Category
-- **Authentication**: 10 requests per minute per IP
-- **Document Upload**: 5 uploads per minute per user
-- **Document Validation**: 20 validations per minute per user
-- **Form Operations**: 100 requests per minute per user
-- **General API**: 1000 requests per hour per user
+- **Rate Limit**: 100 requests per minute per OAuth token
+- **Headers Returned**:
+  - `X-RateLimit-Limit`: Maximum requests per window
+  - `X-RateLimit-Remaining`: Remaining requests in current window
+  - `X-RateLimit-Reset`: Time when rate limit resets (Unix timestamp)
 
-### Rate Limit Headers
+**Rate Limit Exceeded Response** (429 Too Many Requests):
+```json
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "API rate limit exceeded",
+    "details": "Maximum 100 requests per minute allowed",
+    "timestamp": "2024-01-15T16:50:00Z",
+    "requestId": "req-rate-limit-12345"
+  }
+}
 ```
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1640995200
-X-RateLimit-Window: 3600
-```
+
+---
+
+## Data Validation Rules
+
+### Transfer Amount Validation
+- **Minimum**: $0.01
+- **Maximum**: $1,000.00 per transaction
+- **Daily Limit**: $2,000.00 per parent account
+- **Format**: Decimal with up to 2 decimal places
+
+### Spending Limit Validation
+- **Minimum**: $0.00 (no limit)
+- **Maximum**: $500.00 per week
+- **Format**: Decimal with up to 2 decimal places
+
+### Date Format Validation
+- **Format**: ISO 8601 (YYYY-MM-DD for dates, YYYY-MM-DDTHH:MM:SSZ for datetimes)
+- **Timezone**: All times in UTC
+- **Date Range**: Maximum 1 year for transaction history queries
 
 ---
 
 ## Security Considerations
 
 ### Input Validation
-- All inputs validated against defined schemas
-- File type validation using magic numbers
-- Maximum file size enforcement
-- SQL injection prevention
-- XSS protection
-
-### Authentication & Authorization
-- JWT tokens with short expiry
-- Role-based access control (RBAC)
-- API key validation for service-to-service calls
-- Rate limiting per user and IP
+- All input parameters validated against defined schemas
+- SQL injection prevention through parameterized queries
+- XSS prevention through output encoding
+- CSRF protection through token validation
 
 ### Data Protection
-- HTTPS only (TLS 1.3)
-- Request/response encryption
-- Sensitive data masking in logs
-- Secure file upload handling
-- Automatic data sanitization
+- PII data encrypted in transit and at rest
+- Sensitive data masked in logs
+- Account numbers tokenized in responses
+- Audit trail for all API calls
+
+### Access Control
+- OAuth 2.0 token-based authentication
+- Role-based authorization (parent-child account relationships)
+- API key validation for service-to-service calls
+- IP whitelisting for enhanced security
 
 ---
 
-## Versioning Strategy
-
-### API Versioning
-- **URL Versioning**: `/v1/`, `/v2/`
-- **Backward Compatibility**: Maintained for 2 major versions
-- **Deprecation Notice**: 6 months advance notice
-- **Breaking Changes**: Only in major versions
-
-### Version Headers
-```
-API-Version: v1
-Deprecated: false
-Sunset: 2025-12-31
-```
-
----
-
-## Testing and Documentation
-
-### API Documentation
-- **OpenAPI 3.0**: Complete specification available
-- **Interactive Docs**: Swagger UI at `/docs`
-- **Postman Collection**: Available for download
-- **SDK**: JavaScript/TypeScript client library
-
-### Testing
-- **Contract Testing**: Automated API contract validation
-- **Load Testing**: Performance benchmarks included
-- **Security Testing**: Regular penetration testing
-- **Integration Testing**: End-to-end test suites
-
----
-
-*This API contract outline provides comprehensive endpoint specifications for the Document Upload Interface with Quality Validation System, ensuring consistency, security, and developer-friendly integration.*
+**API Contract Document End**

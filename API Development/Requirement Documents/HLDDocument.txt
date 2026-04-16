@@ -1,470 +1,348 @@
 # High-Level Design Document
-## Document Upload Interface with Quality Validation System
+## Youth Account Management System
 
-### Version: 1.0
-### Date: 2024
-### Document ID: HLD-VRVTEMP-378
+### Document Information
+- **Document Version**: 1.0
+- **Date**: 2024
+- **Author**: Enterprise Solution Architect
+- **Status**: Draft
+- **Related ADRs**: SCIB-25, SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30
 
 ---
 
 ## 1. Introduction
 
 ### 1.1 Purpose
-This High-Level Design (HLD) document describes the architecture and design for an intelligent document upload interface with quality validation capabilities. The system provides an intuitive, mobile-optimized multi-step form with camera guidance and real-time quality validation to ensure high-quality document capture for processing.
+This High-Level Design document describes the architecture and design for the Youth Account Management System, enabling parents and guardians to allocate and manage funds for their children's youth accounts while maintaining visibility and control over spending.
 
 ### 1.2 Scope
-This document covers the design of:
-- Document Upload Interface with Camera Integration
-- Multi-Step Form Design with Progress Tracking
-- Core Component Library for UI Consistency
-- Quality Validation and Processing Services
-- Security and Compliance Framework
+The system encompasses:
+- Youth account dashboard for parents
+- Fund allocation and transfer capabilities
+- Spending limit configuration and management
+- Transaction monitoring and reporting
+- API services supporting web and mobile interfaces
 
 ### 1.3 Stakeholders
-- Enterprise Solution Architects
-- Development Teams
-- Quality Assurance Teams
-- Security and Compliance Officers
-- Business Analysts
-- End Users
-
-### 1.4 Document Structure
-This document follows enterprise architecture standards and includes architectural decisions, component mappings, and traceability to source requirements.
+- Parents/Guardians (Primary Users)
+- Youth Account Holders (Secondary Users)
+- Banking Operations Team
+- Compliance and Risk Management
+- Development and Operations Teams
 
 ---
 
 ## 2. System Overview
 
 ### 2.1 Business Context
-The Document Upload Interface system addresses the critical need for high-quality document capture in digital banking applications. By providing real-time quality validation and intuitive user guidance, the system reduces document rejection rates, improves processing efficiency, and enhances user experience.
+The Youth Account Management System supports financial education initiatives by providing parents with tools to:
+- Transfer funds to youth accounts
+- Set and monitor spending limits
+- Track youth spending patterns
+- Maintain financial oversight and control
 
-### 2.2 Business Value
-- **Reduced Document Rejection Rates**: Real-time validation prevents poor quality submissions
-- **Improved Processing Efficiency**: High-quality documents enable faster automated processing
-- **Enhanced User Experience**: Clear guidance and immediate feedback improve completion rates
-- **Regulatory Compliance**: Ensures document quality meets regulatory requirements
-- **Operational Cost Reduction**: Reduces manual review and reprocessing overhead
-
-### 2.3 Key Capabilities
-1. **Intelligent Document Capture**: Camera interface with overlay guidance
-2. **Real-Time Quality Validation**: Immediate feedback on document quality
-3. **Multi-Step Form Processing**: Logical progression with validation checkpoints
-4. **Document Type Detection**: Automated classification and validation
-5. **Accessibility Support**: WCAG 2.1 AA compliance with alternative input methods
-6. **Mobile Optimization**: Responsive design with thumb-friendly navigation
-7. **Security and Encryption**: End-to-end data protection
+### 2.2 Key Capabilities
+- **Fund Management**: Secure transfer of funds from parent accounts to youth accounts
+- **Spending Controls**: Configuration and enforcement of weekly spending limits
+- **Activity Monitoring**: Real-time visibility into youth account transactions
+- **Dashboard Analytics**: Consolidated view of account status and activity
 
 ---
 
 ## 3. Architecture Overview
 
-### 3.1 Architecture Principles
-- **Security by Design**: Encryption at rest and in transit
-- **Mobile-First Approach**: Optimized for mobile devices
-- **Accessibility First**: WCAG 2.1 AA compliance
-- **Component Reusability**: Leveraging core component library
-- **Scalable Design**: Support for thousands of concurrent users
-- **Performance Optimization**: Sub-200ms response times
-
-### 3.2 Context Diagram
+### 3.1 System Context Diagram
 ```mermaid
 C4Context
-    title System Context Diagram - Document Upload Interface
+    title System Context Diagram - Youth Account Management
     
-    Person(user, "End User", "Banking customer uploading documents")
-    Person(admin, "System Administrator", "Manages system configuration")
+    Person(parent, "Parent/Guardian", "Manages youth account funds and spending limits")
+    Person(youth, "Youth Account Holder", "Uses account for purchases")
     
-    System(docUpload, "Document Upload System", "Provides document capture and validation capabilities")
+    System(youthMgmt, "Youth Account Management System", "Enables fund allocation and spending control")
     
-    System_Ext(docProcessing, "Document Processing Service", "Processes and validates uploaded documents")
-    System_Ext(storage, "Secure Storage", "Encrypted document storage")
-    System_Ext(auth, "Authentication Service", "User authentication and authorization")
-    System_Ext(audit, "Audit Service", "Logging and compliance tracking")
-    System_Ext(notification, "Notification Service", "User notifications and alerts")
+    System_Ext(coreBank, "Core Banking System", "Handles account balances and transactions")
+    System_Ext(paymentSvc, "Payment Service", "Processes fund transfers")
+    System_Ext(authSvc, "Authentication Service", "Handles user authentication and authorization")
+    System_Ext(notifSvc, "Notification Service", "Sends alerts and notifications")
     
-    Rel(user, docUpload, "Uploads documents via mobile/web")
-    Rel(admin, docUpload, "Configures system settings")
-    Rel(docUpload, docProcessing, "Sends documents for validation")
-    Rel(docUpload, storage, "Stores encrypted documents")
-    Rel(docUpload, auth, "Authenticates users")
-    Rel(docUpload, audit, "Logs all activities")
-    Rel(docUpload, notification, "Sends status updates")
+    Rel(parent, youthMgmt, "Manages youth accounts via web/mobile")
+    Rel(youth, youthMgmt, "Views account activity")
+    Rel(youthMgmt, coreBank, "Retrieves account data")
+    Rel(youthMgmt, paymentSvc, "Initiates transfers")
+    Rel(youthMgmt, authSvc, "Authenticates users")
+    Rel(youthMgmt, notifSvc, "Sends notifications")
 ```
 
-### 3.3 Container Diagram
+### 3.2 Container Diagram
 ```mermaid
 C4Container
-    title Container Diagram - Document Upload System
+    title Container Diagram - Youth Account Management System
     
-    Person(user, "End User")
+    Person(parent, "Parent/Guardian")
     
-    Container(webapp, "Web Application", "React/TypeScript", "Multi-step form interface with camera integration")
-    Container(mobileapp, "Mobile Application", "React Native", "Native mobile document capture")
-    Container(api, "API Gateway", "Node.js/Express", "RESTful API for document operations")
-    Container(validation, "Validation Service", "Python/ML", "Real-time document quality validation")
-    Container(upload, "Upload Service", "Node.js", "Document upload and processing coordination")
-    Container(component, "Component Library", "React/Storybook", "Reusable UI components")
+    Container(webApp, "Web Application", "React/Angular", "Parent dashboard for youth account management")
+    Container(mobileApp, "Mobile Application", "React Native/Flutter", "Mobile interface for account management")
     
-    ContainerDb(redis, "Cache", "Redis", "Session and validation cache")
-    ContainerDb(postgres, "Database", "PostgreSQL", "Document metadata and user data")
-    ContainerDb(s3, "File Storage", "AWS S3", "Encrypted document storage")
+    Container(apiGateway, "API Gateway", "Kong/AWS API Gateway", "Routes requests and handles authentication")
+    Container(youthAPI, "Youth Account API", "Node.js/Java Spring", "Core business logic for youth account operations")
+    Container(dashboardAPI, "Dashboard API", "Node.js/Java Spring", "Aggregates data for dashboard views")
     
-    Rel(user, webapp, "Uses web interface")
-    Rel(user, mobileapp, "Uses mobile app")
-    Rel(webapp, component, "Uses UI components")
-    Rel(mobileapp, component, "Uses UI components")
-    Rel(webapp, api, "API calls")
-    Rel(mobileapp, api, "API calls")
-    Rel(api, validation, "Document validation")
-    Rel(api, upload, "Upload coordination")
-    Rel(api, redis, "Cache operations")
-    Rel(api, postgres, "Data persistence")
-    Rel(upload, s3, "File storage")
+    Container(database, "Youth Account Database", "PostgreSQL/MySQL", "Stores youth account settings and configurations")
+    Container(cache, "Redis Cache", "Redis", "Caches frequently accessed data")
+    
+    System_Ext(coreBank, "Core Banking System")
+    System_Ext(paymentSvc, "Payment Service")
+    
+    Rel(parent, webApp, "Uses")
+    Rel(parent, mobileApp, "Uses")
+    Rel(webApp, apiGateway, "API calls")
+    Rel(mobileApp, apiGateway, "API calls")
+    Rel(apiGateway, youthAPI, "Routes requests")
+    Rel(apiGateway, dashboardAPI, "Routes requests")
+    Rel(youthAPI, database, "Reads/Writes")
+    Rel(dashboardAPI, cache, "Caches data")
+    Rel(youthAPI, coreBank, "Account operations")
+    Rel(youthAPI, paymentSvc, "Fund transfers")
 ```
 
-### 3.4 Deployment Diagram
+### 3.3 Deployment Diagram
 ```mermaid
 C4Deployment
-    title Deployment Diagram - Production Environment
+    title Deployment Diagram - Youth Account Management System
     
-    Deployment_Node(cdn, "CDN", "CloudFlare") {
-        Container(static, "Static Assets", "JS/CSS/Images")
+    Deployment_Node(cdn, "CDN", "CloudFlare/AWS CloudFront") {
+        Container(staticAssets, "Static Assets", "CSS/JS/Images")
     }
     
-    Deployment_Node(lb, "Load Balancer", "AWS ALB") {
-        Container(alb, "Application Load Balancer", "SSL Termination")
+    Deployment_Node(loadBalancer, "Load Balancer", "AWS ALB/NGINX") {
+        Container(lb, "Load Balancer", "Routes traffic")
     }
     
-    Deployment_Node(web, "Web Tier", "AWS ECS Fargate") {
-        Container(webapp, "Web Application", "React SPA")
-        Container(api, "API Services", "Node.js Containers")
+    Deployment_Node(webTier, "Web Tier", "Kubernetes Cluster") {
+        Container(webPods, "Web Application Pods", "React/Angular containers")
+        Container(apiPods, "API Service Pods", "Node.js/Java containers")
     }
     
-    Deployment_Node(app, "Application Tier", "AWS ECS Fargate") {
-        Container(validation, "Validation Service", "Python ML Container")
-        Container(upload, "Upload Service", "Node.js Container")
+    Deployment_Node(dataTier, "Data Tier", "AWS RDS/Private Cloud") {
+        ContainerDb(primaryDB, "Primary Database", "PostgreSQL Master")
+        ContainerDb(readReplica, "Read Replica", "PostgreSQL Replica")
+        ContainerDb(redisCluster, "Redis Cluster", "Cache Layer")
     }
     
-    Deployment_Node(data, "Data Tier", "AWS RDS/S3") {
-        ContainerDb(postgres, "PostgreSQL", "Multi-AZ RDS")
-        ContainerDb(redis, "Redis", "ElastiCache")
-        ContainerDb(s3, "S3 Storage", "Encrypted at Rest")
-    }
-    
-    Rel(cdn, lb, "HTTPS")
-    Rel(lb, web, "HTTPS")
-    Rel(web, app, "Internal Network")
-    Rel(app, data, "Encrypted Connections")
+    Rel(cdn, loadBalancer, "HTTPS")
+    Rel(loadBalancer, webTier, "HTTPS")
+    Rel(webTier, dataTier, "Encrypted Connection")
 ```
 
-### 3.5 Data Model Diagram
+### 3.4 Data Model Diagram
 ```mermaid
 erDiagram
-    USER {
-        uuid id PK
-        string email
-        string phone
-        timestamp created_at
-        timestamp updated_at
-        boolean is_active
+    PARENT_ACCOUNT {
+        string parent_account_id PK
+        string account_number
+        string parent_name
+        decimal account_balance
+        datetime created_date
+        datetime updated_date
     }
     
-    DOCUMENT {
-        uuid id PK
-        uuid user_id FK
-        string document_type
-        string original_filename
-        string storage_path
-        string encryption_key_id
-        json metadata
-        enum status
-        timestamp uploaded_at
-        timestamp validated_at
+    YOUTH_ACCOUNT {
+        string youth_account_id PK
+        string parent_account_id FK
+        string youth_name
+        string account_number
+        decimal account_balance
+        datetime created_date
+        datetime updated_date
     }
     
-    VALIDATION_RESULT {
-        uuid id PK
-        uuid document_id FK
-        float quality_score
-        json validation_details
-        boolean is_valid
-        string rejection_reason
-        timestamp created_at
+    YOUTH_ACCOUNT_SETTINGS {
+        string youth_account_id PK
+        decimal weekly_spending_limit
+        boolean notifications_enabled
+        datetime updated_timestamp
     }
     
-    FORM_SESSION {
-        uuid id PK
-        uuid user_id FK
-        json form_data
-        string current_step
-        float completion_percentage
-        timestamp created_at
-        timestamp updated_at
-        timestamp expires_at
+    FUND_TRANSFER {
+        string transfer_id PK
+        string source_account_id FK
+        string target_account_id FK
+        decimal transfer_amount
+        string currency
+        string status
+        datetime transfer_date
+        datetime created_date
     }
     
-    AUDIT_LOG {
-        uuid id PK
-        uuid user_id FK
-        uuid document_id FK
-        string action
-        json details
-        string ip_address
-        string user_agent
-        timestamp created_at
+    TRANSACTION_HISTORY {
+        string transaction_id PK
+        string youth_account_id FK
+        string merchant_name
+        decimal amount
+        string transaction_type
+        datetime transaction_date
+        string description
     }
     
-    USER ||--o{ DOCUMENT : uploads
-    USER ||--o{ FORM_SESSION : has
-    DOCUMENT ||--|| VALIDATION_RESULT : validated_by
-    USER ||--o{ AUDIT_LOG : generates
-    DOCUMENT ||--o{ AUDIT_LOG : tracked_in
+    PARENT_ACCOUNT ||--o{ YOUTH_ACCOUNT : "manages"
+    YOUTH_ACCOUNT ||--|| YOUTH_ACCOUNT_SETTINGS : "has"
+    PARENT_ACCOUNT ||--o{ FUND_TRANSFER : "initiates"
+    YOUTH_ACCOUNT ||--o{ FUND_TRANSFER : "receives"
+    YOUTH_ACCOUNT ||--o{ TRANSACTION_HISTORY : "generates"
 ```
 
 ---
 
 ## 4. Component Design
 
-### 4.1 Core Components Mapping to ADRs
+### 4.1 Youth Account Dashboard Service
+**Mapped to ADR**: SCIB-26
+- **Responsibility**: Aggregate and present youth account information
+- **Key Functions**:
+  - Retrieve account balance and spending limits
+  - Fetch recent transaction history
+  - Validate parent authorization
+- **Dependencies**: Core Banking System, Transaction Service
 
-#### 4.1.1 Document Upload Interface (VRVTEMP-378)
-**Purpose**: Provides intuitive document capture with camera guidance and real-time validation
+### 4.2 Fund Transfer Service
+**Mapped to ADR**: SCIB-27
+- **Responsibility**: Process fund transfers from parent to youth accounts
+- **Key Functions**:
+  - Validate source account ownership
+  - Verify sufficient balance
+  - Execute secure transfers
+  - Update account balances
+- **Dependencies**: Payment Service, Core Banking System
 
-**Key Components**:
-- **CameraInterface**: Overlay guidance for document positioning
-- **QualityValidator**: Real-time quality assessment
-- **DocumentTypeDetector**: Automatic document classification
-- **RetakeEditor**: Editing capabilities for captured documents
-- **CompressionOptimizer**: Upload efficiency optimization
-- **ProgressTracker**: Multi-document upload tracking
-- **AccessibilityHelper**: Visual impairment support
+### 4.3 Spending Limit Management Service
+**Mapped to ADR**: SCIB-28
+- **Responsibility**: Configure and enforce spending limits
+- **Key Functions**:
+  - Store weekly spending limits
+  - Validate limit configurations
+  - Trigger dashboard updates
+- **Dependencies**: Youth Account Database
 
-**ADR Mapping**: Addresses requirements R16, R17, R18, R58 from registry
-
-#### 4.1.2 Multi-Step Form Framework (VRVTEMP-376)
-**Purpose**: Creates intuitive, mobile-optimized application flow
-
-**Key Components**:
-- **StepManager**: Logical step progression and navigation
-- **ProgressIndicator**: Visual completion status
-- **ValidationCheckpoint**: Step-by-step validation
-- **ConditionalLogic**: Dynamic section display
-- **SummaryReview**: Section review capabilities
-- **MobileOptimizer**: Thumb-friendly navigation
-
-**ADR Mapping**: Addresses requirements R11, R12, R55, R56 from registry
-
-#### 4.1.3 Core Component Library (VRVTEMP-359)
-**Purpose**: Provides foundation for consistent UI across all interfaces
-
-**Key Components**:
-- **ButtonComponents**: 8 states (default, hover, focus, active, disabled, loading, error, success)
-- **InputComponents**: Form inputs with validation
-- **CardComponents**: Content containers
-- **NavigationComponents**: App navigation elements
-- **ModalComponents**: Dialog and overlay components
-- **AlertComponents**: Notification and feedback
-- **ProgressComponents**: Progress indicators
-- **AccessibilityComponents**: WCAG 2.1 AA compliant elements
-
-**ADR Mapping**: Addresses requirements R36, R37, R38, R39, R40, R41, R68, R69, R70 from registry
-
-### 4.2 Component Interactions
-```mermaid
-sequenceDiagram
-    participant User
-    participant UI as UI Components
-    participant Form as Form Manager
-    participant Camera as Camera Interface
-    participant Validator as Quality Validator
-    participant API as API Gateway
-    participant Storage as Secure Storage
-    
-    User->>UI: Start document upload
-    UI->>Form: Initialize form session
-    Form->>Camera: Activate camera interface
-    Camera->>User: Show overlay guidance
-    User->>Camera: Capture document
-    Camera->>Validator: Real-time quality check
-    Validator-->>Camera: Quality feedback
-    alt Quality Acceptable
-        Camera->>API: Submit document
-        API->>Storage: Store encrypted document
-        Storage-->>API: Confirmation
-        API-->>Form: Update progress
-        Form-->>UI: Show success state
-    else Quality Rejected
-        Validator-->>Camera: Show improvement suggestions
-        Camera-->>User: Request retake
-    end
-```
+### 4.4 Transaction History Service
+**Mapped to ADR**: SCIB-29
+- **Responsibility**: Provide transaction history and reporting
+- **Key Functions**:
+  - Retrieve filtered transaction data
+  - Support pagination for large datasets
+  - Apply authorization controls
+- **Dependencies**: Transaction Ledger Service
 
 ---
 
 ## 5. Data Design
 
-### 5.1 Data Architecture
-- **PostgreSQL**: Primary database for structured data
-- **Redis**: Session management and caching
-- **AWS S3**: Encrypted document storage
-- **ElasticSearch**: Document search and indexing
+### 5.1 Data Storage Strategy
+- **Primary Database**: PostgreSQL for transactional data
+- **Caching Layer**: Redis for frequently accessed dashboard data
+- **Data Retention**: 7 years for compliance with banking regulations
+- **Backup Strategy**: Daily encrypted backups with 30-day retention
 
 ### 5.2 Data Security
-- **Encryption at Rest**: AES-256 encryption for all stored documents
-- **Encryption in Transit**: TLS 1.3 for all data transmission
-- **Key Management**: AWS KMS for encryption key management
-- **Data Retention**: Configurable retention policies
-- **Secure Deletion**: Cryptographic erasure for data removal
-
-### 5.3 Data Flow
-1. **Document Capture**: Camera interface captures document image
-2. **Client-Side Validation**: Initial quality checks on device
-3. **Secure Upload**: Encrypted transmission to upload service
-4. **Server Validation**: ML-based quality assessment
-5. **Storage**: Encrypted storage in S3 with metadata in PostgreSQL
-6. **Processing**: Document processing service integration
-7. **Audit**: All operations logged for compliance
+- **Encryption at Rest**: AES-256 encryption for all stored data
+- **Encryption in Transit**: TLS 1.3 for all API communications
+- **Data Masking**: PII masking in non-production environments
+- **Access Controls**: Role-based access with audit logging
 
 ---
 
 ## 6. Interface Design
 
-### 6.1 User Interfaces
+### 6.1 API Design Principles
+**Mapped to ADR**: SCIB-30
+- RESTful API design following OpenAPI 3.0 specification
+- Consistent error handling and response formats
+- Versioning strategy using URL path versioning
+- Rate limiting and throttling for API protection
 
-#### 6.1.1 Mobile Interface
-- **Camera Overlay**: Visual guides for document positioning
-- **Progress Indicators**: Clear completion status
-- **Thumb-Friendly Navigation**: 48dp minimum touch targets
-- **Accessibility Support**: Screen reader compatibility
-- **Offline Capability**: Local storage for interrupted sessions
-
-#### 6.1.2 Web Interface
-- **Responsive Design**: Mobile-first approach
-- **Keyboard Navigation**: Full keyboard accessibility
-- **High Contrast Mode**: Enhanced visibility options
-- **RTL Support**: Arabic language layout support
-
-### 6.2 API Interfaces
-- **RESTful Design**: Standard HTTP methods and status codes
-- **OpenAPI Specification**: Comprehensive API documentation
-- **Rate Limiting**: Protection against abuse
-- **Versioning**: Backward compatibility support
-- **Error Handling**: Consistent error response format
+### 6.2 User Interface Design
+**Mapped to ADRs**: SCIB-194, SCIB-195, SCIB-196, SCIB-197
+- Responsive design supporting desktop, tablet, and mobile
+- Intuitive navigation with clear action buttons
+- Real-time updates for balance and transaction data
+- Accessibility compliance (WCAG 2.1 AA)
 
 ---
 
 ## 7. Non-Functional Aspects
 
 ### 7.1 Security
-- **Authentication**: Multi-factor authentication support
+- **Authentication**: OAuth 2.0 with JWT tokens
 - **Authorization**: Role-based access control (RBAC)
-- **Data Protection**: End-to-end encryption
-- **Audit Logging**: Comprehensive activity tracking
-- **Vulnerability Management**: Regular security assessments
-- **Compliance**: GDPR, PCI-DSS, ISO 27001 adherence
+- **Data Protection**: PII encryption and tokenization
+- **API Security**: Rate limiting, input validation, CORS policies
 
-### 7.2 Performance
-- **Response Time**: < 200ms for 95% of requests
-- **Document Processing**: < 5 seconds validation time
-- **Step Transitions**: < 200ms for smooth UX
-- **Component Rendering**: < 16ms for 60fps animations
-- **Concurrent Users**: Support for thousands of simultaneous uploads
+### 7.2 Compliance
+- **PCI-DSS**: Level 1 compliance for payment card data
+- **GDPR**: Data privacy and right to be forgotten
+- **SOX**: Financial reporting and audit controls
+- **Banking Regulations**: KYC/AML compliance integration
 
-### 7.3 Scalability
-- **Horizontal Scaling**: Auto-scaling container groups
-- **Load Balancing**: Intelligent traffic distribution
-- **Caching Strategy**: Multi-layer caching implementation
-- **Database Scaling**: Read replicas and connection pooling
-- **CDN Integration**: Global content delivery
+### 7.3 Performance
+- **Response Time**: < 500ms for dashboard API (95th percentile)
+- **Throughput**: 1000 concurrent users supported
+- **Availability**: 99.9% uptime SLA
+- **Scalability**: Horizontal scaling capability
 
-### 7.4 Availability
-- **Uptime Target**: 99.99% availability
-- **Disaster Recovery**: RTO < 4 hours, RPO < 1 hour
-- **Backup Strategy**: Daily encrypted backups
+### 7.4 Reliability
+- **Fault Tolerance**: Circuit breaker patterns for external services
+- **Data Consistency**: ACID transactions for financial operations
 - **Monitoring**: Real-time health checks and alerting
-- **Failover**: Automatic failover mechanisms
-
-### 7.5 Reliability
-- **Document Quality**: 95% validation accuracy
-- **Form State Preservation**: 99.9% success rate
-- **Component Rendering**: 99.9% success across browsers
-- **Error Recovery**: Graceful degradation and retry logic
-
-### 7.6 Maintainability
-- **Modular Architecture**: Loosely coupled components
-- **Documentation**: Comprehensive technical documentation
-- **Testing**: Automated test coverage > 90%
-- **Code Quality**: Static analysis and code reviews
-- **Deployment**: CI/CD pipeline automation
-
-### 7.7 Accessibility
-- **WCAG 2.1 AA**: Full compliance with accessibility standards
-- **Contrast Ratios**: Minimum 4.5:1 for normal text
-- **Touch Targets**: Minimum 48dp for mobile interfaces
-- **Alternative Input**: Support for assistive technologies
-- **Keyboard Navigation**: Complete keyboard accessibility
+- **Disaster Recovery**: RTO < 4 hours, RPO < 1 hour
 
 ---
 
 ## 8. Integration
 
-### 8.1 External System Integration
-- **Document Processing Service**: ML-based document analysis
-- **Authentication Service**: SSO and identity management
-- **Notification Service**: Real-time user notifications
-- **Audit Service**: Compliance and logging integration
-- **Payment Gateway**: Transaction processing (if applicable)
+### 8.1 Core Banking System Integration
+- **Protocol**: REST APIs over HTTPS
+- **Authentication**: Mutual TLS certificates
+- **Data Format**: JSON with schema validation
+- **Error Handling**: Standardized error codes and retry logic
 
-### 8.2 Integration Patterns
-- **API Gateway**: Centralized API management
-- **Event-Driven Architecture**: Asynchronous processing
-- **Circuit Breaker**: Fault tolerance for external calls
-- **Retry Logic**: Exponential backoff for failed requests
-- **Monitoring**: End-to-end transaction tracking
+### 8.2 Payment Service Integration
+- **Real-time Processing**: Synchronous API calls for transfers
+- **Idempotency**: Unique transaction IDs to prevent duplicates
+- **Reconciliation**: Daily batch reconciliation processes
+- **Fraud Detection**: Integration with fraud monitoring systems
 
 ---
 
 ## 9. Deployment
 
-### 9.1 Deployment Architecture
-- **Containerization**: Docker containers for all services
-- **Orchestration**: Kubernetes for container management
-- **Cloud Platform**: AWS with multi-AZ deployment
-- **Infrastructure as Code**: Terraform for infrastructure management
-- **Configuration Management**: Environment-specific configurations
+### 9.1 Infrastructure
+- **Cloud Platform**: AWS/Azure with multi-AZ deployment
+- **Containerization**: Docker containers orchestrated by Kubernetes
+- **Load Balancing**: Application Load Balancer with health checks
+- **Auto Scaling**: CPU and memory-based scaling policies
 
-### 9.2 Deployment Strategy
-- **Blue-Green Deployment**: Zero-downtime deployments
-- **Canary Releases**: Gradual rollout of new features
-- **Feature Flags**: Runtime feature toggling
-- **Rollback Capability**: Quick rollback mechanisms
-- **Health Checks**: Automated deployment validation
-
-### 9.3 Environment Strategy
-- **Development**: Local development environment
-- **Testing**: Automated testing environment
-- **Staging**: Production-like testing environment
-- **Production**: High-availability production environment
-- **Disaster Recovery**: Geographically distributed backup
+### 9.2 CI/CD Pipeline
+- **Source Control**: Git with feature branch workflow
+- **Build Process**: Automated testing and security scanning
+- **Deployment**: Blue-green deployment strategy
+- **Monitoring**: Comprehensive logging and metrics collection
 
 ---
 
 ## 10. Test Strategy
 
 ### 10.1 Testing Approach
-- **Unit Testing**: Component-level testing with >90% coverage
-- **Integration Testing**: API and service integration validation
-- **End-to-End Testing**: Complete user journey validation
-- **Performance Testing**: Load and stress testing
-- **Security Testing**: Vulnerability and penetration testing
-- **Accessibility Testing**: WCAG compliance validation
+- **Unit Testing**: 80% code coverage minimum
+- **Integration Testing**: API contract testing with mock services
+- **End-to-End Testing**: Automated UI testing for critical user journeys
+- **Performance Testing**: Load testing with realistic user scenarios
+- **Security Testing**: SAST/DAST scanning and penetration testing
 
-### 10.2 Test Automation
-- **Continuous Testing**: Automated test execution in CI/CD
-- **Test Data Management**: Synthetic test data generation
-- **Cross-Browser Testing**: Multi-browser compatibility
-- **Mobile Testing**: Device and OS compatibility
-- **API Testing**: Automated API contract validation
+### 10.2 Test Environments
+- **Development**: Local development with mocked dependencies
+- **Integration**: Shared environment for API integration testing
+- **Staging**: Production-like environment for UAT
+- **Production**: Live environment with monitoring and rollback capability
 
 ---
 
@@ -472,59 +350,40 @@ sequenceDiagram
 
 ### 11.1 Logging and Monitoring
 - **Centralized Logging**: ELK stack for log aggregation
-- **Application Metrics**: Real-time performance monitoring
-- **Business Metrics**: User behavior and conversion tracking
-- **Alerting**: Proactive issue detection and notification
-- **Dashboard**: Real-time operational visibility
+- **Application Metrics**: Prometheus and Grafana for monitoring
+- **Alerting**: PagerDuty integration for critical alerts
+- **Audit Trail**: Comprehensive audit logging for all user actions
 
 ### 11.2 Configuration Management
-- **Environment Variables**: Runtime configuration
-- **Feature Flags**: Dynamic feature control
-- **Secrets Management**: Secure credential storage
-- **Configuration Validation**: Startup configuration checks
-
-### 11.3 Error Handling
-- **Global Error Handler**: Centralized error processing
-- **User-Friendly Messages**: Clear error communication
-- **Error Recovery**: Automatic retry and fallback mechanisms
-- **Error Tracking**: Comprehensive error logging and analysis
+- **Environment-specific Configurations**: Externalized configuration
+- **Secret Management**: HashiCorp Vault for sensitive data
+- **Feature Flags**: LaunchDarkly for controlled feature rollouts
 
 ---
 
 ## 12. Implementation Strategy
 
-### 12.1 Phased Implementation
+### 12.1 Phased Approach
+**Phase 1**: Core API Development (4 weeks)
+- Dashboard API implementation
+- Fund transfer API development
+- Basic security and authentication
 
-**Phase 1: Foundation (Weeks 1-4)**
-- Core Component Library development (VRVTEMP-359)
-- Basic UI components with accessibility compliance
-- Development environment setup
-- CI/CD pipeline establishment
+**Phase 2**: User Interface Development (3 weeks)
+- Parent dashboard implementation
+- Fund transfer interface
+- Spending limit configuration UI
 
-**Phase 2: Form Framework (Weeks 5-8)**
-- Multi-step form implementation (VRVTEMP-376)
-- Progress tracking and navigation
-- Form validation framework
-- Mobile optimization
-
-**Phase 3: Document Upload (Weeks 9-12)**
-- Camera interface development (VRVTEMP-378)
-- Quality validation service
-- Document processing integration
-- Security implementation
-
-**Phase 4: Integration & Testing (Weeks 13-16)**
-- End-to-end integration
+**Phase 3**: Advanced Features (2 weeks)
+- Transaction history and reporting
+- Enhanced monitoring and alerting
 - Performance optimization
-- Security testing
-- User acceptance testing
 
 ### 12.2 Technical Dependencies
-- **Infrastructure**: AWS account setup and networking
-- **Development Tools**: CI/CD pipeline and monitoring tools
-- **Third-Party Services**: ML validation services
-- **Security**: SSL certificates and encryption keys
-- **Compliance**: Security and accessibility audits
+- Core Banking System API availability
+- Payment Service integration readiness
+- Authentication service configuration
+- Database schema deployment
 
 ---
 
@@ -532,144 +391,66 @@ sequenceDiagram
 
 ### 13.1 High-Priority Risks
 
-**Risk 1: Document Quality Validation Accuracy**
-- **Description**: ML-based validation may not achieve 95% accuracy target
-- **Impact**: High - Poor validation affects user experience and processing efficiency
-- **Likelihood**: Medium - ML models require extensive training and tuning
-- **Mitigation**: 
-  - Implement hybrid validation (ML + rule-based)
-  - Continuous model training with feedback loops
-  - Fallback to manual review for edge cases
-  - A/B testing for validation algorithms
+**Risk 1: Core Banking System Integration Failure**
+- **Impact**: High - System cannot function without banking data
+- **Likelihood**: Medium
+- **Mitigation**: Implement circuit breaker patterns, fallback mechanisms, and comprehensive testing
 
-**Risk 2: Mobile Performance on Low-End Devices**
-- **Description**: Camera processing and real-time validation may be slow on older devices
-- **Impact**: High - Poor performance affects user adoption
-- **Likelihood**: Medium - Wide range of device capabilities
-- **Mitigation**:
-  - Progressive enhancement approach
-  - Device capability detection
-  - Optimized algorithms for low-end devices
-  - Graceful degradation to basic upload
+**Risk 2: Payment Service Downtime**
+- **Impact**: High - Fund transfers unavailable
+- **Likelihood**: Low
+- **Mitigation**: Queue-based processing with retry logic, alternative payment providers
 
-**Risk 3: Security Vulnerabilities in File Upload**
-- **Description**: File upload functionality may introduce security risks
-- **Impact**: Critical - Data breaches and compliance violations
-- **Likelihood**: Low - With proper security measures
-- **Mitigation**:
-  - Comprehensive security testing
-  - File type validation and sanitization
-  - Virus scanning integration
-  - Regular security audits
+**Risk 3: Security Vulnerabilities**
+- **Impact**: Critical - Potential data breach and regulatory violations
+- **Likelihood**: Medium
+- **Mitigation**: Regular security audits, automated vulnerability scanning, secure coding practices
 
-### 13.2 Medium-Priority Risks
-
-**Risk 4: Third-Party Service Dependencies**
-- **Description**: Reliance on external document processing services
-- **Impact**: Medium - Service outages affect functionality
-- **Likelihood**: Medium - External dependencies always carry risk
-- **Mitigation**:
-  - Multiple service provider options
-  - Circuit breaker patterns
-  - Graceful degradation modes
-  - SLA monitoring and alerting
-
-**Risk 5: Accessibility Compliance Gaps**
-- **Description**: May not fully meet WCAG 2.1 AA requirements
-- **Impact**: Medium - Regulatory compliance and user exclusion
-- **Likelihood**: Low - With proper testing and validation
-- **Mitigation**:
-  - Accessibility-first development approach
-  - Regular accessibility audits
-  - User testing with disabled users
-  - Automated accessibility testing
+**Risk 4: Performance Degradation**
+- **Impact**: Medium - Poor user experience
+- **Likelihood**: Medium
+- **Mitigation**: Load testing, performance monitoring, caching strategies
 
 ---
 
 ## 14. Technical Debt
 
 ### 14.1 Identified Technical Debt
+- **Legacy Integration**: Temporary workarounds for core banking system limitations
+- **Monitoring Gaps**: Initial implementation may lack comprehensive observability
+- **Test Coverage**: Some edge cases may not be covered in initial release
 
-**Legacy Browser Support**
-- **Description**: Supporting older browsers may require polyfills and workarounds
-- **Impact**: Increased code complexity and maintenance overhead
-- **Timeline**: Address in Phase 4 with modern browser strategy
-
-**Component Library Evolution**
-- **Description**: Initial component library may need refactoring as requirements evolve
-- **Impact**: Breaking changes may require updates across applications
-- **Timeline**: Plan for v2.0 after initial release feedback
-
-**Performance Optimization**
-- **Description**: Initial implementation may not be fully optimized
-- **Impact**: May not meet all performance targets initially
-- **Timeline**: Continuous optimization post-launch
-
-### 14.2 Technical Debt Management
-- **Regular Reviews**: Monthly technical debt assessment
-- **Prioritization**: Impact vs. effort matrix for debt items
-- **Allocation**: 20% of sprint capacity for technical debt
-- **Documentation**: Maintain technical debt register
+### 14.2 Debt Management Strategy
+- **Prioritization**: Address security and performance-related debt first
+- **Regular Reviews**: Monthly technical debt assessment meetings
+- **Allocation**: 20% of sprint capacity dedicated to debt reduction
 
 ---
 
 ## 15. Appendices
 
 ### 15.1 ADR Mappings
-
-| ADR Reference | Component | Requirements Covered |
-|---------------|-----------|---------------------|
-| VRVTEMP-378 | Document Upload Interface | R16, R17, R18, R58 |
-| VRVTEMP-376 | Multi-Step Form Framework | R11, R12, R55, R56 |
-| VRVTEMP-359 | Core Component Library | R36, R37, R38, R39, R40, R41, R68, R69, R70 |
+| ADR ID | Component | Decision Summary |
+|--------|-----------|------------------|
+| SCIB-25 | Overall System | Parent fund allocation and management capability |
+| SCIB-26 | Dashboard API | Consolidated youth account information retrieval |
+| SCIB-27 | Transfer API | Secure fund transfer from parent to youth account |
+| SCIB-28 | Limit API | Weekly spending limit configuration |
+| SCIB-29 | History API | Transaction history retrieval with pagination |
+| SCIB-30 | API Spec | OpenAPI/Swagger specification for all endpoints |
+| SCIB-194 | UI Design | Fund transfer interaction flow |
+| SCIB-195 | UI Design | Youth account dashboard layout |
+| SCIB-196 | UI Design | Spending limit configuration interface |
+| SCIB-197 | UI Design | Youth account activity view |
 
 ### 15.2 Traceability Matrix
-
-| Requirement | Design Component | Implementation | Test Case |
-|-------------|------------------|----------------|----------|
-| Camera Interface | CameraInterface Component | React Native Camera | TC-001 |
-| Quality Validation | QualityValidator Service | Python ML Service | TC-002 |
-| Multi-Step Form | StepManager Component | React Form Library | TC-003 |
-| Accessibility | AccessibilityHelper | WCAG Components | TC-004 |
-| Security | Encryption Service | AWS KMS Integration | TC-005 |
-
-### 15.3 Compliance Mapping
-
-| Standard | Requirement | Implementation | Validation |
-|----------|-------------|----------------|------------|
-| GDPR | Data Protection | Encryption + Consent | Audit Logs |
-| PCI-DSS | Payment Security | Tokenization | Security Testing |
-| ISO 27001 | Information Security | Security Framework | Compliance Audit |
-| WCAG 2.1 AA | Accessibility | Accessible Components | Accessibility Testing |
-
-### 15.4 Performance Benchmarks
-
-| Metric | Target | Measurement Method | Monitoring |
-|--------|--------|-------------------|------------|
-| API Response Time | < 200ms | Load testing | APM Tools |
-| Document Processing | < 5 seconds | End-to-end testing | Business Metrics |
-| Form Transitions | < 200ms | User experience testing | RUM |
-| Component Rendering | < 16ms | Performance profiling | Browser DevTools |
+| Requirement | Design Component | Test Case | ADR Reference |
+|-------------|------------------|-----------|---------------|
+| Fund Allocation | Fund Transfer Service | TC-001 | SCIB-27 |
+| Spending Limits | Limit Management Service | TC-002 | SCIB-28 |
+| Activity Monitoring | Transaction History Service | TC-003 | SCIB-29 |
+| Dashboard View | Dashboard API | TC-004 | SCIB-26 |
 
 ---
 
-## Document Control
-
-**Version History**
-- v1.0 - Initial HLD document based on ADRs VRVTEMP-378, VRVTEMP-376, VRVTEMP-359
-
-**Approval**
-- Enterprise Solution Architect: [Signature Required]
-- Security Architect: [Signature Required]
-- Lead Developer: [Signature Required]
-
-**Distribution**
-- Development Teams
-- QA Teams
-- Security Team
-- Compliance Team
-- Business Stakeholders
-
----
-
-*This document represents the high-level design synthesized from the provided ADRs and follows enterprise architecture standards for traceability, compliance, and implementation guidance.*
+**Document End**
