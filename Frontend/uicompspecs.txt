@@ -2,637 +2,623 @@
 
 1. INPUT REFERENCE (FROM AGENT-1)
 
-Page Name: Document Upload Interface
-Mapped Layout: Comprehensive document upload with sidebar navigation
+Page Name: TaskFlow Kanban Board Application
+
+Mapped Layout: CSS Grid + Flexbox Hybrid Layout
+
 Components from A1:
-- HeaderComponent
-- SidebarComponent
-- CameraComponent
-- ValidationComponent
-- ProgressComponent
-- DocumentUploadComponent
-- QualityValidationComponent
-- FormSessionComponent
+- KanbanBoardComponent (Main feature component)
+- HeaderComponent (Layout component)
+- SidebarComponent (Layout component) 
+- TaskCardComponent (Feature component)
+- Button, Card, Avatar, Modal, Form Input, Search Field, Badge (Play UI library components)
 
 2. GLOBAL ARCHITECTURE SUMMARY
 
-Layout Type: Mixed (Flex + Grid)
-Main Sections:
-- Header (navigation and user info)
-- Sidebar (navigation menu)
-- Main Content (document upload workflow)
-- Modals (camera capture, validation)
+Layout Type: Mixed (CSS Grid for kanban columns, Flexbox for overall layout)
 
-Component Strategy: Reuse existing UI library components where possible
+Main Sections:
+- Header (Navigation and user controls)
+- Sidebar (Navigation menu and filters)
+- Main Content (Kanban board with three columns)
+- Modals (Task creation, editing, and details)
+
+Component Strategy: Maximize reuse from Play UI library, create minimal custom components
+
 Reused Components:
-- Button (from UI library)
-- Card (from UI library)
-- Badge (from UI library)
-- Stepper (from UI library)
-- Input (from UI library)
-- Avatar (from UI library)
-- Progress Bar (from UI library)
+- Button (Play UI)
+- Card (Play UI)
+- Avatar (Play UI)
+- Modal (Play UI)
+- FormInput (Play UI)
+- SearchField (Play UI)
+- Badge (Play UI)
 
 New Components (if any):
-- DocumentUploadComponent
-- CameraComponent
-- QualityValidationComponent
+- KanbanBoardComponent (Custom)
+- TaskCardComponent (Custom)
+- HeaderComponent (Custom)
+- SidebarComponent (Custom)
 
 3. FOLDER STRUCTURE
 
 src/
  ├── pages/
- │    └── document-upload/
- │         ├── DocumentUploadPage.tsx
+ │    └── kanban/
+ │         ├── KanbanPage.tsx
  │
  ├── components/
  │    ├── layout/
  │    │    ├── HeaderComponent.tsx
  │    │    └── SidebarComponent.tsx
  │    ├── feature/
- │    │    ├── DocumentUploadComponent.tsx
- │    │    ├── CameraComponent.tsx
- │    │    ├── QualityValidationComponent.tsx
- │    │    └── FormSessionComponent.tsx
+ │    │    ├── KanbanBoardComponent.tsx
+ │    │    └── TaskCardComponent.tsx
  │    ├── shared/
- │    │    ├── ProgressComponent.tsx
- │    │    └── ValidationComponent.tsx
+ │    │    └── (Play UI components imported)
 
 4. COMPONENT IMPLEMENTATION
 
-### 4.1 DocumentUploadPage
+### 4.1 KanbanBoardComponent
 
-Component Type: Page
-Mapped From A1: Main page container
-Purpose: Root page component for document upload workflow
-Parent: App
+Component Type: Feature
+
+Mapped From A1: Main kanban board with three-column layout
+
+Purpose: Display and manage tasks across To Do, In Progress, and Done columns with drag-and-drop functionality
+
+Parent: KanbanPage
+
 Children:
-- HeaderComponent
-- SidebarComponent
-- DocumentUploadComponent
+- TaskCardComponent (multiple instances)
+- Button (Play UI - Add Task)
+- SearchField (Play UI - Filter tasks)
 
 Dependencies:
-- React
-- TypeScript
-- UI Library components
+- React DnD for drag and drop
+- Play UI components
+- Task management API
 
 Library Components Used:
-- Container → Layout wrapper
-- Grid → Layout system
+- Button → Add Task actions
+- SearchField → Task filtering
+- Card → Column containers
 
-TypeScript Specification
+TypeScript Specification:
 
 Inputs:
-- userId: string
-- sessionId: string
+- tasks: Task[] (Array of task objects)
+- onTaskMove: (taskId: string, newStatus: string) => void
+- onTaskCreate: (task: Task) => void
+- onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
+- onTaskDelete: (taskId: string) => void
 
 Outputs:
-- onUploadComplete: (documentId: string) => void
-- onError: (error: Error) => void
+- taskMoved (payload: {taskId: string, fromColumn: string, toColumn: string})
+- taskCreated (payload: Task)
+- taskUpdated (payload: {taskId: string, updates: Partial<Task>})
+- taskDeleted (payload: {taskId: string})
 
 State:
+- filteredTasks: Task[]
+- searchQuery: string
+- draggedTask: Task | null
 - isLoading: boolean
-- currentStep: number
-- uploadProgress: number
+- error: string | null
 
 Methods:
-- handleUploadStart() → void
-- handleUploadComplete() → void
-- handleError() → void
+- handleTaskDrop(taskId: string, newStatus: string) → Updates task status
+- handleSearch(query: string) → Filters tasks
+- handleTaskCreate() → Opens task creation modal
+- refreshTasks() → Fetches latest tasks from API
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+HTML STRUCTURE (PSEUDO CODE ONLY):
 
-<Container>
-  <HeaderComponent user={user} />
-  <Grid container>
-    <Grid item xs={2}>
-      <SidebarComponent activeItem="upload" />
-    </Grid>
-    <Grid item xs={10}>
-      <DocumentUploadComponent 
-        onUploadComplete={handleUploadComplete}
-        onError={handleError}
-      />
-    </Grid>
-  </Grid>
-</Container>
+<div className="kanban-board">
+  <div className="kanban-header">
+    <SearchField placeholder="Filter tasks..." onSearch={handleSearch} />
+    <Button variant="primary" onClick={handleTaskCreate}>Add Task</Button>
+  </div>
+  
+  <div className="kanban-columns">
+    <div className="kanban-column" data-status="todo">
+      <div className="column-header">
+        <h3>To Do</h3>
+        <Badge count={todoTasks.length} />
+      </div>
+      <div className="column-content">
+        {todoTasks.map(task => 
+          <TaskCardComponent key={task.id} task={task} onUpdate={handleTaskUpdate} />
+        )}
+      </div>
+    </div>
+    
+    <div className="kanban-column" data-status="inprogress">
+      <div className="column-header">
+        <h3>In Progress</h3>
+        <Badge count={inProgressTasks.length} />
+      </div>
+      <div className="column-content">
+        {inProgressTasks.map(task => 
+          <TaskCardComponent key={task.id} task={task} onUpdate={handleTaskUpdate} />
+        )}
+      </div>
+    </div>
+    
+    <div className="kanban-column" data-status="done">
+      <div className="column-header">
+        <h3>Done</h3>
+        <Badge count={doneTasks.length} />
+      </div>
+      <div className="column-content">
+        {doneTasks.map(task => 
+          <TaskCardComponent key={task.id} task={task} onUpdate={handleTaskUpdate} />
+        )}
+      </div>
+    </div>
+  </div>
+</div>
 
-CSS SPECIFICATION
+CSS SPECIFICATION:
 
 Layout:
-- display: flex
-- flex-direction: column
+- display: grid
+- grid-template-columns: repeat(3, 1fr)
+- gap: 1rem
 - min-height: 100vh
 
 Spacing:
-- padding: 0
-- gap: 0
+- padding: 1rem
+- column gap: 1rem
+- card margin: 0.5rem 0
 
 Component Styles:
-- .page-container: full height layout
-- .main-content: flex-grow content area
+- .kanban-board: main container with grid layout
+- .kanban-column: flex column with overflow handling
+- .column-header: flex row with title and badge
+- .column-content: scrollable area for tasks
 
 Responsive:
-- Mobile: single column layout
-- Tablet: 768px+ sidebar appears
-- Desktop: 1024px+ full layout
+- Desktop (>1024px): 3 columns
+- Tablet (768px-1024px): 2 columns, scroll horizontally
+- Mobile (<768px): 1 column, stack vertically
 
-API INTEGRATION
+API INTEGRATION:
+- getTasks() → GET /api/tasks → Fetch all tasks
+- createTask(task) → POST /api/tasks → Create new task
+- updateTask(id, updates) → PUT /api/tasks/{id} → Update task
+- deleteTask(id) → DELETE /api/tasks/{id} → Delete task
 
-- initializeSession() → POST /api/form-sessions → create upload session
-- getUserInfo() → GET /api/users/profile → get user details
-
-ERROR HANDLING
-
+ERROR HANDLING:
 - API failure → show error snackbar
-- Session timeout → redirect to login
-- Network error → retry mechanism
+- Network timeout → retry mechanism
+- Validation error → inline error messages
+- Drag drop failure → revert to original position
 
-INTERACTION FLOW
-
+INTERACTION FLOW:
 User Action → UI → API
-- Page load → initialize session → create form session
-- Navigation → update sidebar → track analytics
+- Drag task → update UI optimistically → PUT /api/tasks/{id}
+- Search tasks → filter local state → no API call
+- Add task → open modal → POST /api/tasks → refresh list
 
-### 4.2 HeaderComponent
-
-Component Type: Layout
-Mapped From A1: Header navigation
-Purpose: Top navigation with user info and actions
-Parent: DocumentUploadPage
-Children:
-- Avatar
-- Button
-- Badge
-
-Dependencies:
-- UI Library Avatar
-- UI Library Button
-- UI Library Badge
-
-Library Components Used:
-- AppBar → Header container
-- Toolbar → Header content
-- Avatar → User profile image
-- Button → Action buttons
-
-TypeScript Specification
-
-Inputs:
-- user: UserProfile
-- notifications: number
-
-Outputs:
-- onLogout: () => void
-- onProfileClick: () => void
-- onNotificationClick: () => void
-
-State:
-- isMenuOpen: boolean
-
-Methods:
-- toggleMenu() → void
-- handleLogout() → void
-
-HTML STRUCTURE (PSEUDO CODE ONLY)
-
-<AppBar position="fixed">
-  <Toolbar>
-    <Logo />
-    <Spacer />
-    <Badge count={notifications}>
-      <NotificationIcon onClick={onNotificationClick} />
-    </Badge>
-    <Avatar src={user.avatar} onClick={onProfileClick} />
-    <Button onClick={onLogout}>Logout</Button>
-  </Toolbar>
-</AppBar>
-
-CSS SPECIFICATION
-
-Layout:
-- position: fixed
-- top: 0
-- width: 100%
-- z-index: 1000
-
-Spacing:
-- padding: 0 24px
-- height: 64px
-
-Component Styles:
-- .header-container: flex justify-between
-- .user-section: flex align-center gap-16
-
-Responsive:
-- Mobile: hide text labels, show icons only
-- Desktop: show full navigation
-
-API INTEGRATION
-
-- getNotifications() → GET /api/notifications → fetch notification count
-- logout() → POST /api/auth/logout → user logout
-
-ERROR HANDLING
-
-- Logout failure → show error message
-- Notification fetch error → hide badge
-
-INTERACTION FLOW
-
-User Action → UI → API
-- Click avatar → open profile menu → no API
-- Click logout → confirm dialog → logout API call
-- Click notifications → open notification panel → fetch notifications
-
-### 4.3 SidebarComponent
-
-Component Type: Layout
-Mapped From A1: Navigation sidebar
-Purpose: Left navigation menu with workflow steps
-Parent: DocumentUploadPage
-Children:
-- Navigation items
-- Stepper component
-
-Dependencies:
-- UI Library Stepper
-- UI Library List
-
-Library Components Used:
-- Drawer → Sidebar container
-- List → Navigation items
-- Stepper → Progress indicator
-
-TypeScript Specification
-
-Inputs:
-- activeItem: string
-- currentStep: number
-- completedSteps: number[]
-
-Outputs:
-- onNavigate: (route: string) => void
-- onStepClick: (step: number) => void
-
-State:
-- isCollapsed: boolean
-
-Methods:
-- toggleCollapse() → void
-- handleNavigation() → void
-
-HTML STRUCTURE (PSEUDO CODE ONLY)
-
-<Drawer variant="permanent" open={!isCollapsed}>
-  <List>
-    <ListItem active={activeItem === 'upload'}>
-      <ListItemIcon><UploadIcon /></ListItemIcon>
-      <ListItemText>Upload Documents</ListItemText>
-    </ListItem>
-    <ListItem active={activeItem === 'review'}>
-      <ListItemIcon><ReviewIcon /></ListItemIcon>
-      <ListItemText>Review & Submit</ListItemText>
-    </ListItem>
-  </List>
-  <Stepper orientation="vertical" activeStep={currentStep}>
-    <Step completed={completedSteps.includes(0)}>
-      <StepLabel>Document Capture</StepLabel>
-    </Step>
-    <Step completed={completedSteps.includes(1)}>
-      <StepLabel>Quality Check</StepLabel>
-    </Step>
-    <Step completed={completedSteps.includes(2)}>
-      <StepLabel>Validation</StepLabel>
-    </Step>
-  </Stepper>
-</Drawer>
-
-CSS SPECIFICATION
-
-Layout:
-- position: fixed
-- left: 0
-- height: 100vh
-- width: 280px (expanded) / 64px (collapsed)
-
-Spacing:
-- padding: 16px 0
-- gap: 8px between items
-
-Component Styles:
-- .sidebar-container: flex column
-- .nav-item: hover effects
-- .stepper-section: margin-top auto
-
-Responsive:
-- Mobile: overlay drawer
-- Tablet: mini variant
-- Desktop: permanent drawer
-
-API INTEGRATION
-
-- getProgress() → GET /api/form-sessions/{id}/progress → fetch completion status
-
-ERROR HANDLING
-
-- Progress fetch error → show default state
-- Navigation error → stay on current page
-
-INTERACTION FLOW
-
-User Action → UI → API
-- Click nav item → navigate to route → update active state
-- Click step → navigate to step → update progress
-
-### 4.4 DocumentUploadComponent
+### 4.2 TaskCardComponent
 
 Component Type: Feature
-Mapped From A1: Main upload interface
-Purpose: Handle document upload workflow with camera and file upload
-Parent: DocumentUploadPage
+
+Mapped From A1: Individual task card within kanban columns
+
+Purpose: Display task information and provide interaction controls
+
+Parent: KanbanBoardComponent
+
 Children:
-- CameraComponent
-- QualityValidationComponent
-- ProgressComponent
+- Avatar (Play UI - Assignee)
+- Badge (Play UI - Priority/Status)
+- Button (Play UI - Actions)
 
 Dependencies:
-- File upload utilities
-- Camera API
-- Validation services
+- Play UI components
+- Date formatting utilities
 
 Library Components Used:
-- Card → Upload container
-- Button → Action buttons
-- Progress → Upload progress
-- Input → File input
+- Avatar → Task assignee
+- Badge → Priority indicator
+- Button → Edit/Delete actions
+- Card → Container wrapper
 
-TypeScript Specification
+TypeScript Specification:
 
 Inputs:
-- sessionId: string
-- allowedTypes: string[]
-- maxFileSize: number
+- task: Task (Task object with id, title, description, assignee, priority, dueDate)
+- onUpdate: (taskId: string, updates: Partial<Task>) => void
+- onDelete: (taskId: string) => void
+- isDragging: boolean
 
 Outputs:
-- onUploadComplete: (files: UploadedFile[]) => void
-- onUploadProgress: (progress: number) => void
-- onError: (error: UploadError) => void
+- taskClicked (payload: Task)
+- taskUpdated (payload: {taskId: string, updates: Partial<Task>})
+- taskDeleted (payload: {taskId: string})
 
 State:
-- uploadedFiles: UploadedFile[]
-- isUploading: boolean
-- uploadProgress: number
-- validationResults: ValidationResult[]
+- isHovered: boolean
+- showActions: boolean
 
 Methods:
-- handleFileSelect() → void
-- handleCameraCapture() → void
-- validateFiles() → Promise<ValidationResult[]>
-- uploadFiles() → Promise<void>
+- handleClick() → Opens task details
+- handleEdit() → Opens edit modal
+- handleDelete() → Confirms and deletes task
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+HTML STRUCTURE (PSEUDO CODE ONLY):
 
-<Card className="upload-container">
-  <CardHeader>
-    <Typography variant="h5">Upload Documents</Typography>
-  </CardHeader>
-  <CardContent>
-    <Grid container spacing={3}>
-      <Grid item xs={12} md={6}>
-        <Card className="upload-method">
-          <Button onClick={handleCameraCapture}>
-            <CameraIcon />
-            Take Photo
-          </Button>
-        </Card>
-      </Grid>
-      <Grid item xs={12} md={6}>
-        <Card className="upload-method">
-          <Input type="file" onChange={handleFileSelect} />
-          <Button>Choose Files</Button>
-        </Card>
-      </Grid>
-    </Grid>
+<Card className="task-card" draggable onDragStart={handleDragStart}>
+  <div className="task-header">
+    <div className="task-title">{task.title}</div>
+    <Badge variant={getPriorityVariant(task.priority)}>{task.priority}</Badge>
+  </div>
+  
+  <div className="task-description">
+    {task.description}
+  </div>
+  
+  <div className="task-footer">
+    <div className="task-assignee">
+      <Avatar src={task.assignee.avatar} size="small" />
+      <span>{task.assignee.name}</span>
+    </div>
     
-    {isUploading && (
-      <ProgressComponent 
-        value={uploadProgress}
-        label="Uploading files..."
-      />
-    )}
-    
-    <QualityValidationComponent 
-      files={uploadedFiles}
-      validationResults={validationResults}
-    />
-  </CardContent>
+    <div className="task-actions">
+      <Button variant="ghost" size="small" onClick={handleEdit}>Edit</Button>
+      <Button variant="ghost" size="small" onClick={handleDelete}>Delete</Button>
+    </div>
+  </div>
+  
+  {task.dueDate && (
+    <div className="task-due-date">
+      Due: {formatDate(task.dueDate)}
+    </div>
+  )}
 </Card>
 
-CSS SPECIFICATION
+CSS SPECIFICATION:
 
 Layout:
 - display: flex
 - flex-direction: column
-- gap: 24px
+- gap: 0.5rem
 
 Spacing:
-- padding: 24px
-- margin: 16px 0
+- padding: 1rem
+- margin: 0.5rem 0
 
 Component Styles:
-- .upload-container: elevated card
-- .upload-method: hover effects
-- .file-preview: grid layout
+- .task-card: rounded corners, shadow, hover effects
+- .task-header: flex row with title and priority
+- .task-footer: flex row with assignee and actions
 
 Responsive:
-- Mobile: single column upload methods
-- Desktop: two column layout
+- Mobile: stack elements vertically
+- Desktop: maintain flex layout
 
-API INTEGRATION
+API INTEGRATION:
+- updateTask(id, updates) → PUT /api/tasks/{id} → Update task details
+- deleteTask(id) → DELETE /api/tasks/{id} → Remove task
 
-- uploadFile() → POST /api/documents/upload → upload document
-- validateDocument() → POST /api/documents/validate → validate quality
-- getUploadProgress() → GET /api/documents/{id}/progress → track progress
+ERROR HANDLING:
+- Update failure → revert changes, show error
+- Delete failure → show confirmation error
+- Network error → retry option
 
-ERROR HANDLING
-
-- Upload failure → retry mechanism
-- File size error → inline validation message
-- Network error → queue for retry
-
-INTERACTION FLOW
-
+INTERACTION FLOW:
 User Action → UI → API
-- Select files → validate → show preview → upload
-- Camera capture → process image → validate → upload
-- Upload complete → show success → navigate to next step
+- Click card → open task details modal → no API call
+- Edit task → open edit form → PUT /api/tasks/{id}
+- Delete task → confirm dialog → DELETE /api/tasks/{id}
 
-### 4.5 CameraComponent
+### 4.3 HeaderComponent
 
-Component Type: Feature
-Mapped From A1: Camera capture interface
-Purpose: Capture documents using device camera
-Parent: DocumentUploadComponent
+Component Type: Layout
+
+Mapped From A1: Application header with navigation and user controls
+
+Purpose: Provide global navigation, user menu, and application branding
+
+Parent: KanbanPage
+
 Children:
-- Camera preview
-- Capture controls
+- Avatar (Play UI - User profile)
+- Button (Play UI - Navigation items)
+- SearchField (Play UI - Global search)
 
 Dependencies:
-- Camera API
-- Image processing utilities
+- Authentication service
+- Navigation router
+- Play UI components
 
 Library Components Used:
-- Modal → Camera interface
-- Button → Capture controls
-- IconButton → Camera controls
+- Avatar → User profile picture
+- Button → Navigation and action buttons
+- SearchField → Global search functionality
 
-TypeScript Specification
+TypeScript Specification:
 
 Inputs:
-- isOpen: boolean
-- captureMode: 'photo' | 'document'
+- user: User (Current user object)
+- onLogout: () => void
+- onSearch: (query: string) => void
 
 Outputs:
-- onCapture: (imageData: string) => void
-- onClose: () => void
-- onError: (error: CameraError) => void
+- userMenuClicked (payload: User)
+- searchPerformed (payload: {query: string})
+- logoutRequested (payload: void)
 
 State:
-- stream: MediaStream | null
-- isCapturing: boolean
-- capturedImage: string | null
+- isUserMenuOpen: boolean
+- searchQuery: string
 
 Methods:
-- initializeCamera() → Promise<void>
-- captureImage() → void
-- retakeImage() → void
-- confirmCapture() → void
+- handleUserMenuToggle() → Opens/closes user menu
+- handleLogout() → Initiates logout process
+- handleGlobalSearch(query) → Performs global search
 
-HTML STRUCTURE (PSEUDO CODE ONLY)
+HTML STRUCTURE (PSEUDO CODE ONLY):
 
-<Modal open={isOpen} onClose={onClose}>
-  <Card className="camera-container">
-    <CardHeader>
-      <Typography>Capture Document</Typography>
-      <IconButton onClick={onClose}>
-        <CloseIcon />
-      </IconButton>
-    </CardHeader>
-    <CardContent>
-      {!capturedImage ? (
-        <div className="camera-preview">
-          <video ref={videoRef} autoPlay />
-          <div className="camera-overlay">
-            <div className="document-guide" />
-          </div>
-        </div>
-      ) : (
-        <div className="image-preview">
-          <img src={capturedImage} alt="Captured" />
+<header className="app-header">
+  <div className="header-left">
+    <div className="app-logo">
+      <h1>TaskFlow</h1>
+    </div>
+  </div>
+  
+  <div className="header-center">
+    <SearchField 
+      placeholder="Search tasks, projects..." 
+      onSearch={handleGlobalSearch}
+    />
+  </div>
+  
+  <div className="header-right">
+    <Button variant="ghost" onClick={handleNotifications}>
+      Notifications
+    </Button>
+    
+    <div className="user-menu">
+      <Avatar 
+        src={user.avatar} 
+        onClick={handleUserMenuToggle}
+        size="medium"
+      />
+      
+      {isUserMenuOpen && (
+        <div className="user-dropdown">
+          <Button variant="ghost" onClick={handleProfile}>Profile</Button>
+          <Button variant="ghost" onClick={handleSettings}>Settings</Button>
+          <Button variant="ghost" onClick={handleLogout}>Logout</Button>
         </div>
       )}
-    </CardContent>
-    <CardActions>
-      {!capturedImage ? (
-        <Button onClick={captureImage} disabled={isCapturing}>
-          <CameraIcon /> Capture
-        </Button>
-      ) : (
-        <>
-          <Button onClick={retakeImage}>Retake</Button>
-          <Button onClick={confirmCapture} variant="contained">
-            Use Photo
-          </Button>
-        </>
-      )}
-    </CardActions>
-  </Card>
-</Modal>
+    </div>
+  </div>
+</header>
 
-CSS SPECIFICATION
+CSS SPECIFICATION:
 
 Layout:
-- position: fixed
-- top: 50%
-- left: 50%
-- transform: translate(-50%, -50%)
+- display: flex
+- justify-content: space-between
+- align-items: center
+- height: 60px
 
 Spacing:
-- padding: 0
-- width: 90vw
-- max-width: 600px
+- padding: 0 1rem
+- gap: 1rem between sections
 
 Component Styles:
-- .camera-preview: aspect-ratio 4:3
-- .document-guide: overlay guidelines
-- .image-preview: full width preview
+- .app-header: fixed position, z-index high
+- .header-left, .header-center, .header-right: flex containers
+- .user-dropdown: absolute positioned dropdown
 
 Responsive:
-- Mobile: full screen modal
-- Desktop: centered modal
+- Mobile: hide search, show hamburger menu
+- Desktop: full layout with all elements
 
-API INTEGRATION
+API INTEGRATION:
+- logout() → POST /api/auth/logout → Clear session
+- globalSearch(query) → GET /api/search?q={query} → Search results
 
-- processImage() → POST /api/documents/process → enhance image quality
+ERROR HANDLING:
+- Logout failure → show error message
+- Search failure → show no results message
 
-ERROR HANDLING
-
-- Camera permission denied → show permission request
-- Camera not available → fallback to file upload
-- Capture error → retry mechanism
-
-INTERACTION FLOW
-
+INTERACTION FLOW:
 User Action → UI → API
-- Open camera → request permissions → initialize stream
-- Capture photo → process image → show preview
-- Confirm capture → return image data → close modal
+- Click avatar → toggle user menu → no API call
+- Click logout → confirm → POST /api/auth/logout
+- Search → debounced input → GET /api/search
+
+### 4.4 SidebarComponent
+
+Component Type: Layout
+
+Mapped From A1: Navigation sidebar with menu items and filters
+
+Purpose: Provide navigation between different views and filtering options
+
+Parent: KanbanPage
+
+Children:
+- Button (Play UI - Navigation items)
+- Badge (Play UI - Count indicators)
+
+Dependencies:
+- Router for navigation
+- Filter state management
+- Play UI components
+
+Library Components Used:
+- Button → Navigation menu items
+- Badge → Count indicators for filters
+
+TypeScript Specification:
+
+Inputs:
+- activeRoute: string
+- taskCounts: {todo: number, inProgress: number, done: number}
+- onNavigate: (route: string) => void
+- onFilterChange: (filter: FilterOptions) => void
+
+Outputs:
+- navigationChanged (payload: {route: string})
+- filterApplied (payload: FilterOptions)
+
+State:
+- isCollapsed: boolean
+- activeFilters: FilterOptions
+
+Methods:
+- handleNavigation(route) → Changes active route
+- handleFilterToggle(filter) → Applies/removes filter
+- handleSidebarToggle() → Collapses/expands sidebar
+
+HTML STRUCTURE (PSEUDO CODE ONLY):
+
+<aside className="sidebar">
+  <nav className="sidebar-nav">
+    <div className="nav-section">
+      <h3>Views</h3>
+      <Button 
+        variant="ghost" 
+        className={activeRoute === 'kanban' ? 'active' : ''}
+        onClick={() => handleNavigation('kanban')}
+      >
+        Kanban Board
+      </Button>
+      <Button 
+        variant="ghost"
+        className={activeRoute === 'list' ? 'active' : ''}
+        onClick={() => handleNavigation('list')}
+      >
+        List View
+      </Button>
+    </div>
+    
+    <div className="nav-section">
+      <h3>Filters</h3>
+      <Button variant="ghost" onClick={() => handleFilterToggle('all')}>
+        All Tasks
+        <Badge count={taskCounts.total} />
+      </Button>
+      <Button variant="ghost" onClick={() => handleFilterToggle('todo')}>
+        To Do
+        <Badge count={taskCounts.todo} />
+      </Button>
+      <Button variant="ghost" onClick={() => handleFilterToggle('inprogress')}>
+        In Progress
+        <Badge count={taskCounts.inProgress} />
+      </Button>
+      <Button variant="ghost" onClick={() => handleFilterToggle('done')}>
+        Done
+        <Badge count={taskCounts.done} />
+      </Button>
+    </div>
+    
+    <div className="nav-section">
+      <h3>Priority</h3>
+      <Button variant="ghost" onClick={() => handleFilterToggle('high')}>
+        High Priority
+      </Button>
+      <Button variant="ghost" onClick={() => handleFilterToggle('medium')}>
+        Medium Priority
+      </Button>
+      <Button variant="ghost" onClick={() => handleFilterToggle('low')}>
+        Low Priority
+      </Button>
+    </div>
+  </nav>
+</aside>
+
+CSS SPECIFICATION:
+
+Layout:
+- display: flex
+- flex-direction: column
+- width: 250px
+- min-height: 100vh
+
+Spacing:
+- padding: 1rem
+- gap: 1rem between sections
+
+Component Styles:
+- .sidebar: fixed position, background color
+- .nav-section: grouped navigation items
+- .active: highlighted active state
+
+Responsive:
+- Mobile: overlay sidebar, toggle visibility
+- Desktop: fixed sidebar, always visible
+
+API INTEGRATION:
+- No direct API calls (uses parent component data)
+
+ERROR HANDLING:
+- Navigation failure → fallback to previous route
+- Filter failure → reset to default filters
+
+INTERACTION FLOW:
+User Action → UI → API
+- Click navigation → update route → no API call
+- Apply filter → update parent state → parent fetches filtered data
 
 5. COMPONENT MAPPING SUMMARY
 
 | A1 Component | Final Component | Type |
 |--------------|----------------|---------|
+| KanbanBoardComponent | KanbanBoardComponent | Feature |
 | HeaderComponent | HeaderComponent | Layout |
 | SidebarComponent | SidebarComponent | Layout |
-| DocumentUploadComponent | DocumentUploadComponent | Feature |
-| CameraComponent | CameraComponent | Feature |
-| ValidationComponent | QualityValidationComponent | Feature |
-| ProgressComponent | ProgressComponent | Shared |
-| FormSessionComponent | FormSessionComponent | Feature |
+| TaskCardComponent | TaskCardComponent | Feature |
+| Button | Button (Play UI) | Shared |
+| Card | Card (Play UI) | Shared |
+| Avatar | Avatar (Play UI) | Shared |
+| Modal | Modal (Play UI) | Shared |
+| FormInput | FormInput (Play UI) | Shared |
+| SearchField | SearchField (Play UI) | Shared |
+| Badge | Badge (Play UI) | Shared |
 
 6. DATA FLOW (FROM AGENT-1)
 
 Parent → Child:
-DocumentUploadPage → HeaderComponent (user, notifications)
-DocumentUploadPage → SidebarComponent (activeItem, currentStep)
-DocumentUploadPage → DocumentUploadComponent (sessionId, config)
-DocumentUploadComponent → CameraComponent (isOpen, captureMode)
-DocumentUploadComponent → QualityValidationComponent (files, results)
+KanbanPage → HeaderComponent (user, onLogout, onSearch)
+KanbanPage → SidebarComponent (activeRoute, taskCounts, onNavigate, onFilterChange)
+KanbanPage → KanbanBoardComponent (tasks, onTaskMove, onTaskCreate, onTaskUpdate, onTaskDelete)
+KanbanBoardComponent → TaskCardComponent (task, onUpdate, onDelete, isDragging)
 
 7. API USAGE SUMMARY
 
 Component → API:
-- DocumentUploadPage → POST /api/form-sessions (initialize session)
-- HeaderComponent → GET /api/notifications (fetch notifications)
-- HeaderComponent → POST /api/auth/logout (user logout)
-- SidebarComponent → GET /api/form-sessions/{id}/progress (fetch progress)
-- DocumentUploadComponent → POST /api/documents/upload (upload files)
-- DocumentUploadComponent → POST /api/documents/validate (validate quality)
-- CameraComponent → POST /api/documents/process (process images)
+- KanbanBoardComponent → GET /api/tasks (fetch tasks)
+- KanbanBoardComponent → POST /api/tasks (create task)
+- KanbanBoardComponent → PUT /api/tasks/{id} (update task)
+- KanbanBoardComponent → DELETE /api/tasks/{id} (delete task)
+- TaskCardComponent → PUT /api/tasks/{id} (update task details)
+- TaskCardComponent → DELETE /api/tasks/{id} (delete task)
+- HeaderComponent → POST /api/auth/logout (logout user)
+- HeaderComponent → GET /api/search (global search)
 
 8. NOTES & CONSTRAINTS
 
-- HTML must follow A1 structure strictly
-- Do NOT create new components unnecessarily
-- Prefer reusable library components
-- HTML must be pseudo-code ONLY (not full framework code)
-- Implement responsive design with mobile-first approach
-- Follow WCAG 2.1 AA accessibility guidelines
-- Use TypeScript for type safety
-- Implement proper error handling and loading states
-- Follow component composition patterns
-- Ensure API integration matches OpenAPI specifications
-- Implement proper file validation and security measures
-- Use progressive enhancement for camera features
-- Implement proper cleanup for camera streams and event listeners
+- HTML must follow A1 structure strictly with three-column kanban layout
+- Do NOT create new components unnecessarily - maximize Play UI library usage
+- Prefer reusable library components over custom implementations
+- HTML must be pseudo-code ONLY (NOT real framework code)
+- CSS Grid is mandatory for kanban column layout as per Jira requirements
+- Accessibility features (ARIA attributes, keyboard navigation) must be implemented
+- Responsive design is required with specific breakpoints
+- Drag and drop functionality must be implemented with visual feedback
+- Error handling must be comprehensive with user-friendly messages
+- API integration should include proper error handling and loading states
+- Component state management should be minimal and focused
+- All components must support TypeScript with proper type definitions
+- Security considerations (input validation, XSS prevention) must be implemented
+- Performance optimization (memoization, lazy loading) should be considered
+- Testing strategy should include unit tests for all components
+- Documentation should be maintained for all custom components
