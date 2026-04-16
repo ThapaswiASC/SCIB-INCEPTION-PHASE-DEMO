@@ -5,614 +5,307 @@
 **Story Title:** Design three-column Kanban board layout and responsive behavior
 
 ## Experience Overview
-Project managers, team leads, and team members need to effectively manage and track work items through different stages of completion using a visual Kanban board system. This experience encompasses task management, workflow visualization, progress tracking, and collaborative work management.
+Project managers, team leads, and team members need an intuitive and accessible Kanban board interface to manage tasks effectively across different devices and screen sizes. The experience encompasses task management, workflow visualization, and collaborative project tracking.
 
 ## Scenarios and Workflows
 
-### Scenario 1: Project Manager Creating and Managing Kanban Board
-
-**Context:** Sarah, a project manager at a software development company, needs to set up a new Kanban board for her team's upcoming sprint. She wants to organize tasks across three columns (To Do, In Progress, Done) and ensure the board is accessible and responsive across all devices her team uses.
-
-**User Goal:** To efficiently create, organize, and manage a visual workflow system that helps track project progress and team productivity in real-time.
-
-**Business Goal:** To increase team productivity and project visibility while reducing time spent on status meetings and manual progress tracking, ultimately improving project delivery timelines.
-
-#### Workflow Variation 1: Desktop-First Setup
-
-**Screen Sequence:** 1.0 → 2.0 → 3.0 → 4.0 → 5.0
-
-##### 1.0 Kanban Board Dashboard
-**Page Goal:** To provide an overview of all available Kanban boards and enable quick access to create new boards or navigate to existing ones.
-
-**Screen Description:**
-- User can view a list of existing Kanban boards with project names, team members, and last updated timestamps
-- User can create a new Kanban board using a prominent "Create New Board" button
-- User can search and filter existing boards by project name, team, or status
-- User can access board templates for quick setup
-- User can view board analytics and team performance metrics
-
-**Design Problems:**
-- HMW help users quickly identify the most relevant board from multiple projects?
-- HMW communicate board status and activity level without overwhelming the interface?
-- HMW make board creation feel approachable for new users?
-- HMW ensure consistent navigation patterns across different board types?
-
-**Design Opportunities:**
-- What if the system could suggest optimal board templates based on team size and project type?
-- What if there was a quick preview mode to see board contents without full navigation?
-- What if we could provide smart recommendations for board organization?
-- What if users could create board shortcuts for frequently accessed projects?
-
-##### 2.0 Board Configuration Setup
-**Page Goal:** To guide users through the initial setup of their three-column Kanban board with appropriate customization options.
-
-**Screen Description:**
-- User can set board title and description
-- User can configure the three default columns (To Do, In Progress, Done) with custom names if needed
-- User can set column limits for work-in-progress management
-- User can invite team members and assign permissions
-- User can choose from predefined color schemes and themes
-- User can configure notification preferences
-
-**Design Problems:**
-- HMW balance customization options with simplicity for quick setup?
-- HMW ensure users understand the purpose of each configuration option?
-- HMW prevent users from creating overly complex initial setups?
-- HMW make team invitation seamless and secure?
-
-**Design Opportunities:**
-- What if the system could auto-suggest team members based on previous projects?
-- What if there were smart defaults based on industry best practices?
-- What if users could import configurations from existing successful boards?
-- What if the setup process included interactive tutorials?
-
-##### 3.0 Three-Column Kanban Board Interface
-**Page Goal:** To provide the main workspace where users can visualize, manage, and interact with their project tasks across the three workflow stages.
-
-**Screen Description:**
-- Three distinct columns displayed horizontally: "To Do", "In Progress", "Done"
-- Each column has a clear header with title, task count, and optional WIP limits
-- Cards can be dragged and dropped between columns
-- Each card displays task title, assignee avatar, priority indicator, and due date
-- Column headers include add task buttons and filter options
-- Responsive layout adapts to screen size while maintaining column separation
-- Accessibility features include keyboard navigation and screen reader support
-
-**Design Problems:**
-- HMW ensure drag-and-drop functionality works seamlessly across all devices?
-- HMW maintain visual hierarchy and readability with varying numbers of cards?
-- HMW communicate task priority and urgency without visual clutter?
-- HMW ensure accessibility compliance while maintaining visual appeal?
-- HMW handle overflow when columns contain many cards?
-
-**Design Opportunities:**
-- What if cards could show real-time collaboration indicators?
-- What if the system could suggest optimal task distribution across columns?
-- What if there were smart filters that adapt to user behavior?
-- What if the board could provide predictive insights about project completion?
-
-##### 4.0 Task Card Detail View
-**Page Goal:** To provide comprehensive task information and enable detailed task management without leaving the board context.
-
-**Screen Description:**
-- Modal or side panel displaying full task details
-- Task title, description, and status information
-- Assignee management with team member selection
-- Due date and priority settings
-- Comment thread for team collaboration
-- File attachment capabilities
-- Task history and activity log
-- Subtask creation and management
-
-**Design Problems:**
-- HMW balance detailed information with quick access patterns?
-- HMW ensure the detail view doesn't disrupt the board workflow?
-- HMW make collaboration features discoverable and engaging?
-- HMW handle complex task relationships and dependencies?
-
-**Design Opportunities:**
-- What if the detail view could show related tasks from other boards?
-- What if there were smart suggestions for task completion?
-- What if the system could auto-generate progress updates?
-- What if team members could collaborate in real-time within task details?
-
-##### 5.0 Responsive Mobile View
-**Page Goal:** To provide full Kanban board functionality on mobile devices while maintaining usability and accessibility.
-
-**Screen Description:**
-- Stacked column layout for mobile screens (320px-767px)
-- Swipe gestures for moving between columns
-- Touch-optimized card interactions
-- Collapsible column headers to maximize content space
-- Mobile-specific navigation patterns
-- Optimized typography and spacing for touch interfaces
-
-**Design Problems:**
-- HMW maintain the three-column concept on narrow screens?
-- HMW ensure touch interactions are precise and reliable?
-- HMW provide equivalent functionality to desktop version?
-- HMW handle complex gestures without conflicting with system navigation?
-
-**Design Opportunities:**
-- What if mobile users could use voice commands for task updates?
-- What if the mobile view included location-based task reminders?
-- What if there were mobile-specific shortcuts for common actions?
-- What if the system could sync seamlessly between mobile and desktop contexts?
-
-#### Workflow Variation 2: Template-Based Quick Setup
-
-**Screen Sequence:** 1.0 → 2.1 → 3.0 → 4.0 → 5.0
-
-##### 2.1 Template Selection Screen
-**Page Goal:** To accelerate board creation through pre-configured templates while maintaining customization flexibility.
-
-**Screen Description:**
-- Gallery of Kanban board templates organized by industry and use case
-- Template previews showing column configurations and sample cards
-- Template descriptions explaining ideal use cases and team sizes
-- Option to customize template before creation
-- Import functionality for external board configurations
-- Recently used templates for quick access
-
-**Design Problems:**
-- HMW help users choose the most appropriate template for their needs?
-- HMW balance template variety with decision paralysis?
-- HMW ensure templates are genuinely useful rather than just decorative?
-- HMW make template customization intuitive and non-destructive?
-
-**Design Opportunities:**
-- What if templates could be community-contributed and rated?
-- What if the system could recommend templates based on team composition?
-- What if templates included best practice guidance and tips?
-- What if users could create and share their own templates?
-
-### Scenario 2: Team Member Daily Task Management
-
-**Context:** Mike, a software developer, starts his workday and needs to check his assigned tasks, update progress, and collaborate with team members. He primarily works on a laptop but occasionally checks updates on his mobile device during meetings.
-
-**User Goal:** To efficiently manage personal task assignments, communicate progress to the team, and stay informed about project status without disrupting focus time.
-
-**Business Goal:** To maintain team alignment and project momentum while minimizing administrative overhead and maximizing productive development time.
-
-#### Workflow Variation 1: Focus Mode Task Management
-
-**Screen Sequence:** 3.0 → 3.1 → 4.0 → 3.2 → Pu.1
-
-##### 3.1 Personal Task Filter View
-**Page Goal:** To provide a focused view of individual assignments while maintaining team context and collaboration opportunities.
-
-**Screen Description:**
-- Filtered board view showing only user's assigned tasks
-- Quick toggle between personal view and full team view
-- Task priority indicators and due date warnings
-- Progress indicators for tasks in different stages
-- Quick action buttons for common task updates
-- Notification badges for mentions and comments
-
-**Design Problems:**
-- HMW balance personal focus with team awareness?
-- HMW ensure users don't lose sight of overall project progress?
-- HMW make switching between views seamless and contextual?
-- HMW communicate urgency without creating stress?
-
-**Design Opportunities:**
-- What if the system could suggest optimal work sequences based on dependencies?
-- What if there were focus time recommendations based on task complexity?
-- What if the personal view included productivity insights and patterns?
-- What if team members could see each other's focus status?
-
-##### 3.2 Quick Update Interface
-**Page Goal:** To enable rapid task status updates without disrupting workflow or requiring detailed form completion.
-
-**Screen Description:**
-- Inline editing capabilities for task status and progress
-- Quick comment addition with @mention functionality
-- One-click status changes with optional progress notes
-- Bulk update options for multiple related tasks
-- Keyboard shortcuts for power users
-- Undo functionality for accidental changes
-
-**Design Problems:**
-- HMW make updates feel effortless while maintaining data quality?
-- HMW ensure updates are properly communicated to relevant team members?
-- HMW prevent accidental changes while enabling quick interactions?
-- HMW balance speed with the need for meaningful progress communication?
-
-**Design Opportunities:**
-- What if the system could auto-suggest update messages based on task type?
-- What if there were smart templates for common update scenarios?
-- What if updates could include automatic time tracking?
-- What if the system could learn user patterns and suggest optimal update timing?
-
-##### Pu.1 Collaboration Notification Popup
-**Page Goal:** To provide timely, relevant notifications about team activities without disrupting individual focus and productivity.
-
-**Screen Description:**
-- Non-intrusive notification popup for mentions and comments
-- Quick reply functionality without leaving current context
-- Notification grouping to prevent overwhelming users
-- Snooze and priority options for managing interruptions
-- Direct links to relevant tasks and conversations
-- Customizable notification preferences
-
-**Design Problems:**
-- HMW balance real-time collaboration with focus time protection?
-- HMW ensure important communications aren't missed?
-- HMW prevent notification fatigue while maintaining team connectivity?
-- HMW make notifications actionable rather than just informational?
-
-**Design Opportunities:**
-- What if notifications could be intelligently timed based on user activity?
-- What if there were different notification modes for different work contexts?
-- What if the system could learn which notifications are most important to each user?
-- What if notifications included contextual information to aid quick decision-making?
-
-#### Workflow Variation 2: Mobile-First Task Updates
-
-**Screen Sequence:** 5.0 → 5.1 → 5.2 → Pu.2
-
-##### 5.1 Mobile Task Dashboard
-**Page Goal:** To provide comprehensive task management capabilities optimized for mobile interaction patterns and contexts.
-
-**Screen Description:**
-- Card-based layout optimized for thumb navigation
-- Swipe gestures for quick task status changes
-- Voice-to-text capabilities for adding comments
-- Offline functionality with sync when connection restored
-- Location-aware task reminders and context
-- Integration with mobile calendar and notification systems
-
-**Design Problems:**
-- HMW ensure full functionality is available on mobile without complexity?
-- HMW handle network connectivity issues gracefully?
-- HMW make touch interactions precise and reliable?
-- HMW integrate with mobile ecosystem without overwhelming users?
-
-**Design Opportunities:**
-- What if mobile updates could include photo documentation?
-- What if the system could use location data to provide contextual task suggestions?
-- What if there were mobile-specific collaboration features like quick video updates?
-- What if the mobile app could work seamlessly offline for extended periods?
-
-##### 5.2 Mobile Quick Actions Menu
-**Page Goal:** To provide rapid access to common task management actions through mobile-optimized interaction patterns.
-
-**Screen Description:**
-- Floating action button with expandable quick actions
-- Gesture-based shortcuts for power users
-- Voice command integration for hands-free updates
-- Quick photo capture for task documentation
-- One-tap status updates with smart defaults
-- Emergency escalation options for urgent issues
-
-**Design Problems:**
-- HMW make advanced features discoverable without cluttering the interface?
-- HMW ensure accessibility for users with different motor abilities?
-- HMW balance feature richness with mobile performance?
-- HMW handle edge cases like poor network connectivity?
-
-**Design Opportunities:**
-- What if the quick actions could be personalized based on user role and preferences?
-- What if there were contextual actions based on time, location, or current task?
-- What if the system could suggest actions based on team patterns and project phase?
-- What if quick actions could trigger automated workflows?
-
-##### Pu.2 Mobile Notification Banner
-**Page Goal:** To deliver timely, actionable notifications that respect mobile usage patterns and battery life considerations.
-
-**Screen Description:**
-- Persistent notification banner for important updates
-- Expandable details with quick action options
-- Smart bundling of related notifications
-- Battery-optimized delivery timing
-- Integration with device notification settings
-- Quick dismiss and snooze functionality
-
-**Design Problems:**
-- HMW respect user attention and device resources?
-- HMW ensure critical information reaches users reliably?
-- HMW prevent notification overload while maintaining team connectivity?
-- HMW work effectively across different mobile platforms and versions?
-
-**Design Opportunities:**
-- What if notifications could adapt to user's current activity and availability?
-- What if there were smart notification scheduling based on optimal attention times?
-- What if notifications could include predictive information about upcoming deadlines?
-- What if the system could learn from user notification interactions to improve relevance?
-
-### Scenario 3: Stakeholder Progress Review and Reporting
-
-**Context:** Jennifer, a department director, needs to review project progress across multiple teams for an upcoming executive meeting. She requires high-level insights, trend analysis, and the ability to drill down into specific issues when needed.
-
-**User Goal:** To quickly understand project status, identify potential risks or bottlenecks, and gather actionable insights for strategic decision-making and resource allocation.
-
-**Business Goal:** To provide leadership with accurate, timely project intelligence that enables proactive decision-making and ensures alignment between operational execution and strategic objectives.
-
-#### Workflow Variation 1: Executive Dashboard View
-
-**Screen Sequence:** 6.0 → 7.0 → 8.0 → 3.0 → 9.0
-
-##### 6.0 Portfolio Overview Dashboard
-**Page Goal:** To provide high-level visibility into multiple Kanban boards and projects with key performance indicators and trend analysis.
-
-**Screen Description:**
-- Grid view of multiple Kanban boards with summary statistics
-- Key metrics including completion rates, cycle times, and team velocity
-- Visual indicators for projects at risk or behind schedule
-- Trend charts showing progress over time
-- Filter and search capabilities across all projects
-- Quick access to detailed board views
-
-**Design Problems:**
-- HMW present complex information in an easily digestible format?
-- HMW help stakeholders identify issues that require attention?
-- HMW balance overview perspective with actionable detail?
-- HMW ensure data accuracy and real-time relevance?
-
-**Design Opportunities:**
-- What if the dashboard could provide predictive analytics about project completion?
-- What if there were automated alerts for projects requiring executive attention?
-- What if the system could suggest resource reallocation based on project performance?
-- What if stakeholders could set custom KPIs and success metrics?
-
-##### 7.0 Analytics and Reporting Interface
-**Page Goal:** To provide comprehensive project analytics with customizable reporting capabilities for different stakeholder needs.
-
-**Screen Description:**
-- Interactive charts and graphs showing project metrics
-- Customizable date ranges and comparison periods
-- Export functionality for presentations and reports
-- Drill-down capabilities from summary to detailed views
-- Automated report generation and scheduling
-- Benchmark comparisons with historical data
-
-**Design Problems:**
-- HMW make complex analytics accessible to non-technical stakeholders?
-- HMW ensure reports provide actionable insights rather than just data?
-- HMW handle varying levels of detail needed by different stakeholders?
-- HMW maintain data privacy and access control in shared reports?
-
-**Design Opportunities:**
-- What if reports could include AI-generated insights and recommendations?
-- What if stakeholders could create custom dashboard views for different meetings?
-- What if the system could automatically identify and highlight anomalies?
-- What if reports could be interactive and allow real-time exploration during presentations?
-
-##### 8.0 Risk Assessment and Bottleneck Analysis
-**Page Goal:** To identify and communicate project risks, bottlenecks, and opportunities for improvement with clear action recommendations.
-
-**Screen Description:**
-- Visual representation of workflow bottlenecks and constraints
-- Risk indicators with severity levels and impact assessments
-- Recommended actions for addressing identified issues
-- Team capacity analysis and workload distribution
-- Dependency mapping and critical path visualization
-- Historical pattern analysis for predictive insights
-
-**Design Problems:**
-- HMW communicate complex project dynamics in understandable terms?
-- HMW prioritize risks and recommendations for executive attention?
-- HMW ensure risk assessments are accurate and actionable?
-- HMW balance automated analysis with human judgment and context?
-
-**Design Opportunities:**
-- What if the system could simulate different scenarios and their impacts?
-- What if risk assessments could include external factors and market conditions?
-- What if there were automated escalation procedures for critical risks?
-- What if the system could learn from past project outcomes to improve predictions?
-
-##### 9.0 Executive Summary Report
-**Page Goal:** To provide a concise, executive-level summary of project status with key decisions and actions required.
-
-**Screen Description:**
-- Executive summary with key findings and recommendations
-- Status indicators for all active projects
-- Resource allocation recommendations
-- Timeline and milestone tracking
-- Budget and resource utilization metrics
-- Action items with assigned owners and deadlines
-
-**Design Problems:**
-- HMW distill complex project information into executive-appropriate summaries?
-- HMW ensure summaries are accurate while remaining concise?
-- HMW make reports actionable with clear next steps?
-- HMW maintain consistency across different project types and teams?
-
-**Design Opportunities:**
-- What if executive summaries could be automatically generated and customized?
-- What if reports could include video summaries from project managers?
-- What if there were interactive elements for exploring specific concerns?
-- What if the system could track executive decisions and their outcomes?
-
-#### Workflow Variation 2: Real-Time Monitoring Dashboard
-
-**Screen Sequence:** 6.1 → 7.1 → Pu.3 → 8.1
-
-##### 6.1 Live Project Monitoring Interface
-**Page Goal:** To provide real-time visibility into project activities with immediate alerts for issues requiring stakeholder attention.
-
-**Screen Description:**
-- Live activity feed showing real-time project updates
-- Configurable alert thresholds for different types of issues
-- Team activity indicators and availability status
-- Real-time progress tracking with automatic updates
-- Integration with communication tools for immediate escalation
-- Mobile-optimized view for monitoring on-the-go
-
-**Design Problems:**
-- HMW balance real-time information with information overload?
-- HMW ensure critical issues are immediately visible and actionable?
-- HMW maintain system performance with real-time data updates?
-- HMW provide appropriate context for real-time alerts?
-
-**Design Opportunities:**
-- What if the monitoring system could predict issues before they become critical?
-- What if there were different monitoring modes for different types of projects?
-- What if stakeholders could set personalized alert preferences?
-- What if the system could automatically suggest interventions for emerging issues?
-
-##### 7.1 Interactive Performance Metrics
-**Page Goal:** To provide dynamic, interactive analysis tools that allow stakeholders to explore project performance from multiple perspectives.
-
-**Screen Description:**
-- Interactive charts with drill-down capabilities
-- Comparative analysis tools for benchmarking
-- Custom metric creation and tracking
-- Real-time collaboration features for discussing findings
-- Integration with external data sources and tools
-- Mobile-responsive design for access across devices
-
-**Design Problems:**
-- HMW make interactive tools intuitive for non-technical users?
-- HMW ensure data accuracy and consistency across different views?
-- HMW balance interactivity with performance and usability?
-- HMW provide appropriate guidance for interpreting complex metrics?
-
-**Design Opportunities:**
-- What if interactive tools could suggest optimal viewing perspectives based on user role?
-- What if there were collaborative annotation features for sharing insights?
-- What if the system could remember and suggest frequently used analysis patterns?
-- What if interactive metrics could be embedded in other business tools and presentations?
-
-##### Pu.3 Critical Alert Notification
-**Page Goal:** To immediately communicate critical project issues to stakeholders with clear context and recommended actions.
-
-**Screen Description:**
-- High-priority notification overlay with issue details
-- Immediate action options and escalation procedures
-- Context information including affected projects and teams
-- Direct communication channels to relevant project managers
-- Historical context and similar issue resolution patterns
-- Mobile push notification integration for urgent alerts
-
-**Design Problems:**
-- HMW ensure critical alerts receive appropriate attention without causing panic?
-- HMW provide sufficient context for informed decision-making?
-- HMW balance urgency with accuracy in alert communications?
-- HMW prevent alert fatigue while maintaining responsiveness to genuine issues?
-
-**Design Opportunities:**
-- What if critical alerts could include suggested resolution strategies based on past successes?
-- What if there were different alert channels for different types of stakeholders?
-- What if alerts could automatically convene relevant team members for immediate response?
-- What if the system could learn from alert responses to improve future communications?
-
-##### 8.1 Stakeholder Communication Hub
-**Page Goal:** To facilitate effective communication between stakeholders and project teams with appropriate context and documentation.
-
-**Screen Description:**
-- Centralized communication interface with project context
-- Message threading organized by project and topic
-- Document sharing and collaborative editing capabilities
-- Meeting scheduling and agenda management
-- Decision tracking and approval workflows
-- Integration with existing communication and collaboration tools
-
-**Design Problems:**
-- HMW ensure communications are properly contextualized and actionable?
-- HMW balance transparency with appropriate information access levels?
-- HMW make communication efficient without losing important nuances?
-- HMW maintain communication history and decision audit trails?
-
-**Design Opportunities:**
-- What if the communication hub could suggest optimal communication channels based on message type and urgency?
-- What if there were AI-assisted message composition for complex technical communications?
-- What if the system could automatically generate meeting summaries and action items?
-- What if stakeholder communications could be automatically integrated with project documentation?
-
-## Accessibility and Scalability Considerations
-
-### Accessibility Requirements
-- **ARIA Labels:** All interactive elements include appropriate ARIA labels for screen readers
-- **Keyboard Navigation:** Full functionality available through keyboard-only navigation
-- **Focus Management:** Clear focus indicators and logical tab order throughout all interfaces
-- **Color Contrast:** All text and interactive elements meet WCAG 2.1 AA contrast requirements
-- **Screen Reader Support:** Comprehensive screen reader announcements for dynamic content changes
-- **Motor Accessibility:** Touch targets meet minimum size requirements (44px) and include adequate spacing
-- **Cognitive Accessibility:** Clear language, consistent navigation patterns, and helpful error messages
-
-### Scalability Considerations
-- **Performance:** Interface remains responsive with large numbers of tasks and team members
-- **Data Management:** Efficient handling of historical data and analytics across multiple projects
-- **User Management:** Support for enterprise-level user management and permission systems
-- **Integration Capability:** API-first design enabling integration with existing business tools
-- **Customization:** Flexible configuration options to accommodate different organizational needs
-- **Multi-tenancy:** Support for multiple organizations with data isolation and custom branding
-
-## Design Tokens and Technical Specifications
-
-### Responsive Breakpoints
-- **Mobile:** 320px - 767px (stacked layout)
-- **Tablet:** 768px - 1023px (adaptive three-column)
-- **Desktop:** 1024px+ (full three-column layout)
-
-### Color Palette
-- **To Do Column:** #E3F2FD (Light Blue)
-- **In Progress Column:** #FFF3E0 (Light Orange)
-- **Done Column:** #E8F5E8 (Light Green)
-- **Primary Action:** #1976D2 (Blue)
-- **Secondary Action:** #757575 (Gray)
-- **Error State:** #D32F2F (Red)
-- **Success State:** #388E3C (Green)
-
-### Typography Hierarchy
-- **Column Headers:** 18px, Semi-bold, Letter-spacing: 0.5px
-- **Card Titles:** 16px, Medium, Line-height: 1.4
-- **Card Metadata:** 14px, Regular, Color: #666666
-- **Body Text:** 14px, Regular, Line-height: 1.5
-- **Captions:** 12px, Regular, Color: #888888
-
-### Spacing System
-- **Base Unit:** 8px
-- **Column Spacing:** 24px (3 units)
-- **Card Spacing:** 16px (2 units)
-- **Internal Padding:** 16px (2 units)
-- **Micro Spacing:** 8px (1 unit)
+### Scenario 1: Project Manager Setting Up New Project Board
+
+**Context:** Sarah, a project manager at a software development company, needs to set up a new Kanban board for her team's upcoming sprint. She wants to quickly organize tasks into the standard workflow columns and ensure the board is accessible to all team members, including those using screen readers.
+
+**User Goal:** To efficiently set up and configure a Kanban board that provides clear visual organization of tasks and supports team collaboration.
+
+**Business Goal:** To provide an intuitive project management interface that increases team productivity and reduces setup time, leading to faster project delivery and improved user adoption.
+
+#### Workflow 1A: Desktop Setup Experience
+
+**1.0 Kanban Board Dashboard**
+- **Page Goal:** To provide immediate access to board creation and overview of existing projects
+- **Screen Description:**
+  - User can view existing Kanban boards in a grid layout
+  - Primary action button to "Create New Board" prominently displayed
+  - Quick access to recently viewed boards
+  - Search functionality for finding specific boards
+  - User profile and settings accessible from header
+- **Design Problems:**
+  - HMW help users quickly distinguish between different project boards?
+  - HMW make the board creation process immediately discoverable?
+  - HMW provide context about board status without overwhelming the interface?
+- **Design Opportunities:**
+  - What if we could show real-time progress indicators for each board?
+  - What if we provided board templates for common project types?
+  - What if we could integrate with existing project management tools?
+
+**2.0 Board Creation Setup**
+- **Page Goal:** To guide users through efficient board configuration with clear column structure
+- **Screen Description:**
+  - Three-column layout preview showing "To Do", "In Progress", "Done"
+  - Board name input field with validation
+  - Column customization options (rename, color selection)
+  - Team member invitation interface
+  - Accessibility settings toggle (high contrast, screen reader optimization)
+- **Design Problems:**
+  - HMW make column customization intuitive without overwhelming new users?
+  - HMW ensure accessibility features are discoverable but not intrusive?
+  - HMW provide clear feedback during the setup process?
+- **Design Opportunities:**
+  - What if we could auto-suggest column names based on project type?
+  - What if we provided real-time collaboration during setup?
+  - What if we could import existing task lists from other tools?
+
+**3.0 Active Kanban Board Interface**
+- **Page Goal:** To provide an efficient, accessible workspace for task management and team collaboration
+- **Screen Description:**
+  - Three distinct columns with clear visual separation
+  - Drag-and-drop functionality for task movement
+  - Task cards with priority indicators, assignee avatars, and due dates
+  - Column headers with task counts and progress indicators
+  - Quick add task functionality within each column
+  - Keyboard navigation support for accessibility
+- **Design Problems:**
+  - HMW ensure drag-and-drop works seamlessly across different input methods?
+  - HMW maintain visual hierarchy when columns have varying task quantities?
+  - HMW provide clear feedback for task state changes?
+- **Design Opportunities:**
+  - What if we could show real-time collaboration indicators?
+  - What if we provided smart task suggestions based on project history?
+  - What if we could integrate time tracking directly into task cards?
+
+#### Workflow 1B: Mobile-First Setup Experience
+
+**1.0 Mobile Dashboard**
+- **Page Goal:** To provide touch-optimized access to board management on mobile devices
+- **Screen Description:**
+  - Vertical stack layout of existing boards
+  - Large, touch-friendly "Create Board" button
+  - Swipe gestures for board actions (archive, duplicate, share)
+  - Condensed header with hamburger menu
+  - Search functionality with voice input option
+- **Design Problems:**
+  - HMW optimize touch targets for various hand sizes and accessibility needs?
+  - HMW provide sufficient information density without cluttering small screens?
+  - HMW ensure gesture-based interactions are discoverable?
+- **Design Opportunities:**
+  - What if we could use device orientation to optimize layout?
+  - What if we provided offline functionality for mobile users?
+  - What if we could integrate with mobile notification systems?
+
+**2.0 Mobile Board Setup**
+- **Page Goal:** To streamline board creation process for mobile users with simplified interactions
+- **Screen Description:**
+  - Step-by-step wizard interface
+  - Large input fields optimized for mobile keyboards
+  - Column preview in horizontal scroll format
+  - Simplified color picker with preset options
+  - One-tap team member addition from contacts
+- **Design Problems:**
+  - HMW reduce cognitive load during mobile setup process?
+  - HMW ensure form completion is efficient on small screens?
+  - HMW provide adequate preview of final board layout?
+- **Design Opportunities:**
+  - What if we could use device camera to scan existing board layouts?
+  - What if we provided voice-to-text for board and task naming?
+  - What if we could suggest team members based on recent collaborations?
+
+**3.0 Mobile Kanban Interface**
+- **Page Goal:** To provide full Kanban functionality optimized for touch interaction and small screens
+- **Screen Description:**
+  - Horizontal swipe navigation between columns
+  - Column indicator dots showing current view
+  - Long-press for task actions menu
+  - Floating action button for quick task addition
+  - Collapsible task details to maximize screen real estate
+- **Design Problems:**
+  - HMW maintain context when users navigate between columns?
+  - HMW ensure task manipulation is precise on touch screens?
+  - HMW provide adequate task information in limited space?
+- **Design Opportunities:**
+  - What if we could use haptic feedback for task interactions?
+  - What if we provided gesture shortcuts for power users?
+  - What if we could optimize for one-handed usage?
+
+### Scenario 2: Team Member Managing Daily Tasks
+
+**Context:** Alex, a software developer, starts their workday and needs to review assigned tasks, update progress, and collaborate with team members. They use a screen reader and require full keyboard navigation support.
+
+**User Goal:** To efficiently manage assigned tasks, update progress, and maintain clear communication with team members while using assistive technology.
+
+**Business Goal:** To ensure inclusive design that supports all users regardless of abilities, increasing team productivity and user satisfaction while meeting accessibility compliance requirements.
+
+#### Workflow 2A: Accessibility-First Task Management
+
+**1.0 Accessible Board Landing**
+- **Page Goal:** To provide comprehensive screen reader support and keyboard navigation for task overview
+- **Screen Description:**
+  - ARIA landmarks clearly defining board regions
+  - Skip navigation links for efficient screen reader usage
+  - Column headers with proper heading hierarchy (h2, h3)
+  - Task count announcements for each column
+  - High contrast mode toggle in header
+- **Design Problems:**
+  - HMW ensure screen readers announce board changes effectively?
+  - HMW provide sufficient context for non-visual users?
+  - HMW maintain semantic structure while supporting visual design?
+- **Design Opportunities:**
+  - What if we could provide audio cues for different task types?
+  - What if we could integrate with popular screen reader shortcuts?
+  - What if we provided customizable announcement preferences?
+
+**2.0 Task Detail and Editing**
+- **Page Goal:** To enable comprehensive task management through keyboard-only interaction
+- **Screen Description:**
+  - Modal dialog with proper focus management
+  - Form fields with clear labels and error messaging
+  - Keyboard shortcuts for common actions (save, cancel, delete)
+  - Status change dropdown with clear options
+  - Comment thread with proper threading structure
+- **Design Problems:**
+  - HMW ensure focus management doesn't confuse screen reader users?
+  - HMW provide clear feedback for task state changes?
+  - HMW make complex interactions accessible through keyboard only?
+- **Design Opportunities:**
+  - What if we could provide voice commands for task updates?
+  - What if we could integrate with assistive technology APIs?
+  - What if we provided customizable keyboard shortcuts?
+
+#### Workflow 2B: Collaborative Task Updates
+
+**1.0 Real-time Collaboration Interface**
+- **Page Goal:** To show live updates and team member activity while maintaining performance
+- **Screen Description:**
+  - Live cursors showing team member locations
+  - Real-time task movement animations
+  - Notification system for relevant updates
+  - Presence indicators for active team members
+  - Conflict resolution interface for simultaneous edits
+- **Design Problems:**
+  - HMW balance real-time updates with system performance?
+  - HMW prevent information overload from too many live updates?
+  - HMW handle conflicts when multiple users edit simultaneously?
+- **Design Opportunities:**
+  - What if we could show edit history and attribution?
+  - What if we could provide smart notifications based on user preferences?
+  - What if we could integrate with team communication tools?
+
+### Scenario 3: Stakeholder Reviewing Project Progress
+
+**Context:** Maria, a department director, needs to quickly review multiple project statuses during a brief break between meetings. She's using a tablet and needs to understand project health and potential blockers at a glance.
+
+**User Goal:** To quickly assess project progress, identify potential issues, and make informed decisions about resource allocation.
+
+**Business Goal:** To provide executive-level visibility into project status that enables quick decision-making and proactive issue resolution.
+
+#### Workflow 3A: Executive Dashboard View
+
+**1.0 Project Overview Dashboard**
+- **Page Goal:** To provide high-level project insights optimized for quick consumption
+- **Screen Description:**
+  - Multiple board previews in grid layout
+  - Progress indicators and health status for each project
+  - Filter options by team, priority, or deadline
+  - Quick access to detailed board views
+  - Export functionality for reporting
+- **Design Problems:**
+  - HMW provide sufficient detail without overwhelming busy executives?
+  - HMW highlight critical issues that need immediate attention?
+  - HMW make navigation between projects efficient?
+- **Design Opportunities:**
+  - What if we could provide predictive analytics for project completion?
+  - What if we could integrate with calendar systems for deadline awareness?
+  - What if we could provide automated status reports?
+
+**2.0 Detailed Project Analysis**
+- **Page Goal:** To enable deep-dive analysis of specific projects with actionable insights
+- **Screen Description:**
+  - Full Kanban board with enhanced analytics overlay
+  - Task aging indicators and bottleneck identification
+  - Team performance metrics and workload distribution
+  - Historical progress charts and trend analysis
+  - Action item recommendations based on data
+- **Design Problems:**
+  - HMW present complex data in digestible formats?
+  - HMW ensure insights lead to actionable decisions?
+  - HMW maintain board usability while adding analytical features?
+- **Design Opportunities:**
+  - What if we could provide AI-powered project health predictions?
+  - What if we could suggest optimal resource reallocation?
+  - What if we could integrate with business intelligence tools?
 
 ## Error States and Edge Cases
 
-### Er.1 Network Connectivity Issues
-- Offline mode with local data caching
-- Clear indicators when operating in offline mode
-- Automatic sync when connectivity restored
-- Conflict resolution for simultaneous edits
+**Er.1 Network Connectivity Issues**
+- **Goal:** To maintain user productivity during connectivity problems
+- **Description:** Offline mode with local storage, sync indicators, and conflict resolution upon reconnection
 
-### Er.2 Data Loading Failures
-- Graceful degradation with skeleton loading states
-- Retry mechanisms with exponential backoff
-- Clear error messages with suggested actions
-- Fallback to cached data when available
+**Er.2 Data Loading Failures**
+- **Goal:** To provide clear feedback and recovery options when data fails to load
+- **Description:** Error messages with retry options, partial data display, and alternative navigation paths
 
-### Er.3 Permission and Access Errors
-- Clear communication of access limitations
-- Appropriate fallback views for restricted users
-- Escalation paths for requesting additional access
-- Audit logging for security compliance
+**Er.3 Permission and Access Errors**
+- **Goal:** To clearly communicate access limitations and provide appropriate alternatives
+- **Description:** Permission-based UI states, request access functionality, and alternative view modes
 
-### Er.4 Performance and Scalability Issues
-- Progressive loading for large datasets
-- Pagination and virtualization for performance
-- Graceful handling of system resource constraints
-- User feedback during long-running operations
+## Responsive Breakpoints and Adaptations
 
-## Success Metrics and KPIs
+### Mobile (320px-767px)
+- Single column view with horizontal navigation
+- Touch-optimized interactions
+- Simplified task cards
+- Collapsible sections for space efficiency
 
-### User Experience Metrics
-- **Task Completion Rate:** >95% for core workflows
-- **Time to Complete Common Actions:** <30 seconds for task updates
-- **User Satisfaction Score:** >4.5/5.0 in usability testing
-- **Accessibility Compliance:** 100% WCAG 2.1 AA compliance
+### Tablet (768px-1023px)
+- Two-column layout with column switching
+- Hybrid touch and cursor interactions
+- Medium-density information display
+- Adaptive navigation patterns
 
-### Business Impact Metrics
-- **Team Productivity:** 20% improvement in task completion velocity
-- **Project Visibility:** 90% of stakeholders report improved project insight
-- **Collaboration Efficiency:** 30% reduction in status meeting time
-- **User Adoption:** 85% active usage within 30 days of deployment
+### Desktop (1024px+)
+- Full three-column layout
+- Advanced keyboard shortcuts
+- High-density information display
+- Multi-monitor support considerations
 
-### Technical Performance Metrics
-- **Page Load Time:** <2 seconds for initial load
-- **Interaction Response Time:** <100ms for drag-and-drop operations
-- **Mobile Performance:** Lighthouse score >90 for mobile
-- **Accessibility Score:** Lighthouse accessibility score >95
+## Screen Flow Sequences
 
-This comprehensive user workflow documentation provides a foundation for creating an accessible, scalable, and user-centered three-column Kanban board system that serves the needs of individual contributors, project managers, and executive stakeholders while maintaining technical excellence and business value.
+### Workflow 1A (Desktop Setup):
+1.0 Kanban Board Dashboard → 2.0 Board Creation Setup → 3.0 Active Kanban Board Interface
+
+### Workflow 1B (Mobile Setup):
+1.0 Mobile Dashboard → 2.0 Mobile Board Setup → 3.0 Mobile Kanban Interface
+
+### Workflow 2A (Accessibility-First):
+1.0 Accessible Board Landing → 2.0 Task Detail and Editing
+
+### Workflow 2B (Collaborative Updates):
+1.0 Real-time Collaboration Interface
+
+### Workflow 3A (Executive Dashboard):
+1.0 Project Overview Dashboard → 2.0 Detailed Project Analysis
+
+## Design Tokens and Specifications
+
+### Spacing
+- Column gap: 24px (desktop), 16px (tablet), 8px (mobile)
+- Card margin: 16px vertical, 12px horizontal
+- Header padding: 20px (desktop), 16px (mobile)
+
+### Typography
+- Column headers: 18px bold, 24px line height
+- Task titles: 16px medium, 20px line height
+- Task details: 14px regular, 18px line height
+
+### Colors
+- To Do column: #E3F2FD (light blue)
+- In Progress column: #FFF3E0 (light orange)
+- Done column: #E8F5E8 (light green)
+- Focus states: #2196F3 (blue)
+- Error states: #F44336 (red)
+
+### Accessibility Requirements
+- WCAG 2.1 AA compliance
+- Minimum 4.5:1 color contrast ratio
+- Focus indicators visible at 200% zoom
+- Screen reader compatibility with NVDA, JAWS, VoiceOver
+- Keyboard navigation support for all interactive elements
+
+This comprehensive user workflow documentation provides the foundation for creating an inclusive, scalable, and user-centered Kanban board experience that serves diverse user needs while meeting business objectives.
