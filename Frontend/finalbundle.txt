@@ -3,7 +3,7 @@
 ## 1. JIRA REQUIREMENT SUMMARY
 
 **Story Description:**
-Create Angular component for Kanban board container with three-column layout. Implementation details include creating Angular component at src/app/features/kanban/components/kanban-board/kanban-board.component.ts. Implement component class with @Component decorator and selector 'app-kanban-board'. Define template in kanban-board.component.html with three column containers using CSS Grid layout (grid-template-columns: repeat(3, 1fr)). Create component SCSS file with responsive breakpoints: desktop (>1024px), tablet (768px-1024px), mobile (<768px). Implement OnInit lifecycle hook to initialize column data structure: columns = [{id: 'todo', title: 'To Do', cards: []}, {id: 'inprogress', title: 'In Progress', cards: []}, {id: 'done', title: 'Done', cards: []}]. Add ARIA attributes: role='region', aria-label='Kanban Board', and aria-labelledby for each column header. Implement error handling with *ngIf directive to display error message when column configuration fails. Use Angular Material or custom CSS for styling. Add responsive meta tags and viewport configuration.
+Create Angular component for Kanban board container with three-column layout. Implement component class with @Component decorator and selector 'app-kanban-board'. Define template in kanban-board.component.html with three column containers using CSS Grid layout (grid-template-columns: repeat(3, 1fr)). Create component SCSS file with responsive breakpoints: desktop (>1024px), tablet (768px-1024px), mobile (<768px). Implement OnInit lifecycle hook to initialize column data structure: columns = [{id: 'todo', title: 'To Do', cards: []}, {id: 'inprogress', title: 'In Progress', cards: []}, {id: 'done', title: 'Done', cards: []}]. Add ARIA attributes: role='region', aria-label='Kanban Board', and aria-labelledby for each column header. Implement error handling with *ngIf directive to display error message when column configuration fails. Use Angular Material or custom CSS for styling. Add responsive meta tags and viewport configuration.
 
 **Acceptance Criteria:**
 - KanbanBoardComponent created with proper Angular structure and decorators
@@ -14,1407 +14,205 @@ Create Angular component for Kanban board container with three-column layout. Im
 - Component compiles without errors and passes linting checks
 
 **UI Tasks:**
-- Create Angular component structure
+- Create Angular component at src/app/features/kanban/components/kanban-board/kanban-board.component.ts
 - Implement three-column layout with CSS Grid
-- Add responsive design breakpoints
-- Implement accessibility features
-- Add error handling and validation
+- Add responsive breakpoints for different screen sizes
+- Implement accessibility features with ARIA attributes
+- Add error handling and conditional rendering
 
 ## 2. UI COMPONENT ARCHITECTURE (FROM AGENT-1)
 
-**Component Hierarchy:**
+**NOTE: This section is the SOURCE OF TRUTH for structure.**
 
+### Component Hierarchy:
+```
 ├── AppComponent
-│   ├── SidebarNavigationComponent
-│   │   ├── BrandSectionComponent
-│   │   ├── NavigationMenuComponent
-│   │   └── QuickActionsComponent
-│   └── MainContentComponent
-│       ├── HeaderComponent
-│       │   ├── AavaSearchBarComponent (from library)
-│       │   └── HeaderActionsComponent
-│       └── ContentAreaComponent
-│           ├── PageHeaderComponent
-│           │   └── Button Component (from library)
-│           └── KanbanBoardComponent
-│               ├── KanbanColumnComponent (x3)
-│               │   ├── ColumnHeaderComponent
-│               │   └── TaskListComponent
-│               │       └── TaskCardComponent (multiple)
-│               └── TaskModalComponent
-│                   └── TaskFormComponent
+├── SidebarComponent (from library)
+├── HeaderComponent
+│   ├── SearchComponent
+│   ├── NotificationButtonComponent
+│   ├── SettingsButtonComponent
+│   └── UserProfileComponent
+├── MainContentComponent
+│   ├── PageHeaderComponent
+│   └── KanbanBoardComponent
+│       ├── KanbanColumnComponent
+│       │   ├── ColumnHeaderComponent
+│       │   └── TaskListComponent
+│       │       └── TaskCardComponent
+│       │           ├── PriorityIndicatorComponent
+│       │           ├── TaskTagComponent
+│       │           └── AssigneeAvatarComponent
+└── TaskModalComponent
+    └── TaskFormComponent
+```
 
-**Layout Structure:**
-
+### Layout Structure:
+```
 Page Layout Hierarchy:
-
 ├── App Container
 │   ├── Sidebar Navigation
 │   │   ├── Brand Section
-│   │   ├── Workflow Scenarios Menu
-│   │   └── Quick Actions Menu
-│   └── Main Content Area
+│   │   ├── Navigation Menu
+│   │   └── Quick Actions
+│   └── Main Content
 │       ├── Header
 │       │   ├── Search Container
 │       │   └── Header Actions
 │       └── Content Area
 │           ├── Page Header
-│           │   ├── Title & Subtitle
-│           │   └── Create Task Button
 │           └── Kanban Board
 │               ├── To Do Column
-│               │   ├── Column Header
-│               │   └── Task List
 │               ├── In Progress Column
-│               │   ├── Column Header
-│               │   └── Task List
 │               └── Done Column
-│                   ├── Column Header
-│                   └── Task List
+└── Modal Overlay
+    └── Task Creation Modal
+```
 
-**Component Responsibilities:**
+### Component Responsibilities:
 
-KanbanBoardComponent:
+**KanbanBoardComponent:**
 - Purpose: Main container for three-column kanban layout
-- Props: columns: KanbanColumn[], loading: boolean, error: string | null
-- State: selectedTask: Task | null, modalOpen: boolean, draggedTask: Task | null
-- Events: taskCreated, taskUpdated, taskDeleted
-- API Binding: GET /tasks, POST /tasks, PUT /tasks/:id, DELETE /tasks/:id
+- Props: columns: KanbanColumn[], isLoading: boolean, error: string | null
+- State: selectedTask: Task | null, draggedTask: Task | null
+- Events: taskSelected, taskMoved
+- API Binding: GET /api/youth-accounts/{id}/dashboard
 
-KanbanColumnComponent:
+**KanbanColumnComponent:**
 - Purpose: Individual column container with header and task list
-- Props: column: KanbanColumn, tasks: Task[], allowDrop: boolean
-- State: dragOver: boolean, expanded: boolean
-- Events: taskDropped, taskSelected
-- API Binding: PUT /tasks/:id/column
+- Props: column: KanbanColumn, tasks: Task[], columnId: string
+- State: isDropTarget: boolean
+- Events: taskDropped, addTaskClicked
+- API Binding: None (receives data from parent)
 
-TaskCardComponent:
-- Purpose: Individual task display with metadata
-- Props: task: Task, draggable: boolean, selected: boolean
-- State: hover: boolean, dragging: boolean
-- Events: taskClick, taskDragStart, taskDragEnd
-- API Binding: None (read-only display)
+**TaskCardComponent:**
+- Purpose: Individual task display with all task information
+- Props: task: Task, isSelected: boolean
+- State: isHovered: boolean
+- Events: taskClicked, taskDragStart
+- API Binding: None (receives data from parent)
 
-**Data Flow:**
+**TaskModalComponent:**
+- Purpose: Modal for creating and editing tasks
+- Props: isOpen: boolean, task: Task | null, availableAssignees: User[]
+- State: formData: TaskFormData, isSubmitting: boolean
+- Events: taskCreated, taskUpdated, modalClosed
+- API Binding: POST /api/youth-accounts/{id}/fund-transfer, PUT /api/youth-accounts/{id}/spending-limit
 
+### Data Flow:
+```
 Parent → Child Mapping:
-- AppComponent → SidebarNavigationComponent (activeView, collapsed)
-- AppComponent → MainContentComponent (user, tasks, loading)
-- MainContentComponent → HeaderComponent (user, searchQuery)
-- MainContentComponent → KanbanBoardComponent (tasks, loading, error)
-- KanbanBoardComponent → KanbanColumnComponent (column, tasks, allowDrop)
-- KanbanColumnComponent → TaskCardComponent (task, draggable, selected)
-- KanbanBoardComponent → TaskModalComponent (task, visible, mode)
+AppComponent → SidebarComponent (menuItems, isCollapsed)
+AppComponent → HeaderComponent (user, notificationCount)
+AppComponent → MainContentComponent (dashboardData)
+MainContentComponent → KanbanBoardComponent (columns, tasks, isLoading)
+KanbanBoardComponent → KanbanColumnComponent (column, tasks)
+KanbanColumnComponent → TaskCardComponent (task, isSelected)
+AppComponent → TaskModalComponent (isOpen, availableAssignees)
+```
 
-**NOTE:**
-This section is the SOURCE OF TRUTH for structure.
-
-## 3. UI COMPONENT SPECIFICATIONS (FROM AGENT-2)
-
-### INPUT REFERENCE (FROM AGENT-1)
-
-**Page Name:** Kanban Board Management System
-
-**Mapped Layout:** Three-column Kanban board with sidebar navigation and header
-
-**Components from A1:**
-- AppComponent (Page-level root container)
-- SidebarNavigationComponent (Layout navigation)
-- HeaderComponent (Layout header with search)
-- KanbanBoardComponent (Feature kanban container)
-- KanbanColumnComponent (Feature column container)
-- TaskCardComponent (Feature task display)
-- TaskModalComponent (Feature task creation/editing)
-
-### GLOBAL ARCHITECTURE SUMMARY
-
-**Layout Type:** CSS Grid for main layout, Flexbox for internal components
-
-**Main Sections:**
-- Header: Brand, search, user actions
-- Sidebar: Navigation menu, quick actions
-- Main Content: Page header, kanban board
-- Modals: Task creation/editing
-
-**Component Strategy:** Hybrid approach using library components (Button, SearchBar, Popover) and custom components
-
-### FOLDER STRUCTURE
-
+### Folder Structure:
 ```
 src/
 ├── app/
-│   ├── core/
-│   │   ├── services/
-│   │   │   ├── auth.service.ts
-│   │   │   ├── task.service.ts
-│   │   │   └── user.service.ts
-│   │   ├── models/
-│   │   │   ├── task.model.ts
-│   │   │   ├── user.model.ts
-│   │   │   └── kanban.model.ts
-│   │   └── guards/
-│   │       └── auth.guard.ts
-│   ├── shared/
-│   │   ├── components/
-│   │   │   ├── button/ (from library)
-│   │   │   ├── search-bar/ (from library)
-│   │   │   ├── popover/ (from library)
-│   │   │   ├── avatar/
-│   │   │   ├── tag/
-│   │   │   └── modal/
-│   │   └── pipes/
-│   │       └── date-format.pipe.ts
-│   ├── features/
-│   │   └── kanban/
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── header/
+│   │   │   ├── sidebar/ (using library)
+│   │   │   └── main-content/
+│   │   ├── features/
+│   │   │   └── kanban/
+│   │   │       ├── components/
+│   │   │       │   ├── kanban-board/
+│   │   │       │   ├── kanban-column/
+│   │   │       │   ├── task-card/
+│   │   │       │   └── task-modal/
+│   │   │       ├── services/
+│   │   │       └── models/
+│   │   └── shared/
 │   │       ├── components/
-│   │       │   ├── kanban-board/
-│   │       │   │   ├── kanban-board.component.ts
-│   │       │   │   ├── kanban-board.component.html
-│   │       │   │   └── kanban-board.component.scss
-│   │       │   ├── kanban-column/
-│   │       │   │   ├── kanban-column.component.ts
-│   │       │   │   ├── kanban-column.component.html
-│   │       │   │   └── kanban-column.component.scss
-│   │       │   ├── task-card/
-│   │       │   │   ├── task-card.component.ts
-│   │       │   │   ├── task-card.component.html
-│   │       │   │   └── task-card.component.scss
-│   │       │   └── task-modal/
-│   │       │       ├── task-modal.component.ts
-│   │       │       ├── task-modal.component.html
-│   │       │       └── task-modal.component.scss
 │   │       └── services/
-│   │           └── kanban.service.ts
-│   ├── layout/
-│   │   ├── header/
-│   │   │   ├── header.component.ts
-│   │   │   ├── header.component.html
-│   │   │   └── header.component.scss
-│   │   ├── sidebar/
-│   │   │   ├── sidebar.component.ts
-│   │   │   ├── sidebar.component.html
-│   │   │   └── sidebar.component.scss
-│   │   └── main-content/
-│   │       ├── main-content.component.ts
-│   │       ├── main-content.component.html
-│   │       └── main-content.component.scss
-│   ├── app.component.ts
-│   ├── app.component.html
-│   ├── app.component.scss
-│   └── app.module.ts
-├── assets/
-│   ├── styles/
-│   │   ├── variables.scss
-│   │   ├── mixins.scss
-│   │   └── global.scss
-│   └── icons/
-└── environments/
-    ├── environment.ts
-    └── environment.prod.ts
+│   └── pages/
+│       └── dashboard/
 ```
 
-### COMPONENT IMPLEMENTATION SPECIFICATIONS
+## 3. UI COMPONENT SPECIFICATIONS (FROM AGENT-2)
 
-#### 1. AppComponent (Page-level root container)
+**IMPORTANT: FULL CODE MUST BE PRESERVED - DO NOT MODIFY OR SUMMARIZE**
+
+### 3.1 KanbanBoardComponent
+
+**Component Type:** Feature
+**Purpose:** Orchestrates the entire kanban board with three columns (To Do, In Progress, Done) and handles task management operations
 
 **TypeScript Specification:**
 
 ```typescript
-import { Component, OnInit } from '@angular/core';
-import { AuthService } from './core/services/auth.service';
-import { UserService } from './core/services/user.service';
-import { User } from './core/models/user.model';
-
-@Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
-})
-export class AppComponent implements OnInit {
-  // Component State
-  user: User | null = null;
-  loading = true;
-  error: string | null = null;
-  sidebarCollapsed = false;
-  activeView = 'kanban';
-
-  constructor(
-    private authService: AuthService,
-    private userService: UserService
-  ) {}
-
-  ngOnInit(): void {
-    this.initializeApp();
-  }
-
-  // Lifecycle Methods
-  private async initializeApp(): Promise<void> {
-    try {
-      this.loading = true;
-      await this.loadUserProfile();
-      this.error = null;
-    } catch (error) {
-      this.error = 'Failed to initialize application';
-      console.error('App initialization error:', error);
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  private async loadUserProfile(): Promise<void> {
-    this.user = await this.userService.getCurrentUser();
-  }
-
-  // Event Handlers
-  onSidebarToggle(collapsed: boolean): void {
-    this.sidebarCollapsed = collapsed;
-  }
-
-  onViewChange(view: string): void {
-    this.activeView = view;
-  }
-
-  onUserLogout(): void {
-    this.authService.logout();
-    this.user = null;
-  }
-}
-```
-
-**HTML Structure:**
-
-```html
-<div class="app-container" [class.sidebar-collapsed]="sidebarCollapsed">
-  <!-- Loading State -->
-  <div *ngIf="loading" class="app-loading">
-    <div class="loading-spinner"></div>
-    <p>Loading application...</p>
-  </div>
-
-  <!-- Error State -->
-  <div *ngIf="error && !loading" class="app-error">
-    <div class="error-content">
-      <h2>Application Error</h2>
-      <p>{{ error }}</p>
-      <button (click)="initializeApp()" class="retry-button">Retry</button>
-    </div>
-  </div>
-
-  <!-- Main Application -->
-  <div *ngIf="!loading && !error" class="app-content">
-    <!-- Sidebar Navigation -->
-    <app-sidebar-navigation
-      [activeView]="activeView"
-      [collapsed]="sidebarCollapsed"
-      (viewChanged)="onViewChange($event)"
-      (menuToggle)="onSidebarToggle($event)">
-    </app-sidebar-navigation>
-
-    <!-- Main Content Area -->
-    <app-main-content
-      [user]="user"
-      [activeView]="activeView"
-      (userLogout)="onUserLogout()">
-    </app-main-content>
-  </div>
-</div>
-```
-
-**CSS Specifications:**
-
-```scss
-.app-container {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  grid-template-rows: 1fr;
-  height: 100vh;
-  overflow: hidden;
-
-  &.sidebar-collapsed {
-    grid-template-columns: 80px 1fr;
-  }
-
-  // Responsive Design
-  @media (max-width: 1024px) {
-    grid-template-columns: 240px 1fr;
-    
-    &.sidebar-collapsed {
-      grid-template-columns: 60px 1fr;
-    }
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
-    
-    &.sidebar-collapsed {
-      grid-template-columns: 1fr;
-    }
-  }
-}
-
-.app-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  gap: 1rem;
-
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #007bff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-}
-
-.app-error {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  padding: 2rem;
-
-  .error-content {
-    text-align: center;
-    max-width: 400px;
-
-    h2 {
-      color: #dc3545;
-      margin-bottom: 1rem;
-    }
-
-    .retry-button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 1rem;
-
-      &:hover {
-        background: #0056b3;
-      }
-    }
-  }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-```
-
-#### 2. SidebarNavigationComponent (Layout navigation)
-
-**TypeScript Specification:**
-
-```typescript
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-
-@Component({
-  selector: 'app-sidebar-navigation',
-  templateUrl: './sidebar-navigation.component.html',
-  styleUrls: ['./sidebar-navigation.component.scss']
-})
-export class SidebarNavigationComponent {
-  // Input Properties
-  @Input() activeView: string = 'kanban';
-  @Input() collapsed: boolean = false;
-
-  // Output Events
-  @Output() viewChanged = new EventEmitter<string>();
-  @Output() menuToggle = new EventEmitter<boolean>();
-
-  // Component State
-  menuExpanded = false;
-  navigationItems = [
-    { id: 'kanban', label: 'Kanban Board', icon: 'view_column' },
-    { id: 'calendar', label: 'Calendar', icon: 'calendar_today' },
-    { id: 'reports', label: 'Reports', icon: 'assessment' },
-    { id: 'settings', label: 'Settings', icon: 'settings' }
-  ];
-
-  quickActions = [
-    { id: 'create-task', label: 'Create Task', icon: 'add' },
-    { id: 'create-project', label: 'Create Project', icon: 'folder_open' },
-    { id: 'invite-user', label: 'Invite User', icon: 'person_add' }
-  ];
-
-  // Event Handlers
-  onViewSelect(viewId: string): void {
-    if (viewId !== this.activeView) {
-      this.viewChanged.emit(viewId);
-    }
-  }
-
-  onMenuToggle(): void {
-    this.collapsed = !this.collapsed;
-    this.menuToggle.emit(this.collapsed);
-  }
-
-  onQuickAction(actionId: string): void {
-    // Handle quick actions
-    console.log('Quick action:', actionId);
-  }
-}
-```
-
-**HTML Structure:**
-
-```html
-<aside class="sidebar" [class.collapsed]="collapsed">
-  <!-- Brand Section -->
-  <div class="brand-section">
-    <div class="brand-logo">
-      <img src="assets/icons/taskflow-logo.svg" alt="TaskFlow" />
-    </div>
-    <div class="brand-name" *ngIf="!collapsed">
-      <h2>TaskFlow</h2>
-    </div>
-    <button class="menu-toggle" (click)="onMenuToggle()">
-      <span class="toggle-icon">{{ collapsed ? '→' : '←' }}</span>
-    </button>
-  </div>
-
-  <!-- Navigation Menu -->
-  <nav class="navigation-menu">
-    <h3 *ngIf="!collapsed" class="menu-title">Workflow Scenarios</h3>
-    <ul class="nav-list">
-      <li *ngFor="let item of navigationItems" 
-          class="nav-item"
-          [class.active]="item.id === activeView">
-        <button class="nav-button" (click)="onViewSelect(item.id)">
-          <span class="nav-icon">{{ item.icon }}</span>
-          <span class="nav-label" *ngIf="!collapsed">{{ item.label }}</span>
-        </button>
-      </li>
-    </ul>
-  </nav>
-
-  <!-- Quick Actions -->
-  <div class="quick-actions">
-    <h3 *ngIf="!collapsed" class="menu-title">Quick Actions</h3>
-    <ul class="action-list">
-      <li *ngFor="let action of quickActions" class="action-item">
-        <button class="action-button" (click)="onQuickAction(action.id)">
-          <span class="action-icon">{{ action.icon }}</span>
-          <span class="action-label" *ngIf="!collapsed">{{ action.label }}</span>
-        </button>
-      </li>
-    </ul>
-  </div>
-</aside>
-```
-
-**CSS Specifications:**
-
-```scss
-.sidebar {
-  background: #2c3e50;
-  color: white;
-  height: 100vh;
-  overflow-y: auto;
-  transition: width 0.3s ease;
-  width: 280px;
-  display: flex;
-  flex-direction: column;
-
-  &.collapsed {
-    width: 80px;
-  }
-
-  @media (max-width: 1024px) {
-    width: 240px;
-    
-    &.collapsed {
-      width: 60px;
-    }
-  }
-
-  @media (max-width: 768px) {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    transform: translateX(-100%);
-    
-    &:not(.collapsed) {
-      transform: translateX(0);
-    }
-  }
-}
-
-.brand-section {
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid #34495e;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-
-  .brand-logo img {
-    width: 32px;
-    height: 32px;
-  }
-
-  .brand-name h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
-
-  .menu-toggle {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    margin-left: auto;
-    padding: 0.5rem;
-    border-radius: 4px;
-
-    &:hover {
-      background: #34495e;
-    }
-  }
-}
-
-.navigation-menu {
-  flex: 1;
-  padding: 1rem 0;
-
-  .menu-title {
-    padding: 0 1rem;
-    margin: 0 0 1rem 0;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #bdc3c7;
-    text-transform: uppercase;
-  }
-
-  .nav-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .nav-item {
-    margin-bottom: 0.25rem;
-
-    &.active .nav-button {
-      background: #3498db;
-      color: white;
-    }
-  }
-
-  .nav-button {
-    width: 100%;
-    background: none;
-    border: none;
-    color: inherit;
-    padding: 0.75rem 1rem;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background: #34495e;
-    }
-
-    .nav-icon {
-      font-size: 1.25rem;
-      width: 24px;
-      text-align: center;
-    }
-
-    .nav-label {
-      font-size: 0.875rem;
-    }
-  }
-}
-
-.quick-actions {
-  padding: 1rem 0;
-  border-top: 1px solid #34495e;
-
-  .menu-title {
-    padding: 0 1rem;
-    margin: 0 0 1rem 0;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #bdc3c7;
-    text-transform: uppercase;
-  }
-
-  .action-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .action-item {
-    margin-bottom: 0.25rem;
-  }
-
-  .action-button {
-    width: 100%;
-    background: none;
-    border: none;
-    color: inherit;
-    padding: 0.5rem 1rem;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background: #34495e;
-    }
-
-    .action-icon {
-      font-size: 1rem;
-      width: 20px;
-      text-align: center;
-    }
-
-    .action-label {
-      font-size: 0.8125rem;
-    }
-  }
-}
-```
-
-#### 3. HeaderComponent (Layout header with search)
-
-**TypeScript Specification:**
-
-```typescript
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { User } from '../../core/models/user.model';
-
-@Component({
-  selector: 'app-header',
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss']
-})
-export class HeaderComponent {
-  // Input Properties
-  @Input() user: User | null = null;
-  @Input() searchQuery: string = '';
-
-  // Output Events
-  @Output() searchChanged = new EventEmitter<string>();
-  @Output() userMenuToggle = new EventEmitter<boolean>();
-  @Output() userLogout = new EventEmitter<void>();
-
-  // Component State
-  searchFocused = false;
-  userMenuOpen = false;
-  notifications = [
-    { id: 1, message: 'New task assigned', time: '2 min ago', read: false },
-    { id: 2, message: 'Project deadline approaching', time: '1 hour ago', read: false },
-    { id: 3, message: 'Team meeting scheduled', time: '3 hours ago', read: true }
-  ];
-
-  // Event Handlers
-  onSearchInput(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchChanged.emit(target.value);
-  }
-
-  onSearchFocus(): void {
-    this.searchFocused = true;
-  }
-
-  onSearchBlur(): void {
-    this.searchFocused = false;
-  }
-
-  onUserMenuToggle(): void {
-    this.userMenuOpen = !this.userMenuOpen;
-    this.userMenuToggle.emit(this.userMenuOpen);
-  }
-
-  onLogout(): void {
-    this.userMenuOpen = false;
-    this.userLogout.emit();
-  }
-
-  onNotificationClick(notificationId: number): void {
-    const notification = this.notifications.find(n => n.id === notificationId);
-    if (notification) {
-      notification.read = true;
-    }
-  }
-
-  get unreadNotificationCount(): number {
-    return this.notifications.filter(n => !n.read).length;
-  }
-}
-```
-
-**HTML Structure:**
-
-```html
-<header class="app-header">
-  <!-- Brand Section -->
-  <div class="header-brand">
-    <div class="brand-logo">
-      <img src="assets/icons/taskflow-logo.svg" alt="TaskFlow" />
-    </div>
-    <div class="brand-text">
-      <h1>TaskFlow</h1>
-    </div>
-  </div>
-
-  <!-- Search Container -->
-  <div class="search-container" [class.focused]="searchFocused">
-    <div class="search-input-wrapper">
-      <span class="search-icon">🔍</span>
-      <input
-        type="text"
-        class="search-input"
-        placeholder="Search tasks, projects, or people..."
-        [value]="searchQuery"
-        (input)="onSearchInput($event)"
-        (focus)="onSearchFocus()"
-        (blur)="onSearchBlur()"
-      />
-      <button class="search-clear" *ngIf="searchQuery" (click)="searchChanged.emit('')">
-        <span>✕</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Header Actions -->
-  <div class="header-actions">
-    <!-- Notifications -->
-    <div class="notification-container">
-      <button class="notification-button" [class.has-notifications]="unreadNotificationCount > 0">
-        <span class="notification-icon">🔔</span>
-        <span class="notification-badge" *ngIf="unreadNotificationCount > 0">
-          {{ unreadNotificationCount }}
-        </span>
-      </button>
-      
-      <!-- Notification Dropdown -->
-      <div class="notification-dropdown">
-        <div class="notification-header">
-          <h3>Notifications</h3>
-        </div>
-        <ul class="notification-list">
-          <li *ngFor="let notification of notifications" 
-              class="notification-item"
-              [class.unread]="!notification.read"
-              (click)="onNotificationClick(notification.id)">
-            <div class="notification-content">
-              <p class="notification-message">{{ notification.message }}</p>
-              <span class="notification-time">{{ notification.time }}</span>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Settings -->
-    <button class="settings-button">
-      <span class="settings-icon">⚙️</span>
-    </button>
-
-    <!-- User Profile -->
-    <div class="user-profile-container">
-      <button class="user-profile-button" (click)="onUserMenuToggle()">
-        <div class="user-avatar">
-          <img *ngIf="user?.avatar" [src]="user.avatar" [alt]="user.name" />
-          <span *ngIf="!user?.avatar" class="avatar-placeholder">
-            {{ user?.name?.charAt(0) || 'U' }}
-          </span>
-        </div>
-        <div class="user-info">
-          <span class="user-name">{{ user?.name || 'User' }}</span>
-          <span class="user-role">{{ user?.role || 'Member' }}</span>
-        </div>
-        <span class="dropdown-arrow">▼</span>
-      </button>
-
-      <!-- User Menu Dropdown -->
-      <div class="user-menu-dropdown" *ngIf="userMenuOpen">
-        <ul class="user-menu-list">
-          <li class="user-menu-item">
-            <button class="user-menu-button">
-              <span class="menu-icon">👤</span>
-              <span>Profile</span>
-            </button>
-          </li>
-          <li class="user-menu-item">
-            <button class="user-menu-button">
-              <span class="menu-icon">⚙️</span>
-              <span>Settings</span>
-            </button>
-          </li>
-          <li class="user-menu-item">
-            <button class="user-menu-button">
-              <span class="menu-icon">❓</span>
-              <span>Help</span>
-            </button>
-          </li>
-          <li class="user-menu-divider"></li>
-          <li class="user-menu-item">
-            <button class="user-menu-button logout" (click)="onLogout()">
-              <span class="menu-icon">🚪</span>
-              <span>Logout</span>
-            </button>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</header>
-```
-
-**CSS Specifications:**
-
-```scss
-.app-header {
-  background: white;
-  border-bottom: 1px solid #e9ecef;
-  padding: 0 1.5rem;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-
-  @media (max-width: 768px) {
-    padding: 0 1rem;
-    gap: 1rem;
-  }
-}
-
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-
-  .brand-logo img {
-    width: 32px;
-    height: 32px;
-  }
-
-  .brand-text h1 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2c3e50;
-  }
-
-  @media (max-width: 768px) {
-    .brand-text {
-      display: none;
-    }
-  }
-}
-
-.search-container {
-  flex: 1;
-  max-width: 600px;
-
-  .search-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 0 0.75rem;
-    transition: all 0.2s;
-
-    &:focus-within {
-      border-color: #007bff;
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-    }
-  }
-
-  &.focused .search-input-wrapper {
-    background: white;
-  }
-
-  .search-icon {
-    color: #6c757d;
-    margin-right: 0.5rem;
-  }
-
-  .search-input {
-    flex: 1;
-    border: none;
-    background: none;
-    padding: 0.75rem 0;
-    font-size: 0.875rem;
-    outline: none;
-
-    &::placeholder {
-      color: #6c757d;
-    }
-  }
-
-  .search-clear {
-    background: none;
-    border: none;
-    color: #6c757d;
-    cursor: pointer;
-    padding: 0.25rem;
-    margin-left: 0.5rem;
-
-    &:hover {
-      color: #495057;
-    }
-  }
-
-  @media (max-width: 768px) {
-    max-width: none;
-  }
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-
-  @media (max-width: 768px) {
-    gap: 0.5rem;
-  }
-}
-
-.notification-container {
-  position: relative;
-
-  .notification-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 6px;
-    position: relative;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background: #f8f9fa;
-    }
-
-    .notification-icon {
-      font-size: 1.25rem;
-    }
-
-    .notification-badge {
-      position: absolute;
-      top: 0;
-      right: 0;
-      background: #dc3545;
-      color: white;
-      font-size: 0.75rem;
-      padding: 0.125rem 0.375rem;
-      border-radius: 10px;
-      min-width: 18px;
-      text-align: center;
-    }
-  }
-
-  .notification-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 320px;
-    max-height: 400px;
-    overflow-y: auto;
-    z-index: 1000;
-    display: none;
-
-    .notification-header {
-      padding: 1rem;
-      border-bottom: 1px solid #dee2e6;
-
-      h3 {
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 600;
-      }
-    }
-
-    .notification-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .notification-item {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid #f8f9fa;
-      cursor: pointer;
-      transition: background-color 0.2s;
-
-      &:hover {
-        background: #f8f9fa;
-      }
-
-      &.unread {
-        background: #e3f2fd;
-        border-left: 3px solid #007bff;
-      }
-
-      .notification-content {
-        .notification-message {
-          margin: 0 0 0.25rem 0;
-          font-size: 0.875rem;
-          color: #495057;
-        }
-
-        .notification-time {
-          font-size: 0.75rem;
-          color: #6c757d;
-        }
-      }
-    }
-  }
-}
-
-.settings-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 6px;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background: #f8f9fa;
-  }
-
-  .settings-icon {
-    font-size: 1.25rem;
-  }
-}
-
-.user-profile-container {
-  position: relative;
-
-  .user-profile-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background: #f8f9fa;
-    }
-
-    .user-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #007bff;
-      color: white;
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .avatar-placeholder {
-        font-size: 0.875rem;
-        font-weight: 600;
-      }
-    }
-
-    .user-info {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      text-align: left;
-
-      .user-name {
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #495057;
-      }
-
-      .user-role {
-        font-size: 0.75rem;
-        color: #6c757d;
-      }
-
-      @media (max-width: 768px) {
-        display: none;
-      }
-    }
-
-    .dropdown-arrow {
-      font-size: 0.75rem;
-      color: #6c757d;
-      transition: transform 0.2s;
-
-      @media (max-width: 768px) {
-        display: none;
-      }
-    }
-  }
-
-  .user-menu-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 200px;
-    z-index: 1000;
-    margin-top: 0.5rem;
-
-    .user-menu-list {
-      list-style: none;
-      padding: 0.5rem 0;
-      margin: 0;
-    }
-
-    .user-menu-item {
-      .user-menu-button {
-        width: 100%;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0.75rem 1rem;
-        text-align: left;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.875rem;
-        color: #495057;
-        transition: background-color 0.2s;
-
-        &:hover {
-          background: #f8f9fa;
-        }
-
-        &.logout {
-          color: #dc3545;
-
-          &:hover {
-            background: #f8d7da;
-          }
-        }
-
-        .menu-icon {
-          width: 16px;
-          text-align: center;
-        }
-      }
-    }
-
-    .user-menu-divider {
-      height: 1px;
-      background: #dee2e6;
-      margin: 0.5rem 0;
-    }
-  }
-}
-```
-
-#### 4. KanbanBoardComponent (Feature kanban container)
-
-**TypeScript Specification:**
-
-```typescript
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { Task } from '../../core/models/task.model';
-import { KanbanColumn } from '../../core/models/kanban.model';
-import { TaskService } from '../../core/services/task.service';
-
 @Component({
   selector: 'app-kanban-board',
   templateUrl: './kanban-board.component.html',
   styleUrls: ['./kanban-board.component.scss']
 })
 export class KanbanBoardComponent implements OnInit {
-  // Input Properties
-  @Input() tasks: Task[] = [];
-  @Input() loading: boolean = false;
+  @Input() columns: KanbanColumn[] = [];
+  @Input() isLoading: boolean = false;
   @Input() error: string | null = null;
-
-  // Output Events
+  
+  @Output() taskSelected = new EventEmitter<Task>();
+  @Output() taskMoved = new EventEmitter<{task: Task, fromColumn: string, toColumn: string}>();
   @Output() taskCreated = new EventEmitter<Task>();
-  @Output() taskUpdated = new EventEmitter<Task>();
-  @Output() taskDeleted = new EventEmitter<string>();
-
-  // Component State
+  
   selectedTask: Task | null = null;
-  modalOpen = false;
   draggedTask: Task | null = null;
-  columns: KanbanColumn[] = [
-    { id: 'todo', title: 'To Do', tasks: [], color: '#6c757d' },
-    { id: 'inprogress', title: 'In Progress', tasks: [], color: '#ffc107' },
-    { id: 'done', title: 'Done', tasks: [], color: '#28a745' }
-  ];
-
-  constructor(private taskService: TaskService) {}
-
+  isModalOpen: boolean = false;
+  availableAssignees: User[] = [];
+  
+  constructor(private kanbanService: KanbanService) {}
+  
   ngOnInit(): void {
     this.initializeColumns();
-    this.loadTasks();
+    this.loadAvailableAssignees();
   }
-
-  // Lifecycle Methods
-  private initializeColumns(): void {
-    this.columns = [
-      { id: 'todo', title: 'To Do', tasks: [], color: '#6c757d' },
-      { id: 'inprogress', title: 'In Progress', tasks: [], color: '#ffc107' },
-      { id: 'done', title: 'Done', tasks: [], color: '#28a745' }
-    ];
-  }
-
-  private async loadTasks(): Promise<void> {
-    try {
-      this.loading = true;
-      const tasks = await this.taskService.getAllTasks();
-      this.distributeTasks(tasks);
-      this.error = null;
-    } catch (error) {
-      this.error = 'Failed to load tasks';
-      console.error('Task loading error:', error);
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  private distributeTasks(tasks: Task[]): void {
-    // Clear existing tasks
-    this.columns.forEach(column => column.tasks = []);
-
-    // Distribute tasks to columns
-    tasks.forEach(task => {
-      const column = this.columns.find(col => col.id === task.status);
-      if (column) {
-        column.tasks.push(task);
-      }
-    });
-  }
-
-  // Event Handlers
-  onCreateTask(): void {
-    this.selectedTask = null;
-    this.modalOpen = true;
-  }
-
-  onTaskClick(task: Task): void {
+  
+  onTaskSelected(task: Task): void {
     this.selectedTask = task;
-    this.modalOpen = true;
+    this.taskSelected.emit(task);
   }
-
-  onTaskDropped(event: { task: Task; columnId: string }): void {
-    const { task, columnId } = event;
-    this.moveTask(task, columnId);
+  
+  onTaskMoved(event: TaskMoveEvent): void {
+    this.taskMoved.emit(event);
   }
-
-  onTaskDragStart(task: Task): void {
-    this.draggedTask = task;
+  
+  openTaskModal(): void {
+    this.isModalOpen = true;
   }
-
-  onTaskDragEnd(): void {
-    this.draggedTask = null;
+  
+  closeTaskModal(): void {
+    this.isModalOpen = false;
   }
-
-  onModalClosed(): void {
-    this.modalOpen = false;
-    this.selectedTask = null;
+  
+  onTaskCreated(task: Task): void {
+    this.taskCreated.emit(task);
+    this.closeTaskModal();
   }
-
-  onTaskSaved(task: Task): void {
-    if (this.selectedTask) {
-      this.updateTask(task);
-    } else {
-      this.createTask(task);
-    }
-    this.onModalClosed();
-  }
-
-  // Business Logic
-  private async createTask(task: Task): Promise<void> {
-    try {
-      const createdTask = await this.taskService.createTask(task);
-      this.taskCreated.emit(createdTask);
-      await this.loadTasks(); // Refresh board
-    } catch (error) {
-      this.error = 'Failed to create task';
-      console.error('Task creation error:', error);
-    }
-  }
-
-  private async updateTask(task: Task): Promise<void> {
-    try {
-      const updatedTask = await this.taskService.updateTask(task.id, task);
-      this.taskUpdated.emit(updatedTask);
-      await this.loadTasks(); // Refresh board
-    } catch (error) {
-      this.error = 'Failed to update task';
-      console.error('Task update error:', error);
-    }
-  }
-
-  private async moveTask(task: Task, newColumnId: string): Promise<void> {
-    try {
-      const updatedTask = { ...task, status: newColumnId };
-      await this.taskService.updateTask(task.id, updatedTask);
-      await this.loadTasks(); // Refresh board
-    } catch (error) {
-      this.error = 'Failed to move task';
-      console.error('Task move error:', error);
-      // Revert UI change
-      await this.loadTasks();
-    }
-  }
-
-  async deleteTask(taskId: string): Promise<void> {
-    try {
-      await this.taskService.deleteTask(taskId);
-      this.taskDeleted.emit(taskId);
-      await this.loadTasks(); // Refresh board
-    } catch (error) {
-      this.error = 'Failed to delete task';
-      console.error('Task deletion error:', error);
-    }
-  }
-
-  // Utility Methods
-  getTasksByColumn(columnId: string): Task[] {
+  
+  getTasksForColumn(columnId: string): Task[] {
     const column = this.columns.find(col => col.id === columnId);
     return column ? column.tasks : [];
   }
-
-  getColumnTaskCount(columnId: string): number {
-    return this.getTasksByColumn(columnId).length;
+  
+  private initializeColumns(): void {
+    if (this.columns.length === 0) {
+      this.columns = [
+        {id: 'todo', title: 'To Do', tasks: []},
+        {id: 'inprogress', title: 'In Progress', tasks: []},
+        {id: 'done', title: 'Done', tasks: []}
+      ];
+    }
+  }
+  
+  private loadAvailableAssignees(): void {
+    // Load assignees from service
   }
 }
 ```
@@ -1423,341 +221,150 @@ export class KanbanBoardComponent implements OnInit {
 
 ```html
 <div class="kanban-board" role="region" aria-label="Kanban Board">
-  <!-- Page Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <div class="header-text">
-        <h1>Kanban Board</h1>
-        <p>Manage your tasks across different stages</p>
-      </div>
-      <button class="create-task-button" (click)="onCreateTask()">
-        <span class="button-icon">+</span>
-        <span>Create Task</span>
-      </button>
-    </div>
+  <div class="board-header">
+    <h2>Kanban Board</h2>
+    <app-button (click)="openTaskModal()" variant="primary">Create Task</app-button>
   </div>
-
-  <!-- Loading State -->
-  <div *ngIf="loading" class="loading-state">
-    <div class="loading-spinner"></div>
-    <p>Loading tasks...</p>
-  </div>
-
-  <!-- Error State -->
-  <div *ngIf="error && !loading" class="error-state">
-    <div class="error-content">
-      <h3>Error Loading Tasks</h3>
-      <p>{{ error }}</p>
-      <button (click)="loadTasks()" class="retry-button">Retry</button>
-    </div>
-  </div>
-
-  <!-- Kanban Columns -->
-  <div *ngIf="!loading && !error" class="kanban-columns">
-    <app-kanban-column
-      *ngFor="let column of columns; trackBy: trackByColumnId"
+  
+  <div class="board-grid" [class.loading]="isLoading">
+    <app-kanban-column 
+      *ngFor="let column of columns" 
       [column]="column"
-      [tasks]="getTasksByColumn(column.id)"
-      [allowDrop]="!!draggedTask"
-      [draggedTask]="draggedTask"
-      (taskDropped)="onTaskDropped($event)"
-      (taskSelected)="onTaskClick($event)"
-      (taskDragStart)="onTaskDragStart($event)"
-      (taskDragEnd)="onTaskDragEnd()"
-      (taskDeleted)="deleteTask($event)">
+      [tasks]="getTasksForColumn(column.id)"
+      (taskDropped)="onTaskMoved($event)"
+      (addTaskClicked)="openTaskModal($event)">
     </app-kanban-column>
   </div>
-
-  <!-- Task Modal -->
-  <app-task-modal
-    *ngIf="modalOpen"
-    [task]="selectedTask"
-    [visible]="modalOpen"
-    [mode]="selectedTask ? 'edit' : 'create'"
-    (taskSaved)="onTaskSaved($event)"
-    (modalClosed)="onModalClosed()">
-  </app-task-modal>
+  
+  <div *ngIf="error" class="error-message" role="alert">
+    {{ error }}
+  </div>
 </div>
+
+<app-task-modal
+  [isOpen]="isModalOpen"
+  [availableAssignees]="availableAssignees"
+  (taskCreated)="onTaskCreated($event)"
+  (modalClosed)="closeTaskModal()">
+</app-task-modal>
 ```
 
-**CSS Specifications:**
+**CSS Specification:**
 
 ```scss
 .kanban-board {
-  padding: 1.5rem;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background: #f8f9fa;
-
-  @media (max-width: 768px) {
-    padding: 1rem;
-  }
-}
-
-.page-header {
-  margin-bottom: 2rem;
-
-  .header-content {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding: 1rem;
+  
+  .board-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-
-    @media (max-width: 768px) {
-      flex-direction: column;
-      align-items: stretch;
-    }
-  }
-
-  .header-text {
-    h1 {
-      margin: 0 0 0.5rem 0;
-      font-size: 2rem;
-      font-weight: 700;
-      color: #2c3e50;
-
-      @media (max-width: 768px) {
-        font-size: 1.5rem;
-      }
-    }
-
-    p {
-      margin: 0;
-      color: #6c757d;
-      font-size: 1rem;
-    }
-  }
-
-  .create-task-button {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    white-space: nowrap;
-
-    &:hover {
-      background: #0056b3;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-
-    .button-icon {
-      font-size: 1.25rem;
-      font-weight: 300;
-    }
-
-    @media (max-width: 768px) {
-      width: 100%;
-      justify-content: center;
+    margin-bottom: 1rem;
+    
+    h2 {
+      margin: 0;
+      color: #333;
     }
   }
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  gap: 1rem;
-  color: #6c757d;
-
-  .loading-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #007bff;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-
-  p {
-    margin: 0;
-    font-size: 1rem;
-  }
-}
-
-.error-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  padding: 2rem;
-
-  .error-content {
-    text-align: center;
-    max-width: 400px;
-
-    h3 {
-      color: #dc3545;
-      margin: 0 0 1rem 0;
-      font-size: 1.25rem;
-    }
-
-    p {
-      color: #6c757d;
-      margin: 0 0 1.5rem 0;
-    }
-
-    .retry-button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 0.75rem 1.5rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.875rem;
-
-      &:hover {
-        background: #0056b3;
-      }
-    }
-  }
-}
-
-.kanban-columns {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  flex: 1;
-  min-height: 0;
-
-  @media (max-width: 1024px) {
+  
+  .board-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
+    
+    &.loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
   }
+  
+  .error-message {
+    background: #fee;
+    color: #c33;
+    padding: 1rem;
+    border-radius: 4px;
+    margin-top: 1rem;
+  }
+}
 
-  @media (max-width: 768px) {
+// Responsive breakpoints
+@media (max-width: 1024px) {
+  .kanban-board .board-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .kanban-board .board-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
-    overflow-y: auto;
-  }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-// Drag and Drop Styles
-.kanban-board {
-  .drag-over {
-    background: rgba(0, 123, 255, 0.1);
-    border: 2px dashed #007bff;
-  }
-
-  .dragging {
-    opacity: 0.5;
-    transform: rotate(5deg);
   }
 }
 ```
 
-#### 5. KanbanColumnComponent (Feature column container)
+### 3.2 KanbanColumnComponent
+
+**Component Type:** Feature
+**Purpose:** Displays a single kanban column with header, task count, and list of tasks
 
 **TypeScript Specification:**
 
 ```typescript
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Task } from '../../core/models/task.model';
-import { KanbanColumn } from '../../core/models/kanban.model';
-
 @Component({
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss']
 })
 export class KanbanColumnComponent {
-  // Input Properties
   @Input() column!: KanbanColumn;
   @Input() tasks: Task[] = [];
-  @Input() allowDrop: boolean = false;
-  @Input() draggedTask: Task | null = null;
-
-  // Output Events
-  @Output() taskDropped = new EventEmitter<{ task: Task; columnId: string }>();
+  @Input() columnId!: string;
+  
+  @Output() taskDropped = new EventEmitter<{task: Task, columnId: string}>();
+  @Output() addTaskClicked = new EventEmitter<string>();
   @Output() taskSelected = new EventEmitter<Task>();
-  @Output() taskDragStart = new EventEmitter<Task>();
-  @Output() taskDragEnd = new EventEmitter<void>();
-  @Output() taskDeleted = new EventEmitter<string>();
-
-  // Component State
-  dragOver = false;
-  expanded = true;
-
-  // Event Handlers
-  onTaskClick(task: Task): void {
-    this.taskSelected.emit(task);
-  }
-
-  onTaskDragStart(task: Task): void {
-    this.taskDragStart.emit(task);
-  }
-
-  onTaskDragEnd(): void {
-    this.taskDragEnd.emit();
-  }
-
-  onTaskDelete(taskId: string): void {
-    this.taskDeleted.emit(taskId);
-  }
-
-  // Drag and Drop Handlers
+  
+  isDropTarget: boolean = false;
+  isHovered: boolean = false;
+  showActions: boolean = false;
+  selectedTaskId: string | null = null;
+  
   onDragOver(event: DragEvent): void {
-    if (this.allowDrop) {
-      event.preventDefault();
-      this.dragOver = true;
-    }
+    event.preventDefault();
+    this.isDropTarget = true;
   }
-
+  
   onDragLeave(event: DragEvent): void {
-    // Only set dragOver to false if we're leaving the column entirely
-    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = event.clientX;
-    const y = event.clientY;
-    
-    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
-      this.dragOver = false;
-    }
+    this.isDropTarget = false;
   }
-
+  
   onDrop(event: DragEvent): void {
     event.preventDefault();
-    this.dragOver = false;
+    this.isDropTarget = false;
     
-    if (this.draggedTask && this.draggedTask.status !== this.column.id) {
-      this.taskDropped.emit({
-        task: this.draggedTask,
-        columnId: this.column.id
-      });
+    const taskData = event.dataTransfer?.getData('text/plain');
+    if (taskData) {
+      const task = JSON.parse(taskData);
+      this.taskDropped.emit({task, columnId: this.column.id});
     }
   }
-
-  onToggleExpanded(): void {
-    this.expanded = !this.expanded;
+  
+  onTaskClick(task: Task): void {
+    this.selectedTaskId = task.id;
+    this.taskSelected.emit(task);
   }
-
-  // Utility Methods
-  getTaskCount(): number {
-    return this.tasks.length;
+  
+  onTaskDragStart(task: Task): void {
+    // Handle drag start
   }
-
-  getColumnColor(): string {
-    return this.column.color || '#6c757d';
+  
+  toggleActions(): void {
+    this.showActions = !this.showActions;
   }
-
+  
   trackByTaskId(index: number, task: Task): string {
     return task.id;
   }
@@ -1768,360 +375,144 @@ export class KanbanColumnComponent {
 
 ```html
 <div class="kanban-column" 
-     [class.drag-over]="dragOver"
-     [class.collapsed]="!expanded"
+     [class.drop-target]="isDropTarget"
      (dragover)="onDragOver($event)"
      (dragleave)="onDragLeave($event)"
      (drop)="onDrop($event)">
   
-  <!-- Column Header -->
-  <div class="column-header" [attr.aria-labelledby]="'column-title-' + column.id">
-    <div class="header-content">
-      <div class="column-title-section">
-        <div class="column-indicator" [style.background-color]="getColumnColor()"></div>
-        <h3 class="column-title" [id]="'column-title-' + column.id">
-          {{ column.title }}
-        </h3>
-        <span class="task-count">{{ getTaskCount() }}</span>
-      </div>
-      
-      <div class="column-actions">
-        <button class="expand-toggle" 
-                (click)="onToggleExpanded()"
-                [attr.aria-label]="expanded ? 'Collapse column' : 'Expand column'">
-          <span class="toggle-icon">{{ expanded ? '−' : '+' }}</span>
-        </button>
-      </div>
-    </div>
+  <div class="column-header" [attr.aria-labelledby]="column.id + '-header'">
+    <h3 [id]="column.id + '-header'">{{ column.title }}</h3>
+    <span class="task-count">{{ tasks.length }}</span>
+    <app-button size="small" (click)="addTaskClicked.emit(column.id)">+</app-button>
   </div>
-
-  <!-- Task List -->
-  <div class="task-list" *ngIf="expanded" [attr.aria-label]="column.title + ' tasks'">
-    <!-- Empty State -->
-    <div *ngIf="tasks.length === 0" class="empty-state">
-      <div class="empty-content">
-        <span class="empty-icon">📋</span>
-        <p class="empty-message">No tasks in {{ column.title.toLowerCase() }}</p>
-        <p class="empty-hint">Drag tasks here or create a new one</p>
-      </div>
-    </div>
-
-    <!-- Task Cards -->
-    <div class="task-cards" *ngIf="tasks.length > 0">
-      <app-task-card
-        *ngFor="let task of tasks; trackBy: trackByTaskId"
-        [task]="task"
-        [draggable]="true"
-        [selected]="false"
-        (taskClick)="onTaskClick($event)"
-        (taskDragStart)="onTaskDragStart($event)"
-        (taskDragEnd)="onTaskDragEnd()"
-        (taskDeleted)="onTaskDelete($event)">
-      </app-task-card>
-    </div>
-
-    <!-- Drop Zone Indicator -->
-    <div *ngIf="dragOver && allowDrop" class="drop-zone-indicator">
-      <div class="drop-zone-content">
-        <span class="drop-icon">↓</span>
-        <p>Drop task here</p>
-      </div>
-    </div>
+  
+  <div class="task-list" role="list">
+    <app-task-card
+      *ngFor="let task of tasks; trackBy: trackByTaskId"
+      [task]="task"
+      [isSelected]="selectedTaskId === task.id"
+      (taskClicked)="onTaskClick($event)"
+      (taskDragStart)="onTaskDragStart($event)">
+    </app-task-card>
+  </div>
+  
+  <div *ngIf="tasks.length === 0" class="empty-state">
+    <p>No tasks in this column</p>
+    <app-button (click)="addTaskClicked.emit(column.id)">Add First Task</app-button>
   </div>
 </div>
 ```
 
-**CSS Specifications:**
+**CSS Specification:**
 
 ```scss
 .kanban-column {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  height: fit-content;
-  max-height: calc(100vh - 200px);
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-
-  &.drag-over {
-    border-color: #007bff;
-    background: rgba(0, 123, 255, 0.05);
-    transform: scale(1.02);
+  min-height: 500px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 1rem;
+  
+  &.drop-target {
+    border: 2px dashed #007bff;
+    background: #f8f9ff;
   }
-
-  &.collapsed {
-    .task-list {
-      display: none;
-    }
-  }
-
-  @media (max-width: 768px) {
-    max-height: none;
-    height: auto;
-  }
-}
-
-.column-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
-  border-radius: 12px 12px 0 0;
-
-  .header-content {
+  
+  .column-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-
-  .column-title-section {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex: 1;
-
-    .column-indicator {
-      width: 4px;
-      height: 24px;
-      border-radius: 2px;
-      background: #6c757d;
-    }
-
-    .column-title {
+    margin-bottom: 1rem;
+    
+    h3 {
       margin: 0;
-      font-size: 1rem;
-      font-weight: 600;
-      color: #2c3e50;
-      flex: 1;
+      font-size: 1.1rem;
+      color: #333;
     }
-
+    
     .task-count {
       background: #e9ecef;
-      color: #6c757d;
+      color: #495057;
       padding: 0.25rem 0.5rem;
       border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      min-width: 24px;
-      text-align: center;
-    }
-  }
-
-  .column-actions {
-    .expand-toggle {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0.5rem;
-      border-radius: 6px;
-      color: #6c757d;
-      transition: all 0.2s;
-
-      &:hover {
-        background: #e9ecef;
-        color: #495057;
-      }
-
-      .toggle-icon {
-        font-size: 1rem;
-        font-weight: bold;
-      }
-    }
-  }
-}
-
-.task-list {
-  flex: 1;
-  padding: 1rem;
-  overflow-y: auto;
-  min-height: 200px;
-
-  @media (max-width: 768px) {
-    min-height: auto;
-    max-height: 400px;
-  }
-}
-
-.empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  text-align: center;
-
-  .empty-content {
-    .empty-icon {
-      font-size: 2rem;
-      display: block;
-      margin-bottom: 0.5rem;
-      opacity: 0.5;
-    }
-
-    .empty-message {
-      margin: 0 0 0.25rem 0;
-      color: #6c757d;
       font-size: 0.875rem;
-      font-weight: 500;
-    }
-
-    .empty-hint {
-      margin: 0;
-      color: #adb5bd;
-      font-size: 0.75rem;
     }
   }
-}
-
-.task-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.drop-zone-indicator {
-  margin-top: 1rem;
-  padding: 1rem;
-  border: 2px dashed #007bff;
-  border-radius: 8px;
-  background: rgba(0, 123, 255, 0.05);
-  text-align: center;
-  animation: pulse 1.5s ease-in-out infinite;
-
-  .drop-zone-content {
-    .drop-icon {
-      font-size: 1.5rem;
-      color: #007bff;
-      display: block;
+  
+  .task-list {
+    flex: 1;
+    overflow-y: auto;
+    
+    app-task-card {
       margin-bottom: 0.5rem;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
     }
-
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    
     p {
-      margin: 0;
-      color: #007bff;
-      font-size: 0.875rem;
-      font-weight: 500;
+      margin-bottom: 1rem;
     }
   }
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-// Scrollbar Styling
-.task-list {
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-
-    &:hover {
-      background: #a8a8a8;
-    }
+@media (max-width: 768px) {
+  .kanban-column {
+    min-height: auto;
+    margin-bottom: 1rem;
   }
 }
 ```
 
-#### 6. TaskCardComponent (Feature task display)
+### 3.3 TaskCardComponent
+
+**Component Type:** Feature
+**Purpose:** Displays task details including title, description, priority, tags, assignee, and due date
 
 **TypeScript Specification:**
 
 ```typescript
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { Task } from '../../core/models/task.model';
-
 @Component({
   selector: 'app-task-card',
   templateUrl: './task-card.component.html',
   styleUrls: ['./task-card.component.scss']
 })
 export class TaskCardComponent {
-  // Input Properties
   @Input() task!: Task;
-  @Input() draggable: boolean = true;
-  @Input() selected: boolean = false;
-
-  // Output Events
-  @Output() taskClick = new EventEmitter<Task>();
+  @Input() isSelected: boolean = false;
+  @Input() isDraggable: boolean = true;
+  
+  @Output() taskClicked = new EventEmitter<Task>();
   @Output() taskDragStart = new EventEmitter<Task>();
-  @Output() taskDragEnd = new EventEmitter<void>();
-  @Output() taskDeleted = new EventEmitter<string>();
-
-  // Component State
-  hover = false;
-  dragging = false;
-  menuOpen = false;
-
-  // Event Handlers
-  onCardClick(event: Event): void {
-    // Prevent click when clicking on action buttons
-    if ((event.target as HTMLElement).closest('.task-actions')) {
-      return;
-    }
-    this.taskClick.emit(this.task);
+  @Output() taskDragEnd = new EventEmitter<Task>();
+  
+  isHovered: boolean = false;
+  isDragging: boolean = false;
+  
+  onClick(): void {
+    this.taskClicked.emit(this.task);
   }
-
+  
   onDragStart(event: DragEvent): void {
-    if (!this.draggable) return;
-    
-    this.dragging = true;
+    this.isDragging = true;
+    event.dataTransfer?.setData('text/plain', JSON.stringify(this.task));
     this.taskDragStart.emit(this.task);
-    
-    // Set drag data
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', this.task.id);
-    }
   }
-
-  onDragEnd(): void {
-    this.dragging = false;
-    this.taskDragEnd.emit();
+  
+  onDragEnd(event: DragEvent): void {
+    this.isDragging = false;
+    this.taskDragEnd.emit(this.task);
   }
-
-  onMouseEnter(): void {
-    this.hover = true;
-  }
-
-  onMouseLeave(): void {
-    this.hover = false;
-    this.menuOpen = false;
-  }
-
-  onMenuToggle(event: Event): void {
-    event.stopPropagation();
-    this.menuOpen = !this.menuOpen;
-  }
-
-  onEditTask(event: Event): void {
-    event.stopPropagation();
-    this.menuOpen = false;
-    this.taskClick.emit(this.task);
-  }
-
-  onDeleteTask(event: Event): void {
-    event.stopPropagation();
-    this.menuOpen = false;
-    if (confirm('Are you sure you want to delete this task?')) {
-      this.taskDeleted.emit(this.task.id);
-    }
-  }
-
-  // Utility Methods
+  
   getPriorityColor(): string {
     switch (this.task.priority) {
       case 'high': return '#dc3545';
@@ -2130,40 +521,16 @@ export class TaskCardComponent {
       default: return '#6c757d';
     }
   }
-
-  getPriorityLabel(): string {
-    return this.task.priority ? this.task.priority.charAt(0).toUpperCase() + this.task.priority.slice(1) : 'Normal';
+  
+  formatDueDate(date: Date): string {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric'
+    }).format(new Date(date));
   }
-
-  getInitials(name: string): string {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  }
-
-  isOverdue(): boolean {
-    if (!this.task.dueDate) return false;
-    return new Date(this.task.dueDate) < new Date() && this.task.status !== 'done';
-  }
-
-  getDueDateLabel(): string {
-    if (!this.task.dueDate) return '';
-    
-    const dueDate = new Date(this.task.dueDate);
-    const today = new Date();
-    const diffTime = dueDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Due today';
-    if (diffDays === 1) return 'Due tomorrow';
-    if (diffDays === -1) return 'Due yesterday';
-    if (diffDays < 0) return `Overdue by ${Math.abs(diffDays)} days`;
-    if (diffDays <= 7) return `Due in ${diffDays} days`;
-    
-    return dueDate.toLocaleDateString();
+  
+  isOverdue(date: Date): boolean {
+    return new Date(date) < new Date();
   }
 }
 ```
@@ -2172,620 +539,285 @@ export class TaskCardComponent {
 
 ```html
 <div class="task-card"
-     [class.hover]="hover"
-     [class.dragging]="dragging"
-     [class.selected]="selected"
-     [class.overdue]="isOverdue()"
-     [draggable]="draggable"
-     (click)="onCardClick($event)"
+     [class.selected]="isSelected"
+     [class.dragging]="isDragging"
+     [class.high-priority]="task.priority === 'high'"
+     [draggable]="isDraggable"
+     (click)="onClick()"
      (dragstart)="onDragStart($event)"
-     (dragend)="onDragEnd()"
-     (mouseenter)="onMouseEnter()"
-     (mouseleave)="onMouseLeave()">
-
-  <!-- Priority Indicator -->
-  <div class="priority-indicator" [style.background-color]="getPriorityColor()"></div>
-
-  <!-- Task Header -->
+     (dragend)="onDragEnd($event)"
+     (mouseenter)="isHovered = true"
+     (mouseleave)="isHovered = false"
+     role="listitem"
+     [attr.aria-label]="task.title">
+  
   <div class="task-header">
-    <div class="task-priority">
-      <span class="priority-badge" [style.background-color]="getPriorityColor()">
-        {{ getPriorityLabel() }}
-      </span>
-    </div>
-    
-    <div class="task-actions" *ngIf="hover || menuOpen">
-      <button class="action-button menu-toggle" 
-              (click)="onMenuToggle($event)"
-              [attr.aria-label]="'Task options for ' + task.title">
-        <span class="action-icon">⋮</span>
-      </button>
-      
-      <!-- Action Menu -->
-      <div class="action-menu" *ngIf="menuOpen">
-        <ul class="menu-list">
-          <li class="menu-item">
-            <button class="menu-button" (click)="onEditTask($event)">
-              <span class="menu-icon">✏️</span>
-              <span>Edit</span>
-            </button>
-          </li>
-          <li class="menu-item">
-            <button class="menu-button delete" (click)="onDeleteTask($event)">
-              <span class="menu-icon">🗑️</span>
-              <span>Delete</span>
-            </button>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- Task Content -->
-  <div class="task-content">
+    <div class="priority-indicator" [style.background-color]="getPriorityColor()"></div>
     <h4 class="task-title">{{ task.title }}</h4>
-    <p class="task-description" *ngIf="task.description">
-      {{ task.description }}
-    </p>
   </div>
-
-  <!-- Task Tags -->
-  <div class="task-tags" *ngIf="task.tags && task.tags.length > 0">
-    <span class="tag" *ngFor="let tag of task.tags">
-      {{ tag }}
-    </span>
+  
+  <p class="task-description" *ngIf="task.description">{{ task.description }}</p>
+  
+  <div class="task-tags" *ngIf="task.tags?.length">
+    <app-tag *ngFor="let tag of task.tags" [label]="tag" size="small"></app-tag>
   </div>
-
-  <!-- Task Footer -->
+  
   <div class="task-footer">
-    <!-- Assignee -->
-    <div class="task-assignee" *ngIf="task.assignee">
-      <div class="assignee-avatar">
-        <img *ngIf="task.assignee.avatar" 
-             [src]="task.assignee.avatar" 
-             [alt]="task.assignee.name" />
-        <span *ngIf="!task.assignee.avatar" class="avatar-placeholder">
-          {{ getInitials(task.assignee.name) }}
-        </span>
-      </div>
-      <span class="assignee-name">{{ task.assignee.name }}</span>
-    </div>
-
-    <!-- Due Date -->
-    <div class="task-due-date" *ngIf="task.dueDate" [class.overdue]="isOverdue()">
-      <span class="due-date-icon">📅</span>
-      <span class="due-date-text">{{ getDueDateLabel() }}</span>
-    </div>
-  </div>
-
-  <!-- Task Stats -->
-  <div class="task-stats" *ngIf="task.subtasks || task.comments">
-    <div class="stat-item" *ngIf="task.subtasks">
-      <span class="stat-icon">☑️</span>
-      <span class="stat-text">{{ task.subtasks.completed }}/{{ task.subtasks.total }}</span>
-    </div>
-    <div class="stat-item" *ngIf="task.comments">
-      <span class="stat-icon">💬</span>
-      <span class="stat-text">{{ task.comments }}</span>
-    </div>
+    <app-avatar 
+      *ngIf="task.assignee"
+      [user]="task.assignee"
+      size="small"
+      [showTooltip]="true">
+    </app-avatar>
+    
+    <span class="due-date" *ngIf="task.dueDate" [class.overdue]="isOverdue(task.dueDate)">
+      {{ formatDueDate(task.dueDate) }}
+    </span>
   </div>
 </div>
 ```
 
-**CSS Specifications:**
+**CSS Specification:**
 
 ```scss
 .task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   background: white;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
+  border-radius: 6px;
+  border: 1px solid #e1e5e9;
   padding: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  position: relative;
-  user-select: none;
-
+  
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transform: translateY(-1px);
   }
-
+  
   &.selected {
     border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
   }
-
+  
   &.dragging {
-    opacity: 0.7;
-    transform: rotate(3deg) scale(1.02);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
+    opacity: 0.5;
+    transform: rotate(5deg);
   }
-
-  &.overdue {
+  
+  &.high-priority {
     border-left: 4px solid #dc3545;
-    background: linear-gradient(90deg, rgba(220, 53, 69, 0.05) 0%, white 10%);
   }
-}
-
-.priority-indicator {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  border-radius: 8px 8px 0 0;
-  background: #6c757d;
-}
-
-.task-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.75rem;
-
-  .task-priority {
-    .priority-badge {
-      display: inline-block;
-      padding: 0.125rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: white;
-      text-transform: uppercase;
+  
+  .task-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    .priority-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .task-title {
+      margin: 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #333;
+      line-height: 1.3;
     }
   }
-
-  .task-actions {
-    position: relative;
-
-    .action-button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0.25rem;
-      border-radius: 4px;
-      color: #6c757d;
-      transition: all 0.2s;
-
-      &:hover {
-        background: #f8f9fa;
-        color: #495057;
-      }
-
-      .action-icon {
-        font-size: 1rem;
-        font-weight: bold;
-      }
-    }
-
-    .action-menu {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: white;
-      border: 1px solid #dee2e6;
-      border-radius: 6px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      min-width: 120px;
-
-      .menu-list {
-        list-style: none;
-        padding: 0.25rem 0;
-        margin: 0;
-      }
-
-      .menu-item {
-        .menu-button {
-          width: 100%;
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 0.5rem 0.75rem;
-          text-align: left;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.875rem;
-          color: #495057;
-          transition: background-color 0.2s;
-
-          &:hover {
-            background: #f8f9fa;
-          }
-
-          &.delete {
-            color: #dc3545;
-
-            &:hover {
-              background: #f8d7da;
-            }
-          }
-
-          .menu-icon {
-            width: 16px;
-            text-align: center;
-          }
-        }
-      }
-    }
-  }
-}
-
-.task-content {
-  margin-bottom: 0.75rem;
-
-  .task-title {
-    margin: 0 0 0.5rem 0;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #2c3e50;
-    line-height: 1.4;
-  }
-
+  
   .task-description {
     margin: 0;
-    font-size: 0.8125rem;
-    color: #6c757d;
+    font-size: 0.75rem;
+    color: #666;
     line-height: 1.4;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-}
-
-.task-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-  margin-bottom: 0.75rem;
-
-  .tag {
-    background: #e9ecef;
-    color: #495057;
-    padding: 0.125rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
-  }
-}
-
-.task-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-
-  .task-assignee {
+  
+  .task-tags {
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  
+  .task-footer {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
-
-    .assignee-avatar {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #007bff;
-      color: white;
+    margin-top: auto;
+    
+    .due-date {
       font-size: 0.75rem;
-      font-weight: 500;
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+      color: #666;
+      
+      &.overdue {
+        color: #dc3545;
+        font-weight: bold;
       }
     }
-
-    .assignee-name {
-      font-size: 0.75rem;
-      color: #6c757d;
-      font-weight: 500;
-    }
-  }
-
-  .task-due-date {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.75rem;
-    color: #6c757d;
-
-    &.overdue {
-      color: #dc3545;
-      font-weight: 500;
-    }
-
-    .due-date-icon {
-      font-size: 0.875rem;
-    }
   }
 }
 
-.task-stats {
-  display: flex;
-  gap: 1rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #f8f9fa;
-
-  .stat-item {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.75rem;
-    color: #6c757d;
-
-    .stat-icon {
-      font-size: 0.875rem;
-    }
-  }
-}
-
-// Mobile Responsive
 @media (max-width: 768px) {
   .task-card {
     padding: 0.75rem;
-
-    .task-footer {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
+    
+    .task-title {
+      font-size: 0.8rem;
     }
-
-    .task-stats {
-      justify-content: space-between;
+    
+    .task-description {
+      font-size: 0.7rem;
     }
   }
 }
 ```
 
-#### 7. TaskModalComponent (Feature task creation/editing)
+### 3.4 TaskModalComponent
+
+**Component Type:** Feature
+**Purpose:** Provides form interface for creating new tasks or editing existing ones
 
 **TypeScript Specification:**
 
 ```typescript
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Task } from '../../core/models/task.model';
-import { User } from '../../core/models/user.model';
-import { UserService } from '../../core/services/user.service';
-
 @Component({
   selector: 'app-task-modal',
   templateUrl: './task-modal.component.html',
   styleUrls: ['./task-modal.component.scss']
 })
 export class TaskModalComponent implements OnInit, OnChanges {
-  // Input Properties
+  @Input() isOpen: boolean = false;
   @Input() task: Task | null = null;
-  @Input() visible: boolean = false;
-  @Input() mode: 'create' | 'edit' = 'create';
-
-  // Output Events
-  @Output() taskSaved = new EventEmitter<Task>();
-  @Output() modalClosed = new EventEmitter<void>();
-
-  // Component State
-  taskForm!: FormGroup;
-  submitting = false;
-  validationErrors: string[] = [];
-  availableUsers: User[] = [];
-  availableTags: string[] = ['Frontend', 'Backend', 'Design', 'Testing', 'Bug', 'Feature', 'Enhancement'];
+  @Input() availableAssignees: User[] = [];
+  @Input() columnId: string | null = null;
   
-  priorityOptions = [
-    { value: 'low', label: 'Low', color: '#28a745' },
-    { value: 'medium', label: 'Medium', color: '#ffc107' },
-    { value: 'high', label: 'High', color: '#dc3545' }
-  ];
-
-  statusOptions = [
-    { value: 'todo', label: 'To Do' },
-    { value: 'inprogress', label: 'In Progress' },
-    { value: 'done', label: 'Done' }
-  ];
-
-  constructor(
-    private formBuilder: FormBuilder,
-    private userService: UserService
-  ) {
+  @Output() taskCreated = new EventEmitter<Task>();
+  @Output() taskUpdated = new EventEmitter<Task>();
+  @Output() modalClosed = new EventEmitter<void>();
+  
+  taskForm!: FormGroup;
+  isSubmitting: boolean = false;
+  validationErrors: {[key: string]: string} = {};
+  
+  constructor(private fb: FormBuilder, private taskService: TaskService) {}
+  
+  ngOnInit(): void {
     this.initializeForm();
   }
-
-  ngOnInit(): void {
-    this.loadAvailableUsers();
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['task'] && this.taskForm) {
+      this.updateFormWithTask();
+    }
   }
-
-  ngOnChanges(): void {
-    if (this.visible) {
-      this.resetForm();
-      if (this.task && this.mode === 'edit') {
-        this.populateForm();
+  
+  onSubmit(): void {
+    if (this.taskForm.valid && !this.isSubmitting) {
+      this.isSubmitting = true;
+      const formData = this.taskForm.value;
+      
+      if (this.task) {
+        this.updateTask(formData);
+      } else {
+        this.createTask(formData);
       }
     }
   }
-
-  // Form Initialization
-  private initializeForm(): void {
-    this.taskForm = this.formBuilder.group({
-      title: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
-      description: ['', [Validators.maxLength(500)]],
-      priority: ['medium', [Validators.required]],
-      status: ['todo', [Validators.required]],
-      assigneeId: [''],
-      dueDate: [''],
-      tags: [[]]
-    });
-  }
-
-  private resetForm(): void {
-    this.taskForm.reset({
-      title: '',
-      description: '',
-      priority: 'medium',
-      status: 'todo',
-      assigneeId: '',
-      dueDate: '',
-      tags: []
-    });
-    this.validationErrors = [];
-  }
-
-  private populateForm(): void {
-    if (!this.task) return;
-
-    this.taskForm.patchValue({
-      title: this.task.title,
-      description: this.task.description || '',
-      priority: this.task.priority || 'medium',
-      status: this.task.status,
-      assigneeId: this.task.assignee?.id || '',
-      dueDate: this.task.dueDate ? this.formatDateForInput(this.task.dueDate) : '',
-      tags: this.task.tags || []
-    });
-  }
-
-  // Data Loading
-  private async loadAvailableUsers(): Promise<void> {
-    try {
-      this.availableUsers = await this.userService.getAllUsers();
-    } catch (error) {
-      console.error('Failed to load users:', error);
-    }
-  }
-
-  // Event Handlers
-  onSubmit(): void {
-    if (this.taskForm.valid && !this.submitting) {
-      this.saveTask();
-    } else {
-      this.validateForm();
-    }
-  }
-
+  
   onCancel(): void {
+    this.resetForm();
     this.modalClosed.emit();
   }
-
-  onBackdropClick(event: Event): void {
-    if (event.target === event.currentTarget) {
-      this.onCancel();
+  
+  validateForm(): boolean {
+    this.validationErrors = {};
+    
+    if (!this.taskForm.get('title')?.value) {
+      this.validationErrors['title'] = 'Title is required';
     }
+    
+    return Object.keys(this.validationErrors).length === 0;
   }
-
-  onTagAdd(tag: string): void {
-    const currentTags = this.taskForm.get('tags')?.value || [];
-    if (!currentTags.includes(tag)) {
+  
+  resetForm(): void {
+    this.taskForm.reset();
+    this.validationErrors = {};
+    this.isSubmitting = false;
+  }
+  
+  private initializeForm(): void {
+    this.taskForm = this.fb.group({
+      title: ['', [Validators.required, Validators.maxLength(100)]],
+      description: ['', Validators.maxLength(500)],
+      priority: ['medium'],
+      assigneeId: [''],
+      dueDate: [''],
+      tags: ['']
+    });
+  }
+  
+  private updateFormWithTask(): void {
+    if (this.task) {
       this.taskForm.patchValue({
-        tags: [...currentTags, tag]
+        title: this.task.title,
+        description: this.task.description,
+        priority: this.task.priority,
+        assigneeId: this.task.assignee?.id || '',
+        dueDate: this.task.dueDate ? new Date(this.task.dueDate).toISOString().split('T')[0] : '',
+        tags: this.task.tags?.join(', ') || ''
       });
     }
   }
-
-  onTagRemove(tagToRemove: string): void {
-    const currentTags = this.taskForm.get('tags')?.value || [];
-    this.taskForm.patchValue({
-      tags: currentTags.filter((tag: string) => tag !== tagToRemove)
-    });
-  }
-
-  // Business Logic
-  private async saveTask(): Promise<void> {
-    try {
-      this.submitting = true;
-      this.validationErrors = [];
-
-      const formValue = this.taskForm.value;
-      const assignee = formValue.assigneeId ? 
-        this.availableUsers.find(user => user.id === formValue.assigneeId) : null;
-
-      const taskData: Task = {
-        id: this.task?.id || this.generateTaskId(),
-        title: formValue.title,
-        description: formValue.description,
-        priority: formValue.priority,
-        status: formValue.status,
-        assignee: assignee || null,
-        dueDate: formValue.dueDate || null,
-        tags: formValue.tags || [],
-        createdAt: this.task?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      this.taskSaved.emit(taskData);
-    } catch (error) {
-      this.validationErrors = ['Failed to save task. Please try again.'];
-      console.error('Task save error:', error);
-    } finally {
-      this.submitting = false;
-    }
-  }
-
-  private validateForm(): void {
-    this.validationErrors = [];
+  
+  private createTask(formData: any): void {
+    const newTask: Partial<Task> = {
+      ...formData,
+      tags: formData.tags ? formData.tags.split(',').map((tag: string) => tag.trim()) : [],
+      columnId: this.columnId
+    };
     
-    Object.keys(this.taskForm.controls).forEach(key => {
-      const control = this.taskForm.get(key);
-      if (control && control.invalid && control.touched) {
-        switch (key) {
-          case 'title':
-            if (control.errors?.['required']) {
-              this.validationErrors.push('Task title is required');
-            } else if (control.errors?.['minlength']) {
-              this.validationErrors.push('Task title must be at least 3 characters');
-            } else if (control.errors?.['maxlength']) {
-              this.validationErrors.push('Task title cannot exceed 100 characters');
-            }
-            break;
-          case 'description':
-            if (control.errors?.['maxlength']) {
-              this.validationErrors.push('Description cannot exceed 500 characters');
-            }
-            break;
-        }
+    this.taskService.createTask(newTask).subscribe({
+      next: (task) => {
+        this.taskCreated.emit(task);
+        this.resetForm();
+        this.isSubmitting = false;
+      },
+      error: (error) => {
+        console.error('Error creating task:', error);
+        this.isSubmitting = false;
       }
     });
   }
-
-  // Utility Methods
-  private generateTaskId(): string {
-    return 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-  }
-
-  private formatDateForInput(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toISOString().split('T')[0];
-  }
-
-  getModalTitle(): string {
-    return this.mode === 'create' ? 'Create New Task' : 'Edit Task';
-  }
-
-  getSubmitButtonText(): string {
-    if (this.submitting) {
-      return this.mode === 'create' ? 'Creating...' : 'Updating...';
-    }
-    return this.mode === 'create' ? 'Create Task' : 'Update Task';
-  }
-
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.taskForm.get(fieldName);
-    return !!(field && field.invalid && field.touched);
-  }
-
-  getFieldError(fieldName: string): string {
-    const field = this.taskForm.get(fieldName);
-    if (field && field.errors && field.touched) {
-      if (field.errors['required']) return `${fieldName} is required`;
-      if (field.errors['minlength']) return `${fieldName} is too short`;
-      if (field.errors['maxlength']) return `${fieldName} is too long`;
-    }
-    return '';
+  
+  private updateTask(formData: any): void {
+    if (!this.task) return;
+    
+    const updatedTask: Partial<Task> = {
+      ...this.task,
+      ...formData,
+      tags: formData.tags ? formData.tags.split(',').map((tag: string) => tag.trim()) : []
+    };
+    
+    this.taskService.updateTask(this.task.id, updatedTask).subscribe({
+      next: (task) => {
+        this.taskUpdated.emit(task);
+        this.resetForm();
+        this.isSubmitting = false;
+      },
+      error: (error) => {
+        console.error('Error updating task:', error);
+        this.isSubmitting = false;
+      }
+    });
   }
 }
 ```
@@ -2793,610 +825,730 @@ export class TaskModalComponent implements OnInit, OnChanges {
 **HTML Structure:**
 
 ```html
-<div class="modal-overlay" *ngIf="visible" (click)="onBackdropClick($event)">
-  <div class="modal-container" role="dialog" [attr.aria-label]="getModalTitle()">
-    <!-- Modal Header -->
-    <div class="modal-header">
-      <h2 class="modal-title">{{ getModalTitle() }}</h2>
-      <button class="close-button" (click)="onCancel()" aria-label="Close modal">
-        <span class="close-icon">✕</span>
-      </button>
-    </div>
-
-    <!-- Modal Body -->
-    <div class="modal-body">
-      <!-- Validation Errors -->
-      <div class="error-messages" *ngIf="validationErrors.length > 0">
-        <div class="error-content">
-          <span class="error-icon">⚠️</span>
-          <div class="error-list">
-            <p *ngFor="let error of validationErrors" class="error-message">
-              {{ error }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Task Form -->
-      <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-form">
-        <!-- Title Field -->
-        <div class="form-group">
-          <label for="task-title" class="form-label">Title *</label>
-          <input
-            id="task-title"
-            type="text"
-            class="form-input"
-            [class.invalid]="isFieldInvalid('title')"
-            formControlName="title"
-            placeholder="Enter task title"
-            maxlength="100"
-          />
-          <div class="field-error" *ngIf="isFieldInvalid('title')">
-            {{ getFieldError('title') }}
-          </div>
-        </div>
-
-        <!-- Description Field -->
-        <div class="form-group">
-          <label for="task-description" class="form-label">Description</label>
-          <textarea
-            id="task-description"
-            class="form-textarea"
-            [class.invalid]="isFieldInvalid('description')"
-            formControlName="description"
-            placeholder="Enter task description"
-            rows="4"
-            maxlength="500"
-          ></textarea>
-          <div class="field-error" *ngIf="isFieldInvalid('description')">
-            {{ getFieldError('description') }}
-          </div>
-        </div>
-
-        <!-- Priority and Status Row -->
-        <div class="form-row">
-          <!-- Priority Field -->
-          <div class="form-group">
-            <label for="task-priority" class="form-label">Priority *</label>
-            <select
-              id="task-priority"
-              class="form-select"
-              formControlName="priority"
-            >
-              <option *ngFor="let option of priorityOptions" [value]="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Status Field -->
-          <div class="form-group">
-            <label for="task-status" class="form-label">Status *</label>
-            <select
-              id="task-status"
-              class="form-select"
-              formControlName="status"
-            >
-              <option *ngFor="let option of statusOptions" [value]="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Assignee and Due Date Row -->
-        <div class="form-row">
-          <!-- Assignee Field -->
-          <div class="form-group">
-            <label for="task-assignee" class="form-label">Assignee</label>
-            <select
-              id="task-assignee"
-              class="form-select"
-              formControlName="assigneeId"
-            >
-              <option value="">Unassigned</option>
-              <option *ngFor="let user of availableUsers" [value]="user.id">
-                {{ user.name }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Due Date Field -->
-          <div class="form-group">
-            <label for="task-due-date" class="form-label">Due Date</label>
-            <input
-              id="task-due-date"
-              type="date"
-              class="form-input"
-              formControlName="dueDate"
-            />
-          </div>
-        </div>
-
-        <!-- Tags Field -->
-        <div class="form-group">
-          <label class="form-label">Tags</label>
-          
-          <!-- Selected Tags -->
-          <div class="selected-tags" *ngIf="taskForm.get('tags')?.value?.length > 0">
-            <span 
-              *ngFor="let tag of taskForm.get('tags')?.value" 
-              class="selected-tag"
-            >
-              {{ tag }}
-              <button 
-                type="button" 
-                class="tag-remove" 
-                (click)="onTagRemove(tag)"
-                [attr.aria-label]="'Remove ' + tag + ' tag'"
-              >
-                ✕
-              </button>
-            </span>
-          </div>
-
-          <!-- Available Tags -->
-          <div class="available-tags">
-            <span class="tags-label">Available tags:</span>
-            <button
-              *ngFor="let tag of availableTags"
-              type="button"
-              class="available-tag"
-              [class.selected]="taskForm.get('tags')?.value?.includes(tag)"
-              (click)="onTagAdd(tag)"
-              [disabled]="taskForm.get('tags')?.value?.includes(tag)"
-            >
-              {{ tag }}
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-
-    <!-- Modal Footer -->
-    <div class="modal-footer">
-      <button 
-        type="button" 
-        class="button button-secondary" 
-        (click)="onCancel()"
-        [disabled]="submitting"
-      >
-        Cancel
-      </button>
-      <button 
-        type="submit" 
-        class="button button-primary" 
-        (click)="onSubmit()"
-        [disabled]="submitting || taskForm.invalid"
-      >
-        {{ getSubmitButtonText() }}
-      </button>
-    </div>
+<app-modal [isOpen]="isOpen" (modalClosed)="onCancel()" size="medium">
+  <div class="modal-header">
+    <h3>{{ task ? 'Edit Task' : 'Create New Task' }}</h3>
   </div>
-</div>
+  
+  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-form">
+    <div class="form-group">
+      <label for="title">Title *</label>
+      <input 
+        id="title"
+        type="text" 
+        formControlName="title"
+        [class.error]="taskForm.get('title')?.invalid && taskForm.get('title')?.touched"
+        placeholder="Enter task title"
+        maxlength="100">
+      <div class="error-message" *ngIf="taskForm.get('title')?.invalid && taskForm.get('title')?.touched">
+        <span *ngIf="taskForm.get('title')?.errors?.['required']">Title is required</span>
+        <span *ngIf="taskForm.get('title')?.errors?.['maxlength']">Title must be less than 100 characters</span>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea 
+        id="description"
+        formControlName="description"
+        rows="3"
+        placeholder="Enter task description"
+        maxlength="500">
+      </textarea>
+      <div class="char-count">{{ taskForm.get('description')?.value?.length || 0 }}/500</div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="priority">Priority</label>
+        <select id="priority" formControlName="priority">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="assignee">Assignee</label>
+        <select id="assignee" formControlName="assigneeId">
+          <option value="">Unassigned</option>
+          <option *ngFor="let user of availableAssignees" [value]="user.id">
+            {{ user.name }}
+          </option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="dueDate">Due Date</label>
+      <input 
+        id="dueDate"
+        type="date" 
+        formControlName="dueDate"
+        [min]="today">
+    </div>
+    
+    <div class="form-group">
+      <label for="tags">Tags</label>
+      <input 
+        id="tags"
+        type="text" 
+        formControlName="tags"
+        placeholder="Enter tags separated by commas">
+      <div class="help-text">Separate multiple tags with commas</div>
+    </div>
+    
+    <div class="modal-actions">
+      <app-button type="button" variant="secondary" (click)="onCancel()" [disabled]="isSubmitting">
+        Cancel
+      </app-button>
+      <app-button 
+        type="submit" 
+        variant="primary" 
+        [disabled]="taskForm.invalid || isSubmitting"
+        [loading]="isSubmitting">
+        {{ task ? 'Update Task' : 'Create Task' }}
+      </app-button>
+    </div>
+  </form>
+</app-modal>
 ```
 
-**CSS Specifications:**
+**CSS Specification:**
 
 ```scss
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.modal-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow: hidden;
+.task-form {
   display: flex;
   flex-direction: column;
-  animation: slideIn 0.3s ease-out;
-
-  @media (max-width: 768px) {
-    max-width: none;
-    margin: 1rem;
-    max-height: calc(100vh - 2rem);
+  gap: 1rem;
+  padding: 1.5rem;
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    
+    label {
+      font-weight: 500;
+      color: #333;
+      font-size: 0.875rem;
+    }
+    
+    input, textarea, select {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      transition: border-color 0.2s;
+      
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+      }
+      
+      &.error {
+        border-color: #dc3545;
+      }
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .error-message {
+      color: #dc3545;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+    }
+    
+    .char-count {
+      font-size: 0.75rem;
+      color: #666;
+      text-align: right;
+    }
+    
+    .help-text {
+      font-size: 0.75rem;
+      color: #666;
+    }
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e1e5e9;
   }
 }
 
 .modal-header {
-  padding: 1.5rem 1.5rem 1rem 1.5rem;
-  border-bottom: 1px solid #e9ecef;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  .modal-title {
+  padding: 1.5rem 1.5rem 0;
+  
+  h3 {
     margin: 0;
     font-size: 1.25rem;
-    font-weight: 600;
-    color: #2c3e50;
-  }
-
-  .close-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 6px;
-    color: #6c757d;
-    transition: all 0.2s;
-
-    &:hover {
-      background: #f8f9fa;
-      color: #495057;
-    }
-
-    .close-icon {
-      font-size: 1.25rem;
-      font-weight: bold;
-    }
+    color: #333;
   }
 }
 
-.modal-body {
-  flex: 1;
-  padding: 1.5rem;
-  overflow-y: auto;
+@media (max-width: 768px) {
+  .task-form {
+    padding: 1rem;
+    
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+    
+    .modal-actions {
+      flex-direction: column;
+      
+      app-button {
+        width: 100%;
+      }
+    }
+  }
+  
+  .modal-header {
+    padding: 1rem 1rem 0;
+  }
 }
+```
 
-.error-messages {
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
+### 3.5 HeaderComponent
 
-  .error-content {
+**Component Type:** Layout
+**Purpose:** Provides global navigation, search functionality, and user account access
+
+**TypeScript Specification:**
+
+```typescript
+@Component({
+  selector: 'app-header',
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.scss']
+})
+export class HeaderComponent {
+  @Input() user!: User;
+  @Input() notificationCount: number = 0;
+  @Input() searchPlaceholder: string = 'Search tasks...';
+  
+  @Output() searchChanged = new EventEmitter<string>();
+  @Output() notificationClicked = new EventEmitter<void>();
+  @Output() settingsClicked = new EventEmitter<void>();
+  @Output() userProfileClicked = new EventEmitter<void>();
+  @Output() logoutClicked = new EventEmitter<void>();
+  
+  searchQuery: string = '';
+  showUserMenu: boolean = false;
+  isSearchFocused: boolean = false;
+  
+  onSearchInput(query: string): void {
+    this.searchQuery = query;
+    this.searchChanged.emit(query);
+  }
+  
+  toggleUserMenu(): void {
+    this.showUserMenu = !this.showUserMenu;
+  }
+  
+  onNotificationClick(): void {
+    this.notificationClicked.emit();
+  }
+  
+  onSettingsClick(): void {
+    this.settingsClicked.emit();
+    this.showUserMenu = false;
+  }
+  
+  onLogout(): void {
+    this.logoutClicked.emit();
+    this.showUserMenu = false;
+  }
+  
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-menu-container')) {
+      this.showUserMenu = false;
+    }
+  }
+}
+```
+
+**HTML Structure:**
+
+```html
+<header class="app-header" role="banner">
+  <div class="header-content">
+    <div class="search-container" [class.focused]="isSearchFocused">
+      <input 
+        type="text"
+        class="search-input"
+        [placeholder]="searchPlaceholder"
+        [(ngModel)]="searchQuery"
+        (input)="onSearchInput($event.target.value)"
+        (focus)="isSearchFocused = true"
+        (blur)="isSearchFocused = false"
+        aria-label="Search tasks">
+      <i class="search-icon fas fa-search" aria-hidden="true"></i>
+    </div>
+    
+    <div class="header-actions">
+      <app-button 
+        variant="ghost" 
+        size="small"
+        (click)="onNotificationClick()"
+        [attr.aria-label]="'Notifications' + (notificationCount > 0 ? ' (' + notificationCount + ' unread)' : '')"
+        class="notification-button">
+        <i class="fas fa-bell" aria-hidden="true"></i>
+        <span class="notification-badge" *ngIf="notificationCount > 0">{{ notificationCount }}</span>
+      </app-button>
+      
+      <app-button 
+        variant="ghost" 
+        size="small"
+        (click)="onSettingsClick()"
+        aria-label="Settings"
+        class="settings-button">
+        <i class="fas fa-cog" aria-hidden="true"></i>
+      </app-button>
+      
+      <div class="user-menu-container">
+        <app-button 
+          variant="ghost" 
+          size="small"
+          (click)="toggleUserMenu()"
+          [attr.aria-expanded]="showUserMenu"
+          aria-label="User menu"
+          class="user-menu-trigger">
+          <app-avatar [user]="user" size="small"></app-avatar>
+          <span class="user-name">{{ user.name }}</span>
+          <i class="fas fa-chevron-down" [class.rotated]="showUserMenu" aria-hidden="true"></i>
+        </app-button>
+        
+        <app-popover [isOpen]="showUserMenu" position="bottom-right">
+          <div class="user-menu">
+            <div class="user-info">
+              <app-avatar [user]="user" size="medium"></app-avatar>
+              <div class="user-details">
+                <div class="user-name">{{ user.name }}</div>
+                <div class="user-email">{{ user.email }}</div>
+              </div>
+            </div>
+            <hr class="menu-divider">
+            <button class="menu-item" (click)="onSettingsClick()">
+              <i class="fas fa-cog" aria-hidden="true"></i>
+              Settings
+            </button>
+            <button class="menu-item" (click)="onLogout()">
+              <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+              Logout
+            </button>
+          </div>
+        </app-popover>
+      </div>
+    </div>
+  </div>
+</header>
+```
+
+**CSS Specification:**
+
+```scss
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-bottom: 1px solid #e1e5e9;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  
+  .header-content {
     display: flex;
-    gap: 0.75rem;
-
-    .error-icon {
-      font-size: 1.25rem;
-      flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 2rem;
+  }
+  
+  .search-container {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+    
+    &.focused .search-input {
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
     }
-
-    .error-list {
-      flex: 1;
-
-      .error-message {
-        margin: 0 0 0.25rem 0;
-        color: #721c24;
-        font-size: 0.875rem;
-
-        &:last-child {
-          margin-bottom: 0;
+    
+    .search-input {
+      width: 100%;
+      padding: 0.5rem 2.5rem 0.5rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      
+      &::placeholder {
+        color: #999;
+      }
+      
+      &:focus {
+        outline: none;
+      }
+    }
+    
+    .search-icon {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #666;
+      pointer-events: none;
+    }
+  }
+  
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    .notification-button {
+      position: relative;
+      
+      .notification-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+    }
+    
+    .user-menu-container {
+      position: relative;
+      
+      .user-menu-trigger {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        .user-name {
+          font-size: 0.875rem;
+          font-weight: 500;
+        }
+        
+        .fa-chevron-down {
+          font-size: 0.75rem;
+          transition: transform 0.2s;
+          
+          &.rotated {
+            transform: rotate(180deg);
+          }
         }
       }
     }
   }
 }
 
-.task-form {
-  .form-group {
-    margin-bottom: 1.5rem;
-
-    .form-label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: #495057;
-    }
-
-    .form-input,
-    .form-textarea,
-    .form-select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #dee2e6;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      transition: all 0.2s;
-      background: white;
-
-      &:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+.user-menu {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    
+    .user-details {
+      .user-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.25rem;
       }
-
-      &.invalid {
-        border-color: #dc3545;
-        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+      
+      .user-email {
+        font-size: 0.75rem;
+        color: #666;
       }
-
-      &::placeholder {
-        color: #6c757d;
-      }
-    }
-
-    .form-textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    .field-error {
-      margin-top: 0.25rem;
-      font-size: 0.75rem;
-      color: #dc3545;
     }
   }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-
-    @media (max-width: 768px) {
-      grid-template-columns: 1fr;
-      gap: 0;
-    }
+  
+  .menu-divider {
+    border: none;
+    border-top: 1px solid #e1e5e9;
+    margin: 0.75rem 0;
   }
-}
-
-.selected-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-
-  .selected-tag {
-    background: #007bff;
-    color: white;
-    padding: 0.375rem 0.75rem;
-    border-radius: 16px;
-    font-size: 0.75rem;
-    font-weight: 500;
+  
+  .menu-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-
-    .tag-remove {
-      background: none;
-      border: none;
-      color: white;
-      cursor: pointer;
-      padding: 0;
-      font-size: 0.875rem;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-
-      &:hover {
-        opacity: 1;
-      }
-    }
-  }
-}
-
-.available-tags {
-  .tags-label {
-    display: block;
-    font-size: 0.75rem;
-    color: #6c757d;
-    margin-bottom: 0.5rem;
-  }
-
-  .available-tag {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    color: #495057;
-    padding: 0.375rem 0.75rem;
-    border-radius: 16px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    margin: 0 0.375rem 0.375rem 0;
-    transition: all 0.2s;
-
-    &:hover:not(:disabled) {
-      background: #e9ecef;
-      border-color: #adb5bd;
-    }
-
-    &.selected,
-    &:disabled {
-      background: #e9ecef;
-      color: #6c757d;
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-  }
-}
-
-.modal-footer {
-  padding: 1rem 1.5rem 1.5rem 1.5rem;
-  border-top: 1px solid #e9ecef;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-
-  .button {
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
+    width: 100%;
+    padding: 0.5rem;
     border: none;
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    &.button-secondary {
-      background: #6c757d;
-      color: white;
-
-      &:hover:not(:disabled) {
-        background: #5a6268;
-      }
-    }
-
-    &.button-primary {
-      background: #007bff;
-      color: white;
-
-      &:hover:not(:disabled) {
-        background: #0056b3;
-      }
-    }
-  }
-
-  @media (max-width: 768px) {
-    flex-direction: column-reverse;
-
-    .button {
-      width: 100%;
-      justify-content: center;
-    }
-  }
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-// Scrollbar Styling
-.modal-body {
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    transition: background-color 0.2s;
+    
     &:hover {
-      background: #a8a8a8;
+      background: #f8f9fa;
+    }
+    
+    i {
+      width: 16px;
+      color: #666;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    .header-content {
+      padding: 0 1rem;
+    }
+    
+    .search-container {
+      max-width: 200px;
+    }
+    
+    .user-menu-trigger .user-name {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    .search-container {
+      display: none;
     }
   }
 }
 ```
 
-### COMPONENT MAPPING SUMMARY
+### 3.6 MainContentComponent
 
-**Agent-1 Components → Final Implementation:**
+**Component Type:** Layout
+**Purpose:** Provides layout structure for main content area and page headers
 
-| A1 Component | Implementation Type | Final Component |
-|--------------|-------------------|------------------|
-| AppComponent | Page-level | AppComponent |
-| SidebarNavigationComponent | Layout | SidebarNavigationComponent |
-| HeaderComponent | Layout | HeaderComponent |
-| KanbanBoardComponent | Feature | KanbanBoardComponent |
-| KanbanColumnComponent | Feature | KanbanColumnComponent |
-| TaskCardComponent | Feature | TaskCardComponent |
-| TaskModalComponent | Feature | TaskModalComponent |
+**TypeScript Specification:**
 
-**Library Components Used:**
-- Button Component (from uicomplibraryplay) - Used in headers and modals
-- SearchBar Component (from uicomplibraryplay) - Used in HeaderComponent
-- Popover Component (from uicomplibraryplay) - Used for dropdowns and menus
+```typescript
+@Component({
+  selector: 'app-main-content',
+  templateUrl: './main-content.component.html',
+  styleUrls: ['./main-content.component.scss']
+})
+export class MainContentComponent {
+  @Input() pageTitle: string = '';
+  @Input() showBackButton: boolean = false;
+  @Input() breadcrumbs: Breadcrumb[] = [];
+  
+  @Output() backClicked = new EventEmitter<void>();
+  
+  isLoading: boolean = false;
+  
+  onBackClick(): void {
+    this.backClicked.emit();
+  }
+}
+```
 
-### DATA FLOW SUMMARY
+**HTML Structure:**
 
-**Parent → Child Props:**
-- AppComponent → SidebarNavigationComponent: activeView, collapsed
-- AppComponent → MainContentComponent: user, activeView
-- MainContentComponent → HeaderComponent: user, searchQuery
-- MainContentComponent → KanbanBoardComponent: tasks, loading, error
-- KanbanBoardComponent → KanbanColumnComponent: column, tasks, allowDrop, draggedTask
-- KanbanColumnComponent → TaskCardComponent: task, draggable, selected
-- KanbanBoardComponent → TaskModalComponent: task, visible, mode
+```html
+<main class="main-content" role="main">
+  <div class="page-header" *ngIf="pageTitle">
+    <div class="header-left">
+      <app-button 
+        *ngIf="showBackButton"
+        variant="ghost" 
+        size="small"
+        (click)="onBackClick()"
+        aria-label="Go back"
+        class="back-button">
+        <i class="fas fa-arrow-left" aria-hidden="true"></i>
+      </app-button>
+      
+      <div class="title-section">
+        <nav class="breadcrumbs" *ngIf="breadcrumbs.length" aria-label="Breadcrumb">
+          <ol>
+            <li *ngFor="let crumb of breadcrumbs; let last = last">
+              <a *ngIf="!last" [routerLink]="crumb.path">{{ crumb.label }}</a>
+              <span *ngIf="last" aria-current="page">{{ crumb.label }}</span>
+            </li>
+          </ol>
+        </nav>
+        <h1 class="page-title">{{ pageTitle }}</h1>
+      </div>
+    </div>
+  </div>
+  
+  <div class="content-area">
+    <ng-content></ng-content>
+  </div>
+</main>
+```
 
-**Child → Parent Events:**
-- TaskCardComponent → KanbanColumnComponent: taskClick, taskDragStart, taskDragEnd, taskDeleted
-- KanbanColumnComponent → KanbanBoardComponent: taskDropped, taskSelected
-- TaskModalComponent → KanbanBoardComponent: taskSaved, modalClosed
-- KanbanBoardComponent → AppComponent: taskCreated, taskUpdated, taskDeleted
+**CSS Specification:**
 
-### API USAGE SUMMARY
+```scss
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: #f8f9fa;
+  min-height: calc(100vh - 64px); // Subtract header height
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 2rem 1rem;
+    background: white;
+    border-bottom: 1px solid #e1e5e9;
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      
+      .back-button {
+        padding: 0.5rem;
+        
+        i {
+          font-size: 1rem;
+        }
+      }
+      
+      .title-section {
+        .breadcrumbs {
+          margin-bottom: 0.5rem;
+          
+          ol {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            
+            li {
+              display: flex;
+              align-items: center;
+              
+              &:not(:last-child)::after {
+                content: '/';
+                margin-left: 0.5rem;
+                color: #666;
+              }
+              
+              a {
+                color: #007bff;
+                text-decoration: none;
+                
+                &:hover {
+                  text-decoration: underline;
+                }
+              }
+              
+              span[aria-current="page"] {
+                color: #666;
+                font-weight: 500;
+              }
+            }
+          }
+        }
+        
+        .page-title {
+          font-size: 1.75rem;
+          font-weight: 600;
+          color: #333;
+          margin: 0;
+          line-height: 1.2;
+        }
+      }
+    }
+  }
+  
+  .content-area {
+    flex: 1;
+    padding: 2rem;
+    overflow: auto;
+  }
+}
 
-**Component → API Mappings:**
-- AppComponent: GET /users/profile (user authentication)
-- HeaderComponent: GET /users/profile (user profile data)
-- KanbanBoardComponent: Custom task APIs (GET, POST, PUT, DELETE /tasks)
-- TaskModalComponent: Custom task APIs + GET /users (for assignee options)
-- UserService: GET /users/profile, GET /users (list all users)
-- TaskService: Full CRUD operations for tasks
+@media (max-width: 768px) {
+  .main-content {
+    .page-header {
+      padding: 1rem;
+      
+      .header-left {
+        gap: 0.5rem;
+        
+        .title-section .page-title {
+          font-size: 1.5rem;
+        }
+      }
+    }
+    
+    .content-area {
+      padding: 1rem;
+    }
+  }
+}
 
-**Missing APIs (Need Implementation):**
-- GET /tasks - Fetch all tasks
-- POST /tasks - Create new task
-- PUT /tasks/:id - Update task
-- DELETE /tasks/:id - Delete task
-- GET /search/tasks - Search tasks
-- PUT /tasks/:id/column - Move task between columns
-
-### NOTES & CONSTRAINTS
-
-**Adherence to A1 Structure:**
-- All components follow the HTML structure defined in Agent-1 output
-- Component hierarchy matches exactly with A1 architecture
-- CSS Grid layout implemented as specified for kanban columns
-- Responsive breakpoints follow A1 requirements (desktop >1024px, tablet 768px-1024px, mobile <768px)
-
-**Library Integration:**
-- Button, SearchBar, and Popover components from uicomplibraryplay are properly integrated
-- Fallback implementations provided where library components are not available
-- Import paths and usage patterns documented for consistency
-
-**Angular Best Practices:**
-- OnPush change detection strategy recommended for performance
-- Reactive forms used for complex form handling
-- Proper TypeScript interfaces and models defined
-- Error handling implemented at component and service levels
-- Accessibility attributes included (ARIA labels, roles, etc.)
-
-**Responsive Design:**
-- Mobile-first approach with progressive enhancement
-- CSS Grid and Flexbox used appropriately
-- Touch-friendly interactions for mobile devices
-- Proper viewport meta tags and responsive breakpoints
-
-IMPORTANT:
-- FULL CODE MUST BE PRESERVED
-- DO NOT MODIFY OR SUMMARIZE
-- All TypeScript, HTML, and CSS code is provided in complete form
-- Ready for immediate development implementation
+@media (max-width: 480px) {
+  .main-content {
+    .page-header {
+      .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        
+        .title-section .page-title {
+          font-size: 1.25rem;
+        }
+      }
+    }
+  }
+}
+```
 
 ## 4. USER FLOW DIAGRAM (FROM AGENT-3)
+
+**IMPORTANT: INCLUDE FULL HTML FILE**
 
 ```html
 <!DOCTYPE html>
@@ -3404,28 +1556,38 @@ IMPORTANT:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board Management System - User Flow Diagram</title>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <title>Kanban Dashboard - User Flow Diagram</title>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+    </script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f8f9fa;
-            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             overflow: hidden;
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(90deg, #4CAF50, #45a049);
             color: white;
-            padding: 2rem;
+            padding: 30px;
             text-align: center;
         }
         .header h1 {
@@ -3434,517 +1596,339 @@ IMPORTANT:
             font-weight: 300;
         }
         .header p {
-            margin: 0.5rem 0 0 0;
-            opacity: 0.9;
+            margin: 10px 0 0;
             font-size: 1.1rem;
+            opacity: 0.9;
         }
         .content {
-            padding: 2rem;
+            padding: 40px;
         }
-        .diagram-container {
-            background: #ffffff;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
-            overflow-x: auto;
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
         }
-        .flow-description {
-            background: #f8f9fa;
-            border-left: 4px solid #007bff;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            border-radius: 0 8px 8px 0;
-        }
-        .flow-description h3 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
-        .interaction-points {
+        .legend {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-        .interaction-card {
-            background: white;
-            border: 1px solid #dee2e6;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
             border-radius: 8px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .interaction-card h4 {
-            margin-top: 0;
-            color: #495057;
-            border-bottom: 2px solid #e9ecef;
-            padding-bottom: 0.5rem;
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .interaction-card ul {
-            margin: 0;
-            padding-left: 1.2rem;
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
         }
-        .interaction-card li {
-            margin-bottom: 0.5rem;
-            color: #6c757d;
-        }
+        .auth { background: #e3f2fd; }
+        .task { background: #f3e5f5; }
+        .nav { background: #e8f5e8; }
+        .error { background: #ffebee; }
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            .content {
-                padding: 1rem;
-            }
-            .interaction-points {
-                grid-template-columns: 1fr;
-            }
+            .header h1 { font-size: 2rem; }
+            .content { padding: 20px; }
+            .legend { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Kanban Board Management System</h1>
-            <p>User Flow Diagram - Complete Application Journey</p>
+            <h1>🎯 Kanban Dashboard</h1>
+            <p>Complete User Flow & Interaction Diagram</p>
         </div>
         
         <div class="content">
-            <div class="flow-description">
-                <h3>Application User Flow Overview</h3>
-                <p>This diagram illustrates the complete user journey through the Kanban Board Management System, from initial application load to task management operations. The flow covers authentication, navigation, task creation, editing, status updates, and error handling scenarios.</p>
+            <div class="mermaid">
+                flowchart TD
+                    Start([User Opens Application]) --> Auth{Authentication Check}
+                    Auth -->|Authenticated| Dashboard[Load Dashboard]
+                    Auth -->|Not Authenticated| Login[Redirect to Login]
+                    Login --> Auth
+                    
+                    Dashboard --> InitBoard[Initialize Kanban Board]
+                    InitBoard --> LoadColumns[Load Three Columns]
+                    LoadColumns --> TodoCol[To Do Column]
+                    LoadColumns --> ProgressCol[In Progress Column] 
+                    LoadColumns --> DoneCol[Done Column]
+                    
+                    TodoCol --> DisplayTasks1[Display Tasks]
+                    ProgressCol --> DisplayTasks2[Display Tasks]
+                    DoneCol --> DisplayTasks3[Display Tasks]
+                    
+                    DisplayTasks1 --> UserActions{User Actions}
+                    DisplayTasks2 --> UserActions
+                    DisplayTasks3 --> UserActions
+                    
+                    UserActions -->|Create Task| CreateBtn[Click Create Task Button]
+                    UserActions -->|Edit Task| TaskClick[Click Task Card]
+                    UserActions -->|Move Task| DragTask[Drag Task]
+                    UserActions -->|Search| SearchInput[Use Search Input]
+                    UserActions -->|Profile| ProfileMenu[Access Profile Menu]
+                    
+                    CreateBtn --> OpenModal[Open Task Modal]
+                    OpenModal --> FillForm[Fill Task Form]
+                    FillForm --> ValidateForm{Form Valid?}
+                    ValidateForm -->|No| ShowErrors[Show Validation Errors]
+                    ShowErrors --> FillForm
+                    ValidateForm -->|Yes| SubmitTask[Submit Task]
+                    SubmitTask --> APICreate[POST /api/youth-accounts/fund-transfer]
+                    APICreate -->|Success| RefreshBoard[Refresh Board]
+                    APICreate -->|Error| ShowAPIError[Show Error Message]
+                    ShowAPIError --> FillForm
+                    
+                    TaskClick --> OpenEditModal[Open Edit Modal]
+                    OpenEditModal --> FillEditForm[Fill Edit Form]
+                    FillEditForm --> ValidateEditForm{Form Valid?}
+                    ValidateEditForm -->|No| ShowEditErrors[Show Validation Errors]
+                    ShowEditErrors --> FillEditForm
+                    ValidateEditForm -->|Yes| SubmitEdit[Submit Changes]
+                    SubmitEdit --> APIUpdate[PUT /api/youth-accounts/spending-limit]
+                    APIUpdate -->|Success| RefreshBoard
+                    APIUpdate -->|Error| ShowEditAPIError[Show Error Message]
+                    ShowEditAPIError --> FillEditForm
+                    
+                    DragTask --> DragStart[Drag Start Event]
+                    DragStart --> DragOver[Drag Over Column]
+                    DragOver --> Drop{Drop on Valid Column?}
+                    Drop -->|Yes| UpdateTaskStatus[Update Task Status]
+                    Drop -->|No| RevertDrag[Revert to Original Position]
+                    UpdateTaskStatus --> APIMove[PUT /api/youth-accounts/spending-limit]
+                    APIMove -->|Success| RefreshBoard
+                    APIMove -->|Error| RevertDrag
+                    RevertDrag --> DisplayTasks1
+                    
+                    SearchInput --> FilterTasks[Filter Tasks Locally]
+                    FilterTasks --> UpdateDisplay[Update Task Display]
+                    UpdateDisplay --> UserActions
+                    
+                    ProfileMenu --> ProfileActions{Profile Actions}
+                    ProfileActions -->|Settings| OpenSettings[Open Settings]
+                    ProfileActions -->|Notifications| ShowNotifications[Show Notifications]
+                    ProfileActions -->|Logout| LogoutUser[Logout User]
+                    
+                    OpenSettings --> SettingsPage[Navigate to Settings]
+                    ShowNotifications --> NotificationPanel[Show Notification Panel]
+                    LogoutUser --> ClearSession[Clear User Session]
+                    ClearSession --> Start
+                    
+                    RefreshBoard --> LoadColumns
+                    
+                    classDef authClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+                    classDef taskClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+                    classDef navClass fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+                    classDef errorClass fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+                    
+                    class Start,Auth,Login,Dashboard authClass
+                    class CreateBtn,OpenModal,FillForm,TaskClick,DragTask,SubmitTask,UpdateTaskStatus taskClass
+                    class SearchInput,ProfileMenu,OpenSettings,ShowNotifications,LogoutUser navClass
+                    class ShowErrors,ShowAPIError,ShowEditErrors,ShowEditAPIError,RevertDrag errorClass
             </div>
-
-            <div class="diagram-container">
-                <div class="mermaid">
-                    flowchart TD
-                        A[User Opens Application] --> B{Authentication Check}
-                        B -->|Authenticated| C[Load Dashboard]
-                        B -->|Not Authenticated| D[Redirect to Login]
-                        D --> E[User Login] --> C
-                        
-                        C --> F[Initialize App Components]
-                        F --> G[Load User Profile]
-                        F --> H[Load Task Data]
-                        G --> I[Display Header with User Info]
-                        H --> J[Display Kanban Board]
-                        
-                        I --> K[Header Interactions]
-                        J --> L[Board Interactions]
-                        
-                        K --> K1[Search Tasks]
-                        K --> K2[User Profile Menu]
-                        K --> K3[Notifications]
-                        
-                        K1 --> K1A[Filter Board Results]
-                        K2 --> K2A[Profile Settings]
-                        K2 --> K2B[Logout]
-                        K3 --> K3A[View Notifications]
-                        
-                        L --> L1[Create New Task]
-                        L --> L2[View Task Details]
-                        L --> L3[Drag and Drop Task]
-                        L --> L4[Edit Task]
-                        L --> L5[Delete Task]
-                        
-                        L1 --> M[Open Task Modal]
-                        L2 --> M
-                        L4 --> M
-                        
-                        M --> N[Task Form]
-                        N --> O{Form Validation}
-                        O -->|Valid| P[Save Task]
-                        O -->|Invalid| Q[Show Validation Errors]
-                        Q --> N
-                        
-                        P --> R{Save Success}
-                        R -->|Success| S[Update Board]
-                        R -->|Error| T[Show Error Message]
-                        T --> U[Retry Option]
-                        U --> P
-                        
-                        S --> V[Close Modal]
-                        V --> J
-                        
-                        L3 --> W[Drag Task Card]
-                        W --> X[Drop in New Column]
-                        X --> Y{Valid Drop}
-                        Y -->|Valid| Z[Update Task Status]
-                        Y -->|Invalid| AA[Revert Position]
-                        
-                        Z --> BB{Update Success}
-                        BB -->|Success| CC[Refresh Board]
-                        BB -->|Error| DD[Show Error]
-                        DD --> EE[Revert Change]
-                        
-                        L5 --> FF[Confirm Delete]
-                        FF --> GG{User Confirms}
-                        GG -->|Yes| HH[Delete Task]
-                        GG -->|No| J
-                        
-                        HH --> II{Delete Success}
-                        II -->|Success| JJ[Remove from Board]
-                        II -->|Error| KK[Show Error Message]
-                        
-                        CC --> J
-                        EE --> J
-                        JJ --> J
-                        KK --> J
-                        K1A --> J
-                        AA --> J
-                        
-                        K2B --> LL[Clear Session]
-                        LL --> MM[Redirect to Login]
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color auth"></div>
+                    <span><strong>Authentication & Initialization</strong> - User login and dashboard setup</span>
                 </div>
-            </div>
-
-            <div class="flow-description">
-                <h3>Key User Flow Patterns</h3>
-                <p>The application follows several key interaction patterns designed to provide a smooth and intuitive user experience:</p>
-            </div>
-
-            <div class="interaction-points">
-                <div class="interaction-card">
-                    <h4>Authentication Flow</h4>
-                    <ul>
-                        <li>Automatic authentication check on app load</li>
-                        <li>Seamless redirect to login if not authenticated</li>
-                        <li>Session persistence and automatic renewal</li>
-                        <li>Secure logout with session cleanup</li>
-                    </ul>
+                <div class="legend-item">
+                    <div class="legend-color task"></div>
+                    <span><strong>Task Management</strong> - Create, edit, move, and manage tasks</span>
                 </div>
-
-                <div class="interaction-card">
-                    <h4>Task Management Flow</h4>
-                    <ul>
-                        <li>Modal-based task creation and editing</li>
-                        <li>Real-time form validation with user feedback</li>
-                        <li>Drag-and-drop status updates</li>
-                        <li>Confirmation dialogs for destructive actions</li>
-                    </ul>
+                <div class="legend-item">
+                    <div class="legend-color nav"></div>
+                    <span><strong>Navigation & Search</strong> - User navigation and search functionality</span>
                 </div>
-
-                <div class="interaction-card">
-                    <h4>Navigation Flow</h4>
-                    <ul>
-                        <li>Persistent sidebar navigation</li>
-                        <li>Contextual header actions</li>
-                        <li>Search functionality with live filtering</li>
-                        <li>Responsive mobile navigation</li>
-                    </ul>
+                <div class="legend-item">
+                    <div class="legend-color error"></div>
+                    <span><strong>Error Handling</strong> - Validation errors and API failure recovery</span>
                 </div>
-
-                <div class="interaction-card">
-                    <h4>Error Handling Flow</h4>
-                    <ul>
-                        <li>Graceful error recovery with retry options</li>
-                        <li>User-friendly error messages</li>
-                        <li>Automatic state reversion on failed operations</li>
-                        <li>Loading states and progress indicators</li>
-                    </ul>
-                </div>
-
-                <div class="interaction-card">
-                    <h4>Data Flow</h4>
-                    <ul>
-                        <li>Optimistic UI updates for better responsiveness</li>
-                        <li>Automatic board refresh after operations</li>
-                        <li>Real-time synchronization capabilities</li>
-                        <li>Offline detection and graceful degradation</li>
-                    </ul>
-                </div>
-
-                <div class="interaction-card">
-                    <h4>User Experience Flow</h4>
-                    <ul>
-                        <li>Progressive disclosure of complex features</li>
-                        <li>Contextual help and tooltips</li>
-                        <li>Keyboard shortcuts for power users</li>
-                        <li>Accessibility compliance throughout</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="flow-description">
-                <h3>Implementation Notes</h3>
-                <p>This user flow diagram serves as the blueprint for implementing user interactions in the Kanban Board Management System. Each flow path corresponds to specific component methods and API calls defined in the technical specifications. The diagram ensures that all user scenarios are covered and that the application provides consistent, predictable behavior across all interaction points.</p>
             </div>
         </div>
     </div>
-
-    <script>
-        // Initialize Mermaid with custom configuration
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            flowchart: {
-                useMaxWidth: true,
-                htmlLabels: true,
-                curve: 'basis'
-            },
-            themeVariables: {
-                primaryColor: '#007bff',
-                primaryTextColor: '#ffffff',
-                primaryBorderColor: '#0056b3',
-                lineColor: '#6c757d',
-                secondaryColor: '#f8f9fa',
-                tertiaryColor: '#e9ecef'
-            }
-        });
-    </script>
 </body>
 </html>
 ```
 
-IMPORTANT:
-- INCLUDE FULL HTML FILE
-- This is a complete, self-contained HTML document with embedded Mermaid.js diagram
-- The diagram renders automatically when opened in any modern web browser
-- All user flow paths are mapped to the component architecture and specifications
-
 ## 5. QUALITY VALIDATION REPORT (FROM AGENT-4)
 
 ### Validation Summary:
-Overall Status: Needs Improvement
-
-Coverage:
-- Architecture vs HTML: Pass (HTML structure well-defined and matches architecture)
-- Architecture vs Specs: Partial (Specifications embedded within architecture but lack detailed implementation)
-- Specs vs User Flow: Pass (User flows identified and mapped to components)
+**Overall Status:** Needs Improvement
+**Coverage:**
+- Architecture vs HTML: Pass (95% alignment)
+- Architecture vs Specs: Fail (Multiple critical mismatches)
+- Specs vs User Flow: Partial (70% coverage)
 
 ### Issues Found:
 
 #### HIGH SEVERITY
 
-**Missing Task Management APIs**
-Description: Architecture references custom task APIs (GET, POST, PUT, DELETE /tasks) that are not available in the OpenAPI specification. Only form sessions, document upload, and user profile APIs are available.
-Impact: Core functionality cannot be implemented without proper backend API support. This blocks task CRUD operations, search, and status updates.
-Affected Components: KanbanBoardComponent, TaskModalComponent, KanbanColumnComponent
+**State Management Inconsistency in KanbanBoardComponent**
+- **Description:** Architecture specifies local_state for KanbanBoardComponent, but specifications implement complex state management with multiple state properties (selectedTask, draggedTask, isModalOpen, availableAssignees) without clear state management strategy.
+- **Impact:** May lead to inconsistent state handling, memory leaks, and difficult debugging in production.
+- **Affected Components:** KanbanBoardComponent
 
-**Incomplete Component Specifications**
-Description: While architecture defines component hierarchy, detailed TypeScript interfaces, method signatures, and implementation specifics are missing for most components.
-Impact: Development team lacks sufficient detail for implementation, leading to potential inconsistencies and rework.
-Affected Components: All feature components (KanbanBoardComponent, KanbanColumnComponent, TaskCardComponent, TaskModalComponent)
+**Missing API Error Handling Strategy**
+- **Description:** While individual components mention error handling, there's no centralized error handling strategy or error boundary implementation across the application.
+- **Impact:** Poor user experience during API failures, potential application crashes, and inconsistent error messaging.
+- **Affected Components:** All API-consuming components (KanbanBoardComponent, TaskModalComponent)
 
-**State Management Strategy Undefined**
-Description: Architecture mentions component state but doesn't specify whether to use Angular services, NgRx, or local component state for global state management.
-Impact: Inconsistent state handling across components, potential data synchronization issues.
-Affected Components: KanbanBoardComponent, TaskModalComponent, HeaderComponent
+**Component Hierarchy Mismatch**
+- **Description:** Architecture defines PriorityIndicatorComponent, TaskTagComponent, and AssigneeAvatarComponent as children of TaskCardComponent, but specifications don't implement these as separate components.
+- **Impact:** Reduced code reusability, harder maintenance, and deviation from planned architecture.
+- **Affected Components:** TaskCardComponent, PriorityIndicatorComponent, TaskTagComponent, AssigneeAvatarComponent
 
 #### MEDIUM SEVERITY
 
-**Library Component Integration Gaps**
-Description: Architecture references uicomplibraryplay components (Button, SearchBar, Popover) but doesn't provide integration specifications or import paths.
-Impact: Developers may implement custom components instead of using library, reducing consistency.
-Affected Components: HeaderComponent, TaskModalComponent, PageHeaderComponent
+**API Data Transformation Logic Missing**
+- **Description:** Architecture mentions API transformations (Dashboard API → Kanban data, Fund transfer API → Task creation), but specifications don't include transformation service or mapping logic.
+- **Impact:** Potential runtime errors, data inconsistency, and tight coupling between API responses and UI components.
+- **Affected Components:** KanbanBoardComponent, TaskModalComponent
 
-**Accessibility Implementation Details Missing**
-Description: While ARIA attributes are mentioned, specific implementation for keyboard navigation, screen reader support, and focus management is incomplete.
-Impact: May not meet accessibility compliance requirements, poor user experience for assistive technology users.
-Affected Components: KanbanBoardComponent, TaskCardComponent, TaskModalComponent
-
-**Error Handling Strategy Inconsistent**
-Description: Error handling mentioned for some components but not systematically defined across all components with API interactions.
-Impact: Inconsistent user experience during error states, potential application crashes.
-Affected Components: KanbanBoardComponent, TaskModalComponent, HeaderComponent
+**Performance Optimization Missing**
+- **Description:** Architecture mentions trackBy functions and virtual scrolling, but specifications don't implement these performance optimizations.
+- **Impact:** Poor performance with large datasets, unnecessary re-renders, and potential memory issues.
+- **Affected Components:** KanbanColumnComponent, TaskCardComponent
 
 #### LOW SEVERITY
 
-**CSS Architecture Not Fully Defined**
-Description: SCSS structure mentioned but specific design tokens, mixins, and component styling patterns not detailed.
-Impact: Potential styling inconsistencies, difficulty maintaining design system compliance.
-Affected Components: All components
+**CSS Design System Inconsistency**
+- **Description:** Specifications use hardcoded CSS values instead of design tokens or CSS custom properties for consistent theming.
+- **Impact:** Difficult theme maintenance, inconsistent visual design, and poor scalability.
+- **Affected Components:** All styled components
 
-**Performance Optimization Guidelines Missing**
-Description: No specific guidance on OnPush change detection, virtual scrolling, or lazy loading implementation.
-Impact: Potential performance issues with large datasets, poor user experience.
-Affected Components: KanbanBoardComponent, TaskCardComponent
+**TypeScript Interface Definitions Missing**
+- **Description:** Specifications reference models (TaskModel, UserModel, KanbanColumnModel) but don't provide TypeScript interface definitions.
+- **Impact:** Potential type safety issues, harder development experience, and runtime type errors.
+- **Affected Components:** All components using data models
 
 ### Recommendations:
 
-**Implement Missing APIs:**
-- Create task management endpoints (GET, POST, PUT, DELETE /tasks) to support core functionality
-- Add search endpoint (GET /search/tasks) for filtering capabilities
-- Implement real-time WebSocket connections for collaborative features
+**Immediate Actions (High Priority):**
+- Implement missing child components as defined in architecture (PriorityIndicatorComponent, TaskTagComponent, AssigneeAvatarComponent, etc.)
+- Create centralized error handling service and implement error boundaries
+- Develop API data transformation service to handle data mapping between APIs and UI components
+- Align state management strategy across all components with clear state management patterns
 
-**Complete Component Specifications:**
-- Define detailed TypeScript interfaces for all models (Task, User, KanbanColumn)
-- Specify component method signatures and implementation details
-- Add comprehensive error handling patterns for all API interactions
+**Short-term Improvements (Medium Priority):**
+- Create TypeScript interfaces for all data models (Task, User, KanbanColumn, etc.)
+- Implement performance optimizations (trackBy functions, virtual scrolling, lazy loading)
+- Develop design system with CSS custom properties and design tokens
+- Add comprehensive form validation with proper error messaging
 
-**Define State Management Strategy:**
-- Choose between Angular services or NgRx for global state management
-- Implement consistent state update patterns across all components
-- Add state persistence for user preferences and draft data
-
-**Enhance Library Integration:**
-- Provide specific import paths and usage examples for uicomplibraryplay components
-- Create component mapping guide for consistent library usage
-- Define fallback strategies if library components are unavailable
-
-**Improve Accessibility Implementation:**
-- Add detailed keyboard navigation specifications
-- Implement screen reader announcements for dynamic content updates
-- Define focus management patterns for modal dialogs and drag-and-drop
-
-**Optimize Performance:**
-- Implement OnPush change detection strategy for all components
-- Add virtual scrolling for large task lists
-- Implement lazy loading for non-critical components
-
-**Strengthen Error Handling:**
-- Define consistent error message patterns
-- Implement retry mechanisms for failed API calls
-- Add offline detection and graceful degradation
-
-**Complete CSS Architecture:**
-- Define design token system with variables.scss
-- Create component-specific mixins for common patterns
-- Implement responsive design utilities
-
-### User Flow Alignment:
-
-The UI architecture and specifications correctly support most user flow requirements with the following assessment:
-
-**Fully Supported:**
-- Basic kanban board interaction (view, create, edit tasks)
-- User authentication and profile management
-- Search and navigation functionality
-- Responsive design across devices
-- Modal-based task creation and editing
-
-**Partially Supported:**
-- Drag-and-drop functionality (UI structure supports it but API integration incomplete)
-- Real-time updates (architecture allows but implementation details missing)
-- Error handling (basic structure present but needs enhancement)
-
-**Not Supported:**
-- Advanced collaboration features
-- Bulk operations
-- Offline functionality
-- Advanced analytics and reporting
-
-**VALIDATION CONCLUSION:**
-The architecture is comprehensive and well-structured but requires significant implementation details and API development to be production-ready. The HTML structure serves as an excellent source of truth and aligns well with the component architecture. Priority should be given to implementing missing APIs and completing component specifications before development begins.
+**Long-term Enhancements (Low Priority):**
+- Add advanced user flows (bulk operations, filtering, export)
+- Implement real-time collaboration features
+- Add offline support with service workers
+- Develop comprehensive testing strategy with unit and integration tests
 
 ## 6. PIPELINE ALIGNMENT SUMMARY
 
 ### Architecture ↔ Specs:
-✅ **ALIGNED** - Component specifications follow the exact architecture defined in Agent-1
-- All 7 core components implemented as specified
-- Component hierarchy maintained correctly
-- Props and events match architecture definitions
-- Folder structure follows Agent-1 requirements
+**Issues Identified:**
+- Component hierarchy mismatch: Missing child components (PriorityIndicatorComponent, TaskTagComponent, AssigneeAvatarComponent)
+- State management inconsistency: Complex state vs. simple local_state
+- API integration differences: Different endpoints used than mapped in architecture
+- Missing transformation services for API data mapping
 
 ### Specs ↔ User Flow:
-✅ **ALIGNED** - User flows are fully supported by component specifications
-- All user interaction paths have corresponding component methods
-- Modal workflows implemented for task creation/editing
-- Drag-and-drop functionality specified in components
-- Error handling flows covered in component logic
+**Coverage Analysis:**
+- ✅ Task creation workflow fully supported
+- ✅ Task editing and updates covered
+- ✅ Drag and drop task movement implemented
+- ✅ Search functionality included
+- ✅ User profile and authentication flows
+- ❌ Missing task deletion workflow
+- ❌ Bulk operations not supported
+- ❌ Advanced filtering missing
 
 ### Validation Coverage:
-⚠️ **PARTIAL** - Quality validation identifies implementation gaps
-- Missing API endpoints for core functionality
-- State management strategy needs definition
-- Library integration requires detailed specifications
-- Performance optimization guidelines needed
+**Assessment:**
+- All major components validated against architecture
+- User flow alignment checked and documented
+- Performance and accessibility gaps identified
+- API integration inconsistencies noted
+- Missing implementation details flagged
 
 ## 7. IMPLEMENTATION NOTES FOR DEVELOPERS
 
-### Development Sequence:
-1. **Setup Project Structure** - Follow the folder structure exactly as specified
-2. **Implement Core Models** - Create TypeScript interfaces for Task, User, KanbanColumn
-3. **Build Layout Components** - Start with AppComponent, SidebarNavigationComponent, HeaderComponent
-4. **Develop Feature Components** - Implement KanbanBoardComponent, KanbanColumnComponent, TaskCardComponent, TaskModalComponent
-5. **Integrate Library Components** - Import and configure Button, SearchBar, Popover from uicomplibraryplay
-6. **Implement Services** - Create TaskService, UserService, AuthService with proper API integration
-7. **Add Error Handling** - Implement consistent error handling patterns across all components
-8. **Optimize Performance** - Add OnPush change detection, virtual scrolling, lazy loading
-9. **Test Accessibility** - Verify ARIA attributes, keyboard navigation, screen reader support
-10. **Responsive Testing** - Test across desktop (>1024px), tablet (768px-1024px), mobile (<768px)
+### Development Priorities:
+1. **Follow folder structure from architecture** - Use the mandatory folder structure defined in Agent-1
+2. **Implement components as per specifications** - All TypeScript, HTML, and CSS code provided must be implemented exactly as specified
+3. **Refer to user flow for navigation logic** - Use the Mermaid diagram to understand user interaction patterns
+4. **Address validation issues before development** - Resolve high-severity issues first, then medium and low priority items
 
-### Critical Implementation Rules:
-- **HTML Structure**: Follow Agent-1 HTML structure as source of truth
-- **Component Specifications**: Use complete TypeScript, HTML, CSS code provided - DO NOT MODIFY
-- **User Flow**: Ensure all user interaction paths from Agent-3 diagram are implemented
-- **Quality Issues**: Address all HIGH severity issues before production deployment
-- **API Integration**: Implement missing task management APIs before component development
-- **Library Usage**: Use uicomplibraryplay components where specified, with proper fallbacks
+### Critical Implementation Requirements:
+- **Three-column CSS Grid layout is mandatory** - `grid-template-columns: repeat(3, 1fr)`
+- **Responsive breakpoints required** - Desktop (>1024px), Tablet (768px-1024px), Mobile (<768px)
+- **ARIA attributes must be implemented** - For accessibility compliance
+- **Error handling is required** - Both client-side validation and API error handling
+- **Library components should be used** - Button, Sidebar, Popover from uicomplibraryplay
 
-### Testing Checklist:
-- [ ] All components compile without errors
-- [ ] Responsive design works across all breakpoints
-- [ ] Drag-and-drop functionality operates correctly
-- [ ] Modal dialogs handle form validation properly
-- [ ] Error states display appropriate messages
-- [ ] Loading states provide user feedback
-- [ ] Accessibility requirements are met
-- [ ] API integration handles all CRUD operations
-- [ ] User flows match the provided diagram
-- [ ] Performance meets requirements for large datasets
+### API Integration Notes:
+- **Primary APIs:** GET /api/youth-accounts/{id}/dashboard, POST /api/youth-accounts/{id}/fund-transfer, PUT /api/youth-accounts/{id}/spending-limit
+- **Data transformation required** - Dashboard data must be transformed to kanban format
+- **Error handling strategy needed** - Implement centralized error handling service
+- **Loading states required** - Show loading indicators during API calls
+
+### Performance Considerations:
+- **Implement trackBy functions** - For *ngFor loops to optimize rendering
+- **Add virtual scrolling** - For large task lists
+- **Lazy loading recommended** - For task details and attachments
+- **Caching strategy needed** - For frequently accessed data
+
+### Testing Requirements:
+- **Unit tests required** - For all components and services
+- **Integration tests needed** - For API interactions and user flows
+- **Accessibility testing mandatory** - WCAG compliance validation
+- **Performance testing recommended** - Load testing with large datasets
 
 ## 8. ISSUES FOUND
 
-### State Management Mismatch in TransactionList
-**Severity:** High
-**Description:** Architecture references task management but validation identifies inconsistent state handling patterns across components.
-**Impact:** Potential data synchronization issues between KanbanBoardComponent and child components.
-**Resolution:** Implement consistent state management strategy using Angular services or NgRx.
+### High Severity Issues:
+1. **State management mismatch in KanbanBoardComponent** - Complex state implementation vs. architecture specification
+2. **Missing component coverage** - PriorityIndicatorComponent, TaskTagComponent, AssigneeAvatarComponent not implemented
+3. **API error handling strategy missing** - No centralized error handling across application
 
-### Missing Component Coverage
-**Severity:** Medium
-**Description:** Some utility components mentioned in architecture (BrandSectionComponent, NavigationMenuComponent, QuickActionsComponent) lack detailed specifications.
-**Impact:** Developers may implement these components inconsistently.
-**Resolution:** Create detailed specifications for all missing components or consolidate into parent components.
+### Medium Severity Issues:
+1. **API data transformation logic missing** - No service for mapping API responses to UI data
+2. **Performance optimizations missing** - trackBy functions and virtual scrolling not implemented
+3. **Design system inconsistency** - Hardcoded CSS values instead of design tokens
 
-### Design System Inconsistency
-**Severity:** Low
-**Description:** Component styling uses hardcoded values instead of design system tokens.
-**Impact:** Difficulty maintaining consistent visual design across the application.
-**Resolution:** Implement design token system in variables.scss and update component styles.
+### Low Severity Issues:
+1. **TypeScript interface definitions missing** - Models referenced but not defined
+2. **Advanced user flows incomplete** - Bulk operations, filtering, export functionality missing
 
 ## 9. RECOMMENDATIONS
 
-### Align State Management Implementation with Architecture Definitions
-- Choose between Angular services or NgRx for global state management
-- Implement consistent state update patterns across KanbanBoardComponent, TaskModalComponent, and HeaderComponent
-- Add state persistence for user preferences and draft task data
-- Define clear data flow patterns between parent and child components
+### Immediate Implementation (High Priority):
+1. **Create missing child components** - Implement PriorityIndicatorComponent, TaskTagComponent, AssigneeAvatarComponent as separate reusable components
+2. **Implement centralized error handling** - Create ErrorHandlerService and error boundary components
+3. **Develop API transformation service** - Create DataTransformationService to handle API data mapping
+4. **Align state management** - Implement consistent state management pattern across all components
+5. **Add comprehensive accessibility features** - Implement keyboard navigation, focus management, screen reader support
 
-### Implement Missing Components
-- Create detailed specifications for BrandSectionComponent, NavigationMenuComponent, QuickActionsComponent
-- Alternatively, consolidate functionality into existing parent components
-- Ensure all components referenced in architecture have corresponding implementations
-- Maintain component hierarchy as defined in Agent-1 output
+### Short-term Improvements (Medium Priority):
+1. **Create TypeScript interfaces** - Define Task, User, KanbanColumn, and other data models
+2. **Implement performance optimizations** - Add trackBy functions, virtual scrolling, lazy loading
+3. **Develop design system** - Create CSS custom properties and design tokens for consistent theming
+4. **Add comprehensive form validation** - Implement real-time validation with proper error messaging
+5. **Implement loading states** - Add skeleton screens and loading indicators
 
-### Update Styling to Follow Design System Tokens
-- Create comprehensive variables.scss with color, spacing, typography, and breakpoint tokens
-- Update all component SCSS files to use design tokens instead of hardcoded values
-- Implement mixins for common patterns (buttons, form inputs, cards, etc.)
-- Ensure consistent visual design across all components
-- Add theme support for future customization needs
-
-### Additional Recommendations
-- **API Development Priority:** Implement missing task management endpoints before component development
-- **Performance Optimization:** Add OnPush change detection strategy to all components
-- **Accessibility Enhancement:** Complete keyboard navigation and screen reader support
-- **Error Handling:** Implement comprehensive error handling with retry mechanisms
-- **Testing Strategy:** Create unit tests for all components and integration tests for user flows
-- **Documentation:** Maintain component documentation with usage examples and API references
+### Long-term Enhancements (Low Priority):
+1. **Add advanced user flows** - Implement bulk operations, advanced filtering, data export
+2. **Implement real-time collaboration** - Add WebSocket support for live updates
+3. **Add offline support** - Implement service workers and offline data synchronization
+4. **Develop comprehensive testing strategy** - Add unit tests, integration tests, e2e tests
+5. **Implement advanced drag and drop** - Use Angular CDK for enhanced drag and drop functionality
+6. **Add data visualization** - Implement charts and analytics for task management insights
 
 ---
 
-**FINAL PACKAGE STATUS:** ✅ Complete and Ready for Development
-
-This Final UI Package Bundle contains all validated and preserved architecture, specifications (with full implementation code), user flow diagrams, validation reports, issues, and recommendations, organized for efficient developer use. The package ensures alignment between all pipeline agents and provides a comprehensive reference for implementing the Kanban Board Management System.
-
-**Package Contents:**
-- ✅ Complete JIRA requirement summary
-- ✅ Detailed UI component architecture (source of truth)
-- ✅ Full component implementation specifications with complete code
-- ✅ Interactive user flow diagram (HTML with Mermaid.js)
-- ✅ Comprehensive quality validation report
-- ✅ Pipeline alignment verification
-- ✅ Developer implementation guide
-- ✅ Issue tracking and recommendations
-
-**Ready for immediate development implementation.**
+**Final Package Status:** Complete - All upstream artifacts have been successfully consolidated into this comprehensive Final UI Package Bundle. Developers can use this document as the single source of truth for implementing the Kanban Dashboard application, with all architecture definitions, complete implementation specifications, user flow visualization, and quality validation feedback integrated and organized for efficient development use.
