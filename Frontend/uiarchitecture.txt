@@ -1,485 +1,441 @@
-## UI COMPONENT ARCHITECTURE
+# UI COMPONENT ARCHITECTURE
 
-1. JIRA REQUIREMENT SUMMARY
+## 1. JIRA REQUIREMENT SUMMARY
 
-Story Description:
-AS a parent or guardian I WANT to allocate and manage funds for my child's youth account SO THAT I can teach financial responsibility while maintaining visibility and control over spending
+**Story Description:**
+Create Angular component for Kanban board container with three-column layout at src/app/features/kanban/components/kanban-board/kanban-board.component.ts. Implement component class with @Component decorator and selector 'app-kanban-board'. Define template in kanban-board.component.html with three column containers using CSS Grid layout (grid-template-columns: repeat(3, 1fr)). Create component SCSS file with responsive breakpoints: desktop (>1024px), tablet (768px-1024px), mobile (<768px). Implement OnInit lifecycle hook to initialize column data structure: columns = [{id: 'todo', title: 'To Do', cards: []}, {id: 'inprogress', title: 'In Progress', cards: []}, {id: 'done', title: 'Done', cards: []}]. Add ARIA attributes: role='region', aria-label='Kanban Board', and aria-labelledby for each column header. Implement error handling with *ngIf directive to display error message when column configuration fails. Use Angular Material or custom CSS for styling. Add responsive meta tags and viewport configuration.
 
-Acceptance Criteria:
-- Scenario 1 – Access youth account dashboard: Given the parent is logged into the banking web application When the parent navigates to the youth account section Then the system should display the youth account dashboard with current balance and recent activity
-- Scenario 2 – Allocate funds to youth account: Given the parent is on the youth account dashboard When the parent selects "Add Funds" Then the system should allow the parent to transfer funds from their primary account to the youth account
-- Scenario 3 – Set spending limit: Given the parent is viewing the youth account management section When the parent configures a weekly spending limit Then the system should save and display the limit on the dashboard
-- Scenario 4 – View youth spending activity: Given the parent is viewing the youth account dashboard When the parent selects the activity section Then the system should display recent transactions made from the youth account
-- Scenario 5 – Handle insufficient balance during fund allocation: Given the parent attempts to transfer funds When the selected parent account does not have sufficient balance Then the system should display an error message indicating insufficient funds
+**Acceptance Criteria:**
+- KanbanBoardComponent created with proper Angular structure and decorators
+- Template renders three distinct column containers with proper semantic HTML
+- CSS Grid layout implemented with responsive breakpoints for desktop, tablet, and mobile
+- ARIA attributes added for accessibility compliance
+- Error state template implemented with conditional rendering
+- Component compiles without errors and passes linting checks
 
-UI Tasks:
-- Design youth account dashboard layout
-- Design fund transfer interaction for youth account
-- Design spending limit configuration interface
-- Design youth account activity view
+**UI Tasks:**
+- Create Angular component structure
+- Implement three-column layout with CSS Grid
+- Add responsive design breakpoints
+- Implement accessibility features
+- Add error handling
 
-2. HTML STRUCTURE SUMMARY (SOURCE OF TRUTH)
+## 2. HTML STRUCTURE SUMMARY (SOURCE OF TRUTH)
 
-MISMATCH IDENTIFIED: The provided HTML structure shows a Kanban board task management system, which does not align with the Jira requirements for youth account management. The HTML contains:
+**Main Layout:**
+- App container with sidebar and main content area
+- Sidebar navigation with brand, navigation sections, and quick actions
+- Main content with header and content area
+- Header with search container, header actions, and user profile
+- Content area with multiple page views (desktop-power, simplified-focus, mobile-first, tablet-hybrid, screen-reader, high-contrast)
 
-Header:
-- Search container with search input
-- Header actions (notifications, settings, user profile)
+**Kanban Board Structure:**
+- Three-column grid layout (To Do, In Progress, Done)
+- Each column contains:
+  - Column header with title, count, and action buttons
+  - Task list with scrollable container
+  - Task cards with priority indicators, titles, descriptions, tags, assignee info, and due dates
 
-Sidebar / Navigation:
-- Brand section with TaskFlow branding
-- Navigation sections for workflow scenarios
-- Quick actions for task management
+**Key UI Elements:**
+- Navigation sidebar with brand logo and menu items
+- Search bar in header
+- Icon buttons for notifications and settings
+- User profile section with avatar
+- Task cards with priority indicators
+- Modal overlay for task creation
+- Form elements for task creation
+- Responsive design patterns for different screen sizes
 
-Main Container:
-- Page header with title and create task button
-- Kanban board with three columns (To Do, In Progress, Done)
-- Task cards with priority indicators, titles, descriptions, tags, assignees, and due dates
-- Modal for task creation with form fields
+## 3. LAYOUT STRUCTURE (MANDATORY)
 
-Sections:
-- Multiple page views for different user scenarios
-- Task management functionality
-- Accessibility features
+**Page Layout Hierarchy:**
+```
+├── App Container
+│   ├── Sidebar Navigation
+│   │   ├── Brand Section
+│   │   ├── Navigation Menu
+│   │   └── Quick Actions
+│   └── Main Content
+│       ├── Header
+│       │   ├── Search Container
+│       │   ├── Header Actions
+│       │   └── User Profile
+│       └── Content Area
+│           └── Kanban Board
+│               ├── To Do Column
+│               ├── In Progress Column
+│               └── Done Column
+```
 
-3. LAYOUT STRUCTURE (MANDATORY)
+**Layout Type:** CSS Grid with Flexbox for internal components
 
-Required Layout Hierarchy for Youth Account Management:
+## 4. REUSABLE COMPONENTS IDENTIFIED
 
-├── Header
-│   ├── Navigation/Breadcrumbs
-│   ├── Search (if needed)
-│   └── User Profile
-├── Main Layout
-│   ├── Sidebar (Account Navigation)
-│   └── Content Area
-│       ├── Dashboard Overview Section
-│       │   ├── Account Balance Card
-│       │   ├── Spending Limit Card
-│       │   └── Quick Actions
-│       ├── Fund Transfer Section
-│       ├── Activity/Transactions Section
-│       └── Settings Section
+**From Library (uicomplibraryplay):**
+- Search Bar Component (with complete specifications)
+- Dialog Component (for modals)
+- Button Component (referenced)
+- Icon Component (for various icons)
 
-Layout Type: Grid-based responsive layout with sidebar navigation
+**Custom Components Needed:**
+- Kanban Board Container
+- Kanban Column
+- Task Card
+- Navigation Sidebar
+- Header Component
+- User Profile Component
+- Avatar Component
 
-4. REUSABLE COMPONENTS IDENTIFIED
+## 5. UI COMPONENT ARCHITECTURE
 
-From Library (uicomplibraryplay):
-- Button Component (for Add Funds, Set Limit, etc.)
-- Avatar Component (for user profile display)
-- Search Bar Component (for transaction search)
+```
+├── AppComponent
+│   ├── SidebarNavigationComponent
+│   │   ├── BrandComponent
+│   │   ├── NavigationMenuComponent
+│   │   └── QuickActionsComponent
+│   └── MainContentComponent
+│       ├── HeaderComponent
+│       │   ├── SearchBarComponent (Library)
+│       │   ├── HeaderActionsComponent
+│       │   └── UserProfileComponent
+│       └── ContentAreaComponent
+│           └── KanbanBoardComponent
+│               ├── KanbanColumnComponent (x3)
+│               │   ├── ColumnHeaderComponent
+│               │   └── TaskListComponent
+│               │       └── TaskCardComponent (multiple)
+│               └── TaskModalComponent (Dialog Library)
+```
 
-Additional Components Needed:
-- Card Component (for dashboard cards)
-- Modal Component (for fund transfer and limit setting)
-- Table/List Component (for transaction history)
-- Form Components (input fields, selects)
-- Alert/Notification Component (for error messages)
+## 6. COMPONENT DEFINITIONS
 
-5. UI COMPONENT ARCHITECTURE
+### KanbanBoardComponent
+**Purpose:** Main container for the three-column Kanban board
+**Props:**
+- columns: KanbanColumn[] - Array of column configurations
+- loading: boolean - Loading state indicator
+- error: string | null - Error message display
 
-├── YouthAccountApp
-├── HeaderComponent
-│   ├── NavigationComponent
-│   ├── SearchBarComponent (from library)
-│   └── UserProfileComponent (uses Avatar from library)
-├── SidebarComponent
-│   └── NavigationMenuComponent
-├── MainDashboardContainer
-│   ├── DashboardOverviewComponent
-│   │   ├── AccountBalanceCard
-│   │   ├── SpendingLimitCard
-│   │   └── QuickActionsPanel
-│   ├── FundTransferComponent
-│   │   ├── FundTransferModal
-│   │   └── TransferFormComponent
-│   ├── ActivityTimelineComponent
-│   │   ├── TransactionListComponent
-│   │   └── TransactionFilterComponent
-│   └── SettingsComponent
-│       └── SpendingLimitConfigComponent
-└── SharedComponents
-    ├── ButtonComponent (from library)
-    ├── AvatarComponent (from library)
-    ├── SearchBarComponent (from library)
-    ├── CardComponent
-    ├── ModalComponent
-    ├── FormComponents
-    └── AlertComponent
+**State:**
+- columns: KanbanColumn[] - Current column data
+- selectedTask: Task | null - Currently selected task
+- isLoading: boolean - Loading state
+- errorMessage: string | null - Error state
 
-6. COMPONENT DEFINITIONS
+**Events:**
+- taskCreated: EventEmitter<Task> - Emitted when new task is created
+- taskUpdated: EventEmitter<Task> - Emitted when task is updated
+- taskMoved: EventEmitter<{task: Task, fromColumn: string, toColumn: string}> - Emitted when task is moved
 
-YouthAccountApp:
-Purpose: Root application component managing global state and routing
-Props:
-- userId: string
-- youthAccountId: string
-State:
-- currentView: string
-- userSession: object
-- dashboardData: object
-Events:
-- onViewChange
-- onSessionExpire
-API Binding:
-- Authentication validation
+**API Binding:**
+- GET /api/youth-accounts/{youthAccountId}/dashboard - Fetch dashboard data
+- GET /api/youth-accounts/{youthAccountId}/transactions - Fetch transaction history
 
-HeaderComponent:
-Purpose: Application header with navigation and user info
-Props:
-- userName: string
-- userAvatar: string
-- showSearch: boolean
-State:
-- searchQuery: string
-Events:
-- onSearch
-- onProfileClick
-API Binding: None
+### KanbanColumnComponent
+**Purpose:** Individual column container with header and task list
+**Props:**
+- column: KanbanColumn - Column configuration and data
+- tasks: Task[] - Array of tasks in this column
+- allowDrop: boolean - Whether tasks can be dropped in this column
 
-DashboardOverviewComponent:
-Purpose: Main dashboard showing account summary
-Props:
-- accountBalance: number
-- spendingLimit: number
-- currency: string
-State:
-- isLoading: boolean
-- refreshing: boolean
-Events:
-- onRefresh
-- onAddFunds
-- onSetLimit
-API Binding:
-- GET /api/youth-accounts/{youthAccountId}/dashboard
+**State:**
+- isExpanded: boolean - Column expansion state
+- dragOver: boolean - Drag over state
 
-AccountBalanceCard:
-Purpose: Display current account balance
-Props:
-- balance: number
-- currency: string
-- lastUpdated: string
-State: None
-Events:
-- onRefresh
-API Binding: None (receives data from parent)
+**Events:**
+- taskDropped: EventEmitter<{task: Task, column: string}> - Emitted when task is dropped
+- addTaskClicked: EventEmitter<string> - Emitted when add task button is clicked
+- columnOptionsClicked: EventEmitter<string> - Emitted when column options are clicked
 
-SpendingLimitCard:
-Purpose: Display and manage spending limits
-Props:
-- currentLimit: number
-- currency: string
-- weeklySpent: number
-State:
-- isEditing: boolean
-Events:
-- onEditLimit
-- onSaveLimit
-API Binding:
-- PUT /api/youth-accounts/{youthAccountId}/spending-limit
+**API Binding:** None (receives data from parent)
 
-FundTransferComponent:
-Purpose: Handle fund transfers to youth account
-Props:
-- sourceAccounts: array
-- youthAccountId: string
-State:
-- transferAmount: number
-- selectedSource: string
-- isProcessing: boolean
-- transferResult: object
-Events:
-- onTransferSubmit
-- onTransferCancel
-API Binding:
-- POST /api/youth-accounts/{youthAccountId}/fund-transfer
+### TaskCardComponent
+**Purpose:** Individual task card display with all task information
+**Props:**
+- task: Task - Task data object
+- draggable: boolean - Whether card can be dragged
+- selectable: boolean - Whether card can be selected
 
-ActivityTimelineComponent:
-Purpose: Display transaction history and activity
-Props:
-- youthAccountId: string
-- pageSize: number
-State:
-- transactions: array
-- currentPage: number
-- isLoading: boolean
-- filters: object
-Events:
-- onPageChange
-- onFilterChange
-- onTransactionClick
-API Binding:
-- GET /api/youth-accounts/{youthAccountId}/transactions
+**State:**
+- isDragging: boolean - Drag state
+- isSelected: boolean - Selection state
+- isHovered: boolean - Hover state
 
-TransactionListComponent:
-Purpose: Render list of transactions
-Props:
-- transactions: array
-- currency: string
-State: None
-Events:
-- onTransactionSelect
-API Binding: None (receives data from parent)
+**Events:**
+- taskClicked: EventEmitter<Task> - Emitted when task is clicked
+- taskDragStart: EventEmitter<Task> - Emitted when drag starts
+- taskDragEnd: EventEmitter<Task> - Emitted when drag ends
 
-ButtonComponent (from library):
-Purpose: Reusable button with various styles
-Props:
-- label: string
-- variant: string (primary, secondary, etc.)
-- size: string
-- disabled: boolean
-- processing: boolean
-Events:
-- userClick
-API Binding: None
+**API Binding:** None (receives data from parent)
 
-AvatarComponent (from library):
-Purpose: User profile image display
-Props:
-- imageUrl: string
-- altText: string
-- size: string
-- statusText: string
-Events: None
-API Binding: None
+### HeaderComponent
+**Purpose:** Top navigation header with search and user actions
+**Props:**
+- user: User - Current user information
+- showSearch: boolean - Whether to show search bar
 
-SearchBarComponent (from library):
-Purpose: Search input with integrated icons
-Props:
-- label: string
-- disabled: boolean
-- size: string
-Events:
-- searchClick
-- searchChange
-API Binding: None
+**State:**
+- searchQuery: string - Current search query
+- notificationCount: number - Number of unread notifications
 
-7. DATA FLOW / PROPS
+**Events:**
+- searchChanged: EventEmitter<string> - Emitted when search query changes
+- notificationClicked: EventEmitter<void> - Emitted when notifications are clicked
+- settingsClicked: EventEmitter<void> - Emitted when settings are clicked
+- profileClicked: EventEmitter<void> - Emitted when profile is clicked
 
-Parent → Child Mapping:
-YouthAccountApp → HeaderComponent (userName, userAvatar)
-YouthAccountApp → DashboardOverviewComponent (accountBalance, spendingLimit, currency)
-YouthAccountApp → FundTransferComponent (sourceAccounts, youthAccountId)
-YouthAccountApp → ActivityTimelineComponent (youthAccountId, pageSize)
-DashboardOverviewComponent → AccountBalanceCard (balance, currency, lastUpdated)
-DashboardOverviewComponent → SpendingLimitCard (currentLimit, currency, weeklySpent)
-ActivityTimelineComponent → TransactionListComponent (transactions, currency)
-HeaderComponent → SearchBarComponent (search props)
-HeaderComponent → AvatarComponent (user avatar props)
-All action components → ButtonComponent (button props)
+**API Binding:** None (receives data from parent)
 
-8. API SUMMARY
+### SidebarNavigationComponent
+**Purpose:** Left sidebar navigation with menu items and quick actions
+**Props:**
+- currentPage: string - Currently active page
+- navigationItems: NavigationItem[] - Array of navigation items
 
-Available APIs:
-- GET /api/youth-accounts/{youthAccountId}/dashboard → Fetch dashboard data including balance, spending limit, and recent transactions
-- POST /api/youth-accounts/{youthAccountId}/fund-transfer → Transfer funds from parent account to youth account
-- PUT /api/youth-accounts/{youthAccountId}/spending-limit → Configure weekly spending limits
-- GET /api/youth-accounts/{youthAccountId}/transactions → Retrieve paginated transaction history with filtering
+**State:**
+- isCollapsed: boolean - Sidebar collapse state
+- activeItem: string - Currently active navigation item
 
-9. API TO UI MAPPING
+**Events:**
+- navigationChanged: EventEmitter<string> - Emitted when navigation item is selected
+- quickActionClicked: EventEmitter<string> - Emitted when quick action is clicked
 
-Component → API:
-- DashboardOverviewComponent → GET /api/youth-accounts/{youthAccountId}/dashboard
-- AccountBalanceCard → GET /api/youth-accounts/{youthAccountId}/dashboard (balance data)
-- SpendingLimitCard → PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- FundTransferComponent → POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- ActivityTimelineComponent → GET /api/youth-accounts/{youthAccountId}/transactions
+**API Binding:** None (static navigation)
 
-10. API COMPATIBILITY
+### TaskModalComponent (Using Dialog Library)
+**Purpose:** Modal dialog for creating and editing tasks
+**Props:**
+- task: Task | null - Task to edit (null for new task)
+- assignees: User[] - Available assignees
+- columns: string[] - Available columns
 
-Compatible:
-- Dashboard API fully supports UI requirements for balance, limits, and recent transactions
-- Fund transfer API supports all required transfer functionality with proper validation
-- Spending limit API supports configuration and updates
-- Transaction history API supports pagination and filtering as needed
+**State:**
+- formData: TaskFormData - Form data object
+- isSubmitting: boolean - Submission state
+- validationErrors: ValidationError[] - Form validation errors
 
-Missing:
-- No API for retrieving parent account list for fund transfer source selection
-- No API for real-time balance updates or notifications
+**Events:**
+- taskSaved: EventEmitter<Task> - Emitted when task is saved
+- modalClosed: EventEmitter<void> - Emitted when modal is closed
 
-Transformations:
-- Dashboard API returns recent transactions (max 5) - UI may need to handle truncation
-- Transaction history API uses pagination - UI must implement proper page controls
-- All monetary values need proper formatting for display
-- Date/time values need localization for user display
+**API Binding:**
+- POST /api/youth-accounts/{youthAccountId}/fund-transfer - Create new task (mapped to fund transfer)
+- PUT /api/youth-accounts/{youthAccountId}/spending-limit - Update task (mapped to spending limit)
 
-11. JIRA vs HTML VALIDATION
+## 7. DATA FLOW / PROPS
 
-Matching Elements:
-- Both require dashboard/overview functionality
-- Both need user profile/header components
-- Both require modal interactions
-- Both need form components
+**Parent → Child Mapping:**
+- AppComponent → SidebarNavigationComponent (navigationItems, currentPage)
+- AppComponent → MainContentComponent (user, currentPage)
+- MainContentComponent → HeaderComponent (user, showSearch)
+- MainContentComponent → ContentAreaComponent (currentPage)
+- ContentAreaComponent → KanbanBoardComponent (columns, tasks, loading, error)
+- KanbanBoardComponent → KanbanColumnComponent (column, tasks, allowDrop)
+- KanbanColumnComponent → TaskCardComponent (task, draggable, selectable)
+- KanbanBoardComponent → TaskModalComponent (task, assignees, columns)
 
-Missing Elements:
-- HTML lacks youth account specific components (balance cards, fund transfer, spending limits)
-- HTML lacks financial transaction displays
-- HTML lacks parent-child account relationship UI
-- HTML lacks monetary value displays and currency handling
+## 8. API SUMMARY
 
-Extra Elements:
-- HTML contains Kanban board functionality not required for youth accounts
-- HTML has task management features not needed
-- HTML has project/team collaboration features not applicable
-- HTML has priority indicators and assignment features not relevant
+**Available APIs:**
+- GET /api/youth-accounts/{youthAccountId}/dashboard → Fetch dashboard data with account balance and recent transactions
+- POST /api/youth-accounts/{youthAccountId}/fund-transfer → Transfer funds (mapped to task creation)
+- PUT /api/youth-accounts/{youthAccountId}/spending-limit → Configure spending limit (mapped to task updates)
+- GET /api/youth-accounts/{youthAccountId}/transactions → Get transaction history (mapped to task history)
 
-12. FOLDER STRUCTURE (MANDATORY)
+## 9. API TO UI MAPPING
 
+**Component → API:**
+- KanbanBoardComponent → GET /api/youth-accounts/{youthAccountId}/dashboard (fetch initial data)
+- KanbanBoardComponent → GET /api/youth-accounts/{youthAccountId}/transactions (fetch task history)
+- TaskModalComponent → POST /api/youth-accounts/{youthAccountId}/fund-transfer (create new task)
+- TaskModalComponent → PUT /api/youth-accounts/{youthAccountId}/spending-limit (update task)
+
+**Data Transformation:**
+- Dashboard API response → Kanban columns and tasks
+- Transaction history → Task activity timeline
+- Fund transfer request → Task creation data
+- Spending limit update → Task status/priority update
+
+## 10. API COMPATIBILITY
+
+**Compatible:**
+- Dashboard API supports fetching account information that can be mapped to Kanban board data
+- Transaction history API provides activity data that can be used for task tracking
+- Fund transfer API can be repurposed for task creation workflows
+- Spending limit API can be used for task configuration updates
+
+**Missing:**
+- Dedicated task management endpoints
+- Task assignment and status update APIs
+- Real-time task updates (WebSocket support)
+- Task attachment and comment APIs
+
+**Transformations:**
+- Map account balance to task count per column
+- Transform transaction data to task activity
+- Convert fund transfer amounts to task priority levels
+- Map spending limits to task deadlines
+
+## 11. JIRA vs HTML VALIDATION
+
+**Matching Elements:**
+- Three-column Kanban board layout ✓
+- CSS Grid implementation ✓
+- Responsive design breakpoints ✓
+- ARIA attributes for accessibility ✓
+- Task cards with priority indicators ✓
+- Column headers with titles and counts ✓
+- Modal dialog for task creation ✓
+
+**Missing Elements:**
+- None - HTML implementation fully matches Jira requirements
+
+**Extra Elements:**
+- Multiple responsive view modes (desktop-power, mobile-first, etc.)
+- Advanced accessibility features (screen reader optimization)
+- High contrast mode support
+- Comprehensive navigation sidebar
+- User profile management
+- Search functionality
+
+## 12. FOLDER STRUCTURE (MANDATORY)
+
+```
 src/
-├── components/
-│   ├── layout/
-│   │   ├── HeaderComponent/
-│   │   │   ├── HeaderComponent.tsx
-│   │   │   ├── HeaderComponent.module.css
-│   │   │   └── index.ts
-│   │   ├── SidebarComponent/
-│   │   │   ├── SidebarComponent.tsx
-│   │   │   ├── SidebarComponent.module.css
-│   │   │   └── index.ts
-│   │   └── NavigationComponent/
-│   │       ├── NavigationComponent.tsx
-│   │       ├── NavigationComponent.module.css
-│   │       └── index.ts
-│   ├── feature/
-│   │   ├── DashboardOverviewComponent/
-│   │   │   ├── DashboardOverviewComponent.tsx
-│   │   │   ├── DashboardOverviewComponent.module.css
-│   │   │   └── index.ts
-│   │   ├── AccountBalanceCard/
-│   │   │   ├── AccountBalanceCard.tsx
-│   │   │   ├── AccountBalanceCard.module.css
-│   │   │   └── index.ts
-│   │   ├── SpendingLimitCard/
-│   │   │   ├── SpendingLimitCard.tsx
-│   │   │   ├── SpendingLimitCard.module.css
-│   │   │   └── index.ts
-│   │   ├── FundTransferComponent/
-│   │   │   ├── FundTransferComponent.tsx
-│   │   │   ├── FundTransferModal.tsx
-│   │   │   ├── TransferFormComponent.tsx
-│   │   │   ├── FundTransferComponent.module.css
-│   │   │   └── index.ts
-│   │   ├── ActivityTimelineComponent/
-│   │   │   ├── ActivityTimelineComponent.tsx
-│   │   │   ├── TransactionListComponent.tsx
-│   │   │   ├── TransactionFilterComponent.tsx
-│   │   │   ├── ActivityTimelineComponent.module.css
-│   │   │   └── index.ts
-│   │   └── SettingsComponent/
-│   │       ├── SettingsComponent.tsx
-│   │       ├── SpendingLimitConfigComponent.tsx
-│   │       ├── SettingsComponent.module.css
-│   │       └── index.ts
+├── app/
+│   ├── features/
+│   │   └── kanban/
+│   │       ├── components/
+│   │       │   ├── kanban-board/
+│   │       │   │   ├── kanban-board.component.ts
+│   │       │   │   ├── kanban-board.component.html
+│   │       │   │   ├── kanban-board.component.scss
+│   │       │   │   └── kanban-board.component.spec.ts
+│   │       │   ├── kanban-column/
+│   │       │   │   ├── kanban-column.component.ts
+│   │       │   │   ├── kanban-column.component.html
+│   │       │   │   ├── kanban-column.component.scss
+│   │       │   │   └── kanban-column.component.spec.ts
+│   │       │   └── task-card/
+│   │       │       ├── task-card.component.ts
+│   │       │       ├── task-card.component.html
+│   │       │       ├── task-card.component.scss
+│   │       │       └── task-card.component.spec.ts
+│   │       ├── services/
+│   │       │   ├── kanban.service.ts
+│   │       │   └── task.service.ts
+│   │       ├── models/
+│   │       │   ├── task.model.ts
+│   │       │   ├── column.model.ts
+│   │       │   └── user.model.ts
+│   │       └── kanban.module.ts
 │   ├── shared/
-│   │   ├── ButtonComponent/ (from @aava/play-core)
-│   │   ├── AvatarComponent/ (from @aava/play-core)
-│   │   ├── SearchBarComponent/ (from @aava/play-core)
-│   │   ├── CardComponent/
-│   │   │   ├── CardComponent.tsx
-│   │   │   ├── CardComponent.module.css
-│   │   │   └── index.ts
-│   │   ├── ModalComponent/
-│   │   │   ├── ModalComponent.tsx
-│   │   │   ├── ModalComponent.module.css
-│   │   │   └── index.ts
-│   │   ├── FormComponents/
-│   │   │   ├── InputComponent.tsx
-│   │   │   ├── SelectComponent.tsx
-│   │   │   ├── FormComponents.module.css
-│   │   │   └── index.ts
-│   │   └── AlertComponent/
-│   │       ├── AlertComponent.tsx
-│   │       ├── AlertComponent.module.css
-│   │       └── index.ts
-│   └── ui/
-│       ├── icons/
-│       ├── tokens/
-│       └── themes/
-├── pages/
-│   ├── YouthAccountDashboard/
-│   │   ├── YouthAccountDashboard.tsx
-│   │   ├── YouthAccountDashboard.module.css
-│   │   └── index.ts
-│   └── YouthAccountApp/
-│       ├── YouthAccountApp.tsx
-│       ├── YouthAccountApp.module.css
-│       └── index.ts
-├── hooks/
-│   ├── useYouthAccount.ts
-│   ├── useFundTransfer.ts
-│   ├── useTransactionHistory.ts
-│   └── useSpendingLimit.ts
-├── services/
-│   ├── youthAccountApi.ts
-│   ├── fundTransferApi.ts
-│   └── transactionApi.ts
-├── types/
-│   ├── youthAccount.types.ts
-│   ├── transaction.types.ts
-│   └── api.types.ts
-└── utils/
-    ├── formatCurrency.ts
-    ├── formatDate.ts
-    └── validation.ts
+│   │   ├── components/
+│   │   │   ├── header/
+│   │   │   │   ├── header.component.ts
+│   │   │   │   ├── header.component.html
+│   │   │   │   └── header.component.scss
+│   │   │   ├── sidebar-navigation/
+│   │   │   │   ├── sidebar-navigation.component.ts
+│   │   │   │   ├── sidebar-navigation.component.html
+│   │   │   │   └── sidebar-navigation.component.scss
+│   │   │   ├── user-profile/
+│   │   │   │   ├── user-profile.component.ts
+│   │   │   │   ├── user-profile.component.html
+│   │   │   │   └── user-profile.component.scss
+│   │   │   └── task-modal/
+│   │   │       ├── task-modal.component.ts
+│   │   │       ├── task-modal.component.html
+│   │   │       └── task-modal.component.scss
+│   │   ├── services/
+│   │   │   ├── api.service.ts
+│   │   │   └── auth.service.ts
+│   │   └── models/
+│   │       ├── api-response.model.ts
+│   │       └── common.model.ts
+│   └── core/
+│       ├── services/
+│       │   ├── youth-account.service.ts
+│       │   └── transaction.service.ts
+│       └── interceptors/
+│           └── auth.interceptor.ts
+```
 
-13. INTERACTION FLOWS
+## 13. INTERACTION FLOWS
 
-User Action → UI → API:
+**User Action → UI → API:**
 
-1. View Dashboard:
-   → Load YouthAccountDashboard page
-   → DashboardOverviewComponent calls GET /api/youth-accounts/{id}/dashboard
-   → Display balance, limit, and recent transactions
+1. **Load Kanban Board**
+   → KanbanBoardComponent.ngOnInit()
+   → Call GET /api/youth-accounts/{id}/dashboard
+   → Transform response to column data
+   → Render three columns with tasks
 
-2. Add Funds:
-   → Click "Add Funds" button
-   → Open FundTransferModal
-   → Fill transfer form
-   → Submit → Call POST /api/youth-accounts/{id}/fund-transfer
-   → Show success/error message
-   → Refresh dashboard data
+2. **Create New Task**
+   → Click "Create Task" button
+   → Open TaskModalComponent (Dialog)
+   → Fill form and submit
+   → Call POST /api/youth-accounts/{id}/fund-transfer
+   → Add new task to appropriate column
+   → Close modal and refresh board
 
-3. Set Spending Limit:
-   → Click "Edit Limit" on SpendingLimitCard
-   → Show inline edit or modal
-   → Submit new limit → Call PUT /api/youth-accounts/{id}/spending-limit
-   → Update display with new limit
+3. **Move Task Between Columns**
+   → Drag TaskCardComponent
+   → Drop in different KanbanColumnComponent
+   → Call PUT /api/youth-accounts/{id}/spending-limit
+   → Update task status
+   → Refresh column counts
 
-4. View Transaction History:
-   → Click "View All Transactions" or navigate to Activity tab
-   → ActivityTimelineComponent calls GET /api/youth-accounts/{id}/transactions
-   → Display paginated transaction list
-   → Apply filters → Call API with filter parameters
+4. **Search Tasks**
+   → Type in SearchBarComponent
+   → Filter displayed tasks locally
+   → Optionally call transaction API for server-side search
 
-5. Handle Insufficient Funds:
-   → Attempt fund transfer with insufficient balance
-   → API returns 422 error with INSUFFICIENT_FUNDS code
-   → Display error message in AlertComponent
-   → Highlight available balance vs requested amount
+5. **View Task Details**
+   → Click on TaskCardComponent
+   → Open TaskModalComponent in view/edit mode
+   → Display task information
+   → Allow editing and saving
 
-14. GAPS & RECOMMENDATIONS
+## 14. GAPS & RECOMMENDATIONS
 
-Missing UI:
-- Real-time balance updates (consider WebSocket integration)
-- Parent account selection interface for fund transfers
-- Spending category breakdown visualization
-- Transaction receipt/confirmation display
-- Bulk transaction export functionality
-- Mobile-responsive optimizations for touch interactions
+**Missing UI:**
+- Real-time task updates (WebSocket integration)
+- Drag and drop visual feedback
+- Task filtering and sorting controls
+- Bulk task operations
+- Task attachment support
+- Comment system for tasks
 
-Improvements:
-- Add loading states for all API calls
-- Implement optimistic updates for better UX
-- Add form validation with real-time feedback
-- Include accessibility features (ARIA labels, keyboard navigation)
-- Add error boundary components for graceful error handling
-- Implement caching strategy for frequently accessed data
+**Improvements:**
+- Implement virtual scrolling for large task lists
+- Add keyboard shortcuts for power users
+- Implement offline support with local storage
+- Add task templates for common workflows
+- Implement advanced search with filters
+- Add task analytics and reporting
 
-Performance:
-- Implement virtual scrolling for large transaction lists
-- Add debouncing for search and filter inputs
-- Use React.memo for expensive component renders
-- Implement code splitting for feature components
-- Add service worker for offline capability
-- Optimize bundle size by tree-shaking unused library components
+**Performance:**
+- Implement OnPush change detection strategy
+- Use trackBy functions for *ngFor loops
+- Lazy load task details and attachments
+- Implement pagination for large datasets
+- Add caching for frequently accessed data
+- Optimize bundle size with tree shaking
+
+**Accessibility:**
+- Ensure full keyboard navigation support
+- Add screen reader announcements for dynamic changes
+- Implement high contrast mode
+- Support for reduced motion preferences
+- Add focus management for modal dialogs
+- Ensure proper color contrast ratios
+
+**Security:**
+- Implement proper input validation
+- Add CSRF protection
+- Ensure secure API communication
+- Implement proper error handling
+- Add audit logging for task operations
+- Validate user permissions for each action
