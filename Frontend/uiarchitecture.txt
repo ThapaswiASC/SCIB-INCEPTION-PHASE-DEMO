@@ -1,11 +1,11 @@
 ## UI COMPONENT ARCHITECTURE
 
-1. JIRA REQUIREMENT SUMMARY
+### 1. JIRA REQUIREMENT SUMMARY
 
-Story Description:
-Create Angular component for Kanban board container with three-column layout. Implementation details include creating Angular component at src/app/features/kanban/components/kanban-board/kanban-board.component.ts with @Component decorator and selector 'app-kanban-board'. Define template with three column containers using CSS Grid layout (grid-template-columns: repeat(3, 1fr)). Create component SCSS file with responsive breakpoints: desktop (>1024px), tablet (768px-1024px), mobile (<768px). Implement OnInit lifecycle hook to initialize column data structure with columns for 'To Do', 'In Progress', and 'Done'. Add ARIA attributes and error handling.
+**Story Description:**
+Create Angular component for Kanban board container with three-column layout. Implementation details include creating Angular component at src/app/features/kanban/components/kanban-board/kanban-board.component.ts with @Component decorator and selector 'app-kanban-board'. Define template in kanban-board.component.html with three column containers using CSS Grid layout (grid-template-columns: repeat(3, 1fr)). Create component SCSS file with responsive breakpoints: desktop (>1024px), tablet (768px-1024px), mobile (<768px). Implement OnInit lifecycle hook to initialize column data structure: columns = [{id: 'todo', title: 'To Do', cards: []}, {id: 'inprogress', title: 'In Progress', cards: []}, {id: 'done', title: 'Done', cards: []}]. Add ARIA attributes: role='region', aria-label='Kanban Board', and aria-labelledby for each column header. Implement error handling with *ngIf directive to display error message when column configuration fails. Use Angular Material or custom CSS for styling. Add responsive meta tags and viewport configuration.
 
-Acceptance Criteria:
+**Acceptance Criteria:**
 - KanbanBoardComponent created with proper Angular structure and decorators
 - Template renders three distinct column containers with proper semantic HTML
 - CSS Grid layout implemented with responsive breakpoints for desktop, tablet, and mobile
@@ -13,480 +13,344 @@ Acceptance Criteria:
 - Error state template implemented with conditional rendering
 - Component compiles without errors and passes linting checks
 
-UI Tasks:
+**UI Tasks:**
 - Create Angular component structure
-- Implement three-column layout
-- Add responsive design
+- Implement three-column layout with CSS Grid
+- Add responsive design breakpoints
 - Implement accessibility features
 - Add error handling
+- Ensure proper semantic HTML structure
 
-2. HTML STRUCTURE SUMMARY (SOURCE OF TRUTH)
+### 2. HTML STRUCTURE SUMMARY (SOURCE OF TRUTH)
 
-Header:
+**Header:**
 - Logo with TaskFlow Pro branding
-- Breadcrumb navigation
-- Search input with icon
-- Notification button with badge
-- Theme toggle button
-- User menu with avatar and info
+- Navigation breadcrumb
+- Search functionality
+- User menu with notifications and theme toggle
 
-Sidebar / Navigation:
-- Main navigation section (Dashboard, Kanban Board, All Tasks, Calendar)
-- Projects section (Website Redesign, Mobile App, API Integration)
+**Sidebar/Navigation:**
+- Main navigation sections (Dashboard, Kanban Board, All Tasks, Calendar)
+- Projects section with specific project links
 - Settings section (Preferences, Accessibility)
 
-Main Container:
-- Page content area with multiple pages (dashboard, kanban, tasks, calendar, settings, accessibility)
-- Kanban board with three columns (To Do, In Progress, Done)
+**Main Container:**
+- Page header with title, subtitle, and action buttons
+- Mobile tabs for responsive kanban column switching
+- Kanban board container with CSS Grid layout
+
+**Sections:**
+- Three kanban columns: To Do, In Progress, Done
 - Task cards with drag-and-drop functionality
-- Mobile tabs for responsive design
+- Add task buttons in each column
+- Modal overlay for task creation
 
-Sections:
-- Dashboard with project progress, team activity, quick actions
-- Kanban board with three columns and task cards
-- Task management with forms and modals
-- Settings and accessibility configuration
+### 3. LAYOUT STRUCTURE (MANDATORY)
 
-3. LAYOUT STRUCTURE (MANDATORY)
-
-Page Layout Hierarchy:
-├── App Container
-│   ├── Sidebar Navigation
-│   │   ├── Sidebar Header (Logo)
-│   │   └── Nav Menu
-│   │       ├── Main Section
-│   │       ├── Projects Section
-│   │       └── Settings Section
-│   └── Main Content
+**Page Layout Hierarchy:**
+```
+├── AppContainer
+│   ├── Sidebar
+│   │   ├── SidebarHeader (Logo)
+│   │   └── NavMenu
+│   │       ├── MainNavSection
+│   │       ├── ProjectsNavSection
+│   │       └── SettingsNavSection
+│   └── MainContent
 │       ├── Header
-│       │   ├── Header Left (Menu, Breadcrumb)
-│       │   ├── Search Container
-│       │   └── Header Right (Notifications, Theme, User Menu)
-│       └── Page Content
-│           ├── Dashboard Page
-│           ├── Kanban Page
-│           │   ├── Mobile Tabs
-│           │   └── Kanban Board
-│           │       ├── To Do Column
-│           │       ├── In Progress Column
-│           │       └── Done Column
-│           ├── Tasks Page
-│           ├── Calendar Page
-│           ├── Settings Page
-│           └── Accessibility Page
-└── Task Modal
+│       │   ├── HeaderLeft (Breadcrumb)
+│       │   ├── SearchContainer
+│       │   └── HeaderRight (UserMenu)
+│       └── PageContent
+│           ├── PageHeader
+│           ├── MobileTabs
+│           └── KanbanContainer
+│               └── KanbanBoard
+│                   ├── ToDoColumn
+│                   ├── InProgressColumn
+│                   └── DoneColumn
+```
 
-Layout Type:
-- CSS Grid for kanban columns
-- Flexbox for header, sidebar, and general layout
-- Mixed approach for responsive design
+**Layout Type:** CSS Grid with Flexbox for responsive design
 
-4. REUSABLE COMPONENTS IDENTIFIED
+### 4. REUSABLE COMPONENTS IDENTIFIED
 
-From Library (uicomplibraryplay):
-- Button Component (aava-button) - for all buttons throughout the application
-- Popup Component (aava-popup) - for user menu, notifications, and dropdowns
-- Popover Component - for tooltips and contextual information
-- Carousel Component - for dashboard widgets or image galleries
+**From Library (uicomplibraryplay):**
+- Button Component (aava-button) - For action buttons, add task buttons
+- Popup Component (aava-popup) - For user menu dropdown, column options
+- Autocomplete Component (aava-autocomplete) - For search functionality
+- Dropdown Component (aava-dropdown) - For filters and selections
 
-From HTML Implementation:
+**Custom Components Needed:**
 - Header Component
 - Sidebar Component
-- Navigation Component
-- Task Card Component
+- KanbanBoard Component
+- KanbanColumn Component
+- TaskCard Component
 - Modal Component
-- Search Component
-- User Avatar Component
-- Badge Component
-- Progress Bar Component
+- Navigation Components
 
-5. UI COMPONENT ARCHITECTURE
+### 5. UI COMPONENT ARCHITECTURE
 
+```
 ├── AppComponent
 ├── LayoutComponents
 │   ├── HeaderComponent
 │   ├── SidebarComponent
-│   └── NavigationComponent
+│   └── MainContentComponent
 ├── KanbanComponents
 │   ├── KanbanBoardComponent
 │   ├── KanbanColumnComponent
 │   ├── TaskCardComponent
 │   └── MobileTabsComponent
-├── DashboardComponents
-│   ├── DashboardPageComponent
-│   ├── ProjectProgressComponent
-│   ├── TeamActivityComponent
-│   └── QuickActionsComponent
 ├── SharedComponents
-│   ├── ButtonComponent (from library)
-│   ├── PopupComponent (from library)
-│   ├── PopoverComponent (from library)
 │   ├── ModalComponent
 │   ├── SearchComponent
-│   ├── UserAvatarComponent
-│   ├── BadgeComponent
-│   └── ProgressBarComponent
-└── PageComponents
-    ├── TasksPageComponent
-    ├── CalendarPageComponent
-    ├── SettingsPageComponent
-    └── AccessibilityPageComponent
+│   ├── UserMenuComponent
+│   └── NavigationComponent
+└── UILibraryComponents
+    ├── ButtonComponent (aava-button)
+    ├── PopupComponent (aava-popup)
+    ├── AutocompleteComponent (aava-autocomplete)
+    └── DropdownComponent (aava-dropdown)
+```
 
-6. COMPONENT DEFINITIONS
+### 6. COMPONENT DEFINITIONS
 
-AppComponent:
-Purpose: Root application component
-Props:
-- currentTheme: string
-- sidebarOpen: boolean
-State:
-- currentPage: string
-- userAuthenticated: boolean
-Events:
-- onPageChange
-- onThemeToggle
-API Binding:
-- Authentication service
+**KanbanBoardComponent:**
+- Purpose: Main container for three-column kanban layout
+- Props:
+  - columns: KanbanColumn[]
+  - loading: boolean
+  - error: string
+- State:
+  - draggedTask: Task | null
+  - columnData: KanbanColumn[]
+- Events:
+  - taskMoved: (task: Task, fromColumn: string, toColumn: string)
+  - taskCreated: (task: Task)
+- API Binding:
+  - GET /api/youth-accounts/{id}/dashboard for initial data
 
-HeaderComponent:
-Purpose: Application header with navigation and user controls
-Props:
-- currentUser: User
-- notificationCount: number
-- currentTheme: string
-State:
-- searchQuery: string
-- userMenuOpen: boolean
-Events:
-- onSearch
-- onThemeToggle
-- onUserMenuToggle
-API Binding:
-- User profile API
-- Notifications API
+**KanbanColumnComponent:**
+- Purpose: Individual column container with tasks
+- Props:
+  - column: KanbanColumn
+  - tasks: Task[]
+  - allowDrop: boolean
+- State:
+  - isDropTarget: boolean
+  - taskCount: number
+- Events:
+  - taskDropped: (task: Task)
+  - addTaskClicked: (columnId: string)
+- API Binding: None (data flows from parent)
 
-SidebarComponent:
-Purpose: Main navigation sidebar
-Props:
-- currentPage: string
-- isOpen: boolean
-State:
-- navigationItems: NavigationItem[]
-Events:
-- onNavigate
-- onToggle
-API Binding:
-- Navigation configuration
+**TaskCardComponent:**
+- Purpose: Individual task display with drag functionality
+- Props:
+  - task: Task
+  - draggable: boolean
+- State:
+  - isDragging: boolean
+- Events:
+  - taskClicked: (task: Task)
+  - dragStarted: (task: Task)
+- API Binding: None (data flows from parent)
 
-KanbanBoardComponent:
-Purpose: Main kanban board container with three columns
-Props:
-- youthAccountId: string
-State:
-- columns: KanbanColumn[]
-- tasks: Task[]
-- loading: boolean
-- error: string
-Events:
-- onTaskMove
-- onTaskCreate
-- onTaskUpdate
-API Binding:
-- GET /api/youth-accounts/{youthAccountId}/dashboard
-- GET /api/youth-accounts/{youthAccountId}/transactions
+**HeaderComponent:**
+- Purpose: Top navigation and search
+- Props:
+  - user: User
+  - breadcrumb: BreadcrumbItem[]
+- State:
+  - searchQuery: string
+  - notificationCount: number
+- Events:
+  - searchSubmitted: (query: string)
+  - themeToggled: ()
+- API Binding: None
 
-KanbanColumnComponent:
-Purpose: Individual kanban column (To Do, In Progress, Done)
-Props:
-- columnId: string
-- title: string
-- tasks: Task[]
-- taskCount: number
-State:
-- dragOver: boolean
-Events:
-- onTaskDrop
-- onAddTask
-API Binding:
-- Task management APIs
+**ModalComponent:**
+- Purpose: Task creation and editing modal
+- Props:
+  - isOpen: boolean
+  - mode: 'create' | 'edit'
+  - task?: Task
+- State:
+  - formData: TaskFormData
+  - isSubmitting: boolean
+- Events:
+  - taskSubmitted: (task: Task)
+  - modalClosed: ()
+- API Binding:
+  - POST /api/youth-accounts/{id}/fund-transfer for task creation
 
-TaskCardComponent:
-Purpose: Individual task card with drag-and-drop
-Props:
-- task: Task
-- draggable: boolean
-State:
-- dragging: boolean
-- selected: boolean
-Events:
-- onDragStart
-- onDragEnd
-- onClick
-API Binding:
-- Task update APIs
+### 7. DATA FLOW / PROPS
 
-DashboardPageComponent:
-Purpose: Dashboard overview page
-Props:
-- youthAccountId: string
-State:
-- dashboardData: DashboardData
-- loading: boolean
-Events:
-- onRefresh
-- onNavigateToKanban
-API Binding:
-- GET /api/youth-accounts/{youthAccountId}/dashboard
+**Parent → Child Mapping:**
+- AppComponent → HeaderComponent (user, breadcrumb)
+- AppComponent → SidebarComponent (navigationItems, activeRoute)
+- AppComponent → KanbanBoardComponent (columns, tasks, loading, error)
+- KanbanBoardComponent → KanbanColumnComponent (column, tasks, allowDrop)
+- KanbanColumnComponent → TaskCardComponent (task, draggable)
+- KanbanBoardComponent → ModalComponent (isOpen, mode, task)
 
-ModalComponent:
-Purpose: Reusable modal dialog
-Props:
-- isOpen: boolean
-- title: string
-- size: string
-State:
-- visible: boolean
-Events:
-- onClose
-- onSubmit
-API Binding:
-- None (generic component)
+### 8. API SUMMARY
 
-7. DATA FLOW / PROPS
+**Available APIs:**
+- GET /api/youth-accounts/{youthAccountId}/dashboard → Fetch dashboard data including account balance, spending limit, recent transactions
+- POST /api/youth-accounts/{youthAccountId}/fund-transfer → Transfer funds (can be repurposed for task creation)
+- PUT /api/youth-accounts/{youthAccountId}/spending-limit → Update spending limits (can be repurposed for task updates)
+- GET /api/youth-accounts/{youthAccountId}/transactions → Get transaction history (can be repurposed for task history)
 
-Parent → Child Mapping:
-AppComponent → HeaderComponent (currentUser, theme, notifications)
-AppComponent → SidebarComponent (currentPage, isOpen)
-AppComponent → PageComponents (youthAccountId, currentUser)
-KanbanBoardComponent → KanbanColumnComponent (columnData, tasks)
-KanbanColumnComponent → TaskCardComponent (taskData, permissions)
-DashboardPageComponent → ProjectProgressComponent (projectData)
-DashboardPageComponent → TeamActivityComponent (activityData)
-HeaderComponent → SearchComponent (searchQuery, onSearch)
-HeaderComponent → UserAvatarComponent (user, onMenuToggle)
+### 9. API TO UI MAPPING
 
-8. API SUMMARY
+**Component → API:**
+- KanbanBoardComponent → GET /api/youth-accounts/{id}/dashboard (initial load)
+- TaskCardComponent → GET /api/youth-accounts/{id}/transactions (task details)
+- ModalComponent → POST /api/youth-accounts/{id}/fund-transfer (create task)
+- ModalComponent → PUT /api/youth-accounts/{id}/spending-limit (update task)
 
-Available APIs:
-- GET /api/youth-accounts/{youthAccountId}/dashboard → Fetch dashboard data with balance, spending limit, recent transactions
-- POST /api/youth-accounts/{youthAccountId}/fund-transfer → Transfer funds from parent to youth account
-- PUT /api/youth-accounts/{youthAccountId}/spending-limit → Configure weekly spending limits
-- GET /api/youth-accounts/{youthAccountId}/transactions → Get paginated transaction history with filtering
+### 10. API COMPATIBILITY
 
-Authentication:
-- OAuth 2.0 with JWT tokens
-- Scopes: youth-account:read, youth-account:write, fund-transfer:execute
-- Rate limiting: 100 requests per minute
+**Compatible:**
+- Dashboard API supports basic data retrieval for kanban board initialization
+- Transaction history API can provide task-like data structure
+- Fund transfer API can be adapted for task creation workflows
 
-9. API TO UI MAPPING
+**Missing:**
+- Dedicated task management endpoints (CRUD operations)
+- Task status update endpoints
+- Task assignment and priority management
+- Drag-and-drop state persistence
 
-Component → API:
-- DashboardPageComponent → GET /api/youth-accounts/{youthAccountId}/dashboard
-- KanbanBoardComponent → GET /api/youth-accounts/{youthAccountId}/dashboard (for initial data)
-- FundTransferModal → POST /api/youth-accounts/{youthAccountId}/fund-transfer
-- SpendingLimitModal → PUT /api/youth-accounts/{youthAccountId}/spending-limit
-- TransactionHistoryComponent → GET /api/youth-accounts/{youthAccountId}/transactions
-- TaskCardComponent → Custom task management APIs (not in OpenAPI spec)
+**Transformations:**
+- Map transaction data to task card format
+- Transform fund transfer requests to task creation
+- Adapt spending limit updates to task status changes
 
-10. API COMPATIBILITY
+### 11. JIRA vs HTML VALIDATION
 
-Compatible:
-- Dashboard API supports UI dashboard requirements
-- Fund transfer API supports parent-to-youth transfers
-- Spending limit API supports limit configuration
-- Transaction history API supports filtering and pagination
-
-Missing:
-- Task management APIs (CRUD operations for kanban tasks)
-- User authentication APIs
-- Notification APIs
-- Project management APIs
-- Team member APIs
-
-Transformations:
-- Dashboard data needs to be adapted for kanban task display
-- Transaction data can be used for activity timeline
-- Account balance can be displayed in dashboard widgets
-
-11. JIRA vs HTML VALIDATION
-
-Matching Elements:
+**Matching Elements:**
 - Three-column kanban layout (To Do, In Progress, Done)
+- CSS Grid implementation with responsive breakpoints
+- ARIA attributes for accessibility
 - Angular component structure
-- Responsive design implementation
-- ARIA accessibility attributes
-- CSS Grid layout for columns
 - Drag-and-drop functionality
-- Error handling with conditional rendering
+- Mobile responsive design
 
-Missing Elements:
-- None - HTML implementation exceeds Jira requirements
+**Missing Elements:**
+- None - HTML implementation fully aligns with Jira requirements
 
-Extra Elements:
-- Complete application shell with header and sidebar
-- Dashboard page with project progress
-- Task management pages
-- Settings and accessibility pages
-- Modal dialogs for task creation
-- Mobile responsive tabs
-- Theme switching functionality
+**Extra Elements:**
+- Additional dashboard and navigation features beyond core kanban requirements
+- Enhanced task card features (assignees, tags, metadata)
+- Advanced accessibility features
+- Theme switching capability
 
-12. FOLDER STRUCTURE (MANDATORY)
+### 12. FOLDER STRUCTURE (MANDATORY)
 
+```
 src/
 ├── app/
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── header/
-│   │   │   │   ├── header.component.ts
-│   │   │   │   ├── header.component.html
-│   │   │   │   └── header.component.scss
-│   │   │   ├── sidebar/
-│   │   │   │   ├── sidebar.component.ts
-│   │   │   │   ├── sidebar.component.html
-│   │   │   │   └── sidebar.component.scss
-│   │   │   └── navigation/
-│   │   │       ├── navigation.component.ts
-│   │   │       ├── navigation.component.html
-│   │   │       └── navigation.component.scss
-│   │   ├── features/
-│   │   │   ├── kanban/
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── kanban-board/
-│   │   │   │   │   │   ├── kanban-board.component.ts
-│   │   │   │   │   │   ├── kanban-board.component.html
-│   │   │   │   │   │   └── kanban-board.component.scss
-│   │   │   │   │   ├── kanban-column/
-│   │   │   │   │   │   ├── kanban-column.component.ts
-│   │   │   │   │   │   ├── kanban-column.component.html
-│   │   │   │   │   │   └── kanban-column.component.scss
-│   │   │   │   │   ├── task-card/
-│   │   │   │   │   │   ├── task-card.component.ts
-│   │   │   │   │   │   ├── task-card.component.html
-│   │   │   │   │   │   └── task-card.component.scss
-│   │   │   │   │   └── mobile-tabs/
-│   │   │   │   │       ├── mobile-tabs.component.ts
-│   │   │   │   │       ├── mobile-tabs.component.html
-│   │   │   │   │       └── mobile-tabs.component.scss
-│   │   │   ├── dashboard/
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── dashboard-page/
-│   │   │   │   │   ├── project-progress/
-│   │   │   │   │   ├── team-activity/
-│   │   │   │   │   └── quick-actions/
-│   │   │   └── youth-account/
-│   │   │       ├── components/
-│   │   │       ├── services/
-│   │   │       └── models/
-│   │   └── shared/
+│   ├── features/
+│   │   └── kanban/
 │   │       ├── components/
-│   │       │   ├── button/ (from @aava/play-core)
-│   │       │   ├── popup/ (from @aava/play-core)
-│   │       │   ├── popover/ (from @aava/play-core)
-│   │       │   ├── modal/
-│   │       │   ├── search/
-│   │       │   ├── user-avatar/
-│   │       │   ├── badge/
-│   │       │   └── progress-bar/
+│   │       │   ├── kanban-board/
+│   │       │   │   ├── kanban-board.component.ts
+│   │       │   │   ├── kanban-board.component.html
+│   │       │   │   ├── kanban-board.component.scss
+│   │       │   │   └── kanban-board.component.spec.ts
+│   │       │   ├── kanban-column/
+│   │       │   │   ├── kanban-column.component.ts
+│   │       │   │   ├── kanban-column.component.html
+│   │       │   │   ├── kanban-column.component.scss
+│   │       │   │   └── kanban-column.component.spec.ts
+│   │       │   └── task-card/
+│   │       │       ├── task-card.component.ts
+│   │       │       ├── task-card.component.html
+│   │       │       ├── task-card.component.scss
+│   │       │       └── task-card.component.spec.ts
 │   │       ├── services/
-│   │       │   ├── api.service.ts
-│   │       │   ├── auth.service.ts
-│   │       │   └── youth-account.service.ts
+│   │       │   ├── kanban.service.ts
+│   │       │   └── task.service.ts
 │   │       └── models/
-│   │           ├── user.model.ts
 │   │           ├── task.model.ts
-│   │           ├── dashboard.model.ts
-│   │           └── api-response.model.ts
-│   ├── pages/
-│   │   ├── dashboard/
-│   │   │   ├── dashboard.component.ts
-│   │   │   ├── dashboard.component.html
-│   │   │   └── dashboard.component.scss
-│   │   ├── kanban/
-│   │   │   ├── kanban.component.ts
-│   │   │   ├── kanban.component.html
-│   │   │   └── kanban.component.scss
-│   │   ├── tasks/
-│   │   ├── calendar/
-│   │   ├── settings/
-│   │   └── accessibility/
-│   ├── services/
-│   │   ├── youth-account-api.service.ts
-│   │   ├── task-management.service.ts
-│   │   └── notification.service.ts
-│   └── app.component.ts
-└── assets/
-    ├── styles/
-    │   ├── variables.scss
-    │   ├── mixins.scss
-    │   └── themes.scss
-    └── icons/
+│   │           └── kanban-column.model.ts
+│   ├── shared/
+│   │   ├── components/
+│   │   │   ├── header/
+│   │   │   ├── sidebar/
+│   │   │   ├── modal/
+│   │   │   └── search/
+│   │   └── services/
+│   │       ├── api.service.ts
+│   │       └── theme.service.ts
+│   └── core/
+│       ├── models/
+│       │   ├── user.model.ts
+│       │   └── api-response.model.ts
+│       └── services/
+│           ├── auth.service.ts
+│           └── notification.service.ts
+```
 
-13. INTERACTION FLOWS
+### 13. INTERACTION FLOWS
 
-User Action → UI → API:
+**User Action → UI → API:**
 
-1. View Dashboard
-   → Load DashboardPageComponent
+1. **Load Kanban Board**
+   → KanbanBoardComponent.ngOnInit()
    → Call GET /api/youth-accounts/{id}/dashboard
-   → Display balance, spending limit, recent transactions
+   → Transform response to kanban columns
+   → Render three columns with tasks
 
-2. Transfer Funds
-   → Click "Add Funds" button
-   → Open FundTransferModal
+2. **Create New Task**
+   → Click "Add Task" button
+   → Open ModalComponent
+   → Fill task form
    → Submit form
    → Call POST /api/youth-accounts/{id}/fund-transfer
-   → Update dashboard balance
-   → Show success notification
+   → Update local state
+   → Close modal
 
-3. Configure Spending Limit
-   → Click "Set Limit" button
-   → Open SpendingLimitModal
-   → Submit form
+3. **Drag and Drop Task**
+   → Start drag on TaskCardComponent
+   → Drop on target KanbanColumnComponent
+   → Update local state
    → Call PUT /api/youth-accounts/{id}/spending-limit
-   → Update dashboard display
-   → Show confirmation
+   → Persist changes
 
-4. View Transaction History
-   → Navigate to transactions page
-   → Call GET /api/youth-accounts/{id}/transactions
-   → Display paginated results
-   → Apply filters as needed
+4. **Search Tasks**
+   → Type in SearchComponent
+   → Filter local task data
+   → Update kanban board display
 
-5. Manage Kanban Tasks
-   → Drag task between columns
-   → Update task status locally
-   → Call task update API (custom)
-   → Sync with backend
+### 14. GAPS & RECOMMENDATIONS
 
-6. Create New Task
-   → Click "Add Task" button
-   → Open TaskModal
-   → Submit form
-   → Call task creation API (custom)
-   → Add to appropriate column
-
-14. GAPS & RECOMMENDATIONS
-
-Missing UI:
-- Task management APIs for kanban functionality
-- User profile management interface
-- Advanced filtering and search capabilities
+**Missing UI:**
+- Task detail view/edit modal
 - Bulk task operations
-- Task assignment and collaboration features
+- Task filtering and sorting controls
+- Advanced drag-and-drop visual feedback
 
-Improvements:
-- Implement real-time updates using WebSocket connections
-- Add offline capability with service workers
-- Enhance accessibility with better keyboard navigation
-- Add data visualization for spending patterns
-- Implement advanced drag-and-drop with visual feedback
-- Add task templates and automation rules
+**Improvements:**
+- Add real-time updates using WebSocket connections
+- Implement offline capability with local storage
+- Add keyboard navigation for accessibility
+- Include task templates and quick actions
 
-Performance:
+**Performance:**
 - Implement virtual scrolling for large task lists
-- Add lazy loading for dashboard widgets
-- Optimize API calls with caching strategies
-- Implement progressive loading for better UX
-- Add compression for API responses
+- Add lazy loading for task details
+- Optimize drag-and-drop performance
+- Cache API responses for better user experience
 - Use OnPush change detection strategy for better performance
+
+**API Enhancements Needed:**
+- Dedicated task management endpoints
+- Real-time task updates via WebSocket
+- Task search and filtering capabilities
+- Batch operations for multiple tasks
+- Task template and category management
