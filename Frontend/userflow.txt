@@ -3,10 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board User Flow Diagram</title>
+    <title>Kanban Application User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true });
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
     </script>
     <style>
         body {
@@ -18,160 +25,173 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         h1 {
-            text-align: center;
             color: #333;
+            text-align: center;
             margin-bottom: 30px;
+            font-size: 2.5em;
         }
         .mermaid {
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin: 20px 0;
+            border: 1px solid #e1e5e9;
         }
         .description {
-            background: white;
+            margin-top: 30px;
             padding: 20px;
+            background: #f8f9fa;
             border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+        .description h3 {
+            color: #495057;
+            margin-top: 0;
+        }
+        .description p {
+            color: #6c757d;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board Management System - User Flow Diagram</h1>
+        <h1>Kanban Application User Flow Diagram</h1>
         
-        <div class="description">
-            <h3>User Journey Overview</h3>
-            <p>This diagram illustrates the complete user interaction flow for the Kanban Board Management System, showing how users navigate through different sections, manage tasks, and interact with various components.</p>
-        </div>
-
         <div class="mermaid">
             flowchart TD
                 Start[User Opens Application]
-                Start --> LoadApp[App Component Loads]
-                LoadApp --> CheckAuth[Check Authentication]
-                CheckAuth --> Login[Login Required]
-                CheckAuth --> Dashboard[Load Dashboard]
+                Start --> LoadApp[App Container Loads]
+                LoadApp --> ShowSidebar[Display Sidebar Navigation]
+                LoadApp --> ShowHeader[Display Header with Search]
                 
-                Login --> AuthSuccess[Authentication Success]
-                AuthSuccess --> Dashboard
+                ShowSidebar --> NavDashboard[Click Dashboard]
+                ShowSidebar --> NavKanban[Click Kanban Board]
+                ShowSidebar --> NavTasks[Click Tasks]
+                ShowSidebar --> NavCalendar[Click Calendar]
+                ShowSidebar --> NavSettings[Click Settings]
                 
-                Dashboard --> ViewDashboard[View Dashboard Page]
-                Dashboard --> ViewKanban[Navigate to Kanban Board]
-                Dashboard --> ViewTasks[Navigate to Tasks Page]
-                Dashboard --> ViewCalendar[Navigate to Calendar]
-                Dashboard --> ViewSettings[Navigate to Settings]
+                NavDashboard --> DashboardPage[Load Dashboard Page]
+                NavKanban --> KanbanPage[Load Kanban Page]
+                NavTasks --> TasksPage[Load Tasks Page]
+                NavCalendar --> CalendarPage[Load Calendar Page]
+                NavSettings --> SettingsPage[Load Settings Page]
                 
-                ViewDashboard --> ProjectCards[View Project Progress Cards]
-                ViewDashboard --> TeamActivity[View Team Activity]
-                ProjectCards --> KanbanFromDash[Go to Kanban Board]
+                KanbanPage --> LoadColumns[Initialize Three Columns]
+                LoadColumns --> TodoColumn[To Do Column]
+                LoadColumns --> ProgressColumn[In Progress Column]
+                LoadColumns --> DoneColumn[Done Column]
                 
-                ViewKanban --> LoadKanbanBoard[Load Kanban Board Component]
-                LoadKanbanBoard --> DisplayColumns[Display Three Columns]
-                DisplayColumns --> TodoColumn[To Do Column]
-                DisplayColumns --> InProgressColumn[In Progress Column]
-                DisplayColumns --> DoneColumn[Done Column]
+                TodoColumn --> ViewTasks[View Task Cards]
+                ProgressColumn --> ViewTasks
+                DoneColumn --> ViewTasks
                 
-                TodoColumn --> ViewTodoTasks[View Todo Tasks]
-                InProgressColumn --> ViewInProgressTasks[View In Progress Tasks]
-                DoneColumn --> ViewDoneTasks[View Done Tasks]
+                ViewTasks --> ClickTask[Click Task Card]
+                ViewTasks --> DragTask[Drag Task Card]
+                ViewTasks --> AddNewTask[Click Add Task Button]
                 
-                ViewTodoTasks --> SelectTask[Click Task Card]
-                ViewInProgressTasks --> SelectTask
-                ViewDoneTasks --> SelectTask
+                ClickTask --> TaskDetails[View Task Details]
+                TaskDetails --> EditTask[Edit Task]
+                TaskDetails --> CloseTask[Close Task View]
                 
-                SelectTask --> ViewTaskDetails[View Task Details Modal]
-                ViewTaskDetails --> EditTask[Edit Task]
-                ViewTaskDetails --> CloseModal[Close Modal]
+                EditTask --> SaveChanges[Save Task Changes]
+                SaveChanges --> UpdateAPI[Call PUT API]
+                UpdateAPI --> RefreshBoard[Refresh Kanban Board]
                 
-                EditTask --> SaveTaskChanges[Save Task Changes]
-                SaveTaskChanges --> UpdateKanban[Update Kanban Board]
-                UpdateKanban --> DisplayColumns
+                DragTask --> DropTask[Drop in New Column]
+                DropTask --> UpdateStatus[Update Task Status]
+                UpdateStatus --> UpdateAPI
                 
-                ViewTodoTasks --> DragTask[Drag Task Card]
-                ViewInProgressTasks --> DragTask
-                ViewDoneTasks --> DragTask
+                AddNewTask --> OpenModal[Open Task Creation Modal]
+                OpenModal --> FillForm[Fill Task Form]
+                FillForm --> SubmitTask[Submit New Task]
+                FillForm --> CancelTask[Cancel Task Creation]
                 
-                DragTask --> DropInColumn[Drop in Different Column]
-                DropInColumn --> UpdateTaskStatus[Update Task Status]
-                UpdateTaskStatus --> RefreshBoard[Refresh Kanban Board]
-                RefreshBoard --> DisplayColumns
+                SubmitTask --> ValidateForm[Validate Form Data]
+                ValidateForm --> CreateAPI[Call POST API]
+                ValidateForm --> ShowError[Show Validation Error]
                 
-                DisplayColumns --> AddNewTask[Click Add Task Button]
-                AddNewTask --> OpenTaskForm[Open Task Creation Modal]
-                OpenTaskForm --> FillTaskForm[Fill Task Form]
-                FillTaskForm --> SubmitTask[Submit New Task]
-                FillTaskForm --> CancelTask[Cancel Task Creation]
+                CreateAPI --> TaskCreated[Task Created Successfully]
+                TaskCreated --> RefreshBoard
+                CreateAPI --> APIError[Show API Error]
                 
-                SubmitTask --> CreateTask[Create Task via API]
-                CreateTask --> AddToColumn[Add Task to Column]
-                AddToColumn --> DisplayColumns
+                ShowHeader --> UseSearch[Use Search Bar]
+                ShowHeader --> ViewNotifications[View Notifications]
+                ShowHeader --> UserMenu[Click User Menu]
                 
-                CancelTask --> CloseModal
-                CloseModal --> DisplayColumns
+                UseSearch --> SearchTasks[Search Tasks]
+                SearchTasks --> FilterResults[Display Filtered Results]
+                FilterResults --> ViewTasks
                 
-                ViewKanban --> MobileView[Mobile Responsive View]
-                MobileView --> MobileTabs[Show Mobile Tabs]
-                MobileTabs --> SelectColumn[Select Column Tab]
-                SelectColumn --> ViewColumnTasks[View Column Tasks]
-                ViewColumnTasks --> SelectTask
+                ViewNotifications --> NotificationList[Show Notification List]
+                NotificationList --> MarkRead[Mark as Read]
+                NotificationList --> CloseNotifications[Close Notifications]
                 
-                ViewTasks --> TaskList[View Task List Page]
-                TaskList --> FilterTasks[Filter Tasks]
-                TaskList --> SearchTasks[Search Tasks]
-                FilterTasks --> ViewFilteredTasks[View Filtered Results]
-                SearchTasks --> ViewSearchResults[View Search Results]
-                
-                ViewCalendar --> CalendarView[View Calendar Page]
-                CalendarView --> ViewTasksByDate[View Tasks by Date]
-                ViewTasksByDate --> SelectTask
-                
-                ViewSettings --> UserProfile[Edit User Profile]
-                ViewSettings --> AppSettings[Modify App Settings]
-                ViewSettings --> ThemeToggle[Toggle Theme]
-                
-                ThemeToggle --> UpdateTheme[Update Application Theme]
-                UpdateTheme --> RefreshUI[Refresh User Interface]
-                RefreshUI --> Dashboard
-                
-                UserProfile --> SaveProfile[Save Profile Changes]
-                AppSettings --> SaveSettings[Save App Settings]
-                SaveProfile --> ViewSettings
-                SaveSettings --> ViewSettings
-                
-                Dashboard --> HeaderSearch[Use Header Search]
-                HeaderSearch --> SearchResults[Display Search Results]
-                SearchResults --> SelectSearchResult[Select Search Result]
-                SelectSearchResult --> ViewKanban
-                
-                Dashboard --> UserMenu[Open User Menu]
+                UserMenu --> ToggleTheme[Toggle Dark Mode]
+                UserMenu --> UserProfile[View Profile]
                 UserMenu --> Logout[Logout]
-                UserMenu --> ProfileSettings[Profile Settings]
-                Logout --> Start
-                ProfileSettings --> UserProfile
                 
-                Dashboard --> Notifications[View Notifications]
-                Notifications --> MarkAsRead[Mark Notifications as Read]
-                Notifications --> ViewNotificationDetail[View Notification Detail]
-                MarkAsRead --> Dashboard
-                ViewNotificationDetail --> Dashboard
+                ToggleTheme --> UpdateTheme[Update Application Theme]
+                UpdateTheme --> RefreshUI[Refresh User Interface]
+                
+                UserProfile --> EditProfile[Edit User Profile]
+                EditProfile --> SaveProfile[Save Profile Changes]
+                SaveProfile --> ProfileAPI[Call Profile API]
+                
+                Logout --> ConfirmLogout[Confirm Logout]
+                ConfirmLogout --> ClearSession[Clear User Session]
+                ClearSession --> Start
+                
+                RefreshBoard --> LoadColumns
+                CloseTask --> ViewTasks
+                CancelTask --> ViewTasks
+                ShowError --> FillForm
+                APIError --> OpenModal
+                MarkRead --> NotificationList
+                CloseNotifications --> ShowHeader
+                RefreshUI --> KanbanPage
+                ProfileAPI --> UserProfile
+                
+                %% Mobile Specific Flow
+                KanbanPage --> CheckMobile{Mobile Device?}
+                CheckMobile -->|Yes| ShowTabs[Show Mobile Tabs]
+                CheckMobile -->|No| LoadColumns
+                ShowTabs --> SelectTab[Select Column Tab]
+                SelectTab --> ShowColumn[Show Selected Column]
+                ShowColumn --> ViewTasks
+                
+                %% Error Handling
+                LoadApp --> LoadError{Loading Error?}
+                LoadError -->|Yes| ShowErrorPage[Show Error Message]
+                LoadError -->|No| ShowSidebar
+                ShowErrorPage --> RetryLoad[Retry Loading]
+                RetryLoad --> LoadApp
         </div>
         
         <div class="description">
-            <h3>Key User Interaction Points</h3>
+            <h3>User Flow Description</h3>
+            <p>
+                This diagram illustrates the complete user journey through the Kanban board application. 
+                The flow begins when a user opens the application and shows all possible interaction paths:
+            </p>
             <ul>
-                <li><strong>Authentication Flow:</strong> Initial login and session management</li>
-                <li><strong>Navigation Flow:</strong> Moving between Dashboard, Kanban, Tasks, Calendar, and Settings</li>
-                <li><strong>Kanban Interaction:</strong> Viewing columns, dragging tasks, creating new tasks</li>
-                <li><strong>Task Management:</strong> Creating, editing, viewing, and updating task status</li>
-                <li><strong>Mobile Experience:</strong> Responsive design with mobile tabs for column navigation</li>
-                <li><strong>Search & Filter:</strong> Finding tasks through search and filtering mechanisms</li>
-                <li><strong>User Preferences:</strong> Theme switching, profile management, and settings</li>
+                <li><strong>Navigation Flow:</strong> Users can navigate between Dashboard, Kanban, Tasks, Calendar, and Settings pages via the sidebar</li>
+                <li><strong>Kanban Interaction:</strong> The main workflow shows how users interact with the three-column Kanban board (To Do, In Progress, Done)</li>
+                <li><strong>Task Management:</strong> Users can view, create, edit, and move tasks between columns with drag-and-drop functionality</li>
+                <li><strong>Search & Filter:</strong> Users can search for tasks using the header search bar</li>
+                <li><strong>User Controls:</strong> Theme switching, notifications, and user profile management</li>
+                <li><strong>Mobile Experience:</strong> Special tab-based navigation for mobile devices</li>
+                <li><strong>Error Handling:</strong> Comprehensive error states and retry mechanisms</li>
             </ul>
+            <p>
+                The diagram uses Mermaid.js flowchart syntax and renders automatically when opened in a browser. 
+                Each node represents a user action or system state, with arrows showing the possible transitions between states.
+            </p>
         </div>
     </div>
 </body>
