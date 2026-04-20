@@ -1,368 +1,468 @@
 # Sequence Diagrams
-## Youth Account Management System
+# Youth Account Management System
 
-### Document Information
-- **Version**: 1.0
+## Document Information
+- **Document Version**: 1.0
 - **Date**: 2024
-- **Generated From**: HLD Document and API Contract Outline
-- **Related ADRs**: SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30
+- **System**: Youth Account Management System
+- **Traceability**: SCIB-25, SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30
+- **Compliance**: PCI-DSS Level 1, GDPR, SOX, BSA
 
 ---
 
-## 1. Youth Account Dashboard Sequence Diagram
-**Mapped to ADR**: SCIB-26
+## 1. Authentication & Authorization Flow
+
+### Description
+This sequence diagram shows the OAuth 2.0 + JWT authentication flow for parent users accessing youth account management features.
 
 ```mermaid
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as Auth Service
-    participant DashboardAPI as Dashboard API
+    participant Client as Parent Client App
+    participant Gateway as API Gateway
+    participant Auth as Auth Service
+    participant JWT as JWT Service
+    participant Account as Youth Account Service
+    participant DB as Database
+    
+    Client->>Gateway: POST /auth/login (credentials)
+    Gateway->>Auth: Validate credentials
+    Auth->>DB: Check user credentials
+    DB-->>Auth: User validated
+    Auth->>JWT: Generate JWT token
+    JWT-->>Auth: JWT token (15 min expiry)
+    Auth-->>Gateway: Authentication response
+    Gateway-->>Client: JWT token + refresh token
+    
+    Note over Client,DB: Subsequent API calls
+    Client->>Gateway: GET /youth-accounts/{id}/dashboard (Bearer token)
+    Gateway->>JWT: Validate JWT token
+    JWT-->>Gateway: Token valid
+    Gateway->>Account: Get dashboard data
+    Account->>DB: Query account data
+    DB-->>Account: Account information
+    Account-->>Gateway: Dashboard response
+    Gateway-->>Client: Dashboard data (200 OK)
+```
+
+**Key Security Controls:**
+- JWT tokens expire in 15 minutes
+- Rate limiting: 1000 requests/hour per user
+- MFA required for parent authentication
+- RBAC enforcement at gateway level
+
+---
+
+## 2. Youth Account Dashboard Retrieval (SCIB-26)
+
+### Description
+Sequence diagram for retrieving consolidated youth account dashboard information including balance, spending limits, and recent transactions.
+
+```mermaid
+sequenceDiagram
+    participant Parent as Parent Client
+    participant Gateway as API Gateway
+    participant YouthSvc as Youth Account Service
+    participant LimitSvc as Spending Limit Service
+    participant TxnSvc as Transaction Service
     participant Cache as Redis Cache
-    participant CoreBank as Core Banking System
-    participant Database as Youth Account DB
-
-    Parent->>WebApp: Access Youth Account Dashboard
-    WebApp->>APIGateway: GET /api/youth-accounts/{youthAccountId}/dashboard
-    Note over APIGateway: Rate Limiting Check (100 req/min)
+    participant DB as PostgreSQL DB
+    participant Audit as Audit Service
     
-    APIGateway->>AuthService: Validate OAuth Token
-    AuthService-->>APIGateway: Token Valid + User Permissions
+    Parent->>Gateway: GET /youth-accounts/{youthAccountId}/dashboard
+    Gateway->>Gateway: Validate JWT & RBAC
+    Gateway->>YouthSvc: Get dashboard data
     
-    APIGateway->>DashboardAPI: Forward Request with Headers
-    Note over DashboardAPI: X-Request-ID: req-12345-67890
-    
-    DashboardAPI->>Cache: Check Cached Dashboard Data
-    alt Cache Hit
-        Cache-->>DashboardAPI: Cached Dashboard Data
-    else Cache Miss
-        DashboardAPI->>Database: Get Youth Account Settings
-        Database-->>DashboardAPI: Account Settings
-        
-        DashboardAPI->>CoreBank: Get Account Balance
-        CoreBank-->>DashboardAPI: Current Balance
-        
-        DashboardAPI->>CoreBank: Get Recent Transactions (Last 5)
-        CoreBank-->>DashboardAPI: Transaction List
-        
-        DashboardAPI->>Cache: Store Aggregated Data (TTL: 5min)
+    par Parallel Data Retrieval
+        YouthSvc->>Cache: Check account cache
+        Cache-->>YouthSvc: Cache miss
+        YouthSvc->>DB: Query account balance & status
+        DB-->>YouthSvc: Account data
+        YouthSvc->>Cache: Update cache (TTL: 5 min)
+    and
+        YouthSvc->>LimitSvc: Get spending limits
+        LimitSvc->>DB: Query current week spending
+        DB-->>LimitSvc: Spending data
+        LimitSvc-->>YouthSvc: Limit information
+    and
+        YouthSvc->>TxnSvc: Get recent transactions (last 10)
+        TxnSvc->>DB: Query recent transactions
+        DB-->>TxnSvc: Transaction list
+        TxnSvc-->>YouthSvc: Recent transactions
     end
     
-    DashboardAPI-->>APIGateway: Dashboard Response (200 OK)
-    Note over DashboardAPI: Response Time < 500ms
+    YouthSvc->>YouthSvc: Aggregate dashboard data
+    YouthSvc->>Audit: Log dashboard access
+    YouthSvc-->>Gateway: Dashboard response
+    Gateway-->>Parent: 200 OK + Dashboard JSON
     
-    APIGateway-->>WebApp: JSON Response with Headers
-    Note over APIGateway: X-RateLimit-Remaining: 99
-    
-    WebApp-->>Parent: Display Dashboard
-    Note over WebApp: Account Balance, Spending Limit, Recent Transactions
+    Note over Parent,Audit: Response includes: balance, spending limit,<br/>current week spent, remaining limit,<br/>recent transactions, account status
 ```
+
+**Performance Requirements:**
+- API response time < 200ms (95th percentile)
+- Dashboard loading < 2 seconds
+- Parallel data retrieval for optimization
+- Redis caching with 5-minute TTL
 
 ---
 
-## 2. Fund Transfer Sequence Diagram
-**Mapped to ADR**: SCIB-27
+## 3. Fund Transfer Process (SCIB-27)
+
+### Description
+Sequence diagram for transferring funds from parent account to youth account with real-time processing and validation.
 
 ```mermaid
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as Auth Service
-    participant TransferAPI as Fund Transfer API
-    participant PaymentService as Payment Service
+    participant Parent as Parent Client
+    participant Gateway as API Gateway
+    participant TransferSvc as Fund Transfer Service
+    participant YouthSvc as Youth Account Service
     participant CoreBank as Core Banking System
-    participant Database as Youth Account DB
-    participant NotificationSvc as Notification Service
-
-    Parent->>WebApp: Initiate Fund Transfer ($25.00)
-    WebApp->>APIGateway: POST /api/youth-accounts/{youthAccountId}/fund-transfer
-    Note over WebApp: Headers: Authorization, X-Idempotency-Key
+    participant PayGateway as Payment Gateway
+    participant NotifSvc as Notification Service
+    participant Audit as Audit Service
+    participant DB as Database
     
-    APIGateway->>AuthService: Validate OAuth Token & Permissions
-    AuthService-->>APIGateway: Token Valid + Parent Authorization
+    Parent->>Gateway: POST /youth-accounts/{id}/fund-transfer
+    Gateway->>Gateway: Validate JWT, rate limit (10/hour)
+    Gateway->>TransferSvc: Process fund transfer
     
-    APIGateway->>TransferAPI: Forward Transfer Request
-    Note over TransferAPI: Validate Request Schema
+    TransferSvc->>TransferSvc: Validate request parameters
+    TransferSvc->>DB: Begin transaction
     
-    TransferAPI->>Database: Check Idempotency Key
-    alt Duplicate Request
-        Database-->>TransferAPI: Previous Transfer Result
-        TransferAPI-->>APIGateway: 409 Conflict - Duplicate Transfer
-    else New Request
-        TransferAPI->>CoreBank: Validate Source Account
-        CoreBank-->>TransferAPI: Account Valid + Balance Check
-        
-        alt Insufficient Funds
-            TransferAPI-->>APIGateway: 400 Bad Request - Insufficient Funds
-        else Sufficient Funds
-            TransferAPI->>PaymentService: Execute Transfer
-            Note over PaymentService: Amount: $25.00, Currency: USD
-            
-            PaymentService->>CoreBank: Debit Source Account
-            CoreBank-->>PaymentService: Debit Successful
-            
-            PaymentService->>CoreBank: Credit Youth Account
-            CoreBank-->>PaymentService: Credit Successful
-            
-            PaymentService-->>TransferAPI: Transfer Complete
-            Note over PaymentService: Transfer ID: tf-123456789
-            
-            TransferAPI->>Database: Log Transfer Record
-            Database-->>TransferAPI: Record Saved
-            
-            TransferAPI->>NotificationSvc: Send Transfer Notification
-            NotificationSvc-->>Parent: SMS/Email Confirmation
-            
-            TransferAPI-->>APIGateway: 201 Created - Transfer Success
-        end
+    par Account Validation
+        TransferSvc->>YouthSvc: Validate youth account
+        YouthSvc->>DB: Check account status
+        DB-->>YouthSvc: Account active
+        YouthSvc-->>TransferSvc: Account valid
+    and
+        TransferSvc->>CoreBank: Validate parent account
+        CoreBank-->>TransferSvc: Account valid + balance
     end
     
-    APIGateway-->>WebApp: Transfer Response
-    WebApp-->>Parent: Display Transfer Confirmation
-    Note over Parent: Confirmation Number: CONF-ABC123
+    alt Sufficient Funds
+        TransferSvc->>CoreBank: Debit parent account
+        CoreBank-->>TransferSvc: Debit successful
+        
+        TransferSvc->>PayGateway: Credit youth account
+        PayGateway-->>TransferSvc: Credit successful
+        
+        TransferSvc->>DB: Update account balances
+        TransferSvc->>DB: Record transfer transaction
+        TransferSvc->>DB: Commit transaction
+        
+        TransferSvc->>NotifSvc: Send transfer notifications
+        NotifSvc->>Parent: Email/SMS notification
+        NotifSvc->>YouthSvc: In-app notification
+        
+        TransferSvc->>Audit: Log successful transfer
+        TransferSvc-->>Gateway: 200 OK + Transfer details
+        
+    else Insufficient Funds
+        TransferSvc->>DB: Rollback transaction
+        TransferSvc->>Audit: Log failed transfer attempt
+        TransferSvc-->>Gateway: 400 Bad Request + Error
+    end
+    
+    Gateway-->>Parent: Transfer response
+    
+    Note over Parent,Audit: Processing time < 5 seconds<br/>Automatic rollback on any failure<br/>Complete audit trail maintained
 ```
+
+**Business Rules:**
+- Minimum transfer: $1.00
+- Maximum transfer: $1,000.00
+- Rate limit: 10 transfers per hour
+- ACID transaction properties enforced
+- Automatic rollback on failure
 
 ---
 
-## 3. Spending Limit Configuration Sequence Diagram
-**Mapped to ADR**: SCIB-28
+## 4. Spending Limit Configuration (SCIB-28)
+
+### Description
+Sequence diagram for configuring weekly spending limits for youth accounts with notification preferences.
 
 ```mermaid
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as Auth Service
-    participant LimitAPI as Spending Limit API
-    participant Database as Youth Account DB
+    participant Parent as Parent Client
+    participant Gateway as API Gateway
+    participant LimitSvc as Spending Limit Service
+    participant YouthSvc as Youth Account Service
+    participant NotifSvc as Notification Service
+    participant Audit as Audit Service
+    participant DB as Database
+    
+    Parent->>Gateway: PUT /youth-accounts/{id}/spending-limit
+    Gateway->>Gateway: Validate JWT & parent ownership
+    Gateway->>LimitSvc: Update spending limit
+    
+    LimitSvc->>LimitSvc: Validate limit parameters
+    Note over LimitSvc: Min: $1.00, Max: $10,000.00
+    
+    LimitSvc->>YouthSvc: Verify account ownership
+    YouthSvc->>DB: Check parent-youth relationship
+    DB-->>YouthSvc: Ownership confirmed
+    YouthSvc-->>LimitSvc: Account accessible
+    
+    LimitSvc->>DB: Begin transaction
+    LimitSvc->>DB: Get current limit settings
+    DB-->>LimitSvc: Current limit: $75.00
+    
+    LimitSvc->>DB: Update spending limit configuration
+    LimitSvc->>DB: Update notification preferences
+    LimitSvc->>DB: Set effective date (next Monday)
+    LimitSvc->>DB: Commit transaction
+    
+    LimitSvc->>NotifSvc: Send limit change notification
+    NotifSvc->>Parent: Email confirmation
+    NotifSvc->>YouthSvc: Youth app notification
+    
+    LimitSvc->>Audit: Log limit configuration change
+    Note over Audit: Previous: $75.00 → New: $100.00<br/>Effective: 2024-01-22
+    
+    LimitSvc-->>Gateway: 200 OK + Updated configuration
+    Gateway-->>Parent: Limit update confirmation
+    
+    Note over Parent,Audit: Notification thresholds:<br/>75% spent, 90% spent, limit exceeded
+```
+
+**Configuration Options:**
+- Weekly limit: $1.00 - $10,000.00
+- Effective date: Next Monday (default)
+- Notification preferences: 75%, 90%, exceed
+- Automatic reset every Monday
+
+---
+
+## 5. Transaction History Retrieval (SCIB-29)
+
+### Description
+Sequence diagram for retrieving transaction history with filtering, pagination, and analytics.
+
+```mermaid
+sequenceDiagram
+    participant Parent as Parent Client
+    participant Gateway as API Gateway
+    participant TxnSvc as Transaction Service
     participant Cache as Redis Cache
-    participant NotificationSvc as Notification Service
-
-    Parent->>WebApp: Configure Weekly Spending Limit ($75.00)
-    WebApp->>APIGateway: PUT /api/youth-accounts/{youthAccountId}/spending-limit
+    participant DB as PostgreSQL DB
+    participant Analytics as Analytics Service
+    participant Audit as Audit Service
     
-    APIGateway->>AuthService: Validate OAuth Token
-    AuthService-->>APIGateway: Token Valid + Parent Authorization
+    Parent->>Gateway: GET /youth-accounts/{id}/transactions?startDate=2024-01-01&endDate=2024-01-31&page=1&pageSize=20
+    Gateway->>Gateway: Validate JWT & query parameters
+    Gateway->>TxnSvc: Get transaction history
     
-    APIGateway->>LimitAPI: Forward Limit Configuration
-    Note over LimitAPI: Validate Limit Range (0.00 - 500.00)
+    TxnSvc->>TxnSvc: Validate date range & pagination
+    TxnSvc->>Cache: Check cache key (account_id:filters:page)
+    Cache-->>TxnSvc: Cache miss
     
-    LimitAPI->>Database: Get Current Spending Limit
-    Database-->>LimitAPI: Current Limit: $50.00
-    
-    alt Limit Validation Passed
-        LimitAPI->>Database: Update Spending Limit
-        Note over Database: Weekly Limit: $75.00, Effective: 2024-01-16
-        Database-->>LimitAPI: Update Successful
-        
-        LimitAPI->>Cache: Invalidate Dashboard Cache
-        Cache-->>LimitAPI: Cache Cleared
-        
-        LimitAPI->>NotificationSvc: Send Limit Change Notification
-        NotificationSvc-->>Parent: Limit Updated Confirmation
-        
-        LimitAPI-->>APIGateway: 200 OK - Limit Updated
-    else Limit Validation Failed
-        LimitAPI-->>APIGateway: 422 Unprocessable Entity
-        Note over LimitAPI: Error: Limit exceeds maximum allowed
+    par Transaction Query
+        TxnSvc->>DB: Query transactions with filters
+        Note over DB: SELECT * FROM transactions<br/>WHERE youth_account_id = ?<br/>AND date BETWEEN ? AND ?<br/>ORDER BY date DESC<br/>LIMIT 20 OFFSET 0
+        DB-->>TxnSvc: Transaction records (20 items)
+    and
+        TxnSvc->>DB: Count total matching records
+        DB-->>TxnSvc: Total count: 45 records
+    and
+        TxnSvc->>Analytics: Calculate spending summary
+        Analytics->>DB: Aggregate spending data
+        DB-->>Analytics: Totals by category
+        Analytics-->>TxnSvc: Summary statistics
     end
     
-    APIGateway-->>WebApp: Limit Configuration Response
-    WebApp-->>Parent: Display Updated Limit
-    Note over Parent: New Weekly Limit: $75.00
+    TxnSvc->>TxnSvc: Build paginated response
+    TxnSvc->>Cache: Cache response (TTL: 10 min)
+    TxnSvc->>Audit: Log transaction history access
+    
+    TxnSvc-->>Gateway: 200 OK + Transaction list + Pagination + Summary
+    Gateway-->>Parent: Transaction history response
+    
+    Note over Parent,Audit: Response includes:<br/>- Filtered transactions (page 1 of 3)<br/>- Pagination metadata<br/>- Spending summary by category<br/>- Total debits/credits
 ```
+
+**Query Capabilities:**
+- Date range filtering
+- Transaction type filtering (debit/credit)
+- Status filtering (completed/pending/failed)
+- Pagination (max 100 items per page)
+- Sorting by date, amount, merchant
+- Spending analytics and summaries
 
 ---
 
-## 4. Transaction History Retrieval Sequence Diagram
-**Mapped to ADR**: SCIB-29
+## 6. Real-time Spending Limit Enforcement
+
+### Description
+Sequence diagram for real-time transaction validation against spending limits during purchase attempts.
 
 ```mermaid
 sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as Auth Service
-    participant HistoryAPI as Transaction History API
-    participant CoreBank as Core Banking System
-    participant Cache as Redis Cache
-
-    Parent->>WebApp: Request Transaction History (Last 30 Days)
-    WebApp->>APIGateway: GET /api/youth-accounts/{youthAccountId}/transactions
-    Note over WebApp: Query: startDate=2024-01-01&endDate=2024-01-30&page=1&pageSize=20
+    participant Merchant as Merchant Terminal
+    participant PayGateway as Payment Gateway
+    participant Gateway as API Gateway
+    participant LimitSvc as Spending Limit Service
+    participant TxnSvc as Transaction Service
+    participant NotifSvc as Notification Service
+    participant DB as Database
+    participant Parent as Parent App
     
-    APIGateway->>AuthService: Validate OAuth Token
-    AuthService-->>APIGateway: Token Valid + Read Permissions
+    Merchant->>PayGateway: Process youth card transaction ($25.00)
+    PayGateway->>Gateway: POST /youth-accounts/{id}/validate-transaction
+    Gateway->>Gateway: Validate merchant credentials
+    Gateway->>LimitSvc: Validate transaction against limits
     
-    APIGateway->>HistoryAPI: Forward History Request
-    Note over HistoryAPI: Validate Query Parameters
+    LimitSvc->>DB: Get current week spending
+    DB-->>LimitSvc: Current spent: $75.00
+    LimitSvc->>DB: Get weekly limit
+    DB-->>LimitSvc: Weekly limit: $100.00
     
-    HistoryAPI->>Cache: Check Cached Transaction Data
-    alt Cache Hit (Recent Query)
-        Cache-->>HistoryAPI: Cached Transaction Page
-    else Cache Miss
-        HistoryAPI->>CoreBank: Query Transaction History
-        Note over CoreBank: Filter: Date Range, Account ID, Pagination
+    LimitSvc->>LimitSvc: Calculate: $75.00 + $25.00 = $100.00
+    
+    alt Within Limit
+        LimitSvc->>TxnSvc: Pre-authorize transaction
+        TxnSvc->>DB: Reserve spending amount
+        LimitSvc-->>Gateway: APPROVED + remaining limit
+        Gateway-->>PayGateway: Transaction approved
+        PayGateway-->>Merchant: Payment authorized
         
-        CoreBank-->>HistoryAPI: Transaction Records
+        Note over Merchant,Parent: Transaction completes normally
         
-        HistoryAPI->>HistoryAPI: Calculate Summary Statistics
-        Note over HistoryAPI: Total Debits, Credits, Net Amount
+        PayGateway->>Gateway: Transaction completed
+        Gateway->>TxnSvc: Record final transaction
+        TxnSvc->>DB: Update spending totals
         
-        HistoryAPI->>Cache: Cache Result (TTL: 10min)
+    else Limit Exceeded
+        LimitSvc->>LimitSvc: Calculate excess: $25.00 - $25.00 = $0.00 (at limit)
+        LimitSvc->>NotifSvc: Send limit reached notification
+        NotifSvc->>Parent: Push notification: "Spending limit reached"
+        
+        LimitSvc-->>Gateway: APPROVED_WITH_WARNING
+        Gateway-->>PayGateway: Transaction approved (at limit)
+        PayGateway-->>Merchant: Payment authorized
+        
+    else Over Limit
+        Note over LimitSvc: If transaction would exceed limit by >$0
+        LimitSvc->>NotifSvc: Send limit exceeded notification
+        NotifSvc->>Parent: Push notification: "Transaction blocked - limit exceeded"
+        
+        LimitSvc-->>Gateway: BLOCKED + excess amount
+        Gateway-->>PayGateway: Transaction declined
+        PayGateway-->>Merchant: Payment declined
     end
     
-    HistoryAPI-->>APIGateway: 200 OK - Paginated Transactions
-    Note over HistoryAPI: Response Time < 1 second
-    
-    APIGateway-->>WebApp: Transaction History Response
-    Note over APIGateway: Headers: X-Total-Count, X-Page-Count
-    
-    WebApp-->>Parent: Display Transaction History
-    Note over Parent: Paginated List with Summary Statistics
+    Note over Merchant,Parent: Real-time enforcement<br/>Parental notifications<br/>Audit trail maintained
 ```
+
+**Enforcement Rules:**
+- Real-time spending calculation
+- Immediate parent notification
+- Transaction blocking when over limit
+- Weekly limit reset every Monday
+- Grace period considerations
 
 ---
 
-## 5. Error Handling Sequence Diagram
-**Cross-Cutting Concern for All APIs**
+## 7. Error Handling & Recovery Flow
+
+### Description
+Sequence diagram showing error handling and recovery mechanisms for system failures.
 
 ```mermaid
 sequenceDiagram
-    participant Client as Client Application
-    participant APIGateway as API Gateway
-    participant APIService as API Service
-    participant ExternalSvc as External Service
+    participant Client as Parent Client
+    participant Gateway as API Gateway
+    participant Service as Youth Account Service
+    participant DB as Database
     participant CircuitBreaker as Circuit Breaker
-    participant ErrorHandler as Error Handler
-    participant LoggingService as Logging Service
-
-    Client->>APIGateway: API Request
-    APIGateway->>APIService: Forward Request
+    participant Fallback as Fallback Service
+    participant Monitor as Monitoring
     
-    APIService->>CircuitBreaker: Call External Service
+    Client->>Gateway: API Request
+    Gateway->>CircuitBreaker: Route to service
+    CircuitBreaker->>Service: Forward request
     
-    alt Circuit Breaker Open
-        CircuitBreaker-->>APIService: 503 Service Unavailable
-        APIService->>ErrorHandler: Handle Circuit Breaker Error
-    else Circuit Breaker Closed
-        CircuitBreaker->>ExternalSvc: Forward Request
+    alt Normal Operation
+        Service->>DB: Database query
+        DB-->>Service: Success response
+        Service-->>CircuitBreaker: Success
+        CircuitBreaker-->>Gateway: Success
+        Gateway-->>Client: 200 OK
         
-        alt External Service Error
-            ExternalSvc-->>CircuitBreaker: 500 Internal Server Error
-            CircuitBreaker->>CircuitBreaker: Increment Failure Count
-            CircuitBreaker-->>APIService: Propagate Error
-            APIService->>ErrorHandler: Handle External Service Error
-        else External Service Success
-            ExternalSvc-->>CircuitBreaker: 200 OK
-            CircuitBreaker->>CircuitBreaker: Reset Failure Count
-            CircuitBreaker-->>APIService: Success Response
+    else Database Timeout
+        Service->>DB: Database query
+        DB-->>Service: Timeout (no response)
+        Service->>Service: Retry with exponential backoff
+        Service->>DB: Retry query
+        DB-->>Service: Timeout again
+        Service->>Service: Max retries exceeded
+        
+        Service->>Monitor: Log error + alert
+        Service-->>CircuitBreaker: 500 Internal Server Error
+        CircuitBreaker->>CircuitBreaker: Increment failure count
+        
+        alt Circuit Breaker Open
+            CircuitBreaker->>Fallback: Route to fallback
+            Fallback-->>CircuitBreaker: Cached/degraded response
+            CircuitBreaker-->>Gateway: 206 Partial Content
+            Gateway-->>Client: Degraded response + warning
+            
+        else Circuit Breaker Closed
+            CircuitBreaker-->>Gateway: 500 Internal Server Error
+            Gateway-->>Client: Standardized error response
         end
+        
+    else Service Unavailable
+        CircuitBreaker->>Service: Forward request
+        Service-->>CircuitBreaker: Service unavailable
+        CircuitBreaker->>CircuitBreaker: Open circuit
+        CircuitBreaker->>Fallback: Immediate fallback
+        Fallback-->>CircuitBreaker: Cached data
+        CircuitBreaker-->>Gateway: 503 Service Unavailable + cached data
+        Gateway-->>Client: Graceful degradation response
     end
     
-    ErrorHandler->>LoggingService: Log Error with Correlation ID
-    ErrorHandler->>ErrorHandler: Generate Standardized Error Response
-    
-    ErrorHandler-->>APIService: Formatted Error Response
-    APIService-->>APIGateway: Error Response
-    APIGateway-->>Client: Standardized Error Format
-    
-    Note over Client: {
-    Note over Client:   "error": {
-    Note over Client:     "code": "EXTERNAL_SERVICE_UNAVAILABLE",
-    Note over Client:     "message": "Service temporarily unavailable",
-    Note over Client:     "requestId": "req-12345-67890"
-    Note over Client:   }
-    Note over Client: }
+    Note over Client,Monitor: Error Recovery Features:<br/>- Exponential backoff retry<br/>- Circuit breaker pattern<br/>- Graceful degradation<br/>- Real-time monitoring & alerting
 ```
 
----
-
-## 6. Authentication & Authorization Sequence Diagram
-**Security Flow for All Protected Endpoints**
-
-```mermaid
-sequenceDiagram
-    participant Parent as Parent/Guardian
-    participant WebApp as Web Application
-    participant APIGateway as API Gateway
-    participant AuthService as OAuth 2.0 Auth Service
-    participant TokenStore as Token Store
-    participant UserService as User Service
-
-    Parent->>WebApp: Login Request
-    WebApp->>AuthService: OAuth 2.0 Authorization Request
-    
-    AuthService->>UserService: Validate User Credentials
-    UserService-->>AuthService: User Valid + Roles
-    
-    AuthService->>TokenStore: Generate JWT Token
-    Note over TokenStore: Token Expiry: 1 hour, Refresh: 24 hours
-    TokenStore-->>AuthService: JWT Token + Refresh Token
-    
-    AuthService-->>WebApp: Authorization Code
-    WebApp->>AuthService: Exchange Code for Tokens
-    AuthService-->>WebApp: Access Token + Refresh Token
-    
-    WebApp->>WebApp: Store Tokens Securely
-    
-    loop API Requests
-        WebApp->>APIGateway: API Request with Bearer Token
-        APIGateway->>AuthService: Validate Token
-        
-        alt Token Valid
-            AuthService-->>APIGateway: Token Valid + User Context
-            APIGateway->>APIGateway: Check Rate Limits
-            APIGateway->>APIService: Forward Request
-        else Token Expired
-            AuthService-->>APIGateway: 401 Unauthorized
-            APIGateway-->>WebApp: 401 Token Expired
-            WebApp->>AuthService: Refresh Token Request
-            AuthService-->>WebApp: New Access Token
-        else Token Invalid
-            AuthService-->>APIGateway: 403 Forbidden
-            APIGateway-->>WebApp: 403 Invalid Token
-            WebApp->>Parent: Redirect to Login
-        end
-    end
-```
+**Error Handling Strategy:**
+- Circuit breaker pattern for external services
+- Exponential backoff retry (max 3 attempts)
+- Graceful degradation with cached data
+- Standardized error response format
+- Real-time monitoring and alerting
 
 ---
 
-## Sequence Diagram Standards & Compliance
+## Compliance & Audit Considerations
 
-### 1. Banking Compliance Integration
-- **PCI-DSS**: All payment data flows show encryption and tokenization
-- **SOX**: Audit trails included in all financial transaction sequences
-- **GDPR**: Data access controls and consent validation shown
-- **AML/KYC**: User validation steps included in authentication flows
+### Security Controls
+- **Authentication**: OAuth 2.0 + JWT with 15-minute expiry
+- **Authorization**: RBAC with minimum privilege principle
+- **Rate Limiting**: Configurable per endpoint (1000/hour general, 10/hour transfers)
+- **Input Validation**: All parameters validated at gateway level
+- **Audit Logging**: Complete audit trail for all operations
 
-### 2. Security Patterns
-- **OAuth 2.0**: Standard authentication flow with JWT tokens
-- **Rate Limiting**: API gateway enforces 100 requests/minute
-- **Circuit Breaker**: Fault tolerance for external service failures
-- **Idempotency**: Duplicate request handling for fund transfers
+### Performance Requirements
+- **API Response**: < 200ms (95th percentile)
+- **Dashboard Load**: < 2 seconds
+- **Fund Transfer**: < 5 seconds processing
+- **Concurrent Users**: 10,000 during peak hours
+- **Throughput**: 50,000 API requests per minute
 
-### 3. Performance Considerations
-- **Caching**: Redis cache integration for dashboard and transaction data
-- **Response Times**: Target response times noted for each API
-- **Pagination**: Large dataset handling for transaction history
-- **Async Processing**: Notification services operate asynchronously
-
-### 4. Error Handling Standards
-- **Standardized Errors**: Consistent error format across all APIs
-- **HTTP Status Codes**: Proper status codes (200, 201, 400, 401, 403, 404, 409, 422, 429, 500)
-- **Correlation IDs**: Request tracking with X-Request-ID headers
-- **Graceful Degradation**: System continues with reduced functionality
-
-### 5. Audit & Traceability
-- **Request Correlation**: Unique request IDs for end-to-end tracing
-- **Audit Logging**: All user actions and system events logged
-- **Compliance Monitoring**: Regulatory reporting integration
-- **Data Lineage**: Complete data flow tracking
+### Compliance Standards
+- **PCI-DSS Level 1**: Payment processing compliance
+- **GDPR**: Data privacy and protection
+- **SOX**: Financial reporting controls
+- **BSA**: Bank Secrecy Act compliance
+- **WCAG 2.1 AA**: Accessibility standards
 
 ---
 
-**Sequence Diagrams Document End**
+**Document Control:**
+- Version: 1.0
+- Last Updated: 2024
+- Next Review: Monthly
+- Approval: Enterprise Architecture Review Board
+- Implementation Status: Design Phase Complete
