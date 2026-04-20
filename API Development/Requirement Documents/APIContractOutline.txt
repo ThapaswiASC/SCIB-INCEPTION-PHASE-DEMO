@@ -1,469 +1,477 @@
 # API Contract Outline
-## Youth Account Management System
+# Youth Account Management System
 
-### Document Information
-- **Version**: 1.0
-- **Date**: 2024
-- **Based on ADRs**: SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30
+## Document Information
+- **API Version**: v1.0
+- **Base URL**: https://api.scib.com/v1
+- **Authentication**: OAuth 2.0 + JWT Bearer Token
+- **Content-Type**: application/json
+- **Traceability**: SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30
 
----
+## Authentication & Authorization
 
-## API Overview
-
-### Base URL
+### Headers Required
 ```
-https://api.bank.com/v1
-```
-
-### Authentication
-- **Type**: OAuth 2.0 Bearer Token
-- **Header**: `Authorization: Bearer {token}`
-- **Token Expiry**: 1 hour
-- **Refresh**: Automatic token refresh supported
-
-### Common Headers
-```
+Authorization: Bearer {jwt_token}
 Content-Type: application/json
-Accept: application/json
-X-Request-ID: {unique-request-id}
-X-API-Version: v1
+X-Request-ID: {unique_request_id}
 ```
+
+### Security
+- OAuth 2.0 authentication flow
+- JWT token validation
+- Role-based access control (RBAC)
+- Rate limiting: 1000 requests/hour per user
 
 ---
 
-## API Endpoints
+## 1. Youth Account Dashboard API
 
-### 1. Youth Account Dashboard
+### Endpoint: GET /youth-accounts/{youthAccountId}/dashboard
+**Description**: Retrieve consolidated youth account information including balance, spending limit, and recent transactions
+**Traceability**: SCIB-26
 
-**Endpoint**: `GET /api/youth-accounts/{youthAccountId}/dashboard`
-
-**Description**: Retrieves consolidated youth account information including balance, spending limit, and recent transactions.
-
-**Path Parameters**:
+#### Path Parameters
 - `youthAccountId` (string, required): Unique identifier for the youth account
 
-**Query Parameters**: None
-
-**Request Headers**:
+#### Request Schema
 ```json
-{
-  "Authorization": "Bearer {oauth_token}",
-  "Content-Type": "application/json",
-  "X-Request-ID": "req-12345-67890"
-}
+// No request body required
 ```
 
-**Request Body**: None (GET request)
-
-**Response Schema** (200 OK):
+#### Response Schema (200 OK)
 ```json
 {
-  "youthAccountId": "string",
-  "accountBalance": "decimal",
-  "spendingLimit": "decimal",
-  "currency": "string",
-  "recentTransactions": [
-    {
-      "transactionId": "string",
-      "date": "datetime (ISO 8601)",
-      "description": "string",
-      "amount": "decimal",
-      "transactionType": "debit | credit"
-    }
-  ],
-  "metadata": {
-    "lastUpdated": "datetime (ISO 8601)",
-    "transactionCount": "integer"
-  }
-}
-```
-
-**Example Response**:
-```json
-{
-  "youthAccountId": "ya-123456789",
-  "accountBalance": 150.75,
-  "spendingLimit": 50.00,
+  "youthAccountId": "YTH-456789",
+  "accountBalance": 150.00,
+  "spendingLimit": 100.00,
+  "currentWeekSpent": 25.00,
+  "remainingLimit": 75.00,
   "currency": "USD",
+  "weekStartDate": "2024-01-15",
   "recentTransactions": [
     {
-      "transactionId": "txn-987654321",
-      "date": "2024-01-15T14:30:00Z",
+      "transactionId": "TXN-001",
+      "date": "2024-01-16T10:30:00Z",
       "description": "Coffee Shop Purchase",
-      "amount": -4.50,
-      "transactionType": "debit"
-    }
-  ],
-  "metadata": {
-    "lastUpdated": "2024-01-15T15:00:00Z",
-    "transactionCount": 1
-  }
-}
-```
-
-**Error Handling**:
-- `400 Bad Request`: Invalid youth account ID format
-- `401 Unauthorized`: Invalid or expired OAuth token
-- `403 Forbidden`: Parent not authorized to access this youth account
-- `404 Not Found`: Youth account not found
-- `500 Internal Server Error`: Server processing error
-
----
-
-### 2. Fund Transfer to Youth Account
-
-**Endpoint**: `POST /api/youth-accounts/{youthAccountId}/fund-transfer`
-
-**Description**: Allows parents to transfer funds from their primary account to a youth account.
-
-**Path Parameters**:
-- `youthAccountId` (string, required): Target youth account identifier
-
-**Request Headers**:
-```json
-{
-  "Authorization": "Bearer {oauth_token}",
-  "Content-Type": "application/json",
-  "X-Request-ID": "req-transfer-12345",
-  "X-Idempotency-Key": "idem-key-67890"
-}
-```
-
-**Request Schema**:
-```json
-{
-  "sourceAccountId": "string (required)",
-  "transferAmount": "decimal (required, min: 0.01, max: 1000.00)",
-  "currency": "string (required, enum: ['USD', 'EUR', 'GBP'])",
-  "description": "string (optional, max: 255 chars)"
-}
-```
-
-**Example Request**:
-```json
-{
-  "sourceAccountId": "pa-987654321",
-  "transferAmount": 25.00,
-  "currency": "USD",
-  "description": "Weekly allowance"
-}
-```
-
-**Response Schema** (201 Created):
-```json
-{
-  "transferId": "string",
-  "status": "SUCCESS | PENDING | FAILED",
-  "updatedBalance": "decimal",
-  "transferAmount": "decimal",
-  "currency": "string",
-  "timestamp": "datetime (ISO 8601)",
-  "confirmationNumber": "string"
-}
-```
-
-**Example Response**:
-```json
-{
-  "transferId": "tf-123456789",
-  "status": "SUCCESS",
-  "updatedBalance": 175.75,
-  "transferAmount": 25.00,
-  "currency": "USD",
-  "timestamp": "2024-01-15T16:00:00Z",
-  "confirmationNumber": "CONF-ABC123"
-}
-```
-
-**Error Handling**:
-- `400 Bad Request`: Invalid request data or insufficient funds
-- `401 Unauthorized`: Invalid or expired OAuth token
-- `403 Forbidden`: Parent not authorized for source account
-- `404 Not Found`: Source or target account not found
-- `409 Conflict`: Duplicate transfer (idempotency key already used)
-- `422 Unprocessable Entity`: Transfer amount exceeds limits
-- `500 Internal Server Error`: Transfer processing failed
-
----
-
-### 3. Configure Spending Limit
-
-**Endpoint**: `PUT /api/youth-accounts/{youthAccountId}/spending-limit`
-
-**Description**: Allows parents to configure weekly spending limits for youth accounts.
-
-**Path Parameters**:
-- `youthAccountId` (string, required): Youth account identifier
-
-**Request Headers**:
-```json
-{
-  "Authorization": "Bearer {oauth_token}",
-  "Content-Type": "application/json",
-  "X-Request-ID": "req-limit-12345"
-}
-```
-
-**Request Schema**:
-```json
-{
-  "weeklyLimit": "decimal (required, min: 0.00, max: 500.00)",
-  "currency": "string (required, enum: ['USD', 'EUR', 'GBP'])",
-  "effectiveDate": "date (optional, ISO 8601 date format)"
-}
-```
-
-**Example Request**:
-```json
-{
-  "weeklyLimit": 75.00,
-  "currency": "USD",
-  "effectiveDate": "2024-01-16"
-}
-```
-
-**Response Schema** (200 OK):
-```json
-{
-  "youthAccountId": "string",
-  "weeklyLimit": "decimal",
-  "currency": "string",
-  "effectiveDate": "date (ISO 8601)",
-  "status": "UPDATED | PENDING",
-  "previousLimit": "decimal",
-  "updatedTimestamp": "datetime (ISO 8601)"
-}
-```
-
-**Example Response**:
-```json
-{
-  "youthAccountId": "ya-123456789",
-  "weeklyLimit": 75.00,
-  "currency": "USD",
-  "effectiveDate": "2024-01-16",
-  "status": "UPDATED",
-  "previousLimit": 50.00,
-  "updatedTimestamp": "2024-01-15T16:30:00Z"
-}
-```
-
-**Error Handling**:
-- `400 Bad Request`: Invalid limit value or date format
-- `401 Unauthorized`: Invalid or expired OAuth token
-- `403 Forbidden`: Parent not authorized to modify this account
-- `404 Not Found`: Youth account not found
-- `422 Unprocessable Entity`: Limit exceeds maximum allowed
-- `500 Internal Server Error`: Limit update failed
-
----
-
-### 4. Retrieve Transaction History
-
-**Endpoint**: `GET /api/youth-accounts/{youthAccountId}/transactions`
-
-**Description**: Returns paginated transaction history for youth accounts.
-
-**Path Parameters**:
-- `youthAccountId` (string, required): Youth account identifier
-
-**Query Parameters**:
-- `startDate` (string, optional): Start date filter (ISO 8601 date)
-- `endDate` (string, optional): End date filter (ISO 8601 date)
-- `page` (integer, optional, default: 1): Page number for pagination
-- `pageSize` (integer, optional, default: 20, max: 100): Number of records per page
-- `transactionType` (string, optional): Filter by type ('debit', 'credit', 'all')
-
-**Request Headers**:
-```json
-{
-  "Authorization": "Bearer {oauth_token}",
-  "Accept": "application/json",
-  "X-Request-ID": "req-history-12345"
-}
-```
-
-**Request Example**:
-```
-GET /api/youth-accounts/ya-123456789/transactions?startDate=2024-01-01&endDate=2024-01-15&page=1&pageSize=10&transactionType=all
-```
-
-**Response Schema** (200 OK):
-```json
-{
-  "transactions": [
-    {
-      "transactionId": "string",
-      "date": "datetime (ISO 8601)",
-      "merchant": "string",
-      "amount": "decimal",
-      "transactionType": "debit | credit",
-      "category": "string",
-      "description": "string",
-      "balanceAfter": "decimal"
-    }
-  ],
-  "pagination": {
-    "page": "integer",
-    "pageSize": "integer",
-    "totalRecords": "integer",
-    "totalPages": "integer",
-    "hasNext": "boolean",
-    "hasPrevious": "boolean"
-  },
-  "summary": {
-    "totalDebits": "decimal",
-    "totalCredits": "decimal",
-    "netAmount": "decimal",
-    "transactionCount": "integer"
-  }
-}
-```
-
-**Example Response**:
-```json
-{
-  "transactions": [
-    {
-      "transactionId": "txn-987654321",
-      "date": "2024-01-15T14:30:00Z",
-      "merchant": "Coffee Shop",
-      "amount": -4.50,
+      "merchant": "Starbucks",
+      "amount": -5.50,
       "transactionType": "debit",
-      "category": "Food & Dining",
-      "description": "Coffee and pastry",
-      "balanceAfter": 146.25
+      "status": "completed"
     }
   ],
-  "pagination": {
-    "page": 1,
-    "pageSize": 10,
-    "totalRecords": 1,
-    "totalPages": 1,
-    "hasNext": false,
-    "hasPrevious": false
-  },
-  "summary": {
-    "totalDebits": -4.50,
-    "totalCredits": 0.00,
-    "netAmount": -4.50,
-    "transactionCount": 1
-  }
+  "accountStatus": "active",
+  "lastUpdated": "2024-01-16T15:45:00Z"
 }
 ```
 
-**Error Handling**:
-- `400 Bad Request`: Invalid date range or pagination parameters
-- `401 Unauthorized`: Invalid or expired OAuth token
-- `403 Forbidden`: Parent not authorized to access transaction history
-- `404 Not Found`: Youth account not found
-- `422 Unprocessable Entity`: Date range exceeds maximum allowed period
-- `500 Internal Server Error`: Transaction retrieval failed
+#### Error Handling
+- **400 Bad Request**: Invalid youth account ID format
+- **401 Unauthorized**: Invalid or expired authentication token
+- **403 Forbidden**: Parent does not have access to this youth account
+- **404 Not Found**: Youth account not found
+- **429 Too Many Requests**: Rate limit exceeded
+- **500 Internal Server Error**: System error occurred
 
----
-
-## Common Error Response Format
-
-All error responses follow a consistent format:
-
+#### Error Response Schema
 ```json
 {
   "error": {
-    "code": "string (error code)",
-    "message": "string (human-readable message)",
-    "details": "string (additional context)",
-    "timestamp": "datetime (ISO 8601)",
-    "requestId": "string (from X-Request-ID header)"
-  },
-  "validationErrors": [
-    {
-      "field": "string (field name)",
-      "message": "string (validation error message)",
-      "rejectedValue": "any (the invalid value)"
-    }
-  ]
+    "code": "YOUTH_ACCOUNT_NOT_FOUND",
+    "message": "The specified youth account was not found",
+    "details": "Youth account YTH-456789 does not exist or is not accessible",
+    "timestamp": "2024-01-16T15:45:00Z",
+    "requestId": "req-12345"
+  }
 }
 ```
 
-**Example Error Response**:
+---
+
+## 2. Fund Transfer API
+
+### Endpoint: POST /youth-accounts/{youthAccountId}/fund-transfer
+**Description**: Transfer funds from parent account to youth account
+**Traceability**: SCIB-27
+
+#### Path Parameters
+- `youthAccountId` (string, required): Target youth account identifier
+
+#### Request Schema
+```json
+{
+  "sourceAccountId": "ACC-789012",
+  "transferAmount": 25.00,
+  "currency": "USD",
+  "description": "Weekly allowance",
+  "transferType": "allowance"
+}
+```
+
+#### Request Validation
+- `sourceAccountId`: Must be a valid parent account ID
+- `transferAmount`: Must be positive, minimum $1.00, maximum $1,000.00
+- `currency`: Must be valid ISO currency code
+- `description`: Optional, max 255 characters
+- `transferType`: Enum ["allowance", "reward", "emergency", "other"]
+
+#### Response Schema (200 OK)
+```json
+{
+  "transferId": "TRF-98765",
+  "status": "SUCCESS",
+  "sourceAccountId": "ACC-789012",
+  "targetAccountId": "YTH-456789",
+  "transferAmount": 25.00,
+  "currency": "USD",
+  "updatedYouthBalance": 175.00,
+  "updatedParentBalance": 4975.00,
+  "transactionDate": "2024-01-16T15:45:00Z",
+  "description": "Weekly allowance",
+  "processingTime": "0.245s"
+}
+```
+
+#### Error Handling
+- **400 Bad Request**: Invalid request parameters or insufficient funds
+- **401 Unauthorized**: Invalid authentication
+- **403 Forbidden**: Parent does not own source account or youth account
+- **404 Not Found**: Account not found
+- **409 Conflict**: Transfer already in progress
+- **422 Unprocessable Entity**: Business rule violation
+- **429 Too Many Requests**: Rate limit exceeded
+- **500 Internal Server Error**: System error
+
+#### Specific Error Codes
 ```json
 {
   "error": {
     "code": "INSUFFICIENT_FUNDS",
-    "message": "The source account does not have sufficient funds for this transfer",
-    "details": "Available balance: $45.00, Requested transfer: $50.00",
-    "timestamp": "2024-01-15T16:45:00Z",
-    "requestId": "req-transfer-12345"
-  },
-  "validationErrors": []
-}
-```
-
----
-
-## Rate Limiting
-
-- **Rate Limit**: 100 requests per minute per OAuth token
-- **Headers Returned**:
-  - `X-RateLimit-Limit`: Maximum requests per window
-  - `X-RateLimit-Remaining`: Remaining requests in current window
-  - `X-RateLimit-Reset`: Time when rate limit resets (Unix timestamp)
-
-**Rate Limit Exceeded Response** (429 Too Many Requests):
-```json
-{
-  "error": {
-    "code": "RATE_LIMIT_EXCEEDED",
-    "message": "API rate limit exceeded",
-    "details": "Maximum 100 requests per minute allowed",
-    "timestamp": "2024-01-15T16:50:00Z",
-    "requestId": "req-rate-limit-12345"
+    "message": "Insufficient funds in parent account",
+    "details": "Available balance: $4,500.00, Requested transfer: $6,000.00",
+    "timestamp": "2024-01-16T15:45:00Z",
+    "requestId": "req-12346"
   }
 }
 ```
 
 ---
 
-## Data Validation Rules
+## 3. Spending Limit Configuration API
 
-### Transfer Amount Validation
-- **Minimum**: $0.01
-- **Maximum**: $1,000.00 per transaction
-- **Daily Limit**: $2,000.00 per parent account
-- **Format**: Decimal with up to 2 decimal places
+### Endpoint: PUT /youth-accounts/{youthAccountId}/spending-limit
+**Description**: Configure weekly spending limit for youth account
+**Traceability**: SCIB-28
 
-### Spending Limit Validation
-- **Minimum**: $0.00 (no limit)
-- **Maximum**: $500.00 per week
-- **Format**: Decimal with up to 2 decimal places
+#### Path Parameters
+- `youthAccountId` (string, required): Youth account identifier
 
-### Date Format Validation
-- **Format**: ISO 8601 (YYYY-MM-DD for dates, YYYY-MM-DDTHH:MM:SSZ for datetimes)
-- **Timezone**: All times in UTC
-- **Date Range**: Maximum 1 year for transaction history queries
+#### Request Schema
+```json
+{
+  "weeklyLimit": 100.00,
+  "currency": "USD",
+  "effectiveDate": "2024-01-22",
+  "notificationPreferences": {
+    "notifyAt75Percent": true,
+    "notifyAt90Percent": true,
+    "notifyOnExceed": true
+  }
+}
+```
+
+#### Request Validation
+- `weeklyLimit`: Must be positive, minimum $1.00, maximum $10,000.00
+- `currency`: Must match account currency
+- `effectiveDate`: Optional, defaults to next Monday
+- `notificationPreferences`: Optional configuration object
+
+#### Response Schema (200 OK)
+```json
+{
+  "youthAccountId": "YTH-456789",
+  "weeklyLimit": 100.00,
+  "currency": "USD",
+  "previousLimit": 75.00,
+  "effectiveDate": "2024-01-22T00:00:00Z",
+  "status": "UPDATED",
+  "notificationPreferences": {
+    "notifyAt75Percent": true,
+    "notifyAt90Percent": true,
+    "notifyOnExceed": true
+  },
+  "updatedAt": "2024-01-16T15:45:00Z"
+}
+```
+
+#### Error Handling
+- **400 Bad Request**: Invalid limit amount or parameters
+- **401 Unauthorized**: Invalid authentication
+- **403 Forbidden**: Parent does not have access to youth account
+- **404 Not Found**: Youth account not found
+- **422 Unprocessable Entity**: Business rule violation
+- **429 Too Many Requests**: Rate limit exceeded
+- **500 Internal Server Error**: System error
 
 ---
 
-## Security Considerations
+## 4. Transaction History API
 
-### Input Validation
-- All input parameters validated against defined schemas
-- SQL injection prevention through parameterized queries
-- XSS prevention through output encoding
-- CSRF protection through token validation
+### Endpoint: GET /youth-accounts/{youthAccountId}/transactions
+**Description**: Retrieve transaction history for youth account with filtering and pagination
+**Traceability**: SCIB-29
 
-### Data Protection
-- PII data encrypted in transit and at rest
-- Sensitive data masked in logs
-- Account numbers tokenized in responses
-- Audit trail for all API calls
+#### Path Parameters
+- `youthAccountId` (string, required): Youth account identifier
 
-### Access Control
-- OAuth 2.0 token-based authentication
-- Role-based authorization (parent-child account relationships)
-- API key validation for service-to-service calls
-- IP whitelisting for enhanced security
+#### Query Parameters
+- `startDate` (string, optional): Start date in ISO 8601 format (YYYY-MM-DD)
+- `endDate` (string, optional): End date in ISO 8601 format (YYYY-MM-DD)
+- `transactionType` (string, optional): Filter by type ["debit", "credit", "all"]
+- `status` (string, optional): Filter by status ["completed", "pending", "failed", "all"]
+- `page` (integer, optional): Page number (default: 1)
+- `pageSize` (integer, optional): Items per page (default: 20, max: 100)
+- `sortBy` (string, optional): Sort field ["date", "amount", "merchant"]
+- `sortOrder` (string, optional): Sort direction ["asc", "desc"]
+
+#### Request Example
+```
+GET /youth-accounts/YTH-456789/transactions?startDate=2024-01-01&endDate=2024-01-31&transactionType=debit&page=1&pageSize=20&sortBy=date&sortOrder=desc
+```
+
+#### Response Schema (200 OK)
+```json
+{
+  "youthAccountId": "YTH-456789",
+  "transactions": [
+    {
+      "transactionId": "TXN-001",
+      "date": "2024-01-16T10:30:00Z",
+      "merchant": "Starbucks",
+      "description": "Coffee Shop Purchase",
+      "amount": -5.50,
+      "currency": "USD",
+      "transactionType": "debit",
+      "status": "completed",
+      "category": "food_beverage",
+      "balanceAfter": 144.50,
+      "location": {
+        "city": "New York",
+        "state": "NY",
+        "country": "US"
+      }
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "pageSize": 20,
+    "totalRecords": 45,
+    "totalPages": 3,
+    "hasNext": true,
+    "hasPrevious": false
+  },
+  "summary": {
+    "totalDebits": -125.50,
+    "totalCredits": 25.00,
+    "netAmount": -100.50,
+    "transactionCount": 45
+  },
+  "filters": {
+    "startDate": "2024-01-01",
+    "endDate": "2024-01-31",
+    "transactionType": "debit"
+  }
+}
+```
+
+#### Error Handling
+- **400 Bad Request**: Invalid query parameters or date range
+- **401 Unauthorized**: Invalid authentication
+- **403 Forbidden**: Parent does not have access to youth account
+- **404 Not Found**: Youth account not found
+- **429 Too Many Requests**: Rate limit exceeded
+- **500 Internal Server Error**: System error
 
 ---
 
-**API Contract Document End**
+## 5. Account Status API
+
+### Endpoint: GET /youth-accounts/{youthAccountId}/status
+**Description**: Get current account status and metadata
+
+#### Response Schema (200 OK)
+```json
+{
+  "youthAccountId": "YTH-456789",
+  "status": "active",
+  "accountType": "youth_savings",
+  "openDate": "2024-01-01T00:00:00Z",
+  "parentAccountId": "ACC-789012",
+  "youthUserId": "USR-002",
+  "restrictions": {
+    "dailyWithdrawalLimit": 50.00,
+    "monthlyTransactionLimit": 100,
+    "allowedMerchantCategories": ["grocery", "gas", "entertainment", "food_beverage"]
+  },
+  "features": {
+    "debitCardEnabled": true,
+    "onlineTransactionsEnabled": true,
+    "atmAccessEnabled": false,
+    "internationalTransactionsEnabled": false
+  }
+}
+```
+
+---
+
+## 6. Spending Limit Enforcement API
+
+### Endpoint: POST /youth-accounts/{youthAccountId}/validate-transaction
+**Description**: Validate if a transaction can proceed based on spending limits
+
+#### Request Schema
+```json
+{
+  "transactionAmount": 25.00,
+  "currency": "USD",
+  "merchant": "Target",
+  "category": "retail",
+  "transactionDate": "2024-01-16T15:45:00Z"
+}
+```
+
+#### Response Schema (200 OK)
+```json
+{
+  "validationResult": "APPROVED",
+  "currentWeekSpent": 75.00,
+  "weeklyLimit": 100.00,
+  "remainingLimit": 25.00,
+  "projectedSpentAfterTransaction": 100.00,
+  "warnings": [],
+  "restrictions": []
+}
+```
+
+#### Response Schema (422 - Transaction Blocked)
+```json
+{
+  "validationResult": "BLOCKED",
+  "reason": "WEEKLY_LIMIT_EXCEEDED",
+  "currentWeekSpent": 95.00,
+  "weeklyLimit": 100.00,
+  "remainingLimit": 5.00,
+  "requestedAmount": 25.00,
+  "excessAmount": 20.00,
+  "nextResetDate": "2024-01-22T00:00:00Z",
+  "parentNotified": true
+}
+```
+
+---
+
+## 7. Common Error Response Format
+
+### Standard Error Schema
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": "Additional technical details",
+    "timestamp": "2024-01-16T15:45:00Z",
+    "requestId": "req-12345",
+    "path": "/youth-accounts/YTH-456789/dashboard",
+    "method": "GET",
+    "validationErrors": [
+      {
+        "field": "transferAmount",
+        "message": "Amount must be greater than 0",
+        "rejectedValue": -10.00
+      }
+    ]
+  }
+}
+```
+
+### Common Error Codes
+- `INVALID_REQUEST`: Malformed request
+- `AUTHENTICATION_REQUIRED`: Missing or invalid authentication
+- `ACCESS_DENIED`: Insufficient permissions
+- `RESOURCE_NOT_FOUND`: Requested resource does not exist
+- `VALIDATION_FAILED`: Request validation failed
+- `BUSINESS_RULE_VIOLATION`: Business logic constraint violated
+- `INSUFFICIENT_FUNDS`: Account balance insufficient
+- `LIMIT_EXCEEDED`: Transaction or rate limit exceeded
+- `SYSTEM_ERROR`: Internal system error
+- `SERVICE_UNAVAILABLE`: Service temporarily unavailable
+
+---
+
+## 8. Rate Limiting
+
+### Rate Limit Headers
+```
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 999
+X-RateLimit-Reset: 1642348800
+X-RateLimit-Window: 3600
+```
+
+### Rate Limit Policies
+- **General API**: 1000 requests per hour per user
+- **Fund Transfer**: 10 requests per hour per user
+- **Dashboard**: 100 requests per hour per user
+- **Transaction History**: 50 requests per hour per user
+
+---
+
+## 9. Webhooks (Future Enhancement)
+
+### Webhook Events
+- `youth_account.balance_updated`
+- `youth_account.limit_exceeded`
+- `youth_account.transaction_completed`
+- `youth_account.limit_configured`
+
+### Webhook Payload Example
+```json
+{
+  "eventId": "evt_12345",
+  "eventType": "youth_account.limit_exceeded",
+  "timestamp": "2024-01-16T15:45:00Z",
+  "data": {
+    "youthAccountId": "YTH-456789",
+    "attemptedAmount": 25.00,
+    "currentSpent": 95.00,
+    "weeklyLimit": 100.00,
+    "excessAmount": 20.00
+  }
+}
+```
+
+---
+
+## 10. API Versioning
+
+### Version Strategy
+- URL path versioning: `/v1/`, `/v2/`
+- Backward compatibility maintained for 2 major versions
+- Deprecation notices provided 6 months before removal
+- Version-specific documentation maintained
+
+### Version Headers
+```
+API-Version: v1.0
+Deprecated-After: 2025-01-01
+Supported-Until: 2025-12-31
+```
+
+---
+
+**API Contract Control:**
+- Version: 1.0
+- Last Updated: 2024
+- Next Review: Monthly
+- Approval: API Architecture Review Board
+- Implementation Status: In Development
