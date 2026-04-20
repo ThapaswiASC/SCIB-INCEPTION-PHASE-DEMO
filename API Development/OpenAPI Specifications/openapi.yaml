@@ -2,18 +2,20 @@ openapi: 3.0.3
 info:
   title: Youth Account Management System API
   description: |
-    API for managing youth banking accounts, enabling parents to allocate and manage funds 
-    for their children's accounts while maintaining visibility and control over spending.
+    API for managing youth accounts, fund transfers, spending limits, and transaction history.
+    This system enables parents to allocate and manage funds for their children's accounts 
+    while maintaining visibility and control over spending.
     
-    ## Features
-    - Youth account dashboard with balance and transaction overview
-    - Secure fund transfers from parent to youth accounts
+    ## Key Features
+    - Youth account dashboard with balance and spending information
+    - Fund transfer capabilities from parent to youth accounts
     - Configurable spending limits with real-time enforcement
     - Comprehensive transaction history with filtering
-    - Account status management and validation
+    - Real-time balance updates and notifications
     
     ## Authentication
-    This API uses OAuth 2.0 with JWT Bearer tokens for authentication. All requests must include a valid JWT token in the Authorization header.
+    This API uses OAuth 2.0 with JWT Bearer tokens for authentication.
+    All requests must include a valid JWT token in the Authorization header.
     
     ## Rate Limiting
     - General API: 1000 requests per hour per user
@@ -22,7 +24,7 @@ info:
     - Transaction History: 50 requests per hour per user
     
     ## Traceability
-    SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30
+    This API implements requirements from SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30
   version: 1.0.0
   contact:
     name: API Support
@@ -40,6 +42,7 @@ servers:
 
 security:
   - BearerAuth: []
+  - OAuth2: [read, write]
 
 paths:
   /youth-accounts/{youthAccountId}/dashboard:
@@ -48,9 +51,10 @@ paths:
         - Youth Account Dashboard
       summary: Get youth account dashboard
       description: |
-        Retrieve consolidated youth account information including balance, spending limit, 
-        and recent transactions. This endpoint provides a comprehensive overview of the 
-        youth account status for parent monitoring.
+        Retrieve consolidated youth account information including balance, 
+        spending limit, and recent transactions.
+        
+        **Traceability**: SCIB-26
       operationId: getYouthAccountDashboard
       parameters:
         - name: youthAccountId
@@ -88,27 +92,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/YouthAccountDashboard'
-              examples:
-                successful_response:
-                  summary: Successful dashboard response
-                  value:
-                    youthAccountId: YTH-456789
-                    accountBalance: 150.00
-                    spendingLimit: 100.00
-                    currentWeekSpent: 25.00
-                    remainingLimit: 75.00
-                    currency: USD
-                    weekStartDate: '2024-01-15'
-                    recentTransactions:
-                      - transactionId: TXN-001
-                        date: '2024-01-16T10:30:00Z'
-                        description: Coffee Shop Purchase
-                        merchant: Starbucks
-                        amount: -5.50
-                        transactionType: debit
-                        status: completed
-                    accountStatus: active
-                    lastUpdated: '2024-01-16T15:45:00Z'
+              example:
+                youthAccountId: YTH-456789
+                accountBalance: 150.00
+                spendingLimit: 100.00
+                currentWeekSpent: 25.00
+                remainingLimit: 75.00
+                currency: USD
+                weekStartDate: '2024-01-15'
+                recentTransactions:
+                  - transactionId: TXN-001
+                    date: '2024-01-16T10:30:00Z'
+                    description: Coffee Shop Purchase
+                    merchant: Starbucks
+                    amount: -5.50
+                    transactionType: debit
+                    status: completed
+                accountStatus: active
+                lastUpdated: '2024-01-16T15:45:00Z'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -122,226 +123,76 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+  /youth-accounts/{youthAccountId}/fund-transfer:
+    post:
+      tags:
+        - Fund Transfer
+      summary: Transfer funds to youth account
       description: |
-        JWT Bearer token authentication. Include the token in the Authorization header:
-        `Authorization: Bearer {jwt_token}`
-
-  schemas:
-    YouthAccountDashboard:
-      type: object
-      required:
-        - youthAccountId
-        - accountBalance
-        - spendingLimit
-        - currentWeekSpent
-        - remainingLimit
-        - currency
-        - weekStartDate
-        - recentTransactions
-        - accountStatus
-        - lastUpdated
-      properties:
-        youthAccountId:
-          type: string
-          pattern: '^YTH-[0-9]{6}$'
-          description: Unique identifier for the youth account
-          example: YTH-456789
-        accountBalance:
-          type: number
-          format: decimal
-          minimum: 0
-          description: Current account balance
-          example: 150.00
-        spendingLimit:
-          type: number
-          format: decimal
-          minimum: 0
-          description: Weekly spending limit
-          example: 100.00
-        currentWeekSpent:
-          type: number
-          format: decimal
-          minimum: 0
-          description: Amount spent in current week
-          example: 25.00
-        remainingLimit:
-          type: number
-          format: decimal
-          minimum: 0
-          description: Remaining spending limit for current week
-          example: 75.00
-        currency:
-          type: string
-          pattern: '^[A-Z]{3}$'
-          description: ISO 4217 currency code
-          example: USD
-        weekStartDate:
-          type: string
-          format: date
-          description: Start date of current spending week
-          example: '2024-01-15'
-        recentTransactions:
-          type: array
-          description: List of recent transactions
-          maxItems: 10
-          items:
-            $ref: '#/components/schemas/Transaction'
-        accountStatus:
-          type: string
-          enum: [active, suspended, closed]
-          description: Current account status
-          example: active
-        lastUpdated:
-          type: string
-          format: date-time
-          description: Timestamp of last update
-          example: '2024-01-16T15:45:00Z'
-
-    Transaction:
-      type: object
-      required:
-        - transactionId
-        - date
-        - description
-        - merchant
-        - amount
-        - transactionType
-        - status
-      properties:
-        transactionId:
-          type: string
-          pattern: '^TXN-[0-9]{3,}$'
-          description: Unique transaction identifier
-          example: TXN-001
-        date:
-          type: string
-          format: date-time
-          description: Transaction timestamp
-          example: '2024-01-16T10:30:00Z'
-        description:
-          type: string
-          maxLength: 255
-          description: Transaction description
-          example: Coffee Shop Purchase
-        merchant:
-          type: string
-          maxLength: 100
-          description: Merchant name
-          example: Starbucks
-        amount:
-          type: number
-          format: decimal
-          description: Transaction amount (negative for debits, positive for credits)
-          example: -5.50
-        transactionType:
-          type: string
-          enum: [debit, credit]
-          description: Type of transaction
-          example: debit
-        status:
-          type: string
-          enum: [completed, pending, failed]
-          description: Transaction status
-          example: completed
-
-  responses:
-    BadRequest:
-      description: Bad request - invalid input parameters
-      content:
-        application/json:
+        Transfer funds from parent account to youth account.
+        
+        **Traceability**: SCIB-27
+      operationId: transferFunds
+      parameters:
+        - name: youthAccountId
+          in: path
+          required: true
+          description: Target youth account identifier
           schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: "Invalid account ID format"
-              code:
-                type: string
-                example: "BAD_REQUEST"
-              timestamp:
-                type: string
-                format: date-time
-                example: "2024-01-16T15:45:00Z"
-    
-    Unauthorized:
-      description: Unauthorized - missing or invalid authentication
-      content:
-        application/json:
+            type: string
+            pattern: '^YTH-[0-9]{6}$'
+            example: YTH-456789
+        - name: X-Request-ID
+          in: header
+          required: true
+          description: Unique request identifier for tracing
           schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: "Invalid or expired JWT token"
-              code:
-                type: string
-                example: "UNAUTHORIZED"
-    
-    Forbidden:
-      description: Forbidden - insufficient permissions
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: "Insufficient permissions to access this resource"
-              code:
-                type: string
-                example: "FORBIDDEN"
-    
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: "Youth account not found"
-              code:
-                type: string
-                example: "NOT_FOUND"
-    
-    TooManyRequests:
-      description: Rate limit exceeded
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: "Rate limit exceeded"
-              code:
-                type: string
-                example: "TOO_MANY_REQUESTS"
-              retryAfter:
-                type: integer
-                example: 3600
-    
-    InternalServerError:
-      description: Internal server error
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: "Internal server error"
-              code:
-                type: string
-                example: "INTERNAL_ERROR"
-              requestId:
-                type: string
-                format: uuid
-                example: "123e4567-e89b-12d3-a456-426614174000"
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FundTransferRequest'
+            example:
+              sourceAccountId: ACC-789012
+              transferAmount: 25.00
+              currency: USD
+              description: Weekly allowance
+              transferType: allowance
+      responses:
+        '200':
+          description: Fund transfer completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundTransferResponse'
+              example:
+                transferId: TRF-98765
+                status: SUCCESS
+                sourceAccountId: ACC-789012
+                targetAccountId: YTH-456789
+                transferAmount: 25.00
+                currency: USD
+                updatedYouthBalance: 175.00
+                updatedParentBalance: 4975.00
+                transactionDate: '2024-01-16T15:45:00Z'
+                description: Weekly allowance
+                processingTime: '0.245s'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
