@@ -2,4 +2,546 @@ openapi: 3.0.3
 info:
   title: Youth Account Management System API
   description: |
-    Comprehensive API for managing youth banking accounts
+    RESTful API for managing youth accounts, enabling parents to allocate and manage funds 
+    for their children's accounts while maintaining visibility and control over spending.
+    
+    ## Features
+    - Youth account dashboard with balance and transaction overview
+    - Fund transfer capabilities from parent to youth accounts
+    - Configurable weekly spending limits with real-time enforcement
+    - Comprehensive transaction history with filtering and pagination
+    - Real-time balance updates and notifications
+    - Robust security with OAuth 2.0 and JWT authentication
+    
+    ## Security
+    This API uses OAuth 2.0 with JWT Bearer tokens for authentication. All requests must include 
+    a valid JWT token in the Authorization header.
+    
+    ## Rate Limiting
+    - General API: 1000 requests per hour per user
+    - Fund Transfer: 10 requests per hour per user
+    - Dashboard: 100 requests per hour per user
+    - Transaction History: 50 requests per hour per user
+  version: 1.0.0
+  contact:
+    name: SCIB API Support
+    email: api-support@scib.com
+  license:
+    name: Proprietary
+    url: https://scib.com/licenses
+  termsOfService: https://scib.com/terms
+servers:
+  - url: https://api.scib.com/v1
+    description: Production server
+  - url: https://api-staging.scib.com/v1
+    description: Staging server
+  - url: https://api-dev.scib.com/v1
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /youth-accounts/{youthAccountId}/dashboard:
+    get:
+      tags:
+        - Youth Account Dashboard
+      summary: Get youth account dashboard
+      description: |
+        Retrieve consolidated youth account information including balance, spending limit, 
+        and recent transactions. This endpoint provides a comprehensive overview of the 
+        youth account status for parent monitoring.
+      operationId: getYouthAccountDashboard
+      parameters:
+        - name: youthAccountId
+          in: path
+          required: true
+          description: Unique identifier for the youth account
+          schema:
+            type: string
+            pattern: '^YTH-[0-9]{6}$'
+            example: YTH-456789
+        - name: X-Request-ID
+          in: header
+          required: true
+          description: Unique request identifier for tracing
+          schema:
+            type: string
+            format: uuid
+            example: 123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '200':
+          description: Youth account dashboard data retrieved successfully
+          headers:
+            X-RateLimit-Limit:
+              description: Request limit per hour
+              schema:
+                type: integer
+                example: 100
+            X-RateLimit-Remaining:
+              description: Remaining requests in current window
+              schema:
+                type: integer
+                example: 99
+            X-RateLimit-Reset:
+              description: Time when rate limit resets (Unix timestamp)
+              schema:
+                type: integer
+                example: 1642348800
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouthAccountDashboard'
+              example:
+                youthAccountId: YTH-456789
+                accountBalance: 150.00
+                spendingLimit: 100.00
+                currentWeekSpent: 25.00
+                remainingLimit: 75.00
+                currency: USD
+                weekStartDate: '2024-01-15'
+                recentTransactions:
+                  - transactionId: TXN-001
+                    date: '2024-01-16T10:30:00Z'
+                    description: Coffee Shop Purchase
+                    merchant: Starbucks
+                    amount: -5.50
+                    transactionType: debit
+                    status: completed
+                accountStatus: active
+                lastUpdated: '2024-01-16T15:45:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /youth-accounts/{youthAccountId}/fund-transfer:
+    post:
+      tags:
+        - Fund Transfer
+      summary: Transfer funds to youth account
+      description: |
+        Transfer funds from parent account to youth account. This operation requires 
+        sufficient balance in the parent account and appropriate authorization.
+      operationId: transferFundsToYouthAccount
+      parameters:
+        - name: youthAccountId
+          in: path
+          required: true
+          description: Target youth account identifier
+          schema:
+            type: string
+            pattern: '^YTH-[0-9]{6}$'
+            example: YTH-456789
+        - name: X-Request-ID
+          in: header
+          required: true
+          description: Unique request identifier for tracing
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FundTransferRequest'
+            example:
+              sourceAccountId: ACC-789012
+              transferAmount: 25.00
+              currency: USD
+              description: Weekly allowance
+              transferType: allowance
+      responses:
+        '200':
+          description: Fund transfer completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FundTransferResponse'
+              example:
+                transferId: TRF-98765
+                status: SUCCESS
+                sourceAccountId: ACC-789012
+                targetAccountId: YTH-456789
+                transferAmount: 25.00
+                currency: USD
+                updatedYouthBalance: 175.00
+                updatedParentBalance: 4975.00
+                transactionDate: '2024-01-16T15:45:00Z'
+                description: Weekly allowance
+                processingTime: 0.245s
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT Bearer token authentication. Include the token in the Authorization header 
+        as 'Bearer {token}'. Tokens expire after 15 minutes and must be refreshed.
+
+  schemas:
+    YouthAccountDashboard:
+      type: object
+      required:
+        - youthAccountId
+        - accountBalance
+        - spendingLimit
+        - currentWeekSpent
+        - remainingLimit
+        - currency
+        - weekStartDate
+        - recentTransactions
+        - accountStatus
+        - lastUpdated
+      properties:
+        youthAccountId:
+          type: string
+          pattern: '^YTH-[0-9]{6}$'
+          description: Unique identifier for the youth account
+          example: YTH-456789
+        accountBalance:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Current account balance
+          example: 150.00
+        spendingLimit:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Weekly spending limit
+          example: 100.00
+        currentWeekSpent:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Amount spent in current week
+          example: 25.00
+        remainingLimit:
+          type: number
+          format: decimal
+          description: Remaining spending limit for current week
+          example: 75.00
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: ISO 4217 currency code
+          example: USD
+        weekStartDate:
+          type: string
+          format: date
+          description: Start date of current spending week
+          example: '2024-01-15'
+        recentTransactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecentTransaction'
+          maxItems: 10
+          description: List of recent transactions (up to 10)
+        accountStatus:
+          type: string
+          enum: [active, suspended, closed]
+          description: Current status of the account
+          example: active
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Timestamp of last data update
+          example: '2024-01-16T15:45:00Z'
+
+    RecentTransaction:
+      type: object
+      required:
+        - transactionId
+        - date
+        - description
+        - merchant
+        - amount
+        - transactionType
+        - status
+      properties:
+        transactionId:
+          type: string
+          pattern: '^TXN-[0-9]{3,6}$'
+          description: Unique transaction identifier
+          example: TXN-001
+        date:
+          type: string
+          format: date-time
+          description: Transaction timestamp
+          example: '2024-01-16T10:30:00Z'
+        description:
+          type: string
+          maxLength: 255
+          description: Transaction description
+          example: Coffee Shop Purchase
+        merchant:
+          type: string
+          maxLength: 100
+          description: Merchant name
+          example: Starbucks
+        amount:
+          type: number
+          format: decimal
+          description: Transaction amount (negative for debits, positive for credits)
+          example: -5.50
+        transactionType:
+          type: string
+          enum: [debit, credit]
+          description: Type of transaction
+          example: debit
+        status:
+          type: string
+          enum: [completed, pending, failed]
+          description: Transaction status
+          example: completed
+
+    FundTransferRequest:
+      type: object
+      required:
+        - sourceAccountId
+        - transferAmount
+        - currency
+        - transferType
+      properties:
+        sourceAccountId:
+          type: string
+          pattern: '^ACC-[0-9]{6}$'
+          description: Parent account identifier (source of funds)
+          example: ACC-789012
+        transferAmount:
+          type: number
+          format: decimal
+          minimum: 1.00
+          maximum: 1000.00
+          description: Amount to transfer (minimum $1.00, maximum $1,000.00)
+          example: 25.00
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: ISO 4217 currency code
+          example: USD
+        description:
+          type: string
+          maxLength: 255
+          description: Optional transfer description
+          example: Weekly allowance
+        transferType:
+          type: string
+          enum: [allowance, reward, emergency, other]
+          description: Type of transfer for categorization
+          example: allowance
+
+    FundTransferResponse:
+      type: object
+      required:
+        - transferId
+        - status
+        - sourceAccountId
+        - targetAccountId
+        - transferAmount
+        - currency
+        - updatedYouthBalance
+        - updatedParentBalance
+        - transactionDate
+        - processingTime
+      properties:
+        transferId:
+          type: string
+          pattern: '^TRF-[0-9]{5}$'
+          description: Unique transfer identifier
+          example: TRF-98765
+        status:
+          type: string
+          enum: [SUCCESS, FAILED, PENDING]
+          description: Transfer status
+          example: SUCCESS
+        sourceAccountId:
+          type: string
+          pattern: '^ACC-[0-9]{6}$'
+          description: Source account identifier
+          example: ACC-789012
+        targetAccountId:
+          type: string
+          pattern: '^YTH-[0-9]{6}$'
+          description: Target youth account identifier
+          example: YTH-456789
+        transferAmount:
+          type: number
+          format: decimal
+          description: Amount transferred
+          example: 25.00
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: Currency code
+          example: USD
+        updatedYouthBalance:
+          type: number
+          format: decimal
+          description: Youth account balance after transfer
+          example: 175.00
+        updatedParentBalance:
+          type: number
+          format: decimal
+          description: Parent account balance after transfer
+          example: 4975.00
+        transactionDate:
+          type: string
+          format: date-time
+          description: Transfer completion timestamp
+          example: '2024-01-16T15:45:00Z'
+        description:
+          type: string
+          maxLength: 255
+          description: Transfer description
+          example: Weekly allowance
+        processingTime:
+          type: string
+          description: Time taken to process the transfer
+          example: 0.245s
+
+  responses:
+    BadRequest:
+      description: Bad Request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: BAD_REQUEST
+              message:
+                type: string
+                example: Invalid request parameters
+              details:
+                type: array
+                items:
+                  type: string
+                example: ["youthAccountId must match pattern ^YTH-[0-9]{6}$"]
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: UNAUTHORIZED
+              message:
+                type: string
+                example: Authentication required
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: FORBIDDEN
+              message:
+                type: string
+                example: Access denied
+
+    NotFound:
+      description: Not Found - Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: NOT_FOUND
+              message:
+                type: string
+                example: Youth account not found
+
+    Conflict:
+      description: Conflict - Resource conflict
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: INSUFFICIENT_FUNDS
+              message:
+                type: string
+                example: Insufficient balance in source account
+
+    UnprocessableEntity:
+      description: Unprocessable Entity - Request validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: VALIDATION_ERROR
+              message:
+                type: string
+                example: Request validation failed
+
+    TooManyRequests:
+      description: Too Many Requests - Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: RATE_LIMIT_EXCEEDED
+              message:
+                type: string
+                example: Rate limit exceeded
+
+    InternalServerError:
+      description: Internal Server Error - Unexpected server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: INTERNAL_ERROR
+              message:
+                type: string
+                example: An unexpected error occurred
