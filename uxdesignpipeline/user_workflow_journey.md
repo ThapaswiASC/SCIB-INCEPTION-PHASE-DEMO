@@ -4,349 +4,441 @@
 **Story ID:** DEMO-1071  
 **Story Title:** Design three-column Kanban board layout and responsive behavior
 
-## Experience Overview
-Project management users need an intuitive, accessible, and responsive Kanban board interface to effectively manage their tasks across different devices and screen sizes. The experience encompasses task organization, workflow visualization, and collaborative project management.
+**Business Goal:** Create comprehensive design specifications for the three-column Kanban board layout including column spacing, header styling, card dimensions, and responsive breakpoints. Define color scheme for column headers ('To Do', 'In Progress', 'Done'), typography hierarchy, and visual separators between columns. Specify mobile, tablet, and desktop layouts with exact measurements. Document accessibility requirements including ARIA labels, focus states, and keyboard navigation patterns.
 
-## Identified Scenarios
+## Experience Analysis
 
-### Experience: Task Management & Workflow Visualization
+### Primary User Experience: Task Management
+Users need to visualize, organize, and manage their work items through different stages of completion using a Kanban board interface.
 
-#### Scenario 1: Desktop Power User Managing Complex Projects
-**Context:** Sarah, a project manager at a software company, manages multiple development sprints with 15+ team members. She works primarily on a 27-inch desktop monitor and needs to quickly scan, organize, and update task statuses throughout the day while maintaining visibility of the entire project workflow.
-
-**User Goal:** To efficiently manage and visualize project progress across all task states while maintaining clear oversight of team workload distribution.
-
-**Business Goal:** To increase project management efficiency and reduce time spent on administrative tasks, leading to faster project delivery and improved team productivity.
-
-#### Workflow Variation 1A: Comprehensive Project Overview
-
-**Screen Sequence:**
-1.0 Kanban Board Dashboard → 2.0 Task Detail View → 3.0 Column Management → 4.0 Filter & Search Interface
-
-##### 1.0 Kanban Board Dashboard
-**Page Goal:** Provide comprehensive overview of all project tasks with clear visual hierarchy and efficient navigation
-
-**Screen Description:**
-- Three distinct columns ('To Do', 'In Progress', 'Done') displayed horizontally with equal width distribution
-- Column headers with task count indicators and progress metrics
-- Drag-and-drop functionality for task movement between columns
-- Visual separators between columns with subtle shadows
-- Task cards displaying priority, assignee, due date, and tags
-- Quick action buttons for adding new tasks
-- Team member avatars showing current workload
-
-**Design Problems:**
-- HMW ensure users can quickly identify bottlenecks in the workflow?
-- HMW maintain visual clarity when dealing with 50+ tasks across columns?
-- HMW provide immediate feedback during drag-and-drop operations?
-- HMW accommodate different task complexity levels in card design?
-
-**Design Opportunities:**
-- What if the system could automatically suggest task prioritization based on deadlines?
-- What if column widths could dynamically adjust based on task volume?
-- What if we could provide real-time collaboration indicators?
-- What if the board could show predictive completion timelines?
-
-##### 2.0 Task Detail View
-**Page Goal:** Enable detailed task management without losing context of the overall workflow
-
-**Screen Description:**
-- Modal overlay maintaining board visibility in background
-- Comprehensive task information including description, subtasks, comments
-- Status change dropdown with visual preview
-- Assignment and due date modification capabilities
-- Activity timeline showing task history
-- Attachment and link management
-
-**Design Problems:**
-- HMW maintain workflow context while viewing task details?
-- HMW ensure efficient task editing without multiple page loads?
-- HMW provide clear visual feedback for unsaved changes?
-
-**Design Opportunities:**
-- What if task details could show impact on overall project timeline?
-- What if we could suggest related tasks or dependencies?
-- What if the system could auto-save changes in real-time?
-
-#### Workflow Variation 1B: Quick Task Management
-
-**Screen Sequence:**
-1.0 Simplified Kanban View → 2.0 Inline Task Editor → 3.0 Bulk Actions Interface
-
-##### 1.0 Simplified Kanban View
-**Page Goal:** Provide streamlined task management for quick updates and status changes
-
-**Screen Description:**
-- Minimalist three-column layout with focus on task titles and status
-- Inline editing capabilities for task names
-- One-click status updates with visual animations
-- Keyboard shortcuts for power users
-- Compact card design showing only essential information
-
-**Design Problems:**
-- HMW balance simplicity with necessary information density?
-- HMW ensure accessibility for keyboard-only navigation?
-- HMW provide clear visual feedback for quick actions?
-
-**Design Opportunities:**
-- What if we could provide customizable quick actions?
-- What if the interface could learn user preferences for information display?
+### Identified Scenarios:
+1. **First-time user accessing Kanban board**
+2. **Experienced user managing tasks across columns**
+3. **Mobile user accessing board on-the-go**
+4. **Accessibility-focused user navigating with assistive technology**
 
 ---
 
-#### Scenario 2: Mobile Team Member Updating Task Status
-**Context:** Alex, a developer, is commuting on the train and needs to quickly update task status and check project progress on their smartphone. They have limited time and need immediate access to their assigned tasks without complex navigation.
+## Scenario 1: First-Time User Accessing Kanban Board
 
-**User Goal:** To quickly update task status and view relevant project information on mobile device with minimal interaction steps.
+### Context
+Sarah, a project manager new to the organization, needs to understand her team's current workload and task distribution. She's accessing the Kanban board for the first time on her desktop computer and wants to quickly comprehend the workflow stages and current task status.
 
-**Business Goal:** To maintain project momentum and team communication regardless of location, ensuring continuous workflow updates and team alignment.
+### User Goal
+To quickly understand the Kanban board structure, identify task distribution across workflow stages, and gain confidence in using the interface for task management.
 
-#### Workflow Variation 2A: Mobile-First Quick Updates
+### Business Goal
+To provide an intuitive first-time experience that reduces onboarding time, increases user adoption, and demonstrates the value of the task management system.
 
-**Screen Sequence:**
-1.0 Mobile Kanban Stack View → 2.0 Task Quick Actions → 3.0 Status Confirmation
+### Workflow Variation A: Guided Discovery
 
-##### 1.0 Mobile Kanban Stack View
-**Page Goal:** Provide accessible task overview optimized for mobile interaction patterns
+#### Screen Flow:
 
-**Screen Description:**
-- Vertically stacked columns with swipe navigation between states
-- Large touch targets for task cards (minimum 44px height)
-- Simplified card design showing task title, assignee, and priority
-- Pull-to-refresh functionality for real-time updates
-- Bottom navigation for quick column switching
-- Search functionality with voice input option
-- Floating action button for adding new tasks
+**1.0 Kanban Board Landing Page**
+- **Page Goal:** Provide clear visual hierarchy and immediate understanding of the three-column structure
+- **Screen Description:**
+  - Three distinct columns displayed horizontally: 'To Do', 'In Progress', 'Done'
+  - Column headers with clear typography hierarchy and distinct color coding
+  - Visual separators between columns for clear delineation
+  - Sample tasks visible in each column to demonstrate functionality
+  - Clean, uncluttered layout with adequate white space
+- **Design Problems:**
+  - HMW help new users immediately understand the purpose of each column?
+  - HMW communicate the workflow progression from left to right?
+  - HMW ensure visual hierarchy guides attention appropriately?
+  - HMW balance information density with clarity?
+- **Design Opportunities:**
+  - What if we included subtle visual cues showing workflow direction?
+  - What if column headers included brief descriptive text for first-time users?
+  - What if we used progressive disclosure to reveal advanced features?
+  - What if we implemented contextual tooltips for key interface elements?
 
-**Design Problems:**
-- HMW maintain workflow visibility on small screens?
-- HMW ensure touch interactions are accurate and responsive?
-- HMW provide clear navigation between columns?
-- HMW accommodate users with accessibility needs on mobile?
+**1.1 Column Header Focus State**
+- **Page Goal:** Provide clear feedback when users interact with column headers
+- **Screen Description:**
+  - Enhanced visual feedback on hover/focus
+  - Accessible focus indicators meeting WCAG standards
+  - Consistent interaction patterns across all columns
+- **Design Problems:**
+  - HMW ensure focus states are visible to all users?
+  - HMW maintain consistency across different input methods?
+- **Design Opportunities:**
+  - What if focus states included contextual information?
+  - What if we provided audio feedback for screen reader users?
 
-**Design Opportunities:**
-- What if we could use device orientation to switch between views?
-- What if the system could provide haptic feedback for interactions?
-- What if we could integrate with device notifications for task updates?
+**Pu.1 Welcome Tooltip (Optional)**
+- **Page Goal:** Provide contextual guidance without overwhelming the interface
+- **Screen Description:**
+  - Non-intrusive tooltip explaining basic Kanban concepts
+  - Dismissible with clear close action
+  - Positioned to not obstruct main content
+- **Design Problems:**
+  - HMW provide help without creating friction?
+  - HMW ensure tooltips are accessible to all users?
+- **Design Opportunities:**
+  - What if tooltips adapted based on user behavior?
+  - What if we provided multiple help formats (text, video, interactive)?
 
-##### 2.0 Task Quick Actions
-**Page Goal:** Enable rapid task status updates with minimal cognitive load
+### Workflow Variation B: Immediate Immersion
 
-**Screen Description:**
-- Swipe gestures for common actions (swipe right to move forward, left to move back)
-- Quick action buttons for status change, assignment, and priority
-- Visual confirmation animations for completed actions
-- Undo functionality with timeout
-- Voice-to-text for quick comments
+#### Screen Flow:
 
-**Design Problems:**
-- HMW ensure gesture recognition accuracy?
-- HMW provide clear affordances for available actions?
-- HMW handle accidental interactions gracefully?
+**1.0 Kanban Board Full Interface**
+- **Page Goal:** Provide complete functionality immediately with self-explanatory design
+- **Screen Description:**
+  - Full three-column layout with all interactive elements visible
+  - Intuitive iconography and labeling
+  - Clear visual affordances for drag-and-drop functionality
+  - Consistent spacing and alignment throughout
+- **Design Problems:**
+  - HMW make the interface self-explanatory without tutorials?
+  - HMW ensure cognitive load remains manageable?
+  - HMW communicate interactive possibilities clearly?
+- **Design Opportunities:**
+  - What if visual design patterns followed established conventions?
+  - What if micro-interactions provided immediate feedback?
+  - What if the layout adapted based on content density?
 
-**Design Opportunities:**
-- What if we could learn user gesture patterns for personalization?
-- What if the system could suggest actions based on context?
+**Screen Sequence - Variation A:** 1.0 Kanban Board Landing Page -> 1.1 Column Header Focus State -> Pu.1 Welcome Tooltip
 
-#### Workflow Variation 2B: Focused Task List
-
-**Screen Sequence:**
-1.0 Personal Task Dashboard → 2.0 Task Status Updater → 3.0 Team Notification
-
-##### 1.0 Personal Task Dashboard
-**Page Goal:** Provide personalized view of assigned tasks across all project states
-
-**Screen Description:**
-- Filtered view showing only user's assigned tasks
-- Grouped by status with expandable sections
-- Priority indicators and due date warnings
-- Quick status change toggles
-- Progress indicators for multi-step tasks
-
-**Design Problems:**
-- HMW help users prioritize their work effectively?
-- HMW provide context about task dependencies?
-- HMW ensure important deadlines are visible?
-
-**Design Opportunities:**
-- What if the system could suggest optimal work sequences?
-- What if we could integrate with calendar applications?
-
----
-
-#### Scenario 3: Tablet User in Collaborative Meeting
-**Context:** Maria, a design lead, is in a sprint planning meeting with her team using a tablet. She needs to demonstrate current project status, move tasks between columns, and make real-time updates while presenting to stakeholders on a shared screen.
-
-**User Goal:** To effectively present project status and make collaborative decisions about task prioritization and assignment in a meeting environment.
-
-**Business Goal:** To facilitate effective team collaboration and decision-making, reducing meeting time while improving project planning accuracy.
-
-#### Workflow Variation 3A: Presentation Mode
-
-**Screen Sequence:**
-1.0 Tablet Kanban Overview → 2.0 Collaborative Editing Mode → 3.0 Meeting Summary View
-
-##### 1.0 Tablet Kanban Overview
-**Page Goal:** Optimize board display for presentation and collaborative viewing
-
-**Screen Description:**
-- Landscape-optimized three-column layout with larger text and icons
-- Enhanced visual hierarchy for better visibility from distance
-- Touch-friendly drag-and-drop with larger drop zones
-- Team member indicators showing real-time presence
-- Presentation mode with simplified interface
-- Gesture support for zooming and panning
-
-**Design Problems:**
-- HMW ensure visibility for multiple viewers simultaneously?
-- HMW maintain touch accuracy during collaborative interactions?
-- HMW provide clear visual feedback for group activities?
-- HMW handle multiple simultaneous touch inputs?
-
-**Design Opportunities:**
-- What if the system could highlight changes made during meetings?
-- What if we could provide meeting-specific views and filters?
-- What if the board could generate automatic meeting summaries?
-
-##### 2.0 Collaborative Editing Mode
-**Page Goal:** Enable real-time collaborative task management with conflict resolution
-
-**Screen Description:**
-- Multi-user cursor indicators showing active participants
-- Real-time synchronization of task movements and updates
-- Conflict resolution interface for simultaneous edits
-- Comment and discussion threads attached to tasks
-- Version history for tracking meeting decisions
-
-**Design Problems:**
-- HMW handle conflicting simultaneous edits gracefully?
-- HMW ensure all participants can contribute effectively?
-- HMW maintain data integrity during collaborative sessions?
-
-**Design Opportunities:**
-- What if the system could facilitate structured decision-making processes?
-- What if we could integrate with video conferencing tools?
-
-#### Workflow Variation 3B: Stakeholder Review Mode
-
-**Screen Sequence:**
-1.0 Executive Dashboard → 2.0 Progress Analytics → 3.0 Action Items Summary
-
-##### 1.0 Executive Dashboard
-**Page Goal:** Provide high-level project insights suitable for stakeholder review
-
-**Screen Description:**
-- Simplified three-column view with progress metrics
-- Key performance indicators and completion percentages
-- Risk indicators and bottleneck highlights
-- Timeline view showing project milestones
-- Exportable summary reports
-
-**Design Problems:**
-- HMW communicate complex project status simply?
-- HMW highlight critical issues requiring attention?
-- HMW provide actionable insights for decision-makers?
-
-**Design Opportunities:**
-- What if the system could predict project completion dates?
-- What if we could provide automated risk assessments?
+**Screen Sequence - Variation B:** 1.0 Kanban Board Full Interface
 
 ---
 
-## Minimum Viable Experience (MVE)
+## Scenario 2: Experienced User Managing Tasks Across Columns
 
-### Core Scenario: Basic Task Status Management
-**Context:** Any user needs to view current project status and update task progress using any device.
+### Context
+Mike, a software developer, uses the Kanban board daily to track his development tasks. He needs to move a completed feature from 'In Progress' to 'Done' and wants to quickly assess his current workload distribution across all columns.
 
-**Essential Screens:**
+### User Goal
+To efficiently update task status, maintain accurate workflow representation, and quickly assess current workload without friction or delays.
 
-#### 1.0 Core Kanban Board
-**Page Goal:** Provide fundamental task visualization and status management
+### Business Goal
+To provide a seamless task management experience that encourages consistent usage, accurate status tracking, and improved team productivity visibility.
 
-**Screen Description:**
-- Three columns: 'To Do', 'In Progress', 'Done'
-- Basic task cards with title and assignee
-- Drag-and-drop functionality
-- Responsive layout adapting to screen size
-- Keyboard navigation support
-- Screen reader compatibility
+### Workflow Variation A: Drag-and-Drop Interaction
 
-**Design Problems:**
-- HMW ensure core functionality works across all devices?
-- HMW maintain accessibility standards?
-- HMW provide clear visual hierarchy?
+#### Screen Flow:
 
-**Design Opportunities:**
-- What if we could progressively enhance based on device capabilities?
-- What if the system could adapt to user preferences automatically?
+**2.0 Active Kanban Board**
+- **Page Goal:** Provide efficient task manipulation with clear visual feedback
+- **Screen Description:**
+  - Three columns with current tasks distributed appropriately
+  - Clear visual indicators for draggable elements
+  - Hover states that indicate interactive possibilities
+  - Adequate spacing between cards for easy selection
+  - Visual hierarchy that prioritizes task content
+- **Design Problems:**
+  - HMW ensure drag-and-drop interactions are discoverable?
+  - HMW provide clear feedback during drag operations?
+  - HMW handle edge cases like column overflow?
+  - HMW maintain performance with large numbers of tasks?
+- **Design Opportunities:**
+  - What if we provided multiple interaction methods (drag, click, keyboard)?
+  - What if visual feedback adapted to user preferences?
+  - What if we included smart suggestions for task placement?
 
-#### 2.0 Task Status Updater
-**Page Goal:** Enable quick task status changes with clear feedback
+**2.1 Task Card Drag State**
+- **Page Goal:** Provide clear visual feedback during drag operations
+- **Screen Description:**
+  - Selected task card with elevated visual treatment
+  - Drop zones highlighted in target columns
+  - Ghost image or placeholder showing drag progress
+  - Other elements dimmed to focus attention
+- **Design Problems:**
+  - HMW ensure drag feedback is clear across devices?
+  - HMW handle accessibility for drag operations?
+  - HMW prevent accidental drops?
+- **Design Opportunities:**
+  - What if drop zones provided contextual information?
+  - What if we included undo functionality for accidental moves?
 
-**Screen Description:**
-- Simple status dropdown or button interface
-- Visual confirmation of changes
-- Undo functionality
-- Loading states and error handling
+**2.2 Task Drop Confirmation**
+- **Page Goal:** Confirm successful task movement and update board state
+- **Screen Description:**
+  - Task card settled in new column position
+  - Subtle animation confirming successful placement
+  - Updated column counts or indicators
+  - Clear visual hierarchy maintained
+- **Design Problems:**
+  - HMW confirm actions without disrupting workflow?
+  - HMW handle potential conflicts or errors?
+- **Design Opportunities:**
+  - What if confirmations included relevant metadata updates?
+  - What if we provided batch operation capabilities?
 
-**Design Problems:**
-- HMW provide immediate feedback for all actions?
-- HMW handle network connectivity issues?
-- HMW ensure changes are saved reliably?
+### Workflow Variation B: Click-to-Move Interaction
 
-**Design Opportunities:**
-- What if the system could work offline and sync later?
-- What if we could provide smart defaults for common actions?
+#### Screen Flow:
+
+**2.0 Active Kanban Board**
+- **Page Goal:** Provide alternative interaction method for task management
+- **Screen Description:**
+  - Task cards with clear action buttons or menus
+  - Consistent interaction patterns across all cards
+  - Clear labeling for available actions
+- **Design Problems:**
+  - HMW make click interactions as efficient as drag-and-drop?
+  - HMW prevent interface clutter with additional controls?
+- **Design Opportunities:**
+  - What if we provided keyboard shortcuts for power users?
+  - What if action menus were contextually relevant?
+
+**2.3 Task Action Menu**
+- **Page Goal:** Provide clear options for task status changes
+- **Screen Description:**
+  - Dropdown or modal with available column destinations
+  - Clear labeling and logical ordering of options
+  - Cancel/close functionality clearly available
+- **Design Problems:**
+  - HMW keep action menus concise yet comprehensive?
+  - HMW ensure menus work across different screen sizes?
+- **Design Opportunities:**
+  - What if menus included additional task management options?
+  - What if we provided recent actions for quick access?
+
+**Screen Sequence - Variation A:** 2.0 Active Kanban Board -> 2.1 Task Card Drag State -> 2.2 Task Drop Confirmation
+
+**Screen Sequence - Variation B:** 2.0 Active Kanban Board -> 2.3 Task Action Menu -> 2.2 Task Drop Confirmation
 
 ---
 
-## Technical Specifications
+## Scenario 3: Mobile User Accessing Board On-the-Go
+
+### Context
+Lisa, a marketing coordinator, needs to check project status while commuting on her smartphone. She wants to quickly review task distribution and potentially update a task status, all while dealing with limited screen space and touch interactions.
+
+### User Goal
+To efficiently access and interact with the Kanban board on a mobile device, maintaining full functionality while accommodating touch interactions and limited screen real estate.
+
+### Business Goal
+To provide a seamless mobile experience that maintains user engagement across devices, supports remote work flexibility, and ensures consistent productivity regardless of access method.
+
+### Workflow Variation A: Horizontal Scrolling Layout
+
+#### Screen Flow:
+
+**3.0 Mobile Kanban Board - Horizontal Scroll**
+- **Page Goal:** Provide full column access through horizontal navigation
+- **Screen Description:**
+  - Three columns arranged horizontally with swipe navigation
+  - Column headers remain visible during scroll
+  - Touch-optimized spacing and target sizes
+  - Clear indicators showing additional columns available
+  - Optimized typography for mobile readability
+- **Design Problems:**
+  - HMW ensure users understand horizontal navigation?
+  - HMW maintain context while scrolling between columns?
+  - HMW optimize touch targets for various hand sizes?
+  - HMW handle content overflow within columns?
+- **Design Opportunities:**
+  - What if we provided column overview indicators?
+  - What if scroll position was remembered between sessions?
+  - What if we included gesture shortcuts for common actions?
+
+**3.1 Column Focus State - Mobile**
+- **Page Goal:** Provide clear indication of current column focus
+- **Screen Description:**
+  - Active column highlighted with distinct visual treatment
+  - Smooth transitions between column views
+  - Consistent spacing and alignment maintained
+- **Design Problems:**
+  - HMW ensure focus states work with touch interactions?
+  - HMW provide adequate feedback for swipe gestures?
+- **Design Opportunities:**
+  - What if focus states included column summary information?
+  - What if we provided haptic feedback for interactions?
+
+### Workflow Variation B: Stacked Column Layout
+
+#### Screen Flow:
+
+**3.0 Mobile Kanban Board - Stacked**
+- **Page Goal:** Present all columns in a single vertical scroll experience
+- **Screen Description:**
+  - Columns stacked vertically with clear section headers
+  - Consistent card styling across all sections
+  - Adequate spacing between column sections
+  - Sticky headers for context during scroll
+- **Design Problems:**
+  - HMW maintain workflow context in vertical layout?
+  - HMW handle long scrolling distances efficiently?
+  - HMW ensure section headers remain contextually relevant?
+- **Design Opportunities:**
+  - What if we provided quick navigation between sections?
+  - What if section headers included summary statistics?
+  - What if we offered collapsible sections for focus?
+
+**3.2 Mobile Task Interaction**
+- **Page Goal:** Provide touch-optimized task management
+- **Screen Description:**
+  - Touch-friendly task cards with adequate spacing
+  - Clear tap targets for task selection
+  - Swipe gestures for quick status changes
+  - Long-press for additional options
+- **Design Problems:**
+  - HMW ensure touch interactions are discoverable?
+  - HMW prevent accidental activations?
+  - HMW provide feedback for gesture interactions?
+- **Design Opportunities:**
+  - What if we provided customizable gesture shortcuts?
+  - What if touch interactions included contextual previews?
+
+**Screen Sequence - Variation A:** 3.0 Mobile Kanban Board - Horizontal Scroll -> 3.1 Column Focus State - Mobile -> 3.2 Mobile Task Interaction
+
+**Screen Sequence - Variation B:** 3.0 Mobile Kanban Board - Stacked -> 3.2 Mobile Task Interaction
+
+---
+
+## Scenario 4: Accessibility-Focused User Navigating with Assistive Technology
+
+### Context
+David, a business analyst who uses screen reader technology, needs to efficiently navigate the Kanban board to review task assignments and update status information. He relies on keyboard navigation and screen reader announcements to understand board structure and content.
+
+### User Goal
+To access all Kanban board functionality through assistive technology, understand board structure and content through audio cues, and complete task management activities efficiently using keyboard navigation.
+
+### Business Goal
+To provide fully accessible task management capabilities that comply with WCAG guidelines, support diverse user needs, and demonstrate organizational commitment to inclusive design.
+
+### Workflow Variation A: Sequential Navigation
+
+#### Screen Flow:
+
+**4.0 Accessible Kanban Board - Sequential**
+- **Page Goal:** Provide logical tab order and comprehensive screen reader support
+- **Screen Description:**
+  - Proper heading hierarchy (h1, h2, h3) for board structure
+  - ARIA labels for all interactive elements
+  - Logical tab order through columns and tasks
+  - Screen reader announcements for board structure
+  - Keyboard shortcuts documented and available
+- **Design Problems:**
+  - HMW ensure screen reader users understand spatial relationships?
+  - HMW provide efficient navigation through large numbers of tasks?
+  - HMW communicate visual information through audio cues?
+  - HMW ensure keyboard navigation is intuitive and efficient?
+- **Design Opportunities:**
+  - What if we provided audio landmarks for quick navigation?
+  - What if screen reader announcements included contextual information?
+  - What if we offered customizable verbosity levels?
+
+**4.1 Column Navigation Focus**
+- **Page Goal:** Provide clear audio feedback for column context
+- **Screen Description:**
+  - Column headers announced with task counts
+  - Clear indication of current focus position
+  - Consistent navigation patterns across columns
+- **Design Problems:**
+  - HMW ensure column context is always clear?
+  - HMW provide efficient movement between columns?
+- **Design Opportunities:**
+  - What if we provided column summary announcements?
+  - What if navigation included progress indicators?
+
+**4.2 Task Focus and Interaction**
+- **Page Goal:** Enable full task management through keyboard and screen reader
+- **Screen Description:**
+  - Task content fully announced including status and metadata
+  - Keyboard shortcuts for status changes
+  - Clear feedback for all actions
+  - Error states properly announced
+- **Design Problems:**
+  - HMW ensure task information is comprehensive yet concise?
+  - HMW provide efficient task manipulation methods?
+  - HMW handle complex interactions through keyboard only?
+- **Design Opportunities:**
+  - What if we provided task filtering through keyboard commands?
+  - What if announcements adapted to user expertise level?
+
+### Workflow Variation B: Landmark-Based Navigation
+
+#### Screen Flow:
+
+**4.0 Accessible Kanban Board - Landmarks**
+- **Page Goal:** Provide efficient navigation through ARIA landmarks and regions
+- **Screen Description:**
+  - Each column defined as distinct landmark region
+  - Skip links for efficient navigation
+  - Landmark navigation shortcuts available
+  - Clear region boundaries and descriptions
+- **Design Problems:**
+  - HMW ensure landmarks provide meaningful navigation structure?
+  - HMW balance landmark granularity with navigation efficiency?
+- **Design Opportunities:**
+  - What if landmarks included dynamic content summaries?
+  - What if we provided customizable landmark preferences?
+
+**4.3 Landmark Region Focus**
+- **Page Goal:** Provide contextual information when entering landmark regions
+- **Screen Description:**
+  - Region entry announcements with content summary
+  - Available actions clearly communicated
+  - Consistent interaction patterns within regions
+- **Design Problems:**
+  - HMW ensure region announcements are informative but not verbose?
+  - HMW maintain context when moving between regions?
+- **Design Opportunities:**
+  - What if region summaries were dynamically generated?
+  - What if we provided region-specific help information?
+
+**Er.1 Accessibility Error State**
+- **Page Goal:** Provide clear error communication for assistive technology users
+- **Screen Description:**
+  - Error messages announced immediately
+  - Clear instructions for error resolution
+  - Focus management during error states
+- **Design Problems:**
+  - HMW ensure errors don't disrupt workflow unnecessarily?
+  - HMW provide actionable error resolution guidance?
+- **Design Opportunities:**
+  - What if error messages included contextual help?
+  - What if we provided multiple error resolution paths?
+
+**Screen Sequence - Variation A:** 4.0 Accessible Kanban Board - Sequential -> 4.1 Column Navigation Focus -> 4.2 Task Focus and Interaction
+
+**Screen Sequence - Variation B:** 4.0 Accessible Kanban Board - Landmarks -> 4.3 Landmark Region Focus -> 4.2 Task Focus and Interaction -> Er.1 Accessibility Error State
+
+---
+
+## Design System Requirements
 
 ### Responsive Breakpoints
-- **Mobile:** 320px-767px (single column stack)
-- **Tablet:** 768px-1023px (two-column or horizontal scroll)
-- **Desktop:** 1024px+ (three-column side-by-side)
+- **Mobile:** 320px-767px
+- **Tablet:** 768px-1023px  
+- **Desktop:** 1024px+
 
-### Accessibility Requirements
-- ARIA labels for all interactive elements
-- Keyboard navigation with visible focus indicators
-- Screen reader announcements for status changes
-- High contrast mode support
-- Minimum touch target size of 44px
-- Alternative text for visual indicators
+### Accessibility Standards
+- WCAG 2.1 AA compliance
+- ARIA labels and landmarks
+- Keyboard navigation support
+- Screen reader optimization
+- Focus management
+- Color contrast requirements
 
 ### Design Tokens
-- **Spacing:** 4px, 8px, 16px, 24px, 32px
-- **Colors:** Primary (#007bff), Success (#28a745), Warning (#ffc107), Danger (#dc3545)
-- **Typography:** Headers (24px, 20px, 16px), Body (14px), Small (12px)
-- **Shadows:** Card (0 2px 4px rgba(0,0,0,0.1)), Column (0 4px 8px rgba(0,0,0,0.15))
+- Spacing scale for consistent layout
+- Typography hierarchy for information architecture
+- Color palette for status indication and branding
+- Component sizing for touch and click targets
+- Animation timing for smooth interactions
 
-## Error States and Edge Cases
+### Technical Considerations
+- Angular application compatibility
+- Performance optimization for large datasets
+- Cross-browser compatibility
+- Touch and mouse interaction support
+- Keyboard shortcut implementation
 
-### Er.1 Network Connection Error
-**Goal:** Inform users of connectivity issues and provide recovery options
-**Description:** Display clear error message with retry functionality and offline mode indication
+---
 
-### Er.2 Drag-and-Drop Failure
-**Goal:** Handle failed task movements gracefully
-**Description:** Revert task to original position with error notification and alternative update method
+## Summary
 
-### Er.3 Concurrent Edit Conflict
-**Goal:** Resolve simultaneous edits without data loss
-**Description:** Show conflict resolution interface with options to merge or choose version
+This comprehensive user workflow documentation addresses four key scenarios for the three-column Kanban board design:
 
-## Success Metrics
-- Task update completion rate > 95%
-- Average time to update task status < 10 seconds
-- User satisfaction score > 4.0/5.0
-- Accessibility compliance score 100%
-- Cross-device usage consistency > 90%
+1. **First-time user experience** with guided discovery and immediate immersion variations
+2. **Experienced user task management** with drag-and-drop and click-to-move variations
+3. **Mobile user experience** with horizontal scrolling and stacked layout variations
+4. **Accessibility-focused navigation** with sequential and landmark-based variations
 
-## Future Enhancements
-- Advanced filtering and search capabilities
-- Custom column creation and management
-- Integration with external project management tools
-- Advanced analytics and reporting features
-- Team collaboration and communication tools
-- Mobile app with push notifications
-- API for third-party integrations
+Each scenario includes detailed screen descriptions, design problems, design opportunities, and specific workflow sequences that balance user needs with business objectives while ensuring accessibility and scalability across all user groups and devices.
