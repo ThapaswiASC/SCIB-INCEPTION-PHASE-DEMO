@@ -2,4 +2,364 @@ openapi: 3.0.3
 info:
   title: Youth Account Management System API
   description: |
-    Comprehensive API for managing youth banking accounts
+    API for managing youth accounts, enabling parents to allocate and manage funds for their children's accounts 
+    while maintaining visibility and control over spending. This system provides comprehensive functionality for 
+    fund transfers, spending limit configuration, transaction monitoring, and account management.
+    
+    ## Key Features
+    - Parent dashboard for youth account oversight
+    - Secure fund transfer capabilities
+    - Configurable spending limits with enforcement
+    - Real-time transaction history and monitoring
+    - Comprehensive audit trails for compliance
+    
+    ## Authentication
+    This API uses OAuth 2.0 with JWT Bearer tokens for authentication. All requests must include a valid 
+    Authorization header with a Bearer token.
+    
+    ## Rate Limiting
+    - General API: 1000 requests per hour per user
+    - Fund Transfer: 10 requests per hour per user
+    - Dashboard: 100 requests per hour per user
+    - Transaction History: 50 requests per hour per user
+    
+    ## Compliance
+    This API is designed to comply with PCI-DSS, SOX, GDPR, and banking regulations.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api-support@scib.com
+  license:
+    name: Proprietary
+    url: https://scib.com/license
+  termsOfService: https://scib.com/terms
+servers:
+  - url: https://api.scib.com/v1
+    description: Production server
+  - url: https://staging-api.scib.com/v1
+    description: Staging server
+  - url: https://dev-api.scib.com/v1
+    description: Development server
+
+security:
+  - OAuth2: []
+  - BearerAuth: []
+
+paths:
+  /youth-accounts/{youthAccountId}/dashboard:
+    get:
+      tags:
+        - Youth Account Dashboard
+      summary: Retrieve youth account dashboard information
+      description: |
+        Retrieve consolidated youth account information including balance, spending limit, 
+        and recent transactions. This endpoint provides a comprehensive overview of the 
+        youth account status for parent oversight.
+      operationId: getYouthAccountDashboard
+      parameters:
+        - name: youthAccountId
+          in: path
+          required: true
+          description: Unique identifier for the youth account
+          schema:
+            type: string
+            pattern: '^YTH-[0-9]{6}$'
+            example: YTH-456789
+        - name: X-Request-ID
+          in: header
+          required: true
+          description: Unique request identifier for tracing
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Youth account dashboard data retrieved successfully
+          headers:
+            X-Request-ID:
+              description: Request correlation ID
+              schema:
+                type: string
+            X-RateLimit-Limit:
+              description: Request limit per hour
+              schema:
+                type: integer
+            X-RateLimit-Remaining:
+              description: Remaining requests in current window
+              schema:
+                type: integer
+            X-RateLimit-Reset:
+              description: Time when rate limit resets
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/YouthAccountDashboard'
+              examples:
+                successful_response:
+                  summary: Successful dashboard retrieval
+                  value:
+                    youthAccountId: YTH-456789
+                    accountBalance: 150.00
+                    spendingLimit: 100.00
+                    currentWeekSpent: 25.00
+                    remainingLimit: 75.00
+                    currency: USD
+                    weekStartDate: '2024-01-15'
+                    recentTransactions:
+                      - transactionId: TXN-001
+                        date: '2024-01-16T10:30:00Z'
+                        description: Coffee Shop Purchase
+                        merchant: Starbucks
+                        amount: -5.50
+                        transactionType: debit
+                        status: completed
+                    accountStatus: active
+                    lastUpdated: '2024-01-16T15:45:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /health:
+    get:
+      tags:
+        - Health Check
+      summary: API health check endpoint
+      description: Check the health and status of the API
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: 1.0.0
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      description: OAuth 2.0 authentication flow
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.scib.com/oauth/authorize
+          tokenUrl: https://auth.scib.com/oauth/token
+          scopes:
+            youth-account:read: Read access to youth account information
+            youth-account:write: Write access to youth account operations
+            fund-transfer:execute: Execute fund transfers
+            spending-limit:manage: Manage spending limits
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Bearer token authentication
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: BAD_REQUEST
+              message: Invalid request parameters
+              timestamp: '2024-01-16T15:45:00Z'
+    Unauthorized:
+      description: Unauthorized - Invalid or missing authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TooManyRequests:
+      description: Too many requests - Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    YouthAccountDashboard:
+      type: object
+      required:
+        - youthAccountId
+        - accountBalance
+        - spendingLimit
+        - currentWeekSpent
+        - remainingLimit
+        - currency
+        - weekStartDate
+        - accountStatus
+        - lastUpdated
+      properties:
+        youthAccountId:
+          type: string
+          pattern: '^YTH-[0-9]{6}$'
+          description: Unique youth account identifier
+          example: YTH-456789
+        accountBalance:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Current account balance
+          example: 150.00
+        spendingLimit:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Weekly spending limit
+          example: 100.00
+        currentWeekSpent:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Amount spent in current week
+          example: 25.00
+        remainingLimit:
+          type: number
+          format: decimal
+          minimum: 0
+          description: Remaining spending limit for current week
+          example: 75.00
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: ISO 4217 currency code
+          example: USD
+        weekStartDate:
+          type: string
+          format: date
+          description: Start date of current spending week
+          example: '2024-01-15'
+        recentTransactions:
+          type: array
+          description: Recent transactions (last 5)
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/Transaction'
+        accountStatus:
+          type: string
+          enum: [active, inactive, suspended, closed]
+          description: Current account status
+          example: active
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: '2024-01-16T15:45:00Z'
+    Transaction:
+      type: object
+      required:
+        - transactionId
+        - date
+        - description
+        - amount
+        - transactionType
+        - status
+      properties:
+        transactionId:
+          type: string
+          pattern: '^TXN-[0-9]{3,6}$'
+          description: Unique transaction identifier
+          example: TXN-001
+        date:
+          type: string
+          format: date-time
+          description: Transaction timestamp
+          example: '2024-01-16T10:30:00Z'
+        description:
+          type: string
+          maxLength: 255
+          description: Transaction description
+          example: Coffee Shop Purchase
+        merchant:
+          type: string
+          maxLength: 100
+          description: Merchant name
+          example: Starbucks
+        amount:
+          type: number
+          format: decimal
+          description: Transaction amount (negative for debits)
+          example: -5.50
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: ISO 4217 currency code
+          example: USD
+        transactionType:
+          type: string
+          enum: [debit, credit]
+          description: Type of transaction
+          example: debit
+        status:
+          type: string
+          enum: [completed, pending, failed, cancelled]
+          description: Transaction status
+          example: completed
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - timestamp
+          properties:
+            code:
+              type: string
+              description: Error code
+              example: BAD_REQUEST
+            message:
+              type: string
+              description: Human-readable error message
+              example: Invalid request parameters
+            timestamp:
+              type: string
+              format: date-time
+              description: Error timestamp
+              example: '2024-01-16T15:45:00Z'
+            details:
+              type: array
+              description: Additional error details
+              items:
+                type: string
