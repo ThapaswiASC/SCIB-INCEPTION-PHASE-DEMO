@@ -1,24 +1,31 @@
 # API Contract Outline
-# Task Management API - Task Creation Endpoint
+## Task Management API - Task Creation Endpoint
 
-## Overview
-This document outlines the API contract for the task creation endpoint, including request/response schemas, error handling, and validation rules.
-
-## Base Information
+### Document Information
+- **API Version**: v1.0
+- **Date**: 2024-01-15
 - **Base URL**: https://api.taskmanagement.com/v1
-- **Authentication**: Bearer Token (JWT)
+- **Authentication**: Bearer Token (OAuth 2.0)
 - **Content-Type**: application/json
-- **API Version**: 1.0
 
-## Endpoints
+---
+
+## API Endpoints
 
 ### 1. Create Task
 
 **Endpoint**: `/api/tasks`
 **Method**: `POST`
-**Description**: Creates a new task in the system
+**Description**: Creates a new task in the task management system
 **Authentication**: Required (Bearer Token)
 **Rate Limit**: 100 requests per minute per user
+
+#### Request Headers
+```http
+Content-Type: application/json
+Authorization: Bearer <access_token>
+X-Correlation-ID: <uuid> (optional)
+```
 
 #### Request Schema
 ```json
@@ -26,46 +33,42 @@ This document outlines the API contract for the task creation endpoint, includin
   "title": {
     "type": "string",
     "required": true,
-    "maxLength": 255,
+    "maxLength": 100,
     "description": "Task title",
-    "example": "Complete API documentation"
+    "example": "Implement user authentication"
   },
   "description": {
     "type": "string",
-    "required": false,
-    "maxLength": 1000,
+    "required": true,
+    "maxLength": 500,
     "description": "Detailed task description",
-    "example": "Create comprehensive API documentation including examples and error codes"
+    "example": "Implement OAuth 2.0 authentication for the API"
   },
   "status": {
     "type": "string",
-    "required": false,
-    "enum": ["TODO", "IN_PROGRESS", "DONE", "CANCELLED"],
+    "enum": ["TODO", "IN_PROGRESS", "DONE"],
     "default": "TODO",
-    "description": "Current task status",
+    "description": "Current status of the task",
     "example": "TODO"
+  },
+  "due_date": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Task due date (ISO 8601 format, must be future date)",
+    "example": "2024-02-15T10:00:00Z"
+  },
+  "assigned_to": {
+    "type": "string",
+    "format": "uuid",
+    "description": "User ID of the assigned person",
+    "example": "550e8400-e29b-41d4-a716-446655440000"
   },
   "priority": {
     "type": "string",
-    "required": false,
     "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
     "default": "MEDIUM",
     "description": "Task priority level",
     "example": "HIGH"
-  },
-  "dueDate": {
-    "type": "string",
-    "format": "date-time",
-    "required": false,
-    "description": "Task due date (must be in the future)",
-    "example": "2024-12-31T23:59:59Z"
-  },
-  "assigneeId": {
-    "type": "string",
-    "format": "uuid",
-    "required": false,
-    "description": "ID of the user assigned to the task",
-    "example": "123e4567-e89b-12d3-a456-426614174000"
   },
   "tags": {
     "type": "array",
@@ -74,73 +77,54 @@ This document outlines the API contract for the task creation endpoint, includin
       "maxLength": 50
     },
     "maxItems": 10,
-    "required": false,
     "description": "Task tags for categorization",
-    "example": ["documentation", "api", "urgent"]
+    "example": ["authentication", "security", "backend"]
   }
 }
 ```
 
-#### Success Response Schema (201 Created)
+#### Response Schema (201 Created)
 ```json
 {
   "id": {
     "type": "string",
     "format": "uuid",
     "description": "Unique task identifier",
-    "example": "987fcdeb-51a2-43d1-9c4b-123456789abc"
+    "example": "123e4567-e89b-12d3-a456-426614174000"
   },
   "title": {
     "type": "string",
     "description": "Task title",
-    "example": "Complete API documentation"
+    "example": "Implement user authentication"
   },
   "description": {
     "type": "string",
     "description": "Task description",
-    "example": "Create comprehensive API documentation including examples and error codes"
+    "example": "Implement OAuth 2.0 authentication for the API"
   },
   "status": {
     "type": "string",
-    "enum": ["TODO", "IN_PROGRESS", "DONE", "CANCELLED"],
+    "enum": ["TODO", "IN_PROGRESS", "DONE"],
     "description": "Current task status",
     "example": "TODO"
+  },
+  "due_date": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Task due date",
+    "example": "2024-02-15T10:00:00Z"
+  },
+  "assigned_to": {
+    "type": "string",
+    "format": "uuid",
+    "description": "Assigned user ID",
+    "example": "550e8400-e29b-41d4-a716-446655440000"
   },
   "priority": {
     "type": "string",
     "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-    "description": "Task priority level",
+    "description": "Task priority",
     "example": "HIGH"
-  },
-  "dueDate": {
-    "type": "string",
-    "format": "date-time",
-    "description": "Task due date",
-    "example": "2024-12-31T23:59:59Z"
-  },
-  "assigneeId": {
-    "type": "string",
-    "format": "uuid",
-    "description": "ID of assigned user",
-    "example": "123e4567-e89b-12d3-a456-426614174000"
-  },
-  "createdBy": {
-    "type": "string",
-    "format": "uuid",
-    "description": "ID of user who created the task",
-    "example": "456e7890-e89b-12d3-a456-426614174111"
-  },
-  "createdAt": {
-    "type": "string",
-    "format": "date-time",
-    "description": "Task creation timestamp",
-    "example": "2024-01-15T10:30:00Z"
-  },
-  "updatedAt": {
-    "type": "string",
-    "format": "date-time",
-    "description": "Last update timestamp",
-    "example": "2024-01-15T10:30:00Z"
   },
   "tags": {
     "type": "array",
@@ -148,14 +132,32 @@ This document outlines the API contract for the task creation endpoint, includin
       "type": "string"
     },
     "description": "Task tags",
-    "example": ["documentation", "api", "urgent"]
+    "example": ["authentication", "security", "backend"]
+  },
+  "created_at": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Task creation timestamp",
+    "example": "2024-01-15T08:30:00Z"
+  },
+  "updated_at": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Last update timestamp",
+    "example": "2024-01-15T08:30:00Z"
+  },
+  "created_by": {
+    "type": "string",
+    "format": "uuid",
+    "description": "Creator user ID",
+    "example": "660f9511-f9ac-52e4-b827-537766551001"
   }
 }
 ```
 
 #### Error Handling
 
-##### 400 Bad Request - Validation Errors
+**400 Bad Request - Validation Errors**
 ```json
 {
   "error": {
@@ -165,225 +167,260 @@ This document outlines the API contract for the task creation endpoint, includin
       {
         "field": "title",
         "message": "Title is required and cannot be empty",
-        "code": "REQUIRED_FIELD"
+        "code": "FIELD_REQUIRED"
       },
       {
-        "field": "dueDate",
+        "field": "due_date",
         "message": "Due date cannot be in the past",
         "code": "INVALID_DATE"
       }
     ],
-    "timestamp": "2024-01-15T10:30:00Z",
-    "requestId": "req_123456789"
+    "timestamp": "2024-01-15T08:30:00Z",
+    "correlation_id": "abc123-def456-ghi789"
   }
 }
 ```
 
-##### 401 Unauthorized
+**401 Unauthorized**
 ```json
 {
   "error": {
     "code": "UNAUTHORIZED",
-    "message": "Authentication required. Please provide a valid bearer token.",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "requestId": "req_123456789"
+    "message": "Authentication required",
+    "details": "Valid bearer token must be provided",
+    "timestamp": "2024-01-15T08:30:00Z",
+    "correlation_id": "abc123-def456-ghi789"
   }
 }
 ```
 
-##### 403 Forbidden
+**403 Forbidden**
 ```json
 {
   "error": {
     "code": "FORBIDDEN",
-    "message": "Insufficient permissions to create tasks",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "requestId": "req_123456789"
+    "message": "Insufficient permissions",
+    "details": "User does not have permission to create tasks",
+    "timestamp": "2024-01-15T08:30:00Z",
+    "correlation_id": "abc123-def456-ghi789"
   }
 }
 ```
 
-##### 409 Conflict
+**409 Conflict**
 ```json
 {
   "error": {
-    "code": "DUPLICATE_TASK",
-    "message": "A task with similar title already exists for this user",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "requestId": "req_123456789"
+    "code": "RESOURCE_CONFLICT",
+    "message": "Task with similar title already exists",
+    "details": "A task with the same title already exists for this user",
+    "timestamp": "2024-01-15T08:30:00Z",
+    "correlation_id": "abc123-def456-ghi789"
   }
 }
 ```
 
-##### 422 Unprocessable Entity - Business Logic Errors
-```json
-{
-  "error": {
-    "code": "BUSINESS_RULE_VIOLATION",
-    "message": "Business rule validation failed",
-    "details": [
-      {
-        "rule": "ASSIGNEE_VALIDATION",
-        "message": "Cannot assign task to inactive user",
-        "code": "INVALID_ASSIGNEE"
-      }
-    ],
-    "timestamp": "2024-01-15T10:30:00Z",
-    "requestId": "req_123456789"
-  }
-}
-```
-
-##### 429 Too Many Requests
+**429 Too Many Requests**
 ```json
 {
   "error": {
     "code": "RATE_LIMIT_EXCEEDED",
-    "message": "Rate limit exceeded. Maximum 100 requests per minute allowed.",
-    "retryAfter": 60,
-    "timestamp": "2024-01-15T10:30:00Z",
-    "requestId": "req_123456789"
+    "message": "Rate limit exceeded",
+    "details": "Maximum 100 requests per minute allowed",
+    "retry_after": 60,
+    "timestamp": "2024-01-15T08:30:00Z",
+    "correlation_id": "abc123-def456-ghi789"
   }
 }
 ```
 
-##### 500 Internal Server Error
+**500 Internal Server Error**
 ```json
 {
   "error": {
     "code": "INTERNAL_SERVER_ERROR",
-    "message": "An unexpected error occurred. Please try again later.",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "requestId": "req_123456789"
+    "message": "An unexpected error occurred",
+    "details": "Please try again later or contact support",
+    "timestamp": "2024-01-15T08:30:00Z",
+    "correlation_id": "abc123-def456-ghi789"
   }
 }
 ```
 
-## Request/Response Headers
+---
 
-### Required Request Headers
-- `Authorization: Bearer <jwt_token>`
-- `Content-Type: application/json`
-- `Accept: application/json`
+## Additional API Endpoints (Future Implementation)
 
-### Optional Request Headers
-- `X-Request-ID: <unique_request_id>` (for tracing)
-- `X-Client-Version: <client_version>` (for analytics)
+### 2. Get Task by ID
 
-### Response Headers
-- `Content-Type: application/json`
-- `X-Request-ID: <request_id>` (echoed back)
-- `X-Rate-Limit-Remaining: <remaining_requests>`
-- `X-Rate-Limit-Reset: <reset_timestamp>`
+**Endpoint**: `/api/tasks/{id}`
+**Method**: `GET`
+**Description**: Retrieves a specific task by its ID
 
-## Validation Rules
+#### Request Schema
+- **Path Parameters**:
+  - `id` (string, uuid, required): Task identifier
 
-### Field Validation
-1. **title**: 
-   - Required field
-   - Must not be empty or whitespace only
-   - Maximum length: 255 characters
-   - Special characters allowed
+#### Response Schema (200 OK)
+- Same as Create Task response schema
 
-2. **description**:
-   - Optional field
-   - Maximum length: 1000 characters
-   - HTML tags will be stripped
+#### Error Handling
+- **404 Not Found**: Task not found
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
 
-3. **status**:
-   - Must be one of: TODO, IN_PROGRESS, DONE, CANCELLED
-   - Defaults to TODO if not provided
+### 3. Update Task
 
-4. **priority**:
-   - Must be one of: LOW, MEDIUM, HIGH, CRITICAL
-   - Defaults to MEDIUM if not provided
+**Endpoint**: `/api/tasks/{id}`
+**Method**: `PUT`
+**Description**: Updates an existing task
 
-5. **dueDate**:
-   - Must be valid ISO 8601 date-time format
-   - Must be in the future (not past or current time)
-   - Optional field
+#### Request Schema
+- **Path Parameters**:
+  - `id` (string, uuid, required): Task identifier
+- **Body**: Same as Create Task request schema (all fields optional)
 
-6. **assigneeId**:
-   - Must be valid UUID format
-   - User must exist and be active
-   - Optional field
+#### Response Schema (200 OK)
+- Same as Create Task response schema
 
-7. **tags**:
-   - Array of strings
-   - Maximum 10 tags allowed
-   - Each tag maximum 50 characters
-   - Duplicate tags will be removed
+#### Error Handling
+- **400 Bad Request**: Validation errors
+- **404 Not Found**: Task not found
+- **409 Conflict**: Update conflict
 
-### Business Rules
-1. Users can only create tasks they have permission to create
-2. Cannot assign tasks to inactive or non-existent users
-3. Due dates must be reasonable (not more than 5 years in future)
-4. Task titles must be unique per user (case-insensitive)
+### 4. Delete Task
+
+**Endpoint**: `/api/tasks/{id}`
+**Method**: `DELETE`
+**Description**: Soft deletes a task
+
+#### Request Schema
+- **Path Parameters**:
+  - `id` (string, uuid, required): Task identifier
+
+#### Response Schema (204 No Content)
+- Empty response body
+
+#### Error Handling
+- **404 Not Found**: Task not found
+- **403 Forbidden**: Insufficient permissions
+
+### 5. List Tasks
+
+**Endpoint**: `/api/tasks`
+**Method**: `GET`
+**Description**: Retrieves a paginated list of tasks
+
+#### Request Schema
+- **Query Parameters**:
+  - `page` (integer, default: 1): Page number
+  - `limit` (integer, default: 20, max: 100): Items per page
+  - `status` (string, optional): Filter by status
+  - `assigned_to` (string, optional): Filter by assignee
+  - `sort` (string, default: "created_at"): Sort field
+  - `order` (string, default: "desc"): Sort order (asc/desc)
+
+#### Response Schema (200 OK)
+```json
+{
+  "data": [
+    // Array of task objects (same as Create Task response)
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 150,
+    "total_pages": 8,
+    "has_next": true,
+    "has_prev": false
+  }
+}
+```
+
+---
 
 ## Security Considerations
 
 ### Authentication
-- JWT Bearer token required for all requests
-- Token must be valid and not expired
-- Token must contain necessary permissions
+- **Type**: OAuth 2.0 Bearer Token
+- **Token Validation**: JWT signature verification
+- **Token Expiration**: 1 hour (configurable)
+- **Refresh Token**: Supported for token renewal
 
 ### Authorization
-- Users can only create tasks in projects they have access to
-- Role-based access control (RBAC) enforced
-- Audit logging for all task creation attempts
+- **RBAC**: Role-based access control
+- **Permissions**: CREATE_TASK, READ_TASK, UPDATE_TASK, DELETE_TASK
+- **Resource-Level**: Users can only access their own tasks or assigned tasks
 
 ### Data Protection
-- Input sanitization to prevent XSS attacks
-- SQL injection prevention through parameterized queries
-- Rate limiting to prevent abuse
-- Request size limits enforced
-
-## Performance Considerations
-
-### Response Times
-- Target: < 200ms for 95% of requests
-- Timeout: 30 seconds maximum
-- Database query optimization implemented
-
-### Caching
-- User permission data cached for 5 minutes
-- Assignee validation results cached for 1 minute
-- No caching of task creation responses
+- **Encryption in Transit**: TLS 1.3
+- **Encryption at Rest**: AES-256
+- **Data Sanitization**: Input sanitization to prevent XSS and SQL injection
+- **PII Handling**: Personal data encrypted and access logged
 
 ### Rate Limiting
-- 100 requests per minute per authenticated user
-- 10 requests per minute for unauthenticated requests
-- Burst allowance: 20 requests in 10 seconds
-
-## Monitoring and Observability
-
-### Metrics Tracked
-- Request count and response times
-- Error rates by status code
-- Validation failure rates
-- Authentication failure rates
-
-### Logging
-- All requests logged with correlation ID
-- Sensitive data masked in logs
-- Error details logged for debugging
-- Audit trail for compliance
-
-## API Versioning
-
-### Version Strategy
-- URL path versioning: `/api/v1/tasks`
-- Backward compatibility maintained for 2 major versions
-- Deprecation notices provided 6 months before removal
-
-### Version Information
-- Current version: 1.0
-- Supported versions: 1.0
-- Deprecated versions: None
+- **Per User**: 100 requests per minute
+- **Per IP**: 1000 requests per minute
+- **Burst Allowance**: 10 requests above limit
+- **Headers**: Rate limit information in response headers
 
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2024
-**API Specification**: OpenAPI 3.0
-**Contact**: api-team@taskmanagement.com
+## Monitoring and Observability
+
+### Metrics
+- **Request Count**: Total API requests
+- **Response Time**: P50, P95, P99 percentiles
+- **Error Rate**: 4xx and 5xx error percentages
+- **Success Rate**: 2xx response percentage
+
+### Logging
+- **Request Logging**: All requests logged with correlation ID
+- **Error Logging**: Detailed error information
+- **Audit Logging**: All data modifications tracked
+- **Performance Logging**: Slow query identification
+
+### Health Checks
+- **Endpoint**: `/health`
+- **Database Check**: Connection and query test
+- **External Service Check**: Dependency health verification
+- **Response Format**: JSON with component status
+
+---
+
+## Versioning Strategy
+
+### API Versioning
+- **Method**: URL path versioning (/v1/, /v2/)
+- **Backward Compatibility**: Maintained for 2 major versions
+- **Deprecation Notice**: 6 months advance notice
+- **Version Headers**: API version in response headers
+
+### Schema Evolution
+- **Additive Changes**: New optional fields allowed
+- **Breaking Changes**: Require new API version
+- **Field Deprecation**: Gradual removal with warnings
+- **Documentation**: Change log maintained
+
+---
+
+## Testing Strategy
+
+### Contract Testing
+- **Consumer-Driven Contracts**: Pact framework
+- **Schema Validation**: OpenAPI specification validation
+- **Backward Compatibility**: Automated compatibility testing
+
+### API Testing
+- **Functional Testing**: All endpoints and scenarios
+- **Security Testing**: Authentication and authorization
+- **Performance Testing**: Load and stress testing
+- **Error Handling**: All error scenarios validated
+
+---
+
+**Document Control**
+- **Version**: 1.0
+- **Last Updated**: 2024-01-15
+- **Next Review**: 2024-04-15
+- **OpenAPI Spec**: Available at `/api/docs`
