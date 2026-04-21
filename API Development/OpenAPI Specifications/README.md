@@ -1,242 +1,275 @@
-# OpenAPI Specification - Real-Time Task Creation Synchronization API
+# OpenAPI Specifications
 
 ## Overview
 
-This directory contains the complete OpenAPI 3.0.3 specification for the Real-Time Task Creation Synchronization API, automatically generated from the High-Level Design (HLD) document and API Contract Outline.
+This directory contains the OpenAPI specifications for the Task Management API, automatically generated from the High-Level Design (HLD) document and API Contract Outline.
 
 ## Files
 
-### `openapi.yaml`
-Complete OpenAPI specification including:
-- **REST API Endpoints**: Single task creation, bulk creation, validation, and batch status
-- **Request/Response Schemas**: Comprehensive data models with validation rules
-- **Error Handling**: Detailed error responses and status codes
-- **Security Definitions**: JWT authentication and authorization
-- **Rate Limiting**: API rate limits and headers
-- **WebSocket Protocol**: Documentation of real-time messaging (as comments)
+### openapi.yaml
+Complete OpenAPI 3.0.3 specification for the Task Management API, including:
 
-## API Features
+- **POST /api/tasks**: Task creation endpoint with comprehensive validation
+- **GET /health**: Service health check endpoint
+- Complete request/response schemas with validation rules
+- Detailed error handling for all HTTP status codes
+- Security specifications (JWT authentication, RBAC)
+- Rate limiting and compliance documentation
 
-### Core Functionality
-- **Real-time Task Synchronization**: Tasks appear across all connected clients within 500ms
-- **Comprehensive Validation**: Server-side validation with detailed error feedback
-- **Batch Processing**: Support for bulk task creation with async processing
-- **Performance Optimization**: Response time guarantees and rate limiting
+## Key Features
 
-### Security & Compliance
-- **JWT Authentication**: Secure token-based authentication
-- **Role-Based Access Control**: Granular permissions based on user roles
-- **Data Protection**: AES-256 encryption and TLS 1.3 transport security
-- **Audit Logging**: Complete audit trail for compliance
+### Security
+- JWT Bearer token authentication
+- Role-based access control (RBAC)
+- Input validation and sanitization
+- Rate limiting: 100 requests per minute per user
+- TLS 1.3 encryption in transit
+- AES-256 encryption at rest
 
-### Performance Guarantees
-- **Single Task Creation**: < 200ms (95th percentile)
-- **Bulk Task Creation**: < 2s for batches ≤100 tasks
-- **Real-time Sync**: < 500ms across all clients
-- **WebSocket Delivery**: < 50ms message latency
+### Compliance
+- GDPR compliant data handling
+- PCI-DSS security standards
+- ISO 27001 information security management
+- SOC 2 Type II controls
+- Comprehensive audit logging
 
-## Architecture Integration
+### Performance
+- Response time target: < 200ms for 95% of requests
+- Throughput: 1000+ requests per second
+- Auto-scaling capabilities
+- Caching and optimization
 
-### Technology Stack
-- **Frontend**: Angular with TypeScript and reactive forms
-- **Backend**: Spring Boot with comprehensive validation service
-- **Database**: PostgreSQL with unique constraints and performance indexes
-- **Real-time**: WebSocket with Redis pub/sub messaging
-- **Caching**: Redis for validation results and session management
+### Error Handling
+- Standardized error response format
+- Detailed validation error messages
+- Proper HTTP status codes
+- Request correlation IDs for tracing
 
-### ADR Mappings
-This specification implements decisions from the following Architectural Decision Records:
+## API Endpoints
 
-| ADR | Component | Implementation |
-|-----|-----------|----------------|
-| DEMO-1886 | UI/UX | Task creation form with real-time validation |
-| DEMO-1887 | Frontend | Angular reactive forms integration |
-| DEMO-1888 | Backend | Comprehensive validation service |
-| DEMO-1889 | Backend | Task creation and WebSocket broadcasting |
-| DEMO-1890 | Database | Unique constraints and performance optimization |
-| DEMO-1891 | Backend | Batch processing with async support |
-| DEMO-1892 | Testing | E2E test strategy for multi-user scenarios |
-| DEMO-1893 | Documentation | Complete API specification |
+### POST /api/tasks
+Creates a new task with the following features:
+- Comprehensive input validation
+- Real-time synchronization via WebSocket
+- Audit logging for compliance
+- Business rule validation
+- Automatic timestamp generation
 
-## Usage Examples
+**Required Fields:**
+- `title`: Task title (1-255 characters)
 
-### Single Task Creation
-```bash
-curl -X POST "https://api.scib.platform.com/v1/api/boards/{boardId}/tasks" \
-  -H "Authorization: Bearer {jwt_token}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Implement user authentication",
-    "description": "Add JWT-based authentication",
-    "priority": "HIGH",
-    "columnId": "column-uuid",
-    "assigneeId": "user-uuid",
-    "tags": ["authentication", "security"]
-  }'
+**Optional Fields:**
+- `description`: Task description (max 1000 characters)
+- `status`: Task status (TODO, IN_PROGRESS, DONE, CANCELLED)
+- `priority`: Task priority (LOW, MEDIUM, HIGH, CRITICAL)
+- `dueDate`: Due date (ISO 8601 format, must be future date)
+- `assignedTo`: UUID of assigned user
+- `tags`: Array of tags (max 10, alphanumeric only)
+
+### GET /health
+Health check endpoint for monitoring and load balancer configuration.
+
+## Response Codes
+
+- **201 Created**: Task successfully created
+- **400 Bad Request**: Validation errors
+- **401 Unauthorized**: Missing or invalid authentication
+- **403 Forbidden**: Insufficient permissions
+- **409 Conflict**: Business rule violation
+- **422 Unprocessable Entity**: Semantic validation errors
+- **429 Too Many Requests**: Rate limit exceeded
+- **500 Internal Server Error**: Unexpected server error
+- **503 Service Unavailable**: Service temporarily unavailable
+
+## Authentication
+
+All API endpoints (except /health) require JWT authentication:
+
+```
+Authorization: Bearer <jwt_token>
 ```
 
-### Batch Task Creation
-```bash
-curl -X POST "https://api.scib.platform.com/v1/api/boards/{boardId}/tasks/batch" \
-  -H "Authorization: Bearer {jwt_token}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "tasks": [
-      {
-        "title": "Setup CI/CD pipeline",
-        "priority": "HIGH",
-        "columnId": "column-uuid"
-      },
-      {
-        "title": "Write unit tests",
-        "priority": "MEDIUM",
-        "columnId": "column-uuid"
-      }
-    ],
-    "options": {
-      "async": false
-    }
-  }'
-```
-
-### Task Validation
-```bash
-curl -X POST "https://api.scib.platform.com/v1/api/boards/{boardId}/tasks/validate" \
-  -H "Authorization: Bearer {jwt_token}" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Test task",
-    "priority": "LOW",
-    "columnId": "column-uuid"
-  }'
-```
-
-## WebSocket Protocol
-
-### Connection
-```javascript
-const ws = new WebSocket('wss://api.scib.platform.com/ws/boards/{boardId}?token={jwt_token}');
-
-ws.onmessage = (event) => {
-  const message = JSON.parse(event.data);
-  if (message.type === 'TASK_CREATED') {
-    // Handle new task creation
-    updateUI(message.data.task);
-  }
-};
-```
-
-### Message Types
-- **TASK_CREATED**: Single task creation event
-- **TASKS_BATCH_CREATED**: Batch task creation event
-- **CONNECTION_ESTABLISHED**: Connection confirmation
-- **HEARTBEAT**: Keep-alive message
+**Token Properties:**
+- Expiration: 1 hour
+- Algorithm: HS256 or RS256
+- Required claims: sub, iat, exp, permissions
 
 ## Rate Limiting
 
-| Endpoint | Rate Limit | Window |
-|----------|------------|--------|
-| Single Task Creation | 100 requests | per minute |
-| Bulk Task Creation | 10 requests | per minute |
-| Task Validation | 200 requests | per minute |
-| Batch Status Check | 60 requests | per minute |
-| WebSocket Connections | 10 concurrent | per user |
+- **User-based**: 100 requests per minute per authenticated user
+- **IP-based**: 1000 requests per minute per IP address
+- **Burst allowance**: 20 requests
+- **Algorithm**: Sliding window
 
-## Error Handling
+## Request Headers
 
-### Common Error Codes
-- **400 Bad Request**: Validation errors
-- **401 Unauthorized**: Authentication required
-- **403 Forbidden**: Insufficient permissions
-- **404 Not Found**: Resource not found
-- **409 Conflict**: Duplicate task title
-- **429 Too Many Requests**: Rate limit exceeded
-- **500 Internal Server Error**: System error
+### Required
+- `Authorization`: Bearer token
+- `Content-Type`: application/json
+- `Accept`: application/json
 
-### Error Response Format
+### Optional
+- `X-Request-ID`: Unique request identifier for tracing
+- `X-Client-Version`: Client application version
+- `User-Agent`: Client application identifier
+
+## Response Headers
+
+- `X-Request-ID`: Request correlation ID
+- `X-Response-Time`: Processing time in milliseconds
+- `X-Rate-Limit-Remaining`: Remaining requests in window
+- `X-Rate-Limit-Reset`: Rate limit reset timestamp
+- `Location`: URI of created resource (for 201 responses)
+
+## Data Validation
+
+### Input Validation
+- Server-side validation for all inputs
+- XSS prevention through input sanitization
+- SQL injection prevention through parameterized queries
+- Maximum payload size: 1MB
+
+### Business Rules
+- Task title is required and cannot be empty
+- Due date must be in the future if specified
+- Assigned user must exist and be active
+- Tags must be alphanumeric with underscores and hyphens only
+
+## Error Format
+
+All errors follow a standardized format:
+
 ```json
 {
   "error": {
-    "code": "VALIDATION_FAILED",
-    "message": "Request validation failed",
-    "details": [
-      {
-        "field": "title",
-        "code": "REQUIRED",
-        "message": "Title is required"
-      }
-    ],
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message",
+    "details": "Additional error details or array of validation errors",
     "timestamp": "2024-01-15T10:30:00Z",
-    "path": "/api/boards/123/tasks",
-    "correlationId": "abc123-def456-ghi789"
+    "requestId": "req_123456789"
   }
 }
 ```
 
-## Validation Rules
+## Code Examples
 
-### Task Creation Validation
-- **Title**: 1-200 characters, unique per board
-- **Description**: Max 2000 characters
-- **Priority**: Must be LOW, MEDIUM, HIGH, or CRITICAL
-- **Due Date**: Must be future date if provided
-- **Assignee**: Must have board access
-- **Column**: Must exist in the board
-- **Tags**: Max 10 tags, 50 characters each
+### cURL
+```bash
+curl -X POST https://api.taskmanagement.com/api/tasks \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "title": "Complete project documentation",
+    "description": "Create comprehensive documentation",
+    "priority": "HIGH",
+    "tags": ["documentation", "api"]
+  }'
+```
 
-### Batch Validation
-- **Batch Size**: 1-1000 tasks per batch
-- **Async Threshold**: >100 tasks automatically processed async
-- **Validation**: All tasks validated before any are created
-- **Ordering**: Task order maintained across all clients
+### JavaScript
+```javascript
+const response = await fetch('https://api.taskmanagement.com/api/tasks', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    title: 'Complete project documentation',
+    priority: 'HIGH'
+  })
+});
 
-## Monitoring & Observability
+const task = await response.json();
+```
 
-### Performance Metrics
-- API response times with percentile tracking
-- Real-time synchronization latency
-- WebSocket connection health
-- Database query performance
-- Error rates and patterns
+### Python
+```python
+import requests
+
+response = requests.post(
+    'https://api.taskmanagement.com/api/tasks',
+    headers={
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json'
+    },
+    json={
+        'title': 'Complete project documentation',
+        'priority': 'HIGH'
+    }
+)
+
+task = response.json()
+```
+
+## Compliance and Audit
 
 ### Audit Logging
-- All task creation events logged
-- User action attribution
-- IP address and device tracking
-- Correlation IDs for request tracing
-- Compliance audit trails
+All API operations are logged with:
+- User identification
+- Timestamp
+- Request/response data
+- IP address and user agent
+- Correlation ID for tracing
 
-## Compliance & Security
+### Data Retention
+- Audit logs: 7 years
+- Application logs: 90 days
+- Performance metrics: 1 year
 
-### Data Protection
-- **GDPR Compliance**: Data subject rights support
-- **ISO 27001**: Information security management
-- **SOC 2 Type II**: Service organization controls
-- **Data Encryption**: AES-256 at rest, TLS 1.3 in transit
+### GDPR Compliance
+- Data minimization principles
+- Right to erasure support
+- Consent management
+- Data portability
+- Breach notification procedures
 
-### Access Control
-- **JWT Authentication**: Token-based security
-- **RBAC**: Role-based access control
-- **Board Permissions**: Resource-level security
-- **Session Management**: Secure session handling
+## Monitoring and Observability
 
-## Development & Testing
+### Metrics
+- Request count and rate
+- Response time percentiles
+- Error rate by status code
+- Authentication success/failure rate
+- Business metrics (tasks created per hour)
 
-### API Testing
-- Interactive documentation available at `/swagger-ui`
-- Postman collection available for download
-- SDK support for popular programming languages
-- Comprehensive test suite with E2E scenarios
+### Health Checks
+- Application health: GET /health
+- Database connectivity
+- External service dependencies
+- Resource utilization
+
+### Alerting
+- Response time > 500ms
+- Error rate > 1%
+- Authentication failure rate > 5%
+- Rate limit exceeded threshold
+
+## Development and Testing
 
 ### Environment URLs
-- **Production**: `https://api.scib.platform.com/v1`
-- **Staging**: `https://staging-api.scib.platform.com/v1`
-- **Development**: `https://dev-api.scib.platform.com/v1`
+- **Production**: https://api.taskmanagement.com
+- **Staging**: https://staging-api.taskmanagement.com
+- **Development**: https://dev-api.taskmanagement.com
+
+### Testing
+- Unit tests with 80% coverage minimum
+- Integration tests for API endpoints
+- Contract tests using OpenAPI specification
+- Performance tests with load simulation
+- Security tests including penetration testing
+
+## Support and Documentation
+
+- **API Documentation**: https://docs.taskmanagement.com/api
+- **Support Email**: api-support@taskmanagement.com
+- **Status Page**: https://status.taskmanagement.com
+- **Change Log**: https://docs.taskmanagement.com/changelog
 
 ---
 
-**Generated From**: HLD Document and API Contract Outline  
-**Generation Date**: 2024-01-15  
-**API Version**: 1.0.0  
-**OpenAPI Version**: 3.0.3  
-**Compliance**: Enterprise standards validated
+**Generated**: Automatically from HLD and API Contract Outline documents
+**Version**: 1.0.0
+**Last Updated**: 2024
+**Specification Standard**: OpenAPI 3.0.3
