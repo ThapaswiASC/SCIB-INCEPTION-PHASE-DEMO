@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board User Flow Diagram</title>
+    <title>Task Management Dashboard - User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true });
@@ -19,134 +19,143 @@
             max-width: 1200px;
             margin: 0 auto;
         }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
         .mermaid {
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
-        .description {
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .flow-description {
             background: white;
             padding: 20px;
             border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .description h2 {
-            color: #333;
+        .flow-description h2 {
+            color: #007bff;
             margin-top: 0;
         }
-        .description p {
-            color: #666;
-            line-height: 1.6;
+        .flow-description ul {
+            margin: 10px 0;
+            padding-left: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board Application - User Flow Diagram</h1>
+        <h1>Task Management Dashboard - User Flow Diagram</h1>
         
-        <div class="description">
-            <h2>User Flow Overview</h2>
-            <p>This diagram illustrates the complete user journey through the Kanban Board application, from initial access to task creation and management. The flow covers authentication, navigation, task creation with validation, and various user interactions within the system.</p>
+        <div class="flow-description">
+            <h2>Primary User Flows</h2>
+            <ul>
+                <li><strong>Task Creation Flow:</strong> User creates new tasks through modal form with validation</li>
+                <li><strong>Kanban Management:</strong> User views and manages tasks across three columns (To Do, In Progress, Done)</li>
+                <li><strong>Task Interaction:</strong> User clicks, edits, and deletes individual tasks</li>
+                <li><strong>Navigation Flow:</strong> User navigates between dashboard sections and settings</li>
+            </ul>
         </div>
 
         <div class="mermaid">
 flowchart TD
-    Start[User Opens Application]
-    Start --> LoadApp[Load Kanban Board]
-    LoadApp --> CheckAuth{User Authenticated}
-    CheckAuth -->|No| Login[Show Login Screen]
-    CheckAuth -->|Yes| Dashboard[Display Dashboard]
-    Login --> AuthSuccess{Authentication Success}
-    AuthSuccess -->|No| LoginError[Show Login Error]
-    AuthSuccess -->|Yes| Dashboard
-    LoginError --> Login
-    Dashboard --> ViewBoard[View Kanban Board]
-    ViewBoard --> BoardLoaded[Board with Three Columns]
-    BoardLoaded --> TodoColumn[To Do Column]
-    BoardLoaded --> ProgressColumn[In Progress Column]
-    BoardLoaded --> DoneColumn[Done Column]
-    TodoColumn --> ViewTasks[View Existing Tasks]
+    Start[User Opens Dashboard]
+    Start --> LoadDashboard[Load Kanban Board]
+    LoadDashboard --> ViewBoard[View Task Columns]
+    
+    ViewBoard --> TodoColumn[To Do Column]
+    ViewBoard --> ProgressColumn[In Progress Column]
+    ViewBoard --> DoneColumn[Done Column]
+    
+    TodoColumn --> ViewTasks[View Task Cards]
     ProgressColumn --> ViewTasks
     DoneColumn --> ViewTasks
-    ViewTasks --> UserChoice{User Action}
-    UserChoice --> CreateTask[Click Add Task Button]
-    UserChoice --> EditTask[Click Existing Task]
-    UserChoice --> MoveTask[Drag Task Between Columns]
-    UserChoice --> Settings[Click Settings]
-    CreateTask --> OpenModal[Open Task Creation Modal]
-    OpenModal --> InitForm[Initialize Reactive Form]
-    InitForm --> FormFields[Display Form Fields]
-    FormFields --> TitleField[Task Title Input]
-    FormFields --> DescField[Description Textarea]
-    FormFields --> PriorityField[Priority Dropdown]
-    FormFields --> DateField[Due Date Picker]
-    TitleField --> TitleValidation{Title Valid}
-    TitleValidation -->|No| TitleError[Show Title Error]
-    TitleValidation -->|Yes| TitleCounter[Update Character Counter]
-    TitleError --> TitleField
-    TitleCounter --> DescField
-    DescField --> DescValidation{Description Valid}
-    DescValidation -->|No| DescError[Show Description Error]
-    DescValidation -->|Yes| DescCounter[Update Character Counter]
-    DescError --> DescField
-    DescCounter --> PriorityField
-    PriorityField --> PriorityValidation{Priority Selected}
-    PriorityValidation -->|No| PriorityError[Show Priority Error]
-    PriorityValidation -->|Yes| DateField
-    PriorityError --> PriorityField
-    DateField --> DateValidation{Date Valid}
-    DateValidation -->|No| DateError[Show Date Error]
-    DateValidation -->|Yes| FormComplete[Form Complete]
-    DateError --> DateField
-    FormComplete --> SubmitChoice{User Action}
-    SubmitChoice --> SubmitTask[Click Create Task]
-    SubmitChoice --> CancelTask[Click Cancel]
-    CancelTask --> CloseModal[Close Modal]
-    CloseModal --> ViewBoard
-    SubmitTask --> FormValidation{All Fields Valid}
-    FormValidation -->|No| ValidationErrors[Show Validation Errors]
-    FormValidation -->|Yes| ShowLoading[Show Loading Spinner]
-    ValidationErrors --> FormFields
-    ShowLoading --> APICall[Call TaskService.createTask]
-    APICall --> APIResponse{API Response}
-    APIResponse -->|Success| TaskCreated[Task Created Successfully]
-    APIResponse -->|Error| APIError[Show API Error]
-    TaskCreated --> UpdateBoard[Update Kanban Board]
-    UpdateBoard --> ResetForm[Reset Form]
-    ResetForm --> CloseModal
-    APIError --> HideLoading[Hide Loading Spinner]
-    HideLoading --> FormFields
-    EditTask --> TaskDetails[Show Task Details]
-    TaskDetails --> EditForm[Open Edit Form]
-    EditForm --> UpdateTask[Update Task]
-    UpdateTask --> SaveChanges[Save Changes]
-    SaveChanges --> ViewBoard
-    MoveTask --> DragStart[Start Drag Operation]
-    DragStart --> DropZone[Drop in New Column]
+    
+    ViewTasks --> ClickTask[Click on Task]
+    ViewTasks --> DragTask[Drag Task Between Columns]
+    ViewTasks --> AddNewTask[Click Add Task Button]
+    
+    ClickTask --> TaskDetails[View Task Details]
+    TaskDetails --> EditTask[Edit Task]
+    TaskDetails --> DeleteTask[Delete Task]
+    
+    EditTask --> UpdateForm[Fill Update Form]
+    UpdateForm --> ValidateUpdate[Validate Changes]
+    ValidateUpdate --> SaveChanges[Save Task Changes]
+    SaveChanges --> RefreshBoard[Refresh Kanban Board]
+    
+    DeleteTask --> ConfirmDelete[Confirm Deletion]
+    ConfirmDelete --> RemoveTask[Remove Task]
+    RemoveTask --> RefreshBoard
+    
+    DragTask --> DropZone[Drop in New Column]
     DropZone --> UpdateStatus[Update Task Status]
-    UpdateStatus --> APIUpdate[Call Update API]
-    APIUpdate --> RefreshBoard[Refresh Board]
+    UpdateStatus --> RefreshBoard
+    
+    AddNewTask --> OpenModal[Open Task Creation Modal]
+    OpenModal --> FillForm[Fill Task Form]
+    
+    FillForm --> TitleField[Enter Task Title]
+    FillForm --> DescField[Enter Description]
+    FillForm --> PriorityField[Select Priority]
+    FillForm --> DueDateField[Set Due Date]
+    
+    TitleField --> ValidateTitle[Validate Title Required MaxLength 255]
+    DescField --> ValidateDesc[Validate Description MaxLength 2000]
+    PriorityField --> ValidatePriority[Validate Priority Required]
+    DueDateField --> ValidateDate[Validate Future Date Required]
+    
+    ValidateTitle --> UpdateCounter[Update Character Counter]
+    ValidateDesc --> UpdateCounter
+    
+    UpdateCounter --> CheckForm[Check Form Validity]
+    ValidatePriority --> CheckForm
+    ValidateDate --> CheckForm
+    
+    CheckForm --> FormValid{Form Valid?}
+    FormValid -->|Yes| EnableSubmit[Enable Submit Button]
+    FormValid -->|No| ShowErrors[Show Validation Errors]
+    
+    ShowErrors --> FillForm
+    
+    EnableSubmit --> SubmitForm[Click Submit Button]
+    SubmitForm --> ShowLoading[Show Loading Spinner]
+    ShowLoading --> CallAPI[Call Create Task API]
+    
+    CallAPI --> APISuccess{API Success?}
+    APISuccess -->|Yes| TaskCreated[Task Created Successfully]
+    APISuccess -->|No| ShowAPIError[Show API Error Message]
+    
+    TaskCreated --> CloseModal[Close Modal]
+    CloseModal --> ResetForm[Reset Form Fields]
+    ResetForm --> RefreshBoard
+    
+    ShowAPIError --> FillForm
+    
     RefreshBoard --> ViewBoard
-    Settings --> SettingsPanel[Open Settings Panel]
-    SettingsPanel --> ConfigureBoard[Configure Board Settings]
-    ConfigureBoard --> SaveSettings[Save Settings]
-    SaveSettings --> ViewBoard
+    
+    Start --> NavigateSettings[Click Settings Button]
+    NavigateSettings --> SettingsPage[Open Settings Page]
+    SettingsPage --> ConfigureApp[Configure Application]
+    ConfigureApp --> SaveSettings[Save Settings]
+    SaveSettings --> ReturnDashboard[Return to Dashboard]
+    ReturnDashboard --> ViewBoard
         </div>
         
-        <div class="description">
-            <h2>Key User Interactions</h2>
-            <p><strong>Task Creation Flow:</strong> Users can create new tasks by clicking the "Add Task" button, which opens a modal with a reactive form. The form includes real-time validation for title, description, priority, and due date fields.</p>
-            <p><strong>Validation Process:</strong> Each form field has specific validation rules with character counters and error messages. The form prevents submission until all validation requirements are met.</p>
-            <p><strong>Task Management:</strong> Users can view tasks across three columns (To Do, In Progress, Done), edit existing tasks, and drag tasks between columns to update their status.</p>
-            <p><strong>Error Handling:</strong> The system provides comprehensive error handling for both client-side validation and API errors, ensuring users receive clear feedback throughout their interactions.</p>
+        <div class="flow-description">
+            <h2>Key Interaction Points</h2>
+            <ul>
+                <li><strong>Form Validation:</strong> Real-time validation with character counters and error messages</li>
+                <li><strong>API Integration:</strong> Create, Read, Update, Delete operations with loading states</li>
+                <li><strong>Drag and Drop:</strong> Visual feedback for task movement between columns</li>
+                <li><strong>Modal Management:</strong> Task creation modal with proper open/close handling</li>
+                <li><strong>Error Handling:</strong> Comprehensive error display and recovery flows</li>
+            </ul>
         </div>
     </div>
 </body>
