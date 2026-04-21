@@ -1,476 +1,251 @@
-# Sequence Diagram - Task Creation Synchronization System
-
-## Document Information
-- **Version**: 1.0
-- **Date**: 2024-12-19
-- **System**: SCIB Task Management Platform
-- **Story Reference**: DEMO-1841
-- **Generated From**: HLD Document v1.0
-
----
+# Sequence Diagram - Real-Time Task Creation Synchronization System
 
 ## Overview
-This sequence diagram illustrates the real-time task creation synchronization flow across all connected users in the SCIB Task Management System. The diagram shows the complete end-to-end process from task creation to real-time appearance on all user boards within 500ms.
+This sequence diagram illustrates the complete flow of real-time task creation and synchronization across multiple connected clients in the SCIB collaboration platform.
 
----
+## Primary Actors
+- **User A**: Task creator
+- **User B**: Connected team member receiving real-time updates
+- **Angular Frontend**: Client-side application
+- **Spring Boot API**: Backend REST services
+- **WebSocket Handler**: Real-time message broadcasting service
+- **Redis Pub/Sub**: Message broker for real-time events
+- **PostgreSQL Database**: Data persistence layer
 
-## Single Task Creation Sequence
+## Sequence Flow
 
 ```mermaid
 sequenceDiagram
-    participant U1 as User 1 (Creator)
-    participant UI1 as Angular SPA (User 1)
-    participant U2 as User 2 (Observer)
-    participant UI2 as Angular SPA (User 2)
-    participant LB as Load Balancer
+    participant UA as User A (Creator)
+    participant FE_A as Angular Frontend A
     participant API as Spring Boot API
-    participant VS as TaskValidationService
-    participant TCS as TaskCreationService
-    participant DB as PostgreSQL
-    participant Redis as Redis Pub/Sub
     participant WS as WebSocket Handler
-    
-    Note over U1, WS: Single Task Creation Flow
-    
-    %% Task Creation Request
-    U1->>UI1: Fill task creation form
-    UI1->>UI1: Client-side validation
-    UI1->>UI1: Optimistic UI update (show task locally)
-    
-    UI1->>+LB: POST /api/boards/{boardId}/tasks
-    Note right of UI1: Request includes:<br/>- title, description<br/>- assigneeId, priority<br/>- dueDate, tags, columnId
-    
-    LB->>+API: Route request to API instance
-    API->>API: Extract JWT token & validate user
-    API->>API: Check board access permissions
-    
-    %% Validation Phase
-    API->>+VS: validateTask(request)
-    VS->>VS: Validate title uniqueness
-    VS->>VS: Validate assignee permissions
-    VS->>VS: Validate business rules
-    VS-->>-API: ValidationResult (success)
-    
-    %% Task Creation Phase
-    API->>+TCS: createTask(validatedRequest)
-    TCS->>+DB: BEGIN TRANSACTION
-    TCS->>DB: INSERT INTO tasks (...)
-    TCS->>DB: UPDATE task positions
-    TCS->>DB: COMMIT TRANSACTION
-    DB-->>-TCS: Task created with ID
-    
-    %% Event Publishing
-    TCS->>+Redis: PUBLISH task_created event
-    Note right of TCS: Event payload:<br/>- boardId, taskId<br/>- complete task metadata<br/>- creator information
-    Redis-->>-TCS: Event published
-    
-    TCS-->>-API: Task creation result
-    API-->>-LB: 201 Created + Task object
-    LB-->>-UI1: Task creation response
-    
-    UI1->>UI1: Update optimistic UI with server response
-    UI1->>U1: Show success notification
-    
-    %% Real-time Broadcasting
-    Redis->>+WS: Notify task_created event
-    WS->>WS: Identify connected clients for boardId
-    
-    %% Broadcast to User 1 (Creator)
-    WS->>UI1: WebSocket: TASK_CREATED event
-    UI1->>UI1: Confirm optimistic update
-    UI1->>U1: Visual confirmation (green border)
-    
-    %% Broadcast to User 2 (Observer)
-    WS->>UI2: WebSocket: TASK_CREATED event
-    UI2->>UI2: Add task to board with animation
-    UI2->>U2: Task appears with fade-in effect
-    
-    WS-->>-Redis: Broadcasting complete
-    
-    Note over U1, WS: End-to-end latency target: < 500ms
-```
-
----
-
-## Batch Task Creation Sequence
-
-```mermaid
-sequenceDiagram
-    participant U1 as User 1 (Creator)
-    participant UI1 as Angular SPA
-    participant API as Spring Boot API
-    participant VS as TaskValidationService
-    participant TCS as TaskCreationService
-    participant DB as PostgreSQL
     participant Redis as Redis Pub/Sub
-    participant WS as WebSocket Handler
-    participant U2 as User 2 (Observer)
-    participant UI2 as Angular SPA (User 2)
-    
-    Note over U1, UI2: Batch Task Creation Flow (up to 1000 tasks)
-    
-    %% Batch Request
-    U1->>UI1: Submit batch task creation
-    UI1->>+API: POST /api/boards/{boardId}/tasks/batch
-    Note right of UI1: Batch payload:<br/>- tasks[] array<br/>- options (validateOnly, continueOnError)
-    
-    API->>API: Validate batch size (max 1000)
-    API->>API: Check user permissions
-    
-    %% Batch Validation
-    loop For each task in batch
-        API->>+VS: validateTask(taskRequest)
-        VS->>VS: Validate individual task
-        VS-->>-API: ValidationResult
-    end
-    
-    API->>API: Aggregate validation results
-    
-    alt All tasks valid
-        %% Batch Creation
-        API->>+TCS: createTasksBatch(validatedTasks)
-        TCS->>+DB: BEGIN TRANSACTION
-        
-        loop For each validated task
-            TCS->>DB: INSERT INTO tasks
-        end
-        
-        TCS->>DB: UPDATE positions for all tasks
-        TCS->>DB: COMMIT TRANSACTION
-        DB-->>-TCS: Batch creation complete
-        
-        %% Batch Event Publishing
-        TCS->>+Redis: PUBLISH tasks_batch_created event
-        Note right of TCS: Batch event includes:<br/>- batchId, boardId<br/>- all created tasks<br/>- processing metadata
-        Redis-->>-TCS: Batch event published
-        
-        TCS-->>-API: BatchCreationResult (success)
-        API-->>-UI1: 201 Created + Batch result
-        
-        %% Real-time Broadcasting
-        Redis->>+WS: Notify tasks_batch_created event
-        WS->>WS: Identify connected clients
-        
-        %% Broadcast to all connected users
-        par Broadcast to Creator
-            WS->>UI1: WebSocket: TASKS_BATCH_CREATED
-            UI1->>UI1: Update UI with all tasks
-            UI1->>U1: Show batch success notification
-        and Broadcast to Observers
-            WS->>UI2: WebSocket: TASKS_BATCH_CREATED
-            UI2->>UI2: Add all tasks with staggered animation
-            UI2->>U2: Tasks appear with sequential fade-in
-        end
-        
-        WS-->>-Redis: Broadcasting complete
-        
-    else Validation failures
-        API-->>UI1: 400 Bad Request + Validation errors
-        UI1->>UI1: Display validation errors
-        UI1->>U1: Show error messages
-        
-        Note over API, UI1: No WebSocket broadcast on validation failure
-    end
-    
-    Note over U1, UI2: Batch processing target: < 2000ms for 100 tasks
-```
+    participant DB as PostgreSQL DB
+    participant FE_B as Angular Frontend B
+    participant UB as User B (Viewer)
 
----
-
-## Task Validation Sequence
-
-```mermaid
-sequenceDiagram
-    participant UI as Angular SPA
-    participant API as Spring Boot API
-    participant VS as TaskValidationService
-    participant DB as PostgreSQL
-    participant Cache as Redis Cache
-    
-    Note over UI, Cache: Real-time Task Validation Flow
-    
-    %% Real-time Validation (as user types)
-    UI->>UI: User types in task title field
-    UI->>UI: Debounce input (300ms delay)
-    
-    UI->>+API: POST /api/boards/{boardId}/tasks/validate
-    Note right of UI: Validation request:<br/>- partial task data<br/>- field-level validation
-    
-    API->>API: Validate request format
-    API->>+VS: validateTaskData(request)
-    
-    %% Check cached validation results
-    VS->>+Cache: GET validation_cache:{boardId}:{title}
-    Cache-->>-VS: Cache miss/hit
-    
-    alt Cache miss - perform validation
-        VS->>+DB: SELECT COUNT(*) FROM tasks WHERE board_id = ? AND title = ?
-        DB-->>-VS: Title uniqueness result
-        
-        VS->>VS: Validate other business rules
-        VS->>VS: Check assignee permissions
-        VS->>VS: Validate date constraints
-        
-        VS->>+Cache: SET validation_cache:{boardId}:{title} (TTL: 60s)
-        Cache-->>-VS: Cached
-        
-    else Cache hit
-        VS->>VS: Use cached validation result
-    end
-    
-    VS-->>-API: ValidationResult with errors/warnings
-    API-->>-UI: 200 OK + Validation response
-    
-    alt Validation successful
-        UI->>UI: Show green checkmark
-        UI->>UI: Enable submit button
-    else Validation errors
-        UI->>UI: Show red error messages
-        UI->>UI: Disable submit button
-        UI->>UI: Highlight invalid fields
-    end
-    
-    Note over UI, Cache: Validation response target: < 100ms
-```
-
----
-
-## WebSocket Connection and Event Handling
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant UI as Angular SPA
-    participant LB as Load Balancer
-    participant WS as WebSocket Handler
-    participant Auth as Auth Service
-    participant Redis as Redis Pub/Sub
-    
-    Note over U, Redis: WebSocket Connection and Event Flow
+    Note over UA, UB: Real-Time Task Creation Synchronization Flow
     
     %% WebSocket Connection Establishment
-    U->>UI: Navigate to board page
-    UI->>UI: Get JWT token from storage
-    
-    UI->>+LB: WebSocket connection request
-    Note right of UI: WSS connection:<br/>wss://api.scib.com/ws/boards/{boardId}<br/>?token={jwt_token}
-    
-    LB->>+WS: Route to WebSocket handler
-    WS->>+Auth: Validate JWT token
-    Auth-->>-WS: Token validation result
-    
-    alt Token valid
-        WS->>WS: Store connection in session map
-        WS->>+Redis: SUBSCRIBE to board:{boardId} channel
-        Redis-->>-WS: Subscription confirmed
-        
-        WS-->>-LB: Connection established
-        LB-->>-UI: WebSocket connection ready
-        
-        WS->>UI: CONNECTION_ESTABLISHED event
-        Note right of WS: Event includes:<br/>- sessionId<br/>- userId<br/>- boardId
-        
-        UI->>UI: Update connection status (green indicator)
-        UI->>U: Show "Connected" status
-        
-    else Token invalid
-        WS-->>LB: Connection rejected
-        LB-->>UI: WebSocket error
-        
-        WS->>UI: CONNECTION_ERROR event
-        UI->>UI: Show reconnection dialog
-        UI->>U: Prompt for re-authentication
+    rect rgb(240, 248, 255)
+        Note over FE_A, FE_B: WebSocket Connection Setup
+        FE_A->>+WS: Connect WebSocket /ws/boards/{boardId}
+        WS->>FE_A: CONNECTION_ESTABLISHED {sessionId, permissions}
+        FE_B->>+WS: Connect WebSocket /ws/boards/{boardId}
+        WS->>FE_B: CONNECTION_ESTABLISHED {sessionId, permissions}
+        WS->>Redis: Subscribe to board:{boardId}:tasks channel
     end
-    
-    %% Event Handling Loop
-    loop WebSocket Event Processing
-        Redis->>WS: Event notification (task_created, etc.)
-        WS->>WS: Process event and identify recipients
+
+    %% Task Creation Process
+    rect rgb(255, 248, 240)
+        Note over UA, DB: Task Creation and Validation
+        UA->>FE_A: Fill task creation form
+        FE_A->>FE_A: Client-side validation
         
-        alt User is connected to target board
-            WS->>UI: Broadcast event to client
-            UI->>UI: Process event and update UI
-            UI->>U: Show real-time update
-        else User not connected to board
-            WS->>WS: Skip broadcast for this client
+        %% Real-time validation
+        FE_A->>+API: POST /api/boards/{boardId}/tasks/validate
+        API->>+DB: Check title uniqueness
+        DB-->>-API: Validation result
+        API-->>-FE_A: Validation response {valid: true/false, errors: []}
+        FE_A->>FE_A: Update form validation state
+        
+        %% Task submission
+        UA->>FE_A: Submit task (Ctrl+Enter)
+        FE_A->>FE_A: Optimistic UI update
+        FE_A->>+API: POST /api/boards/{boardId}/tasks
+        
+        Note over API: Task Creation Service Processing
+        API->>API: Validate JWT token & permissions
+        API->>API: Server-side validation
+        API->>+DB: BEGIN TRANSACTION
+        DB->>DB: Check unique constraint (board_id, title)
+        DB->>DB: INSERT task with generated UUID
+        DB->>DB: Update position sequence
+        DB-->>-API: Task created {id, position, timestamps}
+        API->>API: Generate task response with user details
+    end
+
+    %% Real-time Broadcasting
+    rect rgb(240, 255, 240)
+        Note over API, UB: Real-time Event Broadcasting
+        API->>+Redis: PUBLISH board:{boardId}:tasks TASK_CREATED event
+        Redis->>+WS: Notify subscribers of TASK_CREATED event
+        
+        %% Response to creator
+        API-->>-FE_A: 201 Created - Task response with metadata
+        FE_A->>FE_A: Replace optimistic update with server data
+        FE_A->>UA: Show success notification
+        
+        %% Broadcast to all connected clients
+        WS->>WS: Process TASK_CREATED event
+        WS->>WS: Filter by board permissions
+        WS->>FE_A: WebSocket: TASK_CREATED {task, createdBy, metadata}
+        WS->>FE_B: WebSocket: TASK_CREATED {task, createdBy, metadata}
+        
+        %% Client-side real-time updates
+        FE_A->>FE_A: Confirm server sync (no duplicate)
+        FE_B->>FE_B: Add new task to board
+        FE_B->>FE_B: Animate task appearance
+        FE_B->>UB: Show real-time notification
+        
+        Note over FE_A, FE_B: Task synchronized across all clients within 500ms
+    end
+
+    %% Error Handling Scenario
+    rect rgb(255, 240, 240)
+        Note over UA, FE_A: Error Handling Flow
+        alt Validation Error
+            API->>DB: Constraint violation (duplicate title)
+            DB-->>API: UNIQUE_VIOLATION error
+            API-->>FE_A: 409 Conflict - Duplicate title error
+            FE_A->>FE_A: Revert optimistic update
+            FE_A->>FE_A: Show specific error message
+            FE_A->>UA: Display validation error
+            Note over API, Redis: No event published for failed creation
+        else System Error
+            API->>API: Internal server error
+            API-->>FE_A: 500 Internal Server Error
+            FE_A->>FE_A: Revert optimistic update
+            FE_A->>FE_A: Show generic error message
+            FE_A->>UA: Display retry option
         end
     end
-    
-    %% Connection Cleanup
-    U->>UI: Navigate away or close browser
-    UI->>WS: WebSocket disconnect
-    WS->>WS: Remove from session map
-    WS->>Redis: UNSUBSCRIBE from board channel
-    WS->>WS: Clean up resources
-    
-    Note over U, Redis: Connection management with automatic cleanup
-```
 
----
-
-## Error Handling and Recovery Sequence
-
-```mermaid
-sequenceDiagram
-    participant UI as Angular SPA
-    participant API as Spring Boot API
-    participant VS as TaskValidationService
-    participant TCS as TaskCreationService
-    participant DB as PostgreSQL
-    participant WS as WebSocket Handler
-    
-    Note over UI, WS: Error Handling and Recovery Flow
-    
-    %% Task Creation with Validation Error
-    UI->>+API: POST /api/boards/{boardId}/tasks (invalid data)
-    API->>+VS: validateTask(request)
-    VS->>VS: Detect validation errors
-    VS-->>-API: ValidationResult (errors)
-    
-    API-->>-UI: 400 Bad Request + Detailed errors
-    Note right of API: Error response includes:<br/>- error code<br/>- field-specific messages<br/>- timestamp, requestId
-    
-    UI->>UI: Revert optimistic UI update
-    UI->>UI: Display field-specific errors
-    UI->>UI: Highlight invalid fields
-    
-    %% Task Creation with Database Error
-    UI->>+API: POST /api/boards/{boardId}/tasks (valid data)
-    API->>+VS: validateTask(request)
-    VS-->>-API: ValidationResult (success)
-    
-    API->>+TCS: createTask(request)
-    TCS->>+DB: BEGIN TRANSACTION
-    TCS->>DB: INSERT INTO tasks
-    DB-->>-TCS: Database constraint violation
-    
-    TCS->>DB: ROLLBACK TRANSACTION
-    TCS-->>-API: TaskCreationException
-    
-    API-->>-UI: 409 Conflict + Error details
-    UI->>UI: Revert optimistic update
-    UI->>UI: Show error notification
-    
-    %% WebSocket Connection Failure
-    WS->>UI: Connection lost (network issue)
-    UI->>UI: Detect connection loss
-    UI->>UI: Show "Reconnecting..." status
-    
-    loop Reconnection attempts (exponential backoff)
-        UI->>WS: Attempt reconnection
-        alt Reconnection successful
-            WS->>UI: CONNECTION_ESTABLISHED
-            UI->>UI: Update status to "Connected"
-            UI->>API: Sync missed updates
-            leave loop
-        else Reconnection failed
-            UI->>UI: Wait (backoff delay)
+    %% Bulk Task Creation Flow
+    rect rgb(248, 240, 255)
+        Note over UA, UB: Bulk Task Creation (Optional)
+        UA->>FE_A: Initiate bulk task creation
+        FE_A->>+API: POST /api/boards/{boardId}/tasks/batch
+        
+        alt Small Batch (≤100 tasks)
+            API->>API: Synchronous processing
+            loop For each task
+                API->>DB: Create task
+                API->>Redis: Publish TASK_CREATED event
+            end
+            API-->>FE_A: 201 Created - Batch response with all tasks
+        else Large Batch (>100 tasks)
+            API->>API: Asynchronous processing
+            API-->>FE_A: 202 Accepted - Batch processing started
+            API->>API: Background batch processing
+            loop For each completed task
+                API->>Redis: Publish TASK_CREATED event
+                WS->>FE_A: WebSocket: TASK_CREATED
+                WS->>FE_B: WebSocket: TASK_CREATED
+            end
         end
     end
-    
-    %% Service Unavailable Error
-    UI->>+API: POST /api/boards/{boardId}/tasks
-    API-->>-UI: 503 Service Unavailable
-    
-    UI->>UI: Show "Service temporarily unavailable"
-    UI->>UI: Enable retry button
-    UI->>UI: Queue request for retry
-    
-    Note over UI, WS: Graceful error handling with user feedback
+
+    %% Connection Recovery
+    rect rgb(245, 245, 245)
+        Note over FE_B, WS: Connection Recovery Scenario
+        FE_B->>FE_B: Detect WebSocket disconnection
+        FE_B->>+WS: Reconnect WebSocket
+        WS->>FE_B: CONNECTION_ESTABLISHED
+        WS->>FE_B: Replay missed messages (if any)
+        FE_B->>FE_B: Sync board state
+    end
 ```
 
----
-
-## Performance and Monitoring Sequence
-
-```mermaid
-sequenceDiagram
-    participant Mon as Monitoring System
-    participant API as Spring Boot API
-    participant DB as PostgreSQL
-    participant Redis as Redis Pub/Sub
-    participant WS as WebSocket Handler
-    participant Alert as Alerting System
-    
-    Note over Mon, Alert: Performance Monitoring and Alerting Flow
-    
-    %% Performance Metrics Collection
-    loop Every 30 seconds
-        Mon->>API: Collect metrics (response time, throughput)
-        API-->>Mon: Performance metrics
-        
-        Mon->>DB: Collect database metrics (query time, connections)
-        DB-->>Mon: Database performance data
-        
-        Mon->>Redis: Collect pub/sub metrics (latency, throughput)
-        Redis-->>Mon: Redis performance data
-        
-        Mon->>WS: Collect WebSocket metrics (connections, messages)
-        WS-->>Mon: WebSocket metrics
-    end
-    
-    %% Performance Threshold Monitoring
-    Mon->>Mon: Analyze metrics against thresholds
-    
-    alt Performance degradation detected
-        Mon->>+Alert: Trigger performance alert
-        Note right of Mon: Alert conditions:<br/>- API response time > 500ms<br/>- Task sync latency > 1000ms<br/>- Error rate > 1%
-        
-        Alert->>Alert: Send notifications to operations team
-        Alert->>API: Request detailed diagnostics
-        API-->>Alert: Diagnostic information
-        Alert-->>-Mon: Alert processed
-        
-    else Performance within acceptable range
-        Mon->>Mon: Continue monitoring
-    end
-    
-    %% SLA Compliance Tracking
-    Mon->>Mon: Calculate SLA metrics
-    Note right of Mon: SLA targets:<br/>- 99.9% availability<br/>- < 500ms task synchronization<br/>- < 200ms API response time
-    
-    Mon->>Mon: Generate SLA reports
-    
-    Note over Mon, Alert: Continuous performance monitoring and alerting
-```
-
----
-
-## Sequence Diagram Summary
-
-### Key Flows Covered
-1. **Single Task Creation**: Complete end-to-end flow with real-time synchronization
-2. **Batch Task Creation**: Bulk processing with transaction management
-3. **Task Validation**: Real-time validation with caching optimization
-4. **WebSocket Management**: Connection establishment and event broadcasting
-5. **Error Handling**: Comprehensive error scenarios and recovery mechanisms
-6. **Performance Monitoring**: Continuous monitoring and alerting
+## Timing Requirements
 
 ### Performance Targets
-- **Task Creation**: < 200ms API response time
-- **Real-time Sync**: < 500ms end-to-end latency
-- **Batch Processing**: < 2000ms for 100 tasks
-- **Validation**: < 100ms response time
-- **WebSocket Events**: < 50ms broadcast latency
+- **API Response Time**: < 200ms for task creation
+- **Real-time Sync**: < 500ms from creation to appearance on all clients
+- **WebSocket Message Delivery**: < 50ms latency
+- **Database Transaction**: < 100ms for task insertion
 
-### Architecture Decision Records (ADRs) Implemented
-- **DEMO-1887**: Optimistic UI updates with server confirmation
-- **DEMO-1888**: Comprehensive validation service
-- **DEMO-1889**: Real-time synchronization architecture
-- **DEMO-1890**: Database constraints and transaction management
-- **DEMO-1891**: Batch processing capabilities
-- **DEMO-1892**: Error handling and recovery mechanisms
+### Sequence Timing Analysis
+1. **Form Validation**: 50-100ms
+2. **API Processing**: 100-150ms
+3. **Database Transaction**: 50-100ms
+4. **Redis Pub/Sub**: 10-20ms
+5. **WebSocket Broadcast**: 20-50ms
+6. **Client UI Update**: 50-100ms
 
-### Compliance and Security
-- JWT-based authentication for all operations
-- Role-based access control enforcement
-- Comprehensive audit logging
-- Input validation and sanitization
-- Secure WebSocket connections (WSS)
+**Total End-to-End Time**: 280-520ms (within 500ms requirement)
+
+## Error Scenarios Covered
+
+### 1. Validation Errors
+- **Client-side validation**: Immediate feedback
+- **Server-side validation**: Detailed error responses
+- **Duplicate title detection**: 409 Conflict with existing task ID
+- **Permission errors**: 403 Forbidden responses
+
+### 2. System Errors
+- **Database connection failures**: Circuit breaker pattern
+- **Redis connectivity issues**: Graceful degradation
+- **WebSocket disconnections**: Automatic reconnection with message replay
+- **Network timeouts**: Retry mechanisms with exponential backoff
+
+### 3. Concurrency Handling
+- **Optimistic locking**: Version-based conflict resolution
+- **Database constraints**: Unique constraint enforcement
+- **Race conditions**: Transaction isolation levels
+- **Message ordering**: Redis pub/sub ordering guarantees
+
+## Security Considerations
+
+### Authentication & Authorization
+- **JWT Token Validation**: Every API request validated
+- **WebSocket Authentication**: Token-based connection authentication
+- **Board-level Permissions**: User access validation per board
+- **Resource Authorization**: Task creation permissions checked
+
+### Data Protection
+- **Input Sanitization**: XSS and injection prevention
+- **Audit Logging**: All actions logged with user attribution
+- **Encrypted Communication**: TLS 1.3 for all connections
+- **Session Management**: Secure session handling
+
+## Integration Points
+
+### External Systems
+- **Authentication Service**: User verification and permissions
+- **Notification Service**: Email/push notifications for task creation
+- **Audit Service**: Compliance and activity logging
+- **Monitoring Service**: Performance metrics and alerting
+
+### Internal Components
+- **User Service**: User profile and preference data
+- **Board Service**: Board configuration and access control
+- **File Service**: Task attachment handling
+- **Search Service**: Task indexing for search functionality
+
+## Scalability Considerations
+
+### Horizontal Scaling
+- **Stateless API Design**: Multiple API instances supported
+- **WebSocket Session Affinity**: Sticky sessions for WebSocket connections
+- **Redis Clustering**: Distributed pub/sub for high availability
+- **Database Read Replicas**: Query load distribution
+
+### Performance Optimization
+- **Connection Pooling**: Database connection management
+- **Message Batching**: Efficient WebSocket message delivery
+- **Caching Strategy**: Validation result caching
+- **Async Processing**: Non-blocking operations where possible
+
+## Monitoring & Observability
+
+### Key Metrics
+- **Task Creation Rate**: Tasks created per second
+- **Synchronization Latency**: End-to-end sync time
+- **WebSocket Connection Count**: Active real-time connections
+- **Error Rates**: Validation and system error percentages
+- **Database Performance**: Query execution times
+
+### Distributed Tracing
+- **Correlation IDs**: Request tracing across services
+- **Span Tracking**: Component-level performance analysis
+- **Error Attribution**: Error source identification
+- **Performance Bottlenecks**: Slow operation identification
 
 ---
 
-**Document Status**: Final v1.0  
-**Generated From**: HLD Document v1.0  
-**Compliance**: TOGAF, C4 Model, Enterprise Standards  
-**Last Updated**: 2024-12-19
+**Diagram Version**: 1.0  
+**Last Updated**: 2024  
+**Prepared By**: Senior Solution Architect  
+**Compliance**: TOGAF, C4 Model, Enterprise Architecture Standards
