@@ -1,35 +1,38 @@
 # API Contract Outline
-## Task Creation Synchronization System
+# Real-Time Task Creation Synchronization System
 
-### Document Information
-- **Version**: 1.0
-- **Date**: 2024-12-19
-- **Related Story**: DEMO-1841
-- **Base URL**: `https://api.scib.com/v1`
+## Overview
+This document outlines the API contract for the Real-Time Task Creation Synchronization System, including REST endpoints, WebSocket protocols, request/response schemas, and error handling specifications.
+
+## Base Configuration
+- **Base URL**: `https://api.scib.platform.com/v1`
+- **Authentication**: Bearer Token (JWT)
+- **Content-Type**: `application/json`
+- **API Version**: v1
 
 ---
 
-## 1. Authentication
+## REST API Endpoints
 
-### Headers Required
+### 1. Single Task Creation
+
+#### Endpoint
+```
+POST /api/boards/{boardId}/tasks
+```
+
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| boardId | UUID | Yes | Unique identifier of the board |
+
+#### Request Headers
 ```
 Authorization: Bearer {jwt_token}
 Content-Type: application/json
-X-Request-ID: {unique_request_id}
 ```
 
----
-
-## 2. Task Creation Endpoints
-
-### 2.1 Create Single Task
-
-**Endpoint**: `POST /api/boards/{boardId}/tasks`
-
-**Path Parameters**:
-- `boardId` (string, required): UUID of the target board
-
-**Request Schema**:
+#### Request Schema
 ```json
 {
   "title": {
@@ -49,7 +52,7 @@ X-Request-ID: {unique_request_id}
     "type": "string",
     "format": "uuid",
     "required": false,
-    "description": "UUID of the user assigned to this task"
+    "description": "UUID of the assigned user"
   },
   "priority": {
     "type": "string",
@@ -59,9 +62,15 @@ X-Request-ID: {unique_request_id}
   },
   "dueDate": {
     "type": "string",
-    "format": "date-time",
+    "format": "date",
     "required": false,
-    "description": "ISO8601 datetime, must be in the future"
+    "description": "Task due date (must be future date)"
+  },
+  "columnId": {
+    "type": "string",
+    "format": "uuid",
+    "required": true,
+    "description": "UUID of the target column"
   },
   "tags": {
     "type": "array",
@@ -72,150 +81,225 @@ X-Request-ID: {unique_request_id}
     "maxItems": 10,
     "required": false,
     "description": "Array of task tags"
+  }
+}
+```
+
+#### Request Example
+```json
+{
+  "title": "Implement user authentication",
+  "description": "Add JWT-based authentication to the API endpoints with proper validation and error handling",
+  "assigneeId": "123e4567-e89b-12d3-a456-426614174000",
+  "priority": "HIGH",
+  "dueDate": "2024-12-31",
+  "columnId": "987fcdeb-51a2-43d1-b789-123456789abc",
+  "tags": ["authentication", "security", "backend"]
+}
+```
+
+#### Response Schema (Success - 201 Created)
+```json
+{
+  "id": {
+    "type": "string",
+    "format": "uuid",
+    "description": "Generated task UUID"
+  },
+  "title": {
+    "type": "string",
+    "description": "Task title"
+  },
+  "description": {
+    "type": "string",
+    "description": "Task description"
+  },
+  "assignee": {
+    "type": "object",
+    "properties": {
+      "id": {"type": "string", "format": "uuid"},
+      "name": {"type": "string"},
+      "email": {"type": "string", "format": "email"}
+    },
+    "description": "Assigned user details"
+  },
+  "priority": {
+    "type": "string",
+    "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+  },
+  "dueDate": {
+    "type": "string",
+    "format": "date"
   },
   "columnId": {
     "type": "string",
-    "required": true,
-    "description": "ID of the column where the task should be placed"
+    "format": "uuid"
+  },
+  "position": {
+    "type": "integer",
+    "description": "Task position within the column"
+  },
+  "tags": {
+    "type": "array",
+    "items": {"type": "string"}
+  },
+  "createdBy": {
+    "type": "object",
+    "properties": {
+      "id": {"type": "string", "format": "uuid"},
+      "name": {"type": "string"},
+      "email": {"type": "string", "format": "email"}
+    }
+  },
+  "createdAt": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Task creation timestamp"
+  },
+  "updatedAt": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Last update timestamp"
   }
 }
 ```
 
-**Example Request**:
+#### Response Example (Success)
 ```json
 {
+  "id": "550e8400-e29b-41d4-a716-446655440000",
   "title": "Implement user authentication",
-  "description": "Add JWT-based authentication to the API endpoints",
-  "assigneeId": "550e8400-e29b-41d4-a716-446655440000",
+  "description": "Add JWT-based authentication to the API endpoints with proper validation and error handling",
+  "assignee": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "name": "John Doe",
+    "email": "john.doe@company.com"
+  },
   "priority": "HIGH",
-  "dueDate": "2024-12-25T10:00:00Z",
-  "tags": ["backend", "security", "authentication"],
-  "columnId": "todo"
-}
-```
-
-**Success Response (201 Created)**:
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "title": "Implement user authentication",
-  "description": "Add JWT-based authentication to the API endpoints",
-  "boardId": "550e8400-e29b-41d4-a716-446655440001",
-  "assigneeId": "550e8400-e29b-41d4-a716-446655440000",
-  "assigneeName": "John Doe",
-  "priority": "HIGH",
-  "dueDate": "2024-12-25T10:00:00Z",
-  "tags": ["backend", "security", "authentication"],
-  "columnId": "todo",
+  "dueDate": "2024-12-31",
+  "columnId": "987fcdeb-51a2-43d1-b789-123456789abc",
   "position": 1,
-  "createdAt": "2024-12-19T14:30:00Z",
-  "createdBy": "550e8400-e29b-41d4-a716-446655440002",
-  "createdByName": "Jane Smith",
-  "updatedAt": "2024-12-19T14:30:00Z"
+  "tags": ["authentication", "security", "backend"],
+  "createdBy": {
+    "id": "456e7890-e12c-34d5-a678-901234567890",
+    "name": "Jane Smith",
+    "email": "jane.smith@company.com"
+  },
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
 }
 ```
 
-**Error Responses**:
+#### Error Handling
 
-**400 Bad Request - Validation Errors**:
+**400 Bad Request - Validation Errors**
 ```json
 {
   "error": {
-    "code": "VALIDATION_ERROR",
+    "code": "VALIDATION_FAILED",
     "message": "Request validation failed",
-    "details": {
-      "title": ["Title cannot be empty", "Title must be unique within the board"],
-      "priority": ["Priority must be one of: LOW, MEDIUM, HIGH, CRITICAL"],
-      "dueDate": ["Due date must be in the future"]
-    },
-    "timestamp": "2024-12-19T14:30:00Z",
-    "requestId": "req-123456"
+    "details": [
+      {
+        "field": "title",
+        "code": "REQUIRED",
+        "message": "Title is required"
+      },
+      {
+        "field": "title",
+        "code": "MAX_LENGTH_EXCEEDED",
+        "message": "Title must not exceed 200 characters"
+      },
+      {
+        "field": "dueDate",
+        "code": "INVALID_DATE",
+        "message": "Due date must be a future date"
+      }
+    ],
+    "timestamp": "2024-01-15T10:30:00Z",
+    "path": "/api/boards/123/tasks"
   }
 }
 ```
 
-**401 Unauthorized**:
+**409 Conflict - Duplicate Title**
 ```json
 {
   "error": {
-    "code": "UNAUTHORIZED",
-    "message": "Authentication required",
-    "timestamp": "2024-12-19T14:30:00Z",
-    "requestId": "req-123456"
-  }
-}
-```
-
-**403 Forbidden**:
-```json
-{
-  "error": {
-    "code": "ACCESS_DENIED",
-    "message": "Insufficient permissions to create tasks in this board",
-    "timestamp": "2024-12-19T14:30:00Z",
-    "requestId": "req-123456"
-  }
-}
-```
-
-**404 Not Found**:
-```json
-{
-  "error": {
-    "code": "BOARD_NOT_FOUND",
-    "message": "Board with ID 550e8400-e29b-41d4-a716-446655440001 not found",
-    "timestamp": "2024-12-19T14:30:00Z",
-    "requestId": "req-123456"
-  }
-}
-```
-
-**409 Conflict**:
-```json
-{
-  "error": {
-    "code": "DUPLICATE_TITLE",
+    "code": "DUPLICATE_TASK_TITLE",
     "message": "A task with this title already exists in the board",
-    "timestamp": "2024-12-19T14:30:00Z",
-    "requestId": "req-123456"
+    "details": {
+      "field": "title",
+      "value": "Implement user authentication",
+      "existingTaskId": "existing-task-uuid"
+    },
+    "timestamp": "2024-01-15T10:30:00Z",
+    "path": "/api/boards/123/tasks"
   }
 }
 ```
 
-**422 Unprocessable Entity**:
+**403 Forbidden - Insufficient Permissions**
 ```json
 {
   "error": {
-    "code": "BUSINESS_RULE_VIOLATION",
-    "message": "Assignee does not have access to this board",
-    "timestamp": "2024-12-19T14:30:00Z",
-    "requestId": "req-123456"
+    "code": "INSUFFICIENT_PERMISSIONS",
+    "message": "User does not have permission to create tasks in this board",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "path": "/api/boards/123/tasks"
   }
 }
 ```
 
-**500 Internal Server Error**:
+**404 Not Found - Board/Column Not Found**
 ```json
 {
   "error": {
-    "code": "INTERNAL_ERROR",
-    "message": "An unexpected error occurred while creating the task",
-    "timestamp": "2024-12-19T14:30:00Z",
-    "requestId": "req-123456"
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "Board or column not found",
+    "details": {
+      "resourceType": "board",
+      "resourceId": "invalid-board-id"
+    },
+    "timestamp": "2024-01-15T10:30:00Z",
+    "path": "/api/boards/123/tasks"
+  }
+}
+```
+
+**500 Internal Server Error**
+```json
+{
+  "error": {
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "An unexpected error occurred while processing the request",
+    "correlationId": "abc123-def456-ghi789",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "path": "/api/boards/123/tasks"
   }
 }
 ```
 
 ---
 
-### 2.2 Create Multiple Tasks (Batch)
+### 2. Bulk Task Creation
 
-**Endpoint**: `POST /api/boards/{boardId}/tasks/batch`
+#### Endpoint
+```
+POST /api/boards/{boardId}/tasks/batch
+```
 
-**Path Parameters**:
-- `boardId` (string, required): UUID of the target board
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| boardId | UUID | Yes | Unique identifier of the board |
 
-**Request Schema**:
+#### Request Headers
+```
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+```
+
+#### Request Schema
 ```json
 {
   "tasks": {
@@ -225,581 +309,623 @@ X-Request-ID: {unique_request_id}
     },
     "minItems": 1,
     "maxItems": 1000,
-    "required": true,
-    "description": "Array of tasks to create"
+    "description": "Array of task creation requests"
   },
   "options": {
     "type": "object",
     "properties": {
+      "async": {
+        "type": "boolean",
+        "default": false,
+        "description": "Process batch asynchronously (auto-enabled for >100 tasks)"
+      },
       "validateOnly": {
         "type": "boolean",
         "default": false,
-        "description": "If true, only validate without creating tasks"
-      },
-      "continueOnError": {
-        "type": "boolean",
-        "default": false,
-        "description": "If true, continue processing even if some tasks fail validation"
+        "description": "Only validate tasks without creating them"
       }
-    },
-    "required": false
+    }
   }
 }
 ```
 
-**Example Request**:
+#### Request Example
 ```json
 {
   "tasks": [
     {
-      "title": "Setup database schema",
-      "description": "Create initial database tables",
+      "title": "Setup CI/CD pipeline",
+      "description": "Configure automated build and deployment",
       "priority": "HIGH",
-      "columnId": "todo",
-      "tags": ["database", "setup"]
+      "columnId": "987fcdeb-51a2-43d1-b789-123456789abc",
+      "tags": ["devops", "automation"]
     },
     {
-      "title": "Implement API endpoints",
-      "description": "Create REST API for task management",
-      "assigneeId": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "Write unit tests",
+      "description": "Add comprehensive test coverage",
       "priority": "MEDIUM",
-      "dueDate": "2024-12-30T17:00:00Z",
-      "columnId": "todo",
-      "tags": ["api", "backend"]
+      "columnId": "987fcdeb-51a2-43d1-b789-123456789abc",
+      "assigneeId": "123e4567-e89b-12d3-a456-426614174000",
+      "tags": ["testing", "quality"]
     }
   ],
   "options": {
-    "validateOnly": false,
-    "continueOnError": false
+    "async": false,
+    "validateOnly": false
   }
 }
 ```
 
-**Success Response (201 Created)**:
+#### Response Schema (Success - 201 Created)
 ```json
 {
-  "batchId": "batch-123e4567-e89b-12d3-a456-426614174000",
-  "totalRequested": 2,
-  "totalCreated": 2,
-  "totalFailed": 0,
-  "tasks": [
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174001",
-      "title": "Setup database schema",
-      "description": "Create initial database tables",
-      "boardId": "550e8400-e29b-41d4-a716-446655440001",
-      "priority": "HIGH",
-      "columnId": "todo",
-      "position": 1,
-      "tags": ["database", "setup"],
-      "createdAt": "2024-12-19T14:30:00Z",
-      "createdBy": "550e8400-e29b-41d4-a716-446655440002",
-      "createdByName": "Jane Smith"
+  "batchId": {
+    "type": "string",
+    "format": "uuid",
+    "description": "Batch operation identifier"
+  },
+  "status": {
+    "type": "string",
+    "enum": ["COMPLETED", "PROCESSING", "FAILED"],
+    "description": "Batch processing status"
+  },
+  "summary": {
+    "type": "object",
+    "properties": {
+      "totalRequested": {"type": "integer"},
+      "successfullyCreated": {"type": "integer"},
+      "failed": {"type": "integer"},
+      "validationErrors": {"type": "integer"}
+    }
+  },
+  "tasks": {
+    "type": "array",
+    "items": {
+      "$ref": "#/components/schemas/TaskResponse"
     },
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174002",
-      "title": "Implement API endpoints",
-      "description": "Create REST API for task management",
-      "boardId": "550e8400-e29b-41d4-a716-446655440001",
-      "assigneeId": "550e8400-e29b-41d4-a716-446655440000",
-      "assigneeName": "John Doe",
-      "priority": "MEDIUM",
-      "dueDate": "2024-12-30T17:00:00Z",
-      "columnId": "todo",
-      "position": 2,
-      "tags": ["api", "backend"],
-      "createdAt": "2024-12-19T14:30:01Z",
-      "createdBy": "550e8400-e29b-41d4-a716-446655440002",
-      "createdByName": "Jane Smith"
-    }
-  ],
-  "errors": [],
-  "processingTimeMs": 150,
-  "createdAt": "2024-12-19T14:30:00Z"
-}
-```
-
-**Partial Success Response (207 Multi-Status)**:
-```json
-{
-  "batchId": "batch-123e4567-e89b-12d3-a456-426614174000",
-  "totalRequested": 2,
-  "totalCreated": 1,
-  "totalFailed": 1,
-  "tasks": [
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174001",
-      "title": "Setup database schema",
-      "status": "created"
-    }
-  ],
-  "errors": [
-    {
-      "index": 1,
-      "task": {
-        "title": "Duplicate task title"
-      },
-      "error": {
-        "code": "DUPLICATE_TITLE",
-        "message": "A task with this title already exists in the board"
+    "description": "Array of created tasks (if synchronous)"
+  },
+  "errors": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "index": {"type": "integer"},
+        "task": {"$ref": "#/components/schemas/TaskCreationRequest"},
+        "error": {"$ref": "#/components/schemas/ErrorResponse"}
       }
     }
-  ],
-  "processingTimeMs": 200,
-  "createdAt": "2024-12-19T14:30:00Z"
+  },
+  "processedAt": {
+    "type": "string",
+    "format": "date-time"
+  }
 }
 ```
 
----
-
-### 2.3 Validate Task Data
-
-**Endpoint**: `POST /api/boards/{boardId}/tasks/validate`
-
-**Purpose**: Validate task data without creating the task (useful for real-time validation)
-
-**Request Schema**: Same as single task creation
-
-**Success Response (200 OK)**:
+#### Response Example (Synchronous Success)
 ```json
 {
-  "valid": true,
-  "errors": [],
-  "warnings": [
+  "batchId": "batch-550e8400-e29b-41d4-a716-446655440000",
+  "status": "COMPLETED",
+  "summary": {
+    "totalRequested": 2,
+    "successfullyCreated": 2,
+    "failed": 0,
+    "validationErrors": 0
+  },
+  "tasks": [
     {
-      "field": "dueDate",
-      "message": "Due date is very close to current date"
-    }
-  ]
-}
-```
-
-**Validation Error Response (400 Bad Request)**:
-```json
-{
-  "valid": false,
-  "errors": [
-    {
-      "field": "title",
-      "code": "DUPLICATE_TITLE",
-      "message": "A task with this title already exists in the board"
+      "id": "task-1-uuid",
+      "title": "Setup CI/CD pipeline",
+      "priority": "HIGH",
+      "position": 1,
+      "createdAt": "2024-01-15T10:30:00Z"
     },
     {
-      "field": "assigneeId",
-      "code": "INVALID_ASSIGNEE",
-      "message": "Assignee does not have access to this board"
+      "id": "task-2-uuid",
+      "title": "Write unit tests",
+      "priority": "MEDIUM",
+      "position": 2,
+      "createdAt": "2024-01-15T10:30:01Z"
     }
   ],
-  "warnings": []
+  "errors": [],
+  "processedAt": "2024-01-15T10:30:01Z"
+}
+```
+
+#### Response Example (Asynchronous Processing)
+```json
+{
+  "batchId": "batch-550e8400-e29b-41d4-a716-446655440000",
+  "status": "PROCESSING",
+  "summary": {
+    "totalRequested": 500,
+    "successfullyCreated": 0,
+    "failed": 0,
+    "validationErrors": 0
+  },
+  "tasks": [],
+  "errors": [],
+  "processedAt": "2024-01-15T10:30:00Z",
+  "statusUrl": "/api/batches/batch-550e8400-e29b-41d4-a716-446655440000/status"
 }
 ```
 
 ---
 
-## 3. WebSocket Events
+### 3. Batch Status Check
 
-### 3.1 Connection
-
-**WebSocket URL**: `wss://api.scib.com/ws/boards/{boardId}`
-
-**Authentication**: JWT token in query parameter or header
+#### Endpoint
 ```
-wss://api.scib.com/ws/boards/550e8400-e29b-41d4-a716-446655440001?token={jwt_token}
+GET /api/batches/{batchId}/status
 ```
 
-### 3.2 Task Creation Event
+#### Path Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| batchId | UUID | Yes | Batch operation identifier |
 
-**Event Type**: `TASK_CREATED`
+#### Response Schema
+```json
+{
+  "batchId": {"type": "string", "format": "uuid"},
+  "status": {"type": "string", "enum": ["PROCESSING", "COMPLETED", "FAILED"]},
+  "progress": {
+    "type": "object",
+    "properties": {
+      "processed": {"type": "integer"},
+      "total": {"type": "integer"},
+      "percentage": {"type": "number", "minimum": 0, "maximum": 100}
+    }
+  },
+  "summary": {"$ref": "#/components/schemas/BatchSummary"},
+  "estimatedCompletion": {"type": "string", "format": "date-time"},
+  "lastUpdated": {"type": "string", "format": "date-time"}
+}
+```
 
-**Message Format**:
+---
+
+### 4. Task Validation
+
+#### Endpoint
+```
+POST /api/boards/{boardId}/tasks/validate
+```
+
+#### Purpose
+Validate task data without creating the task. Useful for real-time form validation.
+
+#### Request Schema
+Same as single task creation request.
+
+#### Response Schema (Success - 200 OK)
+```json
+{
+  "valid": {
+    "type": "boolean",
+    "description": "Overall validation result"
+  },
+  "errors": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "field": {"type": "string"},
+        "code": {"type": "string"},
+        "message": {"type": "string"}
+      }
+    }
+  },
+  "warnings": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "properties": {
+        "field": {"type": "string"},
+        "code": {"type": "string"},
+        "message": {"type": "string"}
+      }
+    }
+  }
+}
+```
+
+---
+
+## WebSocket Protocol
+
+### Connection
+- **URL**: `wss://api.scib.platform.com/ws/boards/{boardId}`
+- **Authentication**: JWT token in connection headers or query parameter
+- **Heartbeat**: 30-second intervals
+
+### Message Format
+All WebSocket messages follow this structure:
+```json
+{
+  "type": "string",
+  "timestamp": "ISO 8601 datetime",
+  "boardId": "UUID",
+  "data": "object"
+}
+```
+
+### 1. Task Creation Event
+
+#### Message Type
+```
+TASK_CREATED
+```
+
+#### Message Schema
 ```json
 {
   "type": "TASK_CREATED",
-  "boardId": "550e8400-e29b-41d4-a716-446655440001",
-  "task": {
-    "id": "123e4567-e89b-12d3-a456-426614174000",
-    "title": "Implement user authentication",
-    "description": "Add JWT-based authentication to the API endpoints",
-    "assigneeId": "550e8400-e29b-41d4-a716-446655440000",
-    "assigneeName": "John Doe",
-    "priority": "HIGH",
-    "dueDate": "2024-12-25T10:00:00Z",
-    "tags": ["backend", "security", "authentication"],
-    "columnId": "todo",
-    "position": 1,
-    "createdAt": "2024-12-19T14:30:00Z",
-    "createdBy": "550e8400-e29b-41d4-a716-446655440002",
-    "createdByName": "Jane Smith"
-  },
-  "metadata": {
-    "source": "api",
-    "requestId": "req-123456",
-    "userAgent": "Mozilla/5.0..."
-  },
-  "timestamp": "2024-12-19T14:30:00Z"
-}
-```
-
-### 3.3 Batch Task Creation Event
-
-**Event Type**: `TASKS_BATCH_CREATED`
-
-**Message Format**:
-```json
-{
-  "type": "TASKS_BATCH_CREATED",
-  "boardId": "550e8400-e29b-41d4-a716-446655440001",
-  "batchId": "batch-123e4567-e89b-12d3-a456-426614174000",
-  "totalTasks": 5,
-  "tasks": [
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174001",
-      "title": "Task 1",
-      "columnId": "todo",
-      "position": 1,
-      "createdAt": "2024-12-19T14:30:00Z"
+  "timestamp": "2024-01-15T10:30:00Z",
+  "boardId": "board-uuid",
+  "data": {
+    "task": {
+      "$ref": "#/components/schemas/TaskResponse"
     },
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174002",
-      "title": "Task 2",
-      "columnId": "todo",
-      "position": 2,
-      "createdAt": "2024-12-19T14:30:01Z"
+    "createdBy": {
+      "id": "user-uuid",
+      "name": "User Name"
+    },
+    "metadata": {
+      "source": "web",
+      "userAgent": "Mozilla/5.0...",
+      "ipAddress": "192.168.1.100"
     }
-  ],
-  "metadata": {
-    "source": "batch_api",
-    "requestId": "req-123456",
-    "processingTimeMs": 150
-  },
-  "timestamp": "2024-12-19T14:30:00Z"
-}
-```
-
-### 3.4 Connection Events
-
-**Connection Established**:
-```json
-{
-  "type": "CONNECTION_ESTABLISHED",
-  "boardId": "550e8400-e29b-41d4-a716-446655440001",
-  "userId": "550e8400-e29b-41d4-a716-446655440002",
-  "sessionId": "session-123456",
-  "timestamp": "2024-12-19T14:30:00Z"
-}
-```
-
-**Connection Error**:
-```json
-{
-  "type": "CONNECTION_ERROR",
-  "error": {
-    "code": "AUTHENTICATION_FAILED",
-    "message": "Invalid or expired JWT token"
-  },
-  "timestamp": "2024-12-19T14:30:00Z"
-}
-```
-
----
-
-## 4. Error Handling
-
-### 4.1 Standard Error Response Format
-
-```json
-{
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human-readable error message",
-    "details": {
-      "field1": ["Field-specific error message"],
-      "field2": ["Another field error"]
-    },
-    "timestamp": "2024-12-19T14:30:00Z",
-    "requestId": "req-123456",
-    "path": "/api/boards/123/tasks",
-    "method": "POST"
   }
 }
 ```
 
-### 4.2 Error Codes
+#### Example Message
+```json
+{
+  "type": "TASK_CREATED",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "boardId": "987fcdeb-51a2-43d1-b789-123456789abc",
+  "data": {
+    "task": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "title": "Implement user authentication",
+      "description": "Add JWT-based authentication to the API endpoints",
+      "priority": "HIGH",
+      "columnId": "column-uuid",
+      "position": 1,
+      "assignee": {
+        "id": "assignee-uuid",
+        "name": "John Doe",
+        "email": "john.doe@company.com"
+      },
+      "createdAt": "2024-01-15T10:30:00Z"
+    },
+    "createdBy": {
+      "id": "creator-uuid",
+      "name": "Jane Smith"
+    },
+    "metadata": {
+      "source": "web",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "ipAddress": "192.168.1.100"
+    }
+  }
+}
+```
 
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `VALIDATION_ERROR` | 400 | Request validation failed |
-| `UNAUTHORIZED` | 401 | Authentication required |
-| `ACCESS_DENIED` | 403 | Insufficient permissions |
-| `BOARD_NOT_FOUND` | 404 | Board does not exist |
-| `USER_NOT_FOUND` | 404 | Assignee user does not exist |
-| `COLUMN_NOT_FOUND` | 404 | Column does not exist in board |
-| `DUPLICATE_TITLE` | 409 | Task title already exists in board |
-| `BUSINESS_RULE_VIOLATION` | 422 | Business logic constraint violated |
-| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
-| `INTERNAL_ERROR` | 500 | Unexpected server error |
-| `SERVICE_UNAVAILABLE` | 503 | Service temporarily unavailable |
+### 2. Batch Task Creation Event
 
-### 4.3 Field Validation Errors
+#### Message Type
+```
+TASKS_BATCH_CREATED
+```
 
-| Field | Error Code | Message |
-|-------|------------|----------|
-| `title` | `REQUIRED` | Title is required |
-| `title` | `TOO_LONG` | Title must not exceed 200 characters |
-| `title` | `DUPLICATE` | Title already exists in this board |
-| `description` | `TOO_LONG` | Description must not exceed 2000 characters |
-| `priority` | `INVALID_ENUM` | Priority must be LOW, MEDIUM, HIGH, or CRITICAL |
-| `dueDate` | `INVALID_FORMAT` | Due date must be in ISO8601 format |
-| `dueDate` | `PAST_DATE` | Due date must be in the future |
-| `assigneeId` | `INVALID_UUID` | Assignee ID must be a valid UUID |
-| `assigneeId` | `USER_NOT_FOUND` | Assignee user does not exist |
-| `assigneeId` | `ACCESS_DENIED` | Assignee does not have access to this board |
-| `tags` | `TOO_MANY` | Maximum 10 tags allowed |
-| `tags` | `TAG_TOO_LONG` | Each tag must not exceed 50 characters |
-| `columnId` | `REQUIRED` | Column ID is required |
-| `columnId` | `INVALID_COLUMN` | Column does not exist in this board |
+#### Message Schema
+```json
+{
+  "type": "TASKS_BATCH_CREATED",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "boardId": "board-uuid",
+  "data": {
+    "batchId": "batch-uuid",
+    "tasks": [
+      {"$ref": "#/components/schemas/TaskResponse"}
+    ],
+    "summary": {
+      "totalCreated": "integer",
+      "processingTime": "integer (milliseconds)"
+    },
+    "createdBy": {
+      "id": "user-uuid",
+      "name": "User Name"
+    }
+  }
+}
+```
+
+### 3. Connection Events
+
+#### Connection Established
+```json
+{
+  "type": "CONNECTION_ESTABLISHED",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "boardId": "board-uuid",
+  "data": {
+    "sessionId": "session-uuid",
+    "userId": "user-uuid",
+    "permissions": ["READ", "WRITE", "DELETE"]
+  }
+}
+```
+
+#### Heartbeat
+```json
+{
+  "type": "HEARTBEAT",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "boardId": "board-uuid",
+  "data": {
+    "sessionId": "session-uuid",
+    "activeUsers": 5
+  }
+}
+```
 
 ---
 
-## 5. Rate Limiting
+## Rate Limiting
 
-### 5.1 Rate Limits
+### API Rate Limits
+- **Single Task Creation**: 100 requests per minute per user
+- **Bulk Task Creation**: 10 requests per minute per user
+- **Validation Endpoint**: 200 requests per minute per user
+- **WebSocket Connections**: 10 concurrent connections per user
 
-| Endpoint | Limit | Window | Scope |
-|----------|-------|--------|-------|
-| `POST /tasks` | 100 requests | 1 minute | Per user |
-| `POST /tasks/batch` | 10 requests | 1 minute | Per user |
-| `POST /tasks/validate` | 200 requests | 1 minute | Per user |
-| WebSocket connections | 50 connections | N/A | Per user |
-
-### 5.2 Rate Limit Headers
-
+### Rate Limit Headers
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1640123456
+X-RateLimit-Reset: 1642248600
 X-RateLimit-Window: 60
 ```
 
-### 5.3 Rate Limit Exceeded Response
-
+### Rate Limit Exceeded Response (429 Too Many Requests)
 ```json
 {
   "error": {
     "code": "RATE_LIMIT_EXCEEDED",
-    "message": "Rate limit exceeded. Try again in 30 seconds.",
-    "retryAfter": 30,
-    "timestamp": "2024-12-19T14:30:00Z",
-    "requestId": "req-123456"
+    "message": "Rate limit exceeded. Please try again later.",
+    "details": {
+      "limit": 100,
+      "window": 60,
+      "retryAfter": 30
+    },
+    "timestamp": "2024-01-15T10:30:00Z"
   }
 }
 ```
 
 ---
 
-## 6. Performance Characteristics
+## Performance Guarantees
 
-### 6.1 Response Time Targets
+### Response Time SLAs
+- **Single Task Creation**: < 200ms (95th percentile)
+- **Bulk Task Creation (≤100 tasks)**: < 2s (95th percentile)
+- **Task Validation**: < 100ms (95th percentile)
+- **WebSocket Message Delivery**: < 50ms (95th percentile)
 
-| Operation | Target (95th percentile) |
-|-----------|-------------------------|
-| Single task creation | < 200ms |
-| Batch task creation (100 tasks) | < 2000ms |
-| Task validation | < 100ms |
-| WebSocket event broadcast | < 50ms |
-
-### 6.2 Throughput Targets
-
-| Operation | Target |
-|-----------|--------|
-| Single task creation | 500 requests/second |
-| Batch processing | 100 tasks/second |
-| WebSocket connections | 10,000 concurrent |
-| WebSocket messages | 50,000 messages/second |
+### Synchronization Guarantees
+- **Real-time Sync**: Tasks appear on all connected clients within 500ms
+- **Message Ordering**: Tasks created in sequence maintain order across all clients
+- **Delivery Guarantee**: At-least-once delivery for WebSocket messages
 
 ---
 
-## 7. Security Considerations
+## Error Codes Reference
 
-### 7.1 Authentication
-- JWT tokens required for all endpoints
-- Token expiration: 24 hours
-- Refresh token mechanism available
+### Validation Error Codes
+| Code | Description | HTTP Status |
+|------|-------------|-------------|
+| REQUIRED | Field is required | 400 |
+| MAX_LENGTH_EXCEEDED | Field exceeds maximum length | 400 |
+| MIN_LENGTH_NOT_MET | Field below minimum length | 400 |
+| INVALID_FORMAT | Field format is invalid | 400 |
+| INVALID_ENUM_VALUE | Value not in allowed enum | 400 |
+| INVALID_DATE | Date format or value invalid | 400 |
+| FUTURE_DATE_REQUIRED | Date must be in the future | 400 |
+| DUPLICATE_TASK_TITLE | Title already exists in board | 409 |
+| INVALID_ASSIGNEE | Assignee not found or no access | 400 |
+| INVALID_COLUMN | Column not found in board | 400 |
 
-### 7.2 Authorization
-- Board-level access control
-- Role-based permissions (read, write, admin)
-- Task assignee validation
-
-### 7.3 Input Validation
-- Server-side validation for all inputs
-- SQL injection prevention
-- XSS protection through output encoding
-- CSRF protection for state-changing operations
-
-### 7.4 Data Protection
-- TLS 1.3 for all communications
-- Input sanitization
-- Audit logging for all operations
-- Personal data handling per GDPR requirements
-
----
-
-## 8. Versioning
-
-### 8.1 API Versioning Strategy
-- URL-based versioning: `/api/v1/boards/{boardId}/tasks`
-- Backward compatibility maintained for at least 2 versions
-- Deprecation notices provided 6 months before removal
-
-### 8.2 WebSocket Versioning
-- Protocol version in connection headers
-- Graceful degradation for older clients
-- Version negotiation during connection establishment
+### System Error Codes
+| Code | Description | HTTP Status |
+|------|-------------|-------------|
+| INSUFFICIENT_PERMISSIONS | User lacks required permissions | 403 |
+| RESOURCE_NOT_FOUND | Requested resource not found | 404 |
+| RATE_LIMIT_EXCEEDED | Too many requests | 429 |
+| INTERNAL_SERVER_ERROR | Unexpected server error | 500 |
+| SERVICE_UNAVAILABLE | Service temporarily unavailable | 503 |
+| BATCH_SIZE_EXCEEDED | Batch exceeds maximum size | 400 |
+| ASYNC_PROCESSING_FAILED | Asynchronous processing error | 500 |
 
 ---
 
-## 9. Monitoring and Observability
+## OpenAPI Specification
 
-### 9.1 Metrics
-- Request/response times
-- Error rates by endpoint
-- WebSocket connection counts
-- Task creation success/failure rates
-- Validation error frequency
+```yaml
+openapi: 3.0.3
+info:
+  title: SCIB Task Creation API
+  description: Real-time task creation and synchronization API
+  version: 1.0.0
+  contact:
+    name: SCIB Development Team
+    email: dev-team@scib.platform.com
 
-### 9.2 Logging
-- Structured JSON logging
-- Request/response correlation IDs
-- User action audit trails
-- Performance metrics logging
+servers:
+  - url: https://api.scib.platform.com/v1
+    description: Production server
+  - url: https://staging-api.scib.platform.com/v1
+    description: Staging server
 
-### 9.3 Health Checks
-- `/health` endpoint for service health
-- Database connectivity checks
-- Redis connectivity checks
-- WebSocket service health
+security:
+  - bearerAuth: []
 
----
+paths:
+  /api/boards/{boardId}/tasks:
+    post:
+      summary: Create a new task
+      operationId: createTask
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreationRequest'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict (duplicate title)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
-## 10. Client Implementation Examples
-
-### 10.1 JavaScript/TypeScript Example
-
-```typescript
-// Task creation with error handling
-class TaskService {
-  private baseUrl = 'https://api.scib.com/v1';
-  private wsUrl = 'wss://api.scib.com/ws';
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   
-  async createTask(boardId: string, task: TaskCreationRequest): Promise<Task> {
-    const response = await fetch(`${this.baseUrl}/api/boards/${boardId}/tasks`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.getToken()}`,
-        'Content-Type': 'application/json',
-        'X-Request-ID': this.generateRequestId()
-      },
-      body: JSON.stringify(task)
-    });
+  schemas:
+    TaskCreationRequest:
+      type: object
+      required:
+        - title
+        - priority
+        - columnId
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        assigneeId:
+          type: string
+          format: uuid
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        dueDate:
+          type: string
+          format: date
+        columnId:
+          type: string
+          format: uuid
+        tags:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            maxLength: 50
     
-    if (!response.ok) {
-      const error = await response.json();
-      throw new TaskCreationError(error.error);
-    }
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+        assignee:
+          $ref: '#/components/schemas/User'
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        dueDate:
+          type: string
+          format: date
+        columnId:
+          type: string
+          format: uuid
+        position:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        createdBy:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     
-    return response.json();
-  }
-  
-  connectToBoard(boardId: string): WebSocket {
-    const ws = new WebSocket(`${this.wsUrl}/boards/${boardId}?token=${this.getToken()}`);
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
     
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      this.handleWebSocketMessage(message);
-    };
-    
-    return ws;
-  }
-  
-  private handleWebSocketMessage(message: any) {
-    switch (message.type) {
-      case 'TASK_CREATED':
-        this.onTaskCreated(message.task);
-        break;
-      case 'TASKS_BATCH_CREATED':
-        this.onTasksBatchCreated(message.tasks);
-        break;
-    }
-  }
-}
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+            timestamp:
+              type: string
+              format: date-time
+            path:
+              type: string
 ```
 
-### 10.2 Angular Reactive Forms Example
-
-```typescript
-// Task creation form component
-@Component({
-  selector: 'app-task-creation-form',
-  template: `
-    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
-      <mat-form-field>
-        <input matInput placeholder="Task Title" formControlName="title">
-        <mat-error *ngIf="taskForm.get('title')?.hasError('required')">
-          Title is required
-        </mat-error>
-        <mat-error *ngIf="taskForm.get('title')?.hasError('duplicate')">
-          A task with this title already exists
-        </mat-error>
-      </mat-form-field>
-      
-      <button type="submit" [disabled]="taskForm.invalid">Create Task</button>
-    </form>
-  `
-})
-export class TaskCreationFormComponent {
-  taskForm = this.fb.group({
-    title: ['', [Validators.required, Validators.maxLength(200)], [this.duplicateValidator]],
-    description: ['', Validators.maxLength(2000)],
-    priority: ['MEDIUM', Validators.required],
-    assigneeId: [''],
-    dueDate: [''],
-    tags: [[]],
-    columnId: ['todo', Validators.required]
-  });
-  
-  constructor(
-    private fb: FormBuilder,
-    private taskService: TaskService
-  ) {}
-  
-  async onSubmit() {
-    if (this.taskForm.valid) {
-      try {
-        const task = await this.taskService.createTask(
-          this.boardId,
-          this.taskForm.value
-        );
-        this.onTaskCreated.emit(task);
-        this.taskForm.reset();
-      } catch (error) {
-        this.handleError(error);
-      }
-    }
-  }
-  
-  private duplicateValidator = (control: AbstractControl) => {
-    return this.taskService.validateTaskTitle(this.boardId, control.value)
-      .pipe(
-        map(result => result.valid ? null : { duplicate: true }),
-        catchError(() => of(null))
-      );
-  };
-}
-```
-
 ---
 
-**Document Status**: Final v1.0
-**Last Updated**: 2024-12-19
-**Next Review**: 2024-12-26
+**Document Version**: 1.0  
+**Last Updated**: 2024  
+**Prepared By**: Enterprise Solution Architect  
+**API Specification**: OpenAPI 3.0.3
