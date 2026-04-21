@@ -1,746 +1,360 @@
-# User Workflow Journey: Task Creation Form Design
+# UX Design User Workflow Journey
+## Project: Three-Column Kanban Board Layout Design (DEMO-1071)
 
-## Project Overview
-**Story ID:** DEMO-2347  
-**Story Title:** Design task creation form UI components and layout  
-**Complexity:** Medium  
-**Estimated Hours:** 8
+### Story Overview
+**Story Title:** Design three-column Kanban board layout and responsive behavior
 
-## Story Description
-Design comprehensive task creation form interface including title input field (max 255 chars), description textarea (max 2000 chars), priority dropdown (Low/Medium/High/Critical), due date picker, and submit/cancel buttons. Create responsive layout with proper spacing, typography, and visual hierarchy. Design validation error states and success confirmation modal. Include character counters for title and description fields.
-
-## Acceptance Criteria
-- Form layout renders correctly on desktop and mobile viewports
-- All input fields display with proper labels and placeholders
-- Character counters show remaining characters for title and description
-- Priority dropdown displays all four options with clear visual distinction
-- Date picker allows future date selection with calendar interface
-- Error states display with appropriate styling and messaging
-- Success confirmation modal design is complete with proper messaging
+**Business Goal:** Create comprehensive design specifications for the three-column Kanban board layout including column spacing, header styling, card dimensions, and responsive breakpoints. Define color scheme for column headers ('To Do', 'In Progress', 'Done'), typography hierarchy, and visual separators between columns.
 
 ---
 
-# Experience Analysis
+## Experience Analysis
 
-## User Experience: Task Management
-
-### Identified Scenarios:
-1. **New User Creating First Task** - User unfamiliar with the system creating their initial task
-2. **Experienced User Creating Routine Task** - Regular user quickly adding a standard task
-3. **User Creating Complex Project Task** - User adding detailed task with specific requirements
-4. **User Creating Urgent Task** - User adding time-sensitive task under pressure
-5. **User Correcting Form Errors** - User fixing validation errors in form submission
-6. **User on Mobile Device** - User creating task on mobile/tablet device
+### Primary User Experience: Task Management
+The Kanban board experience encompasses multiple scenarios where users interact with task management workflows across different devices and contexts.
 
 ---
 
-# Scenario 1: New User Creating First Task
+## Scenario 1: Desktop Task Management Workflow
 
-## Context
-**User:** Sarah, a project manager who just joined a new company and is using the task management system for the first time. She needs to create her first task to organize her onboarding activities but is unfamiliar with the system's interface and requirements.
+### Scenario Context
+Sarah, a project manager working from her office desktop, needs to quickly review and update the status of multiple tasks across different project phases. She wants to efficiently move tasks between columns and get a clear overview of project progress without scrolling or losing context.
 
-**Situation:** Sarah has been assigned to create tasks for her onboarding checklist and wants to ensure she fills out all required information correctly to avoid any issues.
+### User Goal
+To efficiently manage and track task progress across all project phases with clear visual hierarchy and seamless interaction on desktop interface.
 
-**Goal:** To successfully create her first task while learning the system's interface and understanding all available options.
+### Business Goal
+To provide an intuitive task management interface that increases user productivity and engagement while maintaining clear visual organization that supports decision-making.
 
-## User Goals
-- Successfully create a task without errors
-- Understand all form fields and their purposes
-- Learn the system's validation requirements
-- Feel confident using the system for future tasks
+### Workflow Variation 1A: Standard Desktop Navigation
 
-## Business Goals
-- Provide intuitive onboarding experience for new users
-- Reduce support tickets related to form confusion
-- Increase user adoption and engagement
-- Establish trust in the system's usability
+#### Screen Flow:
 
-## Workflow Variation 1A: Guided First-Time Experience
+**1.0 Kanban Board Dashboard - Desktop View**
+- **Page Goal:** Provide comprehensive overview of all tasks across three columns with optimal desktop real estate utilization
+- **Screen Description:**
+  - Three distinct columns ('To Do', 'In Progress', 'Done') displayed horizontally with equal width distribution
+  - Column headers with distinct color coding and clear typography hierarchy
+  - Task cards displayed vertically within each column with consistent spacing
+  - Visual separators between columns for clear distinction
+  - Drag-and-drop functionality enabled for task movement
+  - Search and filter options accessible in header area
+- **Design Problems:**
+  - HMW ensure users can quickly distinguish between different project phases?
+  - HMW maintain visual hierarchy when columns have varying numbers of tasks?
+  - HMW provide clear feedback during drag-and-drop operations?
+  - HMW handle overflow when columns contain many tasks?
+- **Design Opportunities:**
+  - What if we could show task priority through visual indicators?
+  - What if we could provide quick actions on hover for each task?
+  - What if we could show progress metrics for each column?
+  - What if we could enable bulk task operations?
 
-### Screen Flow:
+**2.0 Task Detail Modal**
+- **Page Goal:** Allow detailed task editing without losing context of the board layout
+- **Screen Description:**
+  - Modal overlay displaying detailed task information
+  - Form fields for task editing with clear validation
+  - Status change dropdown with visual column representation
+  - Save/cancel actions with clear feedback
+- **Design Problems:**
+  - HMW maintain board context while showing task details?
+  - HMW ensure modal accessibility across different screen sizes?
+- **Design Opportunities:**
+  - What if we could show related tasks in the modal?
+  - What if we could enable inline editing for quick updates?
 
-#### 1.0 Task Creation Landing Page
-**Page Goal:** Welcome new users and provide confidence to start task creation
+**3.0 Column Management Interface**
+- **Page Goal:** Enable column customization and configuration
+- **Screen Description:**
+  - Column settings panel with spacing and styling options
+  - Color picker for column header customization
+  - Typography controls for header and card text
+  - Preview area showing real-time changes
+- **Design Problems:**
+  - HMW provide intuitive customization without overwhelming users?
+  - HMW ensure accessibility compliance during customization?
+- **Design Opportunities:**
+  - What if we could save multiple board templates?
+  - What if we could share board configurations across teams?
 
-**Screen Description:**
-- Welcome message for first-time users
-- Brief overview of task creation process
-- "Create Your First Task" prominent call-to-action button
-- Optional tutorial/help link
-- Progress indicator showing steps (1 of 3)
+### Workflow Variation 1B: Power User Desktop Experience
 
-**Design Problems:**
-- HMW make new users feel confident about using the form?
-- HMW communicate the value of completing all form fields?
-- HMW reduce anxiety about making mistakes?
+#### Screen Flow:
 
-**Design Opportunities:**
-- What if we provided contextual tips throughout the process?
-- What if we showed examples of well-structured tasks?
-- What if we offered templates for common task types?
+**1.0 Enhanced Kanban Board - Desktop Power View**
+- **Page Goal:** Provide advanced task management capabilities for experienced users
+- **Screen Description:**
+  - Three columns with advanced filtering and sorting options
+  - Keyboard shortcuts overlay available
+  - Bulk selection capabilities with multi-select checkboxes
+  - Advanced search with saved filters
+  - Column statistics and metrics display
+- **Design Problems:**
+  - HMW balance advanced features with interface simplicity?
+  - HMW ensure keyboard navigation efficiency?
+- **Design Opportunities:**
+  - What if we could provide customizable keyboard shortcuts?
+  - What if we could enable advanced automation rules?
 
-#### 2.0 Task Creation Form - Basic Information
-**Page Goal:** Collect essential task information with clear guidance
-
-**Screen Description:**
-- Task title input field with placeholder "Enter a clear, descriptive title"
-- Character counter showing "255 characters remaining"
-- Helpful tooltip explaining title best practices
-- Description textarea with placeholder "Describe what needs to be done"
-- Character counter showing "2000 characters remaining"
-- Example text or template suggestions
-- "Next" button to proceed
-
-**Design Problems:**
-- HMW help users write effective task titles?
-- HMW encourage detailed descriptions without overwhelming?
-- HMW show character limits without creating pressure?
-
-**Design Opportunities:**
-- What if we provided real-time suggestions for title improvement?
-- What if we offered description templates based on task type?
-- What if we showed character count in a positive, encouraging way?
-
-#### 3.0 Task Creation Form - Priority and Timing
-**Page Goal:** Help users understand and select appropriate priority and due dates
-
-**Screen Description:**
-- Priority dropdown with clear descriptions for each level
-- Visual indicators (colors/icons) for priority levels
-- Due date picker with calendar interface
-- Helpful text explaining priority selection criteria
-- "Back" and "Create Task" buttons
-- Form validation preview
-
-**Design Problems:**
-- HMW help users choose appropriate priority levels?
-- HMW make date selection intuitive and error-free?
-- HMW prevent users from selecting past dates?
-
-**Design Opportunities:**
-- What if we provided priority selection guidance based on due date?
-- What if we suggested optimal due dates based on priority?
-- What if we showed workload impact of priority selection?
-
-#### 4.0 Success Confirmation Modal
-**Page Goal:** Confirm successful task creation and guide next steps
-
-**Screen Description:**
-- Success message with task details summary
-- Task ID and creation timestamp
-- Options to "Create Another Task" or "View Task"
-- Link to task management dashboard
-- Celebration micro-animation
-
-**Design Problems:**
-- HMW make success feel rewarding and encourage continued use?
-- HMW provide clear next steps without overwhelming?
-
-**Design Opportunities:**
-- What if we offered personalized tips for task management?
-- What if we showed progress toward user goals?
-
-**Screen Sequence:** 1.0 → 2.0 → 3.0 → 4.0
-
-## Workflow Variation 1B: Single-Page Comprehensive Form
-
-### Screen Flow:
-
-#### 1.0 Comprehensive Task Creation Form
-**Page Goal:** Provide all task creation options in one accessible interface
-
-**Screen Description:**
-- All form fields visible on single page
-- Progressive disclosure for advanced options
-- Real-time validation feedback
-- Contextual help tooltips for each field
-- Character counters for title and description
-- Priority dropdown with visual indicators
-- Date picker with future-date validation
-- Submit and Cancel buttons
-
-**Design Problems:**
-- HMW prevent form overwhelm for new users?
-- HMW maintain focus on required vs. optional fields?
-- HMW provide guidance without cluttering interface?
-
-**Design Opportunities:**
-- What if we used smart defaults based on user behavior?
-- What if we provided field-by-field completion guidance?
-- What if we offered form auto-save functionality?
-
-#### Er.1 Validation Error State
-**Page Goal:** Clearly communicate errors and guide correction
-
-**Screen Description:**
-- Highlighted error fields with specific error messages
-- Error summary at top of form
-- Inline validation for real-time feedback
-- Suggested corrections for common errors
-- Maintained user input where possible
-
-**Design Problems:**
-- HMW make error messages helpful rather than frustrating?
-- HMW prevent users from losing their work during errors?
-
-**Design Opportunities:**
-- What if we provided smart error recovery suggestions?
-- What if we offered one-click error fixes where possible?
-
-#### 2.0 Success Confirmation Modal
-**Page Goal:** Confirm task creation and encourage continued engagement
-
-**Screen Description:**
-- Success confirmation with task summary
-- Quick actions for next steps
-- Link to view created task
-- Option to create similar task
-
-**Screen Sequence:** 1.0 → Er.1 (if errors) → 2.0
+**2.0 Bulk Operations Panel**
+- **Page Goal:** Enable efficient bulk task management
+- **Screen Description:**
+  - Selected tasks counter and preview
+  - Bulk action buttons (move, delete, assign, etc.)
+  - Confirmation dialogs with clear impact preview
+- **Design Problems:**
+  - HMW prevent accidental bulk operations?
+  - HMW provide clear feedback for bulk actions?
+- **Design Opportunities:**
+  - What if we could undo bulk operations?
+  - What if we could create bulk operation templates?
 
 ---
 
-# Scenario 2: Experienced User Creating Routine Task
+## Scenario 2: Mobile Task Management Workflow
 
-## Context
-**User:** Mike, a senior developer who uses the task management system daily. He needs to quickly create a routine code review task and wants to complete the process as efficiently as possible.
+### Scenario Context
+Mike, a field supervisor, needs to update task statuses while on-site using his mobile device. He wants to quickly check task details and move items between columns without struggling with small screen constraints or poor touch interactions.
 
-**Situation:** Mike is in the middle of his development workflow and needs to create a standard task without interrupting his focus.
+### User Goal
+To efficiently manage tasks on mobile device with touch-optimized interactions and clear visual hierarchy despite screen size limitations.
 
-**Goal:** To create a task quickly and efficiently with minimal cognitive load.
+### Business Goal
+To ensure consistent user experience across all devices, maintaining productivity and engagement regardless of access method.
 
-## User Goals
-- Complete task creation in minimal time
-- Use familiar shortcuts and patterns
-- Maintain focus on primary work
-- Leverage previous task data where possible
+### Workflow Variation 2A: Mobile-First Responsive Design
 
-## Business Goals
-- Maximize user productivity and efficiency
-- Reduce time-to-task-creation for power users
-- Encourage frequent task creation
-- Support workflow integration
+#### Screen Flow:
 
-## Workflow Variation 2A: Quick Create Modal
+**1.0 Mobile Kanban Board - Stacked View**
+- **Page Goal:** Provide accessible task overview optimized for mobile interaction patterns
+- **Screen Description:**
+  - Columns displayed vertically in stacked layout (320px-767px breakpoint)
+  - Swipe gestures enabled for column navigation
+  - Touch-optimized task cards with adequate tap targets (44px minimum)
+  - Collapsible column headers to save vertical space
+  - Pull-to-refresh functionality for data updates
+- **Design Problems:**
+  - HMW maintain task context when switching between columns?
+  - HMW ensure touch targets meet accessibility standards?
+  - HMW handle long task titles on narrow screens?
+- **Design Opportunities:**
+  - What if we could use haptic feedback for drag operations?
+  - What if we could enable voice commands for task updates?
+  - What if we could show column previews during navigation?
 
-### Screen Flow:
+**1.1 Column Navigation Tabs**
+- **Page Goal:** Provide quick column switching with visual indicators
+- **Screen Description:**
+  - Horizontal tab bar with column names and task counts
+  - Active column highlighted with brand color
+  - Smooth transition animations between columns
+- **Design Problems:**
+  - HMW indicate column status and progress in limited space?
+- **Design Opportunities:**
+  - What if tabs could show progress bars?
 
-#### Pu.1 Quick Create Task Modal
-**Page Goal:** Enable rapid task creation without leaving current context
+**2.0 Mobile Task Detail Sheet**
+- **Page Goal:** Enable detailed task interaction in mobile-optimized format
+- **Screen Description:**
+  - Bottom sheet modal with task details
+  - Large touch targets for all interactive elements
+  - Swipe gestures for status changes
+  - Native mobile form controls
+- **Design Problems:**
+  - HMW ensure form accessibility on small screens?
+  - HMW provide clear navigation back to board?
+- **Design Opportunities:**
+  - What if we could use device camera for task attachments?
+  - What if we could enable offline task editing?
 
-**Screen Description:**
-- Compact modal overlay with essential fields only
-- Auto-focus on title field
-- Smart defaults based on user history
-- Keyboard shortcuts for all actions
-- One-click priority selection
-- Quick date options (Today, Tomorrow, Next Week)
-- Create and Create Another buttons
+### Workflow Variation 2B: Mobile Horizontal Scroll Design
 
-**Design Problems:**
-- HMW minimize clicks and keystrokes for task creation?
-- HMW provide speed without sacrificing data quality?
-- HMW maintain context of user's current work?
+#### Screen Flow:
 
-**Design Opportunities:**
-- What if we pre-filled fields based on current project context?
-- What if we offered voice input for hands-free creation?
-- What if we provided task templates for common scenarios?
-
-#### Pu.2 Quick Success Notification
-**Page Goal:** Confirm creation without disrupting workflow
-
-**Screen Description:**
-- Subtle toast notification with task confirmation
-- Quick link to view/edit created task
-- Auto-dismiss after 3 seconds
-- Option to create another task immediately
-
-**Screen Sequence:** Pu.1 → Pu.2
-
-## Workflow Variation 2B: Inline Creation Interface
-
-### Screen Flow:
-
-#### 1.0 Streamlined Task Form
-**Page Goal:** Provide efficient task creation with full feature access
-
-**Screen Description:**
-- Minimalist form design with smart defaults
-- Auto-complete for title based on user history
-- One-click priority and date selection
-- Expandable description field
-- Bulk action options (create multiple similar tasks)
-- Keyboard navigation support
-
-**Design Problems:**
-- HMW balance speed with comprehensive options?
-- HMW leverage user patterns without being presumptuous?
-
-**Design Opportunities:**
-- What if we learned from user patterns to improve defaults?
-- What if we offered batch creation for similar tasks?
-
-**Screen Sequence:** 1.0 → Success notification
+**1.0 Mobile Kanban Board - Horizontal Scroll**
+- **Page Goal:** Maintain desktop-like column layout on mobile with optimized scrolling
+- **Screen Description:**
+  - Three columns displayed horizontally with horizontal scroll
+  - Snap-to-column scrolling behavior
+  - Column width optimized for mobile viewing (280px each)
+  - Scroll indicators showing current column position
+- **Design Problems:**
+  - HMW indicate available columns outside viewport?
+  - HMW ensure smooth scrolling performance?
+- **Design Opportunities:**
+  - What if we could show column previews during scroll?
+  - What if we could enable gesture-based column switching?
 
 ---
 
-# Scenario 3: User Creating Complex Project Task
+## Scenario 3: Tablet Collaborative Workflow
 
-## Context
-**User:** Jennifer, a project coordinator managing a large software implementation. She needs to create a detailed task with specific requirements, multiple stakeholders, and complex dependencies.
+### Scenario Context
+Jenna, a team lead, is conducting a sprint planning meeting using a tablet in a conference room. She needs to demonstrate task flows to her team and collaboratively move tasks between columns while maintaining clear visibility for all meeting participants.
 
-**Situation:** Jennifer is planning a critical project milestone and needs to ensure all details are captured accurately for team coordination.
+### User Goal
+To facilitate collaborative task management with clear visibility and intuitive interaction suitable for group settings.
 
-**Goal:** To create a comprehensive task with all necessary details for successful project execution.
+### Business Goal
+To support team collaboration and decision-making through clear visual communication and shared interaction capabilities.
 
-## User Goals
-- Capture all relevant task details comprehensively
-- Ensure clear communication of requirements
-- Set appropriate expectations for complexity
-- Enable effective team coordination
+### Workflow Variation 3A: Tablet Presentation Mode
 
-## Business Goals
-- Support complex project management needs
-- Reduce miscommunication and rework
-- Enable detailed project tracking
-- Support enterprise-level task management
+#### Screen Flow:
 
-## Workflow Variation 3A: Extended Form with Advanced Options
+**1.0 Tablet Kanban Board - Landscape Presentation**
+- **Page Goal:** Optimize board layout for group viewing and collaborative interaction
+- **Screen Description:**
+  - Three columns displayed with increased font sizes for visibility (768px-1023px breakpoint)
+  - Enhanced touch targets for group interaction scenarios
+  - Presentation mode with simplified interface
+  - Real-time collaboration indicators
+- **Design Problems:**
+  - HMW ensure visibility from multiple viewing angles?
+  - HMW handle multiple simultaneous touch interactions?
+- **Design Opportunities:**
+  - What if we could enable multi-user simultaneous editing?
+  - What if we could show user cursors for collaboration awareness?
 
-### Screen Flow:
+**2.0 Collaborative Task Assignment**
+- **Page Goal:** Enable team-based task assignment during meetings
+- **Screen Description:**
+  - Team member selection interface
+  - Visual assignment indicators on tasks
+  - Real-time updates for all participants
+- **Design Problems:**
+  - HMW show assignment changes clearly to all participants?
+- **Design Opportunities:**
+  - What if we could integrate with calendar for availability?
 
-#### 1.0 Comprehensive Task Creation Form
-**Page Goal:** Provide full feature access for complex task creation
+### Workflow Variation 3B: Tablet Split-Screen Mode
 
-**Screen Description:**
-- All standard fields with expanded options
-- Rich text editor for detailed descriptions
-- File attachment capability
-- Advanced priority options with business impact indicators
-- Multiple date fields (start, due, review dates)
-- Dependency linking options
-- Stakeholder assignment fields
+#### Screen Flow:
 
-**Design Problems:**
-- HMW organize complex information without overwhelming users?
-- HMW ensure all critical details are captured?
-- HMW maintain usability despite feature complexity?
-
-**Design Opportunities:**
-- What if we provided section-based organization?
-- What if we offered progressive disclosure for advanced features?
-- What if we provided templates for different project types?
-
-#### 2.0 Task Review and Validation
-**Page Goal:** Allow comprehensive review before task creation
-
-**Screen Description:**
-- Complete task summary with all entered details
-- Validation checklist for completeness
-- Edit links for each section
-- Impact assessment preview
-- Stakeholder notification preview
-
-**Design Problems:**
-- HMW help users review complex information effectively?
-- HMW prevent errors in complex task creation?
-
-**Design Opportunities:**
-- What if we provided automated completeness checking?
-- What if we offered collaboration features for task review?
-
-**Screen Sequence:** 1.0 → 2.0 → Success confirmation
-
-## Workflow Variation 3B: Wizard-Based Creation Process
-
-### Screen Flow:
-
-#### 1.0 Task Creation Wizard - Step 1: Basic Information
-**Page Goal:** Collect fundamental task information
-
-**Screen Description:**
-- Task title and description fields
-- Task category selection
-- Initial priority assessment
-- Progress indicator (Step 1 of 4)
-
-#### 2.0 Task Creation Wizard - Step 2: Timing and Dependencies
-**Page Goal:** Define task timeline and relationships
-
-**Screen Description:**
-- Start and due date selection
-- Dependency mapping interface
-- Milestone association options
-- Progress indicator (Step 2 of 4)
-
-#### 3.0 Task Creation Wizard - Step 3: Resources and Stakeholders
-**Page Goal:** Assign resources and define stakeholders
-
-**Screen Description:**
-- Team member assignment
-- Resource requirement specification
-- Communication preferences
-- Progress indicator (Step 3 of 4)
-
-#### 4.0 Task Creation Wizard - Step 4: Review and Confirm
-**Page Goal:** Final review and task creation
-
-**Screen Description:**
-- Complete task summary
-- Edit options for each section
-- Final validation checks
-- Create task confirmation
-
-**Screen Sequence:** 1.0 → 2.0 → 3.0 → 4.0 → Success confirmation
+**1.0 Tablet Kanban Board - Split View**
+- **Page Goal:** Enable simultaneous board view and detailed planning
+- **Screen Description:**
+  - Board occupies 70% of screen width
+  - Side panel (30%) shows task details or team chat
+  - Resizable split with drag handle
+- **Design Problems:**
+  - HMW maintain board usability in reduced width?
+- **Design Opportunities:**
+  - What if we could show multiple boards simultaneously?
 
 ---
 
-# Scenario 4: User Creating Urgent Task
-
-## Context
-**User:** David, a customer support manager who needs to create an urgent task to address a critical customer issue that just arose.
-
-**Situation:** A high-priority customer is experiencing a system outage, and David needs to create an urgent task immediately to coordinate the response team.
-
-**Goal:** To create a critical priority task as quickly as possible while ensuring all essential information is captured.
-
-## User Goals
-- Create task immediately without delays
-- Communicate urgency effectively
-- Ensure rapid team notification
-- Capture essential details under time pressure
-
-## Business Goals
-- Support crisis management workflows
-- Enable rapid response to critical issues
-- Maintain service quality during emergencies
-- Provide audit trail for urgent situations
-
-## Workflow Variation 4A: Emergency Quick Create
-
-### Screen Flow:
-
-#### Pu.1 Emergency Task Creation Modal
-**Page Goal:** Enable immediate task creation for urgent situations
-
-**Screen Description:**
-- Prominent "URGENT" visual indicator
-- Pre-selected "Critical" priority
-- Streamlined form with only essential fields
-- Auto-set due date to "Today"
-- One-click team notification options
-- Large, prominent "Create Urgent Task" button
-
-**Design Problems:**
-- HMW enable speed without sacrificing critical information?
-- HMW communicate urgency visually and functionally?
-- HMW ensure urgent tasks get proper attention?
-
-**Design Opportunities:**
-- What if we provided emergency escalation workflows?
-- What if we auto-notified relevant stakeholders?
-- What if we provided crisis communication templates?
-
-#### Pu.2 Urgent Task Confirmation
-**Page Goal:** Confirm urgent task creation and initiate response
-
-**Screen Description:**
-- Urgent task confirmation with prominent visual treatment
-- Automatic stakeholder notification status
-- Quick links to related emergency procedures
-- Option to escalate further if needed
-
-**Screen Sequence:** Pu.1 → Pu.2
-
-## Workflow Variation 4B: Crisis Management Interface
-
-### Screen Flow:
-
-#### 1.0 Crisis Task Creation Interface
-**Page Goal:** Provide comprehensive urgent task management
-
-**Screen Description:**
-- Emergency-themed interface with red/orange color scheme
-- Pre-configured urgent task templates
-- Automatic escalation options
-- Real-time team availability display
-- Crisis communication tools integration
-- Immediate notification broadcasting
-
-**Design Problems:**
-- HMW balance urgency with thoroughness?
-- HMW provide crisis management tools without complexity?
-
-**Design Opportunities:**
-- What if we integrated with crisis management protocols?
-- What if we provided real-time collaboration features?
-
-**Screen Sequence:** 1.0 → Immediate confirmation and notifications
-
----
-
-# Scenario 5: User Correcting Form Errors
-
-## Context
-**User:** Lisa, a marketing coordinator who attempted to submit a task creation form but encountered validation errors due to missing required fields and invalid data.
-
-**Situation:** Lisa filled out the form quickly and missed some required fields, and now needs to understand and correct the errors to successfully create her task.
-
-**Goal:** To understand what went wrong, correct the errors efficiently, and successfully submit the task.
-
-## User Goals
-- Understand what errors occurred and why
-- Correct errors without losing existing work
-- Learn to avoid similar errors in the future
-- Successfully complete task creation
-
-## Business Goals
-- Reduce form abandonment due to errors
-- Educate users on proper form completion
-- Maintain data quality standards
-- Provide helpful error recovery experience
-
-## Workflow Variation 5A: Inline Error Correction
-
-### Screen Flow:
-
-#### Er.1 Form with Validation Errors
-**Page Goal:** Clearly communicate errors and guide correction
-
-**Screen Description:**
-- Error summary banner at top of form
-- Individual field errors with specific messaging
-- Highlighted error fields with red borders
-- Preserved user input in all fields
-- Helpful correction suggestions
-- Character count updates for text fields
-- Clear indication of required vs. optional fields
-
-**Design Problems:**
-- HMW make error messages helpful rather than punitive?
-- HMW guide users to successful completion?
-- HMW prevent frustration during error correction?
-
-**Design Opportunities:**
-- What if we provided smart suggestions for error correction?
-- What if we offered one-click fixes for common errors?
-- What if we provided contextual help during error states?
-
-#### Er.2 Progressive Error Resolution
-**Page Goal:** Guide users through error correction step-by-step
-
-**Screen Description:**
-- Focus on one error at a time
-- Clear explanation of each error
-- Examples of correct input format
-- Real-time validation as user types
-- Progress indicator for error resolution
-
-**Design Problems:**
-- HMW prevent overwhelming users with multiple errors?
-- HMW provide education without condescension?
-
-**Design Opportunities:**
-- What if we provided interactive tutorials for error correction?
-- What if we offered format examples for each field type?
-
-#### 1.0 Corrected Form Submission
-**Page Goal:** Enable successful task creation after error correction
-
-**Screen Description:**
-- Clean form with all errors resolved
-- Positive confirmation of error resolution
-- Enhanced submit button to encourage completion
-- Optional feedback on error experience
-
-**Screen Sequence:** Er.1 → Er.2 → 1.0 → Success confirmation
-
-## Workflow Variation 5B: Error Prevention and Recovery
-
-### Screen Flow:
-
-#### 1.0 Smart Form with Prevention
-**Page Goal:** Prevent errors through intelligent form design
-
-**Screen Description:**
-- Real-time validation as user types
-- Smart field formatting (auto-format dates, etc.)
-- Progressive disclosure of requirements
-- Contextual help tooltips
-- Character counters with color coding
-- Smart defaults to prevent common errors
-
-**Design Problems:**
-- HMW prevent errors without being intrusive?
-- HMW educate users about requirements proactively?
-
-**Design Opportunities:**
-- What if we provided predictive error prevention?
-- What if we offered smart auto-completion?
-
-#### Er.1 Gentle Error Guidance
-**Page Goal:** Provide supportive error correction when prevention fails
-
-**Screen Description:**
-- Friendly error messaging with positive tone
-- Step-by-step correction guidance
-- Visual progress indicators for error resolution
-- Encouragement and support messaging
-
-**Screen Sequence:** 1.0 → Er.1 (if needed) → Success confirmation
-
----
-
-# Scenario 6: User on Mobile Device
-
-## Context
-**User:** Carlos, a field service technician who needs to create a task while on-site at a customer location using his mobile phone.
-
-**Situation:** Carlos discovered an additional issue during his service call and needs to create a follow-up task immediately while the details are fresh in his mind.
-
-**Goal:** To create a task efficiently on a mobile device with limited screen space and potentially poor connectivity.
-
-## User Goals
-- Create task quickly on small screen
-- Input information efficiently with touch interface
-- Work effectively despite connectivity issues
-- Capture task details while on-site
-
-## Business Goals
-- Support mobile workforce productivity
-- Enable task creation from any location
-- Maintain data quality on mobile devices
-- Provide consistent experience across devices
-
-## Workflow Variation 6A: Mobile-Optimized Single Form
-
-### Screen Flow:
-
-#### 1.0 Mobile Task Creation Form
-**Page Goal:** Provide efficient task creation optimized for mobile interaction
-
-**Screen Description:**
-- Vertical layout optimized for mobile screens
-- Large touch targets for all interactive elements
-- Mobile-friendly input types (number pad for dates, etc.)
-- Collapsible sections to manage screen space
-- Sticky submit button always visible
-- Auto-save functionality for poor connectivity
-- Voice input option for description field
-
-**Design Problems:**
-- HMW fit all necessary information on small screens?
-- HMW make touch interaction efficient and accurate?
-- HMW handle connectivity issues gracefully?
-
-**Design Opportunities:**
-- What if we provided voice-to-text for all fields?
-- What if we offered camera integration for visual task details?
-- What if we provided offline capability with sync?
-
-#### 2.0 Mobile Success Confirmation
-**Page Goal:** Confirm task creation and provide mobile-appropriate next steps
-
-**Screen Description:**
-- Mobile-optimized success message
-- Large buttons for next actions
-- Option to share task details via mobile channels
-- Quick access to view created task
-
-**Screen Sequence:** 1.0 → 2.0
-
-## Workflow Variation 6B: Progressive Mobile Form
-
-### Screen Flow:
-
-#### 1.0 Mobile Form - Step 1: Essential Details
-**Page Goal:** Capture critical information first on mobile
-
-**Screen Description:**
-- Single-field focus with large input areas
-- Mobile keyboard optimization
-- Clear progress indication
-- Easy navigation between fields
-- Auto-advance to next field when appropriate
-
-#### 2.0 Mobile Form - Step 2: Additional Details
-**Page Goal:** Collect supplementary information efficiently
-
-**Screen Description:**
-- Priority selection with large touch targets
-- Mobile-optimized date picker
-- Optional fields clearly marked
-- Skip options for non-essential fields
-
-#### 3.0 Mobile Form - Step 3: Review and Submit
-**Page Goal:** Final review optimized for mobile viewing
-
-**Screen Description:**
-- Condensed summary view
-- Easy edit access for each field
-- Large, prominent submit button
-- Offline submission capability
-
-**Screen Sequence:** 1.0 → 2.0 → 3.0 → Success confirmation
-
----
-
-# Cross-Scenario Design Considerations
-
-## Accessibility Requirements
-- WCAG 2.1 AA compliance across all workflows
-- Screen reader compatibility for all form elements
-- Keyboard navigation support for all interactions
-- High contrast mode support
+## Accessibility Considerations
+
+### Screen Reader Support
+- ARIA labels for all interactive elements
+- Proper heading hierarchy for column structure
+- Live regions for dynamic content updates
+- Descriptive text for drag-and-drop operations
+
+### Keyboard Navigation
+- Tab order follows logical flow across columns
+- Arrow keys for task navigation within columns
+- Enter/Space for task selection and actions
+- Escape key for modal dismissal
+
+### Visual Accessibility
+- High contrast color schemes available
+- Focus indicators meet WCAG 2.1 AA standards
 - Text scaling support up to 200%
-- Alternative text for all visual indicators
+- Color-blind friendly column differentiation
 
-## Scalability Considerations
-- Component-based design system for consistency
-- API-driven form configuration for flexibility
-- Internationalization support for global deployment
-- Performance optimization for large user bases
-- Analytics integration for continuous improvement
-- A/B testing capability for workflow optimization
+### Motor Accessibility
+- Minimum 44px touch targets on mobile
+- Alternative input methods for drag-and-drop
+- Adjustable interaction timeouts
+- Voice control compatibility
 
-## Technical Requirements
-- Responsive design for all device types
-- Progressive web app capabilities
-- Offline functionality with data synchronization
-- Real-time validation and auto-save
-- Integration with existing task management systems
-- Security compliance for enterprise environments
+---
+
+## Design Tokens and Specifications
+
+### Spacing Tokens
+- `spacing-xs`: 4px
+- `spacing-sm`: 8px
+- `spacing-md`: 16px
+- `spacing-lg`: 24px
+- `spacing-xl`: 32px
+
+### Color Tokens
+- `column-todo`: #E3F2FD (Light Blue)
+- `column-progress`: #FFF3E0 (Light Orange)
+- `column-done`: #E8F5E8 (Light Green)
+- `text-primary`: #212121
+- `text-secondary`: #757575
+- `border-light`: #E0E0E0
+
+### Typography Tokens
+- `heading-lg`: 24px, 600 weight
+- `heading-md`: 20px, 600 weight
+- `body-lg`: 16px, 400 weight
+- `body-md`: 14px, 400 weight
+- `caption`: 12px, 400 weight
+
+### Responsive Breakpoints
+- Mobile: 320px - 767px
+- Tablet: 768px - 1023px
+- Desktop: 1024px+
+
+---
+
+## Screen Sequences Summary
+
+### Scenario 1A - Desktop Standard:
+1.0 Kanban Board Dashboard → 2.0 Task Detail Modal → 3.0 Column Management Interface
+
+### Scenario 1B - Desktop Power User:
+1.0 Enhanced Kanban Board → 2.0 Bulk Operations Panel
+
+### Scenario 2A - Mobile Stacked:
+1.0 Mobile Kanban Board → 1.1 Column Navigation Tabs → 2.0 Mobile Task Detail Sheet
+
+### Scenario 2B - Mobile Horizontal:
+1.0 Mobile Kanban Board - Horizontal Scroll
+
+### Scenario 3A - Tablet Presentation:
+1.0 Tablet Kanban Board → 2.0 Collaborative Task Assignment
+
+### Scenario 3B - Tablet Split-Screen:
+1.0 Tablet Kanban Board - Split View
+
+---
 
 ## Success Metrics
-- Task creation completion rate
-- Time to task creation
-- Error rate and resolution time
-- User satisfaction scores
-- Mobile vs. desktop usage patterns
+
+### User Experience Metrics
+- Task completion time across devices
+- Error rate in task status updates
+- User satisfaction scores for each device type
+- Accessibility compliance testing results
+
+### Business Metrics
+- User engagement across device types
 - Feature adoption rates
+- Support ticket reduction
+- Team collaboration effectiveness
 
 ---
 
-# Minimum Viable Experience (MVE)
+## Future Considerations
 
-## Core Scenario: Standard Task Creation
-**Context:** Any user creating a standard task with basic requirements
+### Scalability
+- Support for additional columns beyond three
+- Integration with external project management tools
+- Advanced filtering and search capabilities
+- Custom field support for tasks
 
-**Essential Screens:**
-1. **1.0 Task Creation Form** - Single page with all essential fields
-2. **Er.1 Error State** - Basic error handling and correction
-3. **2.0 Success Confirmation** - Simple confirmation of task creation
+### Performance
+- Lazy loading for large task lists
+- Optimistic UI updates for better perceived performance
+- Offline capability with sync when online
+- Progressive Web App features for mobile
 
-**Essential Features:**
-- Title input with character limit
-- Description textarea with character limit
-- Priority dropdown (4 options)
-- Due date picker
-- Submit/Cancel buttons
-- Basic validation and error messaging
-- Success confirmation
-
-**Screen Sequence:** 1.0 → Er.1 (if errors) → 2.0
-
-This MVE provides the foundation for all other scenarios while ensuring core functionality is robust and user-friendly. Additional scenarios and features can be layered on top of this foundation based on user feedback and business priorities.
+This comprehensive workflow documentation provides the foundation for creating an accessible, scalable, and user-centered Kanban board design that serves diverse user needs across multiple device contexts while maintaining business objectives and technical requirements.
