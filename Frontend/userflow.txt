@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board User Flow Diagram</title>
+    <title>Kanban Application User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ 
@@ -17,187 +17,228 @@
     </script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             padding: 40px;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             margin: 0;
+            min-height: 100vh;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        h1 {
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
         }
         .mermaid {
             background: white;
-            padding: 20px;
+            padding: 40px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin: 20px 0;
+            margin: 0;
         }
-        .description {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+        .footer {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
         }
-        .description h2 {
-            color: #333;
-            margin-top: 0;
-        }
-        .description p {
-            color: #666;
-            line-height: 1.6;
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .mermaid {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board Application - User Flow Diagram</h1>
-        
-        <div class="description">
-            <h2>User Flow Overview</h2>
-            <p>This diagram illustrates the complete user journey through the Kanban Board application, including navigation paths, task management workflows, and system interactions. The flow covers authentication, dashboard navigation, Kanban board operations, task management, and accessibility features.</p>
+        <div class="header">
+            <h1>Kanban Application User Flow</h1>
+            <p>Complete user interaction journey through the task management system</p>
         </div>
-
+        
         <div class="mermaid">
 flowchart TD
     Start[User Opens Application]
-    Start --> Auth{Authentication Required}
-    Auth -->|Yes| Login[Login Page]
-    Auth -->|No| Dashboard[Dashboard Page]
-    Login --> LoginForm[Enter Credentials]
-    LoginForm --> AuthValidation{Valid Credentials}
-    AuthValidation -->|Yes| Dashboard
-    AuthValidation -->|No| LoginError[Show Login Error]
-    LoginError --> LoginForm
+    Start --> LoadAuth[Check Authentication]
+    LoadAuth --> IsAuth{Authenticated?}
+    IsAuth -->|No| LoginPage[Redirect to Login]
+    IsAuth -->|Yes| LoadDashboard[Load Dashboard Data]
     
-    Dashboard --> HeaderSearch[Search Functionality]
-    Dashboard --> SidebarNav[Sidebar Navigation]
-    Dashboard --> MainContent[Main Content Area]
+    LoginPage --> AuthSuccess[Authentication Success]
+    AuthSuccess --> LoadDashboard
     
-    HeaderSearch --> SearchInput[Enter Search Query]
-    SearchInput --> SearchResults[Display Search Results]
-    SearchResults --> ViewResult[View Search Result]
-    ViewResult --> MainContent
+    LoadDashboard --> Dashboard[Display Dashboard Page]
+    Dashboard --> DashboardActions{User Action}
     
-    SidebarNav --> WorkspaceSection[Workspace Section]
-    SidebarNav --> TeamSection[Team Section]
-    SidebarNav --> AccessibilitySection[Accessibility Section]
+    DashboardActions --> ViewMetrics[View Analytics Panel]
+    DashboardActions --> NavToKanban[Navigate to Kanban Board]
+    DashboardActions --> SearchTasks[Use Search Function]
+    DashboardActions --> UserMenu[Open User Menu]
     
-    WorkspaceSection --> DashboardNav[Navigate to Dashboard]
-    WorkspaceSection --> KanbanNav[Navigate to Kanban Board]
-    WorkspaceSection --> AnalyticsNav[Navigate to Analytics]
+    ViewMetrics --> Dashboard
     
-    TeamSection --> TeamPerformance[Team Performance]
-    TeamSection --> Reports[Reports]
+    NavToKanban --> LoadKanban[Load Kanban Board Data]
+    LoadKanban --> KanbanBoard[Display Three Column Layout]
+    KanbanBoard --> KanbanActions{User Action}
     
-    AccessibilitySection --> KeyboardHelp[Keyboard Help]
-    AccessibilitySection --> ScreenReader[Screen Reader Mode]
+    KanbanActions --> ViewTasks[View Task Cards]
+    KanbanActions --> CreateTask[Click Add Task Button]
+    KanbanActions --> DragTask[Drag Task Between Columns]
+    KanbanActions --> EditTask[Click Task Card]
+    KanbanActions --> FilterTasks[Filter Tasks]
+    KanbanActions --> BackToDash[Navigate Back to Dashboard]
     
-    DashboardNav --> Dashboard
-    KanbanNav --> KanbanBoard[Kanban Board Page]
-    AnalyticsNav --> Analytics[Analytics Page]
+    ViewTasks --> KanbanBoard
+    BackToDash --> Dashboard
     
-    KanbanBoard --> ViewColumns[View Three Columns]
-    ViewColumns --> TodoColumn[To Do Column]
-    ViewColumns --> ProgressColumn[In Progress Column]
-    ViewColumns --> DoneColumn[Done Column]
+    CreateTask --> OpenTaskModal[Open Task Creation Modal]
+    EditTask --> OpenEditModal[Open Task Edit Modal]
     
-    TodoColumn --> ViewTodoTasks[View To Do Tasks]
-    ProgressColumn --> ViewProgressTasks[View In Progress Tasks]
-    DoneColumn --> ViewDoneTasks[View Done Tasks]
+    OpenTaskModal --> TaskForm[Fill Task Form]
+    OpenEditModal --> TaskForm
     
-    ViewTodoTasks --> TaskCard[Task Card Component]
-    ViewProgressTasks --> TaskCard
-    ViewDoneTasks --> TaskCard
+    TaskForm --> FormActions{Form Action}
+    FormActions --> SaveTask[Save Task]
+    FormActions --> CancelTask[Cancel]
+    FormActions --> DeleteTask[Delete Task]
     
-    TaskCard --> TaskActions{Task Action}
-    TaskActions -->|Click| ViewTaskDetails[View Task Details]
-    TaskActions -->|Drag| DragTask[Drag Task]
-    TaskActions -->|Edit| EditTask[Edit Task]
+    SaveTask --> ValidateForm{Form Valid?}
+    ValidateForm -->|No| ShowErrors[Show Validation Errors]
+    ShowErrors --> TaskForm
+    ValidateForm -->|Yes| SubmitTask[Submit to API]
     
-    ViewTaskDetails --> TaskModal[Task Detail Modal]
-    TaskModal --> TaskForm[Task Form]
-    TaskForm --> TaskFormActions{Form Action}
-    TaskFormActions -->|Save| SaveTask[Save Task Changes]
-    TaskFormActions -->|Cancel| CloseModal[Close Modal]
-    TaskFormActions -->|Delete| DeleteTask[Delete Task]
+    SubmitTask --> TaskSuccess{API Success?}
+    TaskSuccess -->|No| ShowAPIError[Show Error Message]
+    ShowAPIError --> TaskForm
+    TaskSuccess -->|Yes| UpdateKanban[Update Kanban Board]
     
-    SaveTask --> UpdateKanban[Update Kanban Board]
-    DeleteTask --> UpdateKanban
-    CloseModal --> KanbanBoard
+    CancelTask --> KanbanBoard
+    DeleteTask --> ConfirmDelete{Confirm Delete?}
+    ConfirmDelete -->|No| TaskForm
+    ConfirmDelete -->|Yes| DeleteAPI[Delete via API]
+    DeleteAPI --> UpdateKanban
+    
     UpdateKanban --> KanbanBoard
     
-    DragTask --> DropZone{Drop Zone}
-    DropZone -->|Valid Drop| MoveTask[Move Task to New Column]
-    DropZone -->|Invalid Drop| ReturnTask[Return Task to Original Position]
-    MoveTask --> UpdateKanban
-    ReturnTask --> KanbanBoard
+    DragTask --> ValidateDrop{Valid Drop Zone?}
+    ValidateDrop -->|No| RevertDrag[Revert Task Position]
+    ValidateDrop -->|Yes| UpdateTaskStatus[Update Task Status]
+    RevertDrag --> KanbanBoard
+    UpdateTaskStatus --> APIUpdate[Update via API]
+    APIUpdate --> UpdateKanban
     
-    EditTask --> TaskModal
+    SearchTasks --> SearchInput[Enter Search Query]
+    SearchInput --> SearchResults[Display Filtered Results]
+    SearchResults --> SearchActions{Search Action}
+    SearchActions --> ClearSearch[Clear Search]
+    SearchActions --> RefineSearch[Refine Search]
+    SearchActions --> SelectResult[Select Search Result]
     
-    KanbanBoard --> AddNewTask[Add New Task Button]
-    AddNewTask --> CreateTaskModal[Create Task Modal]
-    CreateTaskModal --> TaskForm
+    ClearSearch --> KanbanBoard
+    RefineSearch --> SearchInput
+    SelectResult --> EditTask
     
-    Analytics --> ViewMetrics[View Performance Metrics]
-    ViewMetrics --> WorkflowDistribution[Workflow Distribution]
-    ViewMetrics --> TeamWorkload[Team Workload]
-    ViewMetrics --> TrendAnalysis[Trend Analysis]
+    FilterTasks --> FilterOptions[Select Filter Criteria]
+    FilterOptions --> ApplyFilter[Apply Filter]
+    ApplyFilter --> FilteredView[Show Filtered Tasks]
+    FilteredView --> FilterActions{Filter Action}
+    FilterActions --> ClearFilter[Clear Filter]
+    FilterActions --> ModifyFilter[Modify Filter]
+    ClearFilter --> KanbanBoard
+    ModifyFilter --> FilterOptions
     
-    TeamPerformance --> ViewTeamStats[View Team Statistics]
-    Reports --> GenerateReport[Generate Reports]
+    UserMenu --> MenuOptions{Menu Selection}
+    MenuOptions --> ViewProfile[View Profile]
+    MenuOptions --> OpenSettings[Open Settings]
+    MenuOptions --> ViewNotifications[View Notifications]
+    MenuOptions --> Logout[Logout]
     
-    KeyboardHelp --> ViewShortcuts[View Keyboard Shortcuts]
-    ScreenReader --> AccessibleView[Accessible View Mode]
+    ViewProfile --> ProfilePage[Display Profile Page]
+    ProfilePage --> ProfileActions{Profile Action}
+    ProfileActions --> EditProfile[Edit Profile]
+    ProfileActions --> BackFromProfile[Back to Dashboard]
+    EditProfile --> SaveProfile[Save Profile Changes]
+    SaveProfile --> ProfilePage
+    BackFromProfile --> Dashboard
     
-    MainContent --> UserActions[User Actions Menu]
-    UserActions --> Notifications[View Notifications]
-    UserActions --> Settings[User Settings]
-    UserActions --> UserProfile[User Profile]
+    OpenSettings --> SettingsPage[Display Settings Page]
+    SettingsPage --> SettingsActions{Settings Action}
+    SettingsActions --> ChangeTheme[Change Theme]
+    SettingsActions --> UpdatePrefs[Update Preferences]
+    SettingsActions --> AccessibilitySettings[Accessibility Settings]
+    SettingsActions --> BackFromSettings[Back to Dashboard]
     
-    Notifications --> NotificationList[Notification List]
-    NotificationList --> MarkAsRead[Mark as Read]
-    MarkAsRead --> MainContent
+    ChangeTheme --> SettingsPage
+    UpdatePrefs --> SettingsPage
+    AccessibilitySettings --> AccessibilityPage[Accessibility Options]
+    AccessibilityPage --> AccessibilityActions{Accessibility Action}
+    AccessibilityActions --> KeyboardHelp[View Keyboard Help]
+    AccessibilityActions --> ScreenReader[Screen Reader Mode]
+    AccessibilityActions --> BackFromA11y[Back to Settings]
     
-    Settings --> UserPreferences[User Preferences]
-    UserPreferences --> SavePreferences[Save Preferences]
-    SavePreferences --> MainContent
+    KeyboardHelp --> AccessibilityPage
+    ScreenReader --> AccessibilityPage
+    BackFromA11y --> SettingsPage
+    BackFromSettings --> Dashboard
     
-    UserProfile --> EditProfile[Edit Profile]
-    EditProfile --> SaveProfile[Save Profile]
-    SaveProfile --> MainContent
+    ViewNotifications --> NotificationPanel[Display Notifications]
+    NotificationPanel --> NotificationActions{Notification Action}
+    NotificationActions --> MarkAsRead[Mark as Read]
+    NotificationActions --> ViewNotification[View Notification Detail]
+    NotificationActions --> ClearNotifications[Clear All]
     
-    MainContent --> Logout[Logout]
-    Logout --> Start
+    MarkAsRead --> NotificationPanel
+    ViewNotification --> NotificationDetail[Show Notification Detail]
+    NotificationDetail --> BackFromNotification[Back to Notifications]
+    BackFromNotification --> NotificationPanel
+    ClearNotifications --> NotificationPanel
+    
+    Logout --> LogoutConfirm{Confirm Logout?}
+    LogoutConfirm -->|No| Dashboard
+    LogoutConfirm -->|Yes| LogoutAPI[Logout via API]
+    LogoutAPI --> LoginPage
+    
+    classDef startEnd fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef error fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef success fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    
+    class Start,LoginPage startEnd
+    class Dashboard,KanbanBoard,TaskForm,ProfilePage,SettingsPage process
+    class IsAuth,FormActions,TaskSuccess,ValidateDrop,ConfirmDelete decision
+    class ShowErrors,ShowAPIError,RevertDrag error
+    class UpdateKanban,SaveProfile success
         </div>
         
-        <div class="description">
-            <h2>Key User Journeys</h2>
-            <p><strong>Primary Flows:</strong></p>
-            <ul>
-                <li><strong>Authentication Flow:</strong> User login and credential validation</li>
-                <li><strong>Navigation Flow:</strong> Moving between Dashboard, Kanban Board, Analytics, and other sections</li>
-                <li><strong>Task Management Flow:</strong> Creating, editing, viewing, and deleting tasks</li>
-                <li><strong>Kanban Operations:</strong> Drag-and-drop task movement between columns</li>
-                <li><strong>Search Flow:</strong> Finding and accessing specific content</li>
-                <li><strong>Accessibility Flow:</strong> Keyboard navigation and screen reader support</li>
-            </ul>
-            
-            <p><strong>Interactive Elements:</strong></p>
-            <ul>
-                <li>Three-column Kanban layout (To Do, In Progress, Done)</li>
-                <li>Drag-and-drop task cards with validation</li>
-                <li>Modal dialogs for task creation and editing</li>
-                <li>Sidebar navigation with hierarchical structure</li>
-                <li>Header search functionality</li>
-                <li>User action menus and notifications</li>
-            </ul>
+        <div class="footer">
+            <p>Generated User Flow Diagram for Kanban Task Management Application</p>
+            <p>Covers authentication, dashboard navigation, task management, and user settings workflows</p>
         </div>
     </div>
 </body>
