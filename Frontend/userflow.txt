@@ -35,8 +35,8 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         .description h2 {
             color: #333;
@@ -50,162 +50,103 @@
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board User Flow Diagram</h1>
+        <h1>Kanban Board Application - User Flow Diagram</h1>
         
         <div class="description">
             <h2>User Flow Overview</h2>
-            <p>This diagram illustrates the complete user journey through the Kanban Board application, including initial setup, task management, navigation, and system interactions. The flow covers all major user actions from board loading to task completion.</p>
+            <p>This diagram illustrates the complete user journey through the Kanban Board application, from initial access to task creation and management. The flow covers authentication, navigation, task creation with validation, and various user interactions within the system.</p>
         </div>
 
         <div class="mermaid">
-            flowchart TD
-                Start[User Opens Application]
-                Start --> LoadBoard
-                LoadBoard[Load Kanban Board]
-                LoadBoard --> AuthCheck
-                AuthCheck{User Authenticated?}
-                AuthCheck -->|No| Login[Redirect to Login]
-                AuthCheck -->|Yes| InitBoard
-                Login --> AuthCheck
-                InitBoard[Initialize Board Data]
-                InitBoard --> FetchTasks
-                FetchTasks[Fetch Tasks from API]
-                FetchTasks --> RenderBoard
-                RenderBoard[Render Three Column Layout]
-                RenderBoard --> BoardReady
-                BoardReady[Board Ready for Interaction]
-                
-                BoardReady --> ViewTasks
-                BoardReady --> CreateTask
-                BoardReady --> NavigateViews
-                BoardReady --> AccessSettings
-                
-                ViewTasks[View Task Details]
-                ViewTasks --> TaskClick
-                TaskClick[Click Task Card]
-                TaskClick --> ShowTaskDetails
-                ShowTaskDetails[Display Task Popup]
-                ShowTaskDetails --> EditTask
-                ShowTaskDetails --> CloseDetails
-                EditTask[Edit Task Information]
-                EditTask --> ValidateTask
-                ValidateTask[Validate Task Data]
-                ValidateTask --> UpdateTask
-                UpdateTask[Update Task via API]
-                UpdateTask --> RefreshBoard
-                CloseDetails[Close Task Details]
-                CloseDetails --> BoardReady
-                
-                CreateTask[Create New Task]
-                CreateTask --> ClickAddTask
-                ClickAddTask[Click Add Task Button]
-                ClickAddTask --> OpenTaskForm
-                OpenTaskForm[Open Task Creation Form]
-                OpenTaskForm --> FillTaskForm
-                FillTaskForm[Fill Task Information]
-                FillTaskForm --> ValidateForm
-                ValidateForm[Validate Form Data]
-                ValidateForm --> SubmitTask
-                SubmitTask[Submit Task to API]
-                SubmitTask --> TaskCreated
-                TaskCreated[Task Successfully Created]
-                TaskCreated --> RefreshBoard
-                RefreshBoard[Refresh Board Display]
-                RefreshBoard --> BoardReady
-                
-                NavigateViews[Navigate Between Views]
-                NavigateViews --> ClickSidebar
-                ClickSidebar[Click Sidebar Menu Item]
-                ClickSidebar --> ChangeView
-                ChangeView[Switch to Selected View]
-                ChangeView --> LoadViewData
-                LoadViewData[Load View Specific Data]
-                LoadViewData --> RenderNewView
-                RenderNewView[Render New View Layout]
-                RenderNewView --> ViewReady
-                ViewReady[View Ready for Interaction]
-                ViewReady --> BoardReady
-                
-                AccessSettings[Access Settings]
-                AccessSettings --> ClickSettings
-                ClickSettings[Click Settings Button]
-                ClickSettings --> OpenSettings
-                OpenSettings[Open Settings Panel]
-                OpenSettings --> ModifySettings
-                ModifySettings[Modify User Preferences]
-                ModifySettings --> SaveSettings
-                SaveSettings[Save Settings Changes]
-                SaveSettings --> CloseSettings
-                CloseSettings[Close Settings Panel]
-                CloseSettings --> BoardReady
-                
-                BoardReady --> DragDropTask
-                DragDropTask[Drag and Drop Task]
-                DragDropTask --> StartDrag
-                StartDrag[Start Dragging Task]
-                StartDrag --> DragOverColumn
-                DragOverColumn[Drag Over Target Column]
-                DragOverColumn --> DropTask
-                DropTask[Drop Task in New Column]
-                DropTask --> ValidateDrop
-                ValidateDrop[Validate Drop Operation]
-                ValidateDrop --> UpdateTaskStatus
-                UpdateTaskStatus[Update Task Status]
-                UpdateTaskStatus --> SyncChanges
-                SyncChanges[Sync Changes via WebSocket]
-                SyncChanges --> RefreshBoard
-                
-                BoardReady --> RealTimeUpdates
-                RealTimeUpdates[Receive Real-time Updates]
-                RealTimeUpdates --> WebSocketEvent
-                WebSocketEvent[WebSocket Event Received]
-                WebSocketEvent --> ProcessUpdate
-                ProcessUpdate[Process Update Event]
-                ProcessUpdate --> UpdateUI
-                UpdateUI[Update User Interface]
-                UpdateUI --> BoardReady
-                
-                BoardReady --> HandleErrors
-                HandleErrors[Handle System Errors]
-                HandleErrors --> ErrorOccurred
-                ErrorOccurred[Error Detected]
-                ErrorOccurred --> ShowErrorMessage
-                ShowErrorMessage[Display Error Message]
-                ShowErrorMessage --> RetryAction
-                RetryAction[Retry Failed Action]
-                RetryAction --> BoardReady
-                
-                BoardReady --> LogoutUser
-                LogoutUser[User Logout]
-                LogoutUser --> ConfirmLogout
-                ConfirmLogout[Confirm Logout Action]
-                ConfirmLogout --> ClearSession
-                ClearSession[Clear User Session]
-                ClearSession --> RedirectLogin
-                RedirectLogin[Redirect to Login Page]
-                RedirectLogin --> Start
+flowchart TD
+    Start[User Opens Application]
+    Start --> LoadApp[Load Kanban Board]
+    LoadApp --> CheckAuth{User Authenticated}
+    CheckAuth -->|No| Login[Show Login Screen]
+    CheckAuth -->|Yes| Dashboard[Display Dashboard]
+    Login --> AuthSuccess{Authentication Success}
+    AuthSuccess -->|No| LoginError[Show Login Error]
+    AuthSuccess -->|Yes| Dashboard
+    LoginError --> Login
+    Dashboard --> ViewBoard[View Kanban Board]
+    ViewBoard --> BoardLoaded[Board with Three Columns]
+    BoardLoaded --> TodoColumn[To Do Column]
+    BoardLoaded --> ProgressColumn[In Progress Column]
+    BoardLoaded --> DoneColumn[Done Column]
+    TodoColumn --> ViewTasks[View Existing Tasks]
+    ProgressColumn --> ViewTasks
+    DoneColumn --> ViewTasks
+    ViewTasks --> UserChoice{User Action}
+    UserChoice --> CreateTask[Click Add Task Button]
+    UserChoice --> EditTask[Click Existing Task]
+    UserChoice --> MoveTask[Drag Task Between Columns]
+    UserChoice --> Settings[Click Settings]
+    CreateTask --> OpenModal[Open Task Creation Modal]
+    OpenModal --> InitForm[Initialize Reactive Form]
+    InitForm --> FormFields[Display Form Fields]
+    FormFields --> TitleField[Task Title Input]
+    FormFields --> DescField[Description Textarea]
+    FormFields --> PriorityField[Priority Dropdown]
+    FormFields --> DateField[Due Date Picker]
+    TitleField --> TitleValidation{Title Valid}
+    TitleValidation -->|No| TitleError[Show Title Error]
+    TitleValidation -->|Yes| TitleCounter[Update Character Counter]
+    TitleError --> TitleField
+    TitleCounter --> DescField
+    DescField --> DescValidation{Description Valid}
+    DescValidation -->|No| DescError[Show Description Error]
+    DescValidation -->|Yes| DescCounter[Update Character Counter]
+    DescError --> DescField
+    DescCounter --> PriorityField
+    PriorityField --> PriorityValidation{Priority Selected}
+    PriorityValidation -->|No| PriorityError[Show Priority Error]
+    PriorityValidation -->|Yes| DateField
+    PriorityError --> PriorityField
+    DateField --> DateValidation{Date Valid}
+    DateValidation -->|No| DateError[Show Date Error]
+    DateValidation -->|Yes| FormComplete[Form Complete]
+    DateError --> DateField
+    FormComplete --> SubmitChoice{User Action}
+    SubmitChoice --> SubmitTask[Click Create Task]
+    SubmitChoice --> CancelTask[Click Cancel]
+    CancelTask --> CloseModal[Close Modal]
+    CloseModal --> ViewBoard
+    SubmitTask --> FormValidation{All Fields Valid}
+    FormValidation -->|No| ValidationErrors[Show Validation Errors]
+    FormValidation -->|Yes| ShowLoading[Show Loading Spinner]
+    ValidationErrors --> FormFields
+    ShowLoading --> APICall[Call TaskService.createTask]
+    APICall --> APIResponse{API Response}
+    APIResponse -->|Success| TaskCreated[Task Created Successfully]
+    APIResponse -->|Error| APIError[Show API Error]
+    TaskCreated --> UpdateBoard[Update Kanban Board]
+    UpdateBoard --> ResetForm[Reset Form]
+    ResetForm --> CloseModal
+    APIError --> HideLoading[Hide Loading Spinner]
+    HideLoading --> FormFields
+    EditTask --> TaskDetails[Show Task Details]
+    TaskDetails --> EditForm[Open Edit Form]
+    EditForm --> UpdateTask[Update Task]
+    UpdateTask --> SaveChanges[Save Changes]
+    SaveChanges --> ViewBoard
+    MoveTask --> DragStart[Start Drag Operation]
+    DragStart --> DropZone[Drop in New Column]
+    DropZone --> UpdateStatus[Update Task Status]
+    UpdateStatus --> APIUpdate[Call Update API]
+    APIUpdate --> RefreshBoard[Refresh Board]
+    RefreshBoard --> ViewBoard
+    Settings --> SettingsPanel[Open Settings Panel]
+    SettingsPanel --> ConfigureBoard[Configure Board Settings]
+    ConfigureBoard --> SaveSettings[Save Settings]
+    SaveSettings --> ViewBoard
         </div>
         
         <div class="description">
-            <h2>Flow Description</h2>
-            <p><strong>Main User Paths:</strong></p>
-            <ul>
-                <li><strong>Board Loading:</strong> User authentication, data fetching, and initial board rendering</li>
-                <li><strong>Task Management:</strong> Creating, viewing, editing, and moving tasks between columns</li>
-                <li><strong>Navigation:</strong> Switching between different board views and accessing settings</li>
-                <li><strong>Real-time Updates:</strong> Receiving and processing live updates from other users</li>
-                <li><strong>Error Handling:</strong> Managing system errors and providing recovery options</li>
-            </ul>
-            
-            <p><strong>Key Interaction Points:</strong></p>
-            <ul>
-                <li>Task cards with drag-and-drop functionality</li>
-                <li>Add task buttons in each column</li>
-                <li>Sidebar navigation menu</li>
-                <li>Header settings and user menu</li>
-                <li>Task creation and editing forms</li>
-                <li>Real-time WebSocket connections</li>
-            </ul>
+            <h2>Key User Interactions</h2>
+            <p><strong>Task Creation Flow:</strong> Users can create new tasks by clicking the "Add Task" button, which opens a modal with a reactive form. The form includes real-time validation for title, description, priority, and due date fields.</p>
+            <p><strong>Validation Process:</strong> Each form field has specific validation rules with character counters and error messages. The form prevents submission until all validation requirements are met.</p>
+            <p><strong>Task Management:</strong> Users can view tasks across three columns (To Do, In Progress, Done), edit existing tasks, and drag tasks between columns to update their status.</p>
+            <p><strong>Error Handling:</strong> The system provides comprehensive error handling for both client-side validation and API errors, ensuring users receive clear feedback throughout their interactions.</p>
         </div>
     </div>
 </body>
