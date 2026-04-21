@@ -1,365 +1,689 @@
-# Sequence Diagrams - Task Management API System
+# Sequence Diagram - Task Management API System
 
 ## Overview
-This document contains sequence diagrams for the Task Management API system, illustrating the interaction flows between components for key operations.
+This document contains comprehensive sequence diagrams for the Task Management API System, specifically focusing on the task creation endpoint implementation as defined in DEMO-2350. The diagrams illustrate the complete flow from API request to response, including authentication, validation, business logic, data persistence, and audit logging.
 
----
+## 1. Task Creation - Complete Flow
 
-## 1. Task Creation Sequence Diagram
-
-### Description
-This sequence diagram shows the complete flow of creating a new task through the POST /api/tasks endpoint, including authentication, validation, business logic processing, and real-time synchronization.
+### 1.1 Successful Task Creation Sequence
 
 ```mermaid
 sequenceDiagram
     participant Client as API Consumer
     participant LB as Load Balancer
-    participant Gateway as API Gateway
+    participant API as Task API Gateway
     participant Auth as Authentication Service
-    participant Controller as Task Controller
-    participant DTO as CreateTaskDto
-    participant Service as Task Service
-    participant Validator as Data Validator
-    participant Sanitizer as Data Sanitizer
+    participant Controller as TaskController
+    participant Validator as Input Validator
+    participant Service as TaskService
+    participant BL as Business Logic
+    participant DAL as Data Access Layer
     participant DB as PostgreSQL Database
-    participant Cache as Redis Cache
     participant Audit as Audit Service
-    participant Monitor as Monitoring System
-    participant WS as WebSocket Service
-    participant Clients as Connected Clients
+    participant Cache as Redis Cache
+    participant Monitor as Monitoring Service
 
-    Note over Client, Clients: Task Creation Flow - POST /api/tasks
+    Note over Client, Monitor: Task Creation - Happy Path Flow
     
     Client->>+LB: POST /api/tasks
-    Note right of Client: Request Headers:<br/>Authorization: Bearer {jwt}<br/>Content-Type: application/json<br/>X-Request-ID: {uuid}
+    Note right of Client: Request Headers:<br/>Authorization: Bearer {token}<br/>Content-Type: application/json<br/>X-Correlation-ID: {uuid}
     
-    LB->>+Gateway: Route request
-    Gateway->>+Auth: Validate JWT token
-    Auth-->>-Gateway: Token validation result
+    LB->>+API: Route request with health check
+    Note right of LB: Load balancing with<br/>health-based routing
     
-    alt Token Valid
-        Gateway->>+Controller: Forward request
-        Controller->>+DTO: Validate request payload
-        
-        alt Validation Success
-            DTO-->>-Controller: Validated data
-            Controller->>+Service: createTask(createTaskDto)
-            
-            Service->>+Validator: Validate business rules
-            Note right of Validator: • Due date future validation<br/>• User assignment validation<br/>• Duplicate task check
-            Validator-->>-Service: Business validation result
-            
-            alt Business Rules Valid
-                Service->>+Sanitizer: Sanitize input data
-                Note right of Sanitizer: • HTML tag stripping<br/>• XSS prevention<br/>• SQL injection prevention
-                Sanitizer-->>-Service: Sanitized data
-                
-                Service->>+DB: BEGIN TRANSACTION
-                Service->>DB: INSERT INTO tasks
-                Service->>DB: UPDATE user_stats
-                Service->>+Cache: Cache task data
-                Cache-->>-Service: Cache confirmation
-                Service->>DB: COMMIT TRANSACTION
-                DB-->>-Service: Task created with ID
-                
-                Service->>+Audit: Log task creation
-                Note right of Audit: • User ID<br/>• Task ID<br/>• Timestamp<br/>• Action: CREATE
-                Audit-->>-Service: Audit logged
-                
-                Service->>+Monitor: Record metrics
-                Note right of Monitor: • Response time<br/>• Success count<br/>• User activity
-                Monitor-->>-Service: Metrics recorded
-                
-                Service->>+WS: Broadcast task creation
-                Note right of WS: Real-time synchronization<br/>Target: < 500ms
-                WS->>Clients: New task notification
-                WS-->>-Service: Broadcast complete
-                
-                Service-->>-Controller: Task creation result
-                Controller-->>-Gateway: HTTP 201 Created
-                
-                Note over Controller: Response includes:<br/>• Task ID and metadata<br/>• HATEOAS links<br/>• Location header
-                
-            else Business Rules Invalid
-                Validator-->>Service: Validation errors
-                Service-->>-Controller: Business rule violation
-                Controller-->>-Gateway: HTTP 422 Unprocessable Entity
-            end
-            
-        else Validation Failed
-            DTO-->>-Controller: Validation errors
-            Controller-->>-Gateway: HTTP 400 Bad Request
-            Note over Controller: Detailed field-level<br/>validation errors
-        end
-        
-    else Token Invalid
-        Auth-->>Gateway: Authentication failed
-        Gateway-->>-LB: HTTP 401 Unauthorized
-    end
+    API->>+Auth: Validate Bearer token
+    Note right of API: OAuth 2.0 token validation<br/>with scope verification
     
-    Gateway-->>-LB: Response
-    LB-->>-Client: Final response
+    Auth-->>-API: Token valid + user context
+    Note left of Auth: Returns user ID, roles,<br/>permissions, token expiry
     
-    Note over Client, Clients: Response Time Target: < 200ms (95th percentile)
+    API->>+Controller: createTask(CreateTaskDto)
+    Note right of API: Request with authenticated<br/>user context and correlation ID
+    
+    Controller->>+Validator: Validate input schema
+    Note right of Controller: class-validator decorators<br/>validate request structure
+    
+    Validator->>Validator: Check required fields
+    Validator->>Validator: Validate field lengths
+    Validator->>Validator: Validate enum values
+    Validator->>Validator: Validate date formats
+    Validator->>Validator: Validate UUID formats
+    
+    Validator-->>-Controller: Validation passed
+    
+    Controller->>+Service: createTask(validatedDto)
+    Note right of Controller: Delegate to service layer<br/>for business logic processing
+    
+    Service->>+BL: Validate business rules
+    Note right of Service: Business rule validation<br/>and data sanitization
+    
+    BL->>BL: Check due date is future
+    BL->>BL: Validate assigned user exists
+    BL->>BL: Check user permissions
+    BL->>BL: Sanitize input data
+    BL->>BL: Apply default values
+    
+    BL-->>-Service: Business validation passed
+    
+    Service->>+DAL: Begin transaction
+    Note right of Service: Start database transaction<br/>for ACID compliance
+    
+    DAL->>+DB: INSERT INTO tasks
+    Note right of DAL: Execute parameterized query<br/>with prepared statements
+    
+    DB-->>-DAL: Task created with ID
+    Note left of DB: Returns generated UUID<br/>and timestamps
+    
+    DAL->>+Cache: Cache task data
+    Note right of DAL: Store in Redis for<br/>performance optimization
+    
+    Cache-->>-DAL: Cache updated
+    
+    DAL-->>-Service: Transaction committed
+    
+    Service->>+Audit: Log task creation event
+    Note right of Service: Comprehensive audit logging<br/>for compliance and traceability
+    
+    Audit->>Audit: Create audit record
+    Audit->>Audit: Include user attribution
+    Audit->>Audit: Add correlation ID
+    Audit->>Audit: Timestamp with precision
+    
+    Audit-->>-Service: Audit logged successfully
+    
+    Service-->>-Controller: Task created successfully
+    
+    Controller->>+Monitor: Record metrics
+    Note right of Controller: Performance and business<br/>metrics for monitoring
+    
+    Monitor->>Monitor: Update response time
+    Monitor->>Monitor: Update success counter
+    Monitor->>Monitor: Update business metrics
+    
+    Monitor-->>-Controller: Metrics recorded
+    
+    Controller-->>-API: HTTP 201 Created + TaskResponse
+    Note left of Controller: Return complete task object<br/>with all metadata
+    
+    API-->>-LB: Response with headers
+    Note left of API: Add correlation ID,<br/>rate limit headers
+    
+    LB-->>-Client: HTTP 201 Created
+    Note left of LB: Complete task object<br/>with timestamps and IDs
 ```
 
----
-
-## 2. Error Handling Sequence Diagram
-
-### Description
-This sequence diagram illustrates the comprehensive error handling flow for various failure scenarios in the Task Management API.
+### 1.2 Task Creation with Validation Error
 
 ```mermaid
 sequenceDiagram
     participant Client as API Consumer
-    participant Gateway as API Gateway
-    participant Controller as Task Controller
-    participant Service as Task Service
-    participant DB as Database
-    participant Monitor as Monitoring
-    participant Logger as Logging Service
+    participant API as Task API Gateway
+    participant Auth as Authentication Service
+    participant Controller as TaskController
+    participant Validator as Input Validator
+    participant Monitor as Monitoring Service
 
-    Note over Client, Logger: Error Handling Flow
+    Note over Client, Monitor: Task Creation - Validation Error Flow
     
-    Client->>+Gateway: POST /api/tasks (Invalid data)
-    Gateway->>+Controller: Process request
-    Controller->>+Service: createTask(invalidData)
+    Client->>+API: POST /api/tasks
+    Note right of Client: Invalid request data:<br/>{"title": "", "dueDate": "2023-01-01"}
     
-    alt Database Connection Error
-        Service->>+DB: Database operation
-        DB-->>-Service: Connection timeout
-        Service->>+Logger: Log database error
-        Logger-->>-Service: Error logged
-        Service->>+Monitor: Record error metric
-        Monitor-->>-Service: Metric recorded
-        Service-->>-Controller: Database error
-        Controller-->>-Gateway: HTTP 500 Internal Server Error
-        
-    else Validation Error
-        Service->>Service: Validate business rules
-        Service-->>-Controller: Validation failed
-        Controller->>+Logger: Log validation error
-        Logger-->>-Controller: Error logged
-        Controller-->>-Gateway: HTTP 400 Bad Request
-        
-    else Rate Limit Exceeded
-        Gateway->>Gateway: Check rate limits
-        Gateway->>+Logger: Log rate limit violation
-        Logger-->>-Gateway: Error logged
-        Gateway->>+Monitor: Record rate limit metric
-        Monitor-->>-Gateway: Metric recorded
-        Gateway-->>-Client: HTTP 429 Too Many Requests
-        
-    else Duplicate Task Conflict
-        Service->>+DB: Check for duplicates
-        DB-->>-Service: Duplicate found
-        Service->>+Logger: Log conflict
-        Logger-->>-Service: Error logged
-        Service-->>-Controller: Conflict detected
-        Controller-->>-Gateway: HTTP 409 Conflict
-    end
+    API->>+Auth: Validate Bearer token
+    Auth-->>-API: Token valid + user context
     
-    Gateway-->>-Client: Error response with details
+    API->>+Controller: createTask(CreateTaskDto)
     
-    Note over Client: All errors include:<br/>• Error code<br/>• Human-readable message<br/>• Request correlation ID<br/>• Timestamp
+    Controller->>+Validator: Validate input schema
+    
+    Validator->>Validator: Check title (FAIL - empty)
+    Validator->>Validator: Check dueDate (FAIL - past date)
+    Validator->>Validator: Collect all validation errors
+    
+    Validator-->>-Controller: ValidationException
+    Note left of Validator: Multiple validation errors:<br/>- Title required<br/>- Due date cannot be past
+    
+    Controller->>+Monitor: Record validation error
+    Monitor->>Monitor: Update error counter
+    Monitor->>Monitor: Update validation metrics
+    Monitor-->>-Controller: Metrics recorded
+    
+    Controller-->>-API: HTTP 400 Bad Request
+    Note left of Controller: Detailed validation error<br/>response with field-specific messages
+    
+    API-->>-Client: HTTP 400 + ValidationError
+    Note left of API: {
+      "error": {
+        "code": "VALIDATION_ERROR",
+        "message": "Request validation failed",
+        "details": [
+          {
+            "field": "title",
+            "message": "Title is required",
+            "code": "REQUIRED_FIELD"
+          },
+          {
+            "field": "dueDate",
+            "message": "Due date cannot be past",
+            "code": "INVALID_DATE"
+          }
+        ]
+      }
+    }
 ```
 
----
-
-## 3. Health Check Sequence Diagram
-
-### Description
-This sequence diagram shows the health monitoring flow for the Task Management API system.
+### 1.3 Task Creation with Business Rule Violation
 
 ```mermaid
 sequenceDiagram
-    participant Monitor as External Monitor
-    participant LB as Load Balancer
-    participant API as API Instance
+    participant Client as API Consumer
+    participant API as Task API Gateway
+    participant Auth as Authentication Service
+    participant Controller as TaskController
+    participant Validator as Input Validator
+    participant Service as TaskService
+    participant BL as Business Logic
+    participant UserService as User Service
+    participant Monitor as Monitoring Service
+
+    Note over Client, Monitor: Task Creation - Business Rule Violation
+    
+    Client->>+API: POST /api/tasks
+    Note right of Client: Request with inactive user:<br/>{"assignedTo": "inactive-user-uuid"}
+    
+    API->>+Auth: Validate Bearer token
+    Auth-->>-API: Token valid + user context
+    
+    API->>+Controller: createTask(CreateTaskDto)
+    
+    Controller->>+Validator: Validate input schema
+    Validator-->>-Controller: Validation passed
+    
+    Controller->>+Service: createTask(validatedDto)
+    
+    Service->>+BL: Validate business rules
+    
+    BL->>+UserService: Check user status
+    Note right of BL: Verify assigned user<br/>is active and valid
+    
+    UserService-->>-BL: User is inactive
+    
+    BL-->>-Service: BusinessRuleException
+    Note left of BL: Cannot assign task<br/>to inactive user
+    
+    Service-->>-Controller: BusinessRuleException
+    
+    Controller->>+Monitor: Record business rule violation
+    Monitor->>Monitor: Update error counter
+    Monitor->>Monitor: Update business metrics
+    Monitor-->>-Controller: Metrics recorded
+    
+    Controller-->>-API: HTTP 409 Conflict
+    Note left of Controller: Business rule violation<br/>with specific rule information
+    
+    API-->>-Client: HTTP 409 + BusinessRuleError
+    Note left of API: {
+      "error": {
+        "code": "BUSINESS_RULE_VIOLATION",
+        "message": "Cannot assign task to inactive user",
+        "details": {
+          "rule": "ACTIVE_USER_ASSIGNMENT",
+          "violatedValue": "inactive-user-uuid"
+        }
+      }
+    }
+```
+
+### 1.4 Task Creation with Authentication Failure
+
+```mermaid
+sequenceDiagram
+    participant Client as API Consumer
+    participant API as Task API Gateway
+    participant Auth as Authentication Service
+    participant Monitor as Monitoring Service
+
+    Note over Client, Monitor: Task Creation - Authentication Failure
+    
+    Client->>+API: POST /api/tasks
+    Note right of Client: Invalid or expired token:<br/>Authorization: Bearer invalid_token
+    
+    API->>+Auth: Validate Bearer token
+    
+    Auth->>Auth: Decode JWT token
+    Auth->>Auth: Verify token signature (FAIL)
+    Auth->>Auth: Check token expiration (FAIL)
+    
+    Auth-->>-API: AuthenticationException
+    Note left of Auth: Token invalid or expired
+    
+    API->>+Monitor: Record authentication failure
+    Monitor->>Monitor: Update security metrics
+    Monitor->>Monitor: Update error counter
+    Monitor-->>-API: Metrics recorded
+    
+    API-->>-Client: HTTP 401 Unauthorized
+    Note left of API: {
+      "error": {
+        "code": "UNAUTHORIZED",
+        "message": "Invalid or missing authentication token",
+        "timestamp": "2024-12-19T10:30:00.000Z",
+        "correlationId": "abc123-def456-ghi789"
+      }
+    }
+```
+
+### 1.5 Task Creation with Rate Limiting
+
+```mermaid
+sequenceDiagram
+    participant Client as API Consumer
+    participant API as Task API Gateway
+    participant RateLimit as Rate Limiter
+    participant Monitor as Monitoring Service
+
+    Note over Client, Monitor: Task Creation - Rate Limit Exceeded
+    
+    Client->>+API: POST /api/tasks (101st request in hour)
+    Note right of Client: Exceeds 100 requests/hour limit
+    
+    API->>+RateLimit: Check rate limit
+    
+    RateLimit->>RateLimit: Check user request count
+    RateLimit->>RateLimit: Verify time window
+    RateLimit->>RateLimit: Count exceeds limit (100/hour)
+    
+    RateLimit-->>-API: RateLimitExceededException
+    Note left of RateLimit: User has exceeded<br/>hourly rate limit
+    
+    API->>+Monitor: Record rate limit violation
+    Monitor->>Monitor: Update rate limit metrics
+    Monitor->>Monitor: Update security metrics
+    Monitor-->>-API: Metrics recorded
+    
+    API-->>-Client: HTTP 429 Too Many Requests
+    Note left of API: {
+      "error": {
+        "code": "RATE_LIMIT_EXCEEDED",
+        "message": "Rate limit exceeded",
+        "details": {
+          "limit": 100,
+          "window": "1 hour",
+          "retryAfter": 3600
+        }
+      }
+    }
+```
+
+## 2. System Health Check Sequences
+
+### 2.1 Basic Health Check
+
+```mermaid
+sequenceDiagram
+    participant Client as Health Check Client
+    participant API as Task API Gateway
+    participant Health as Health Service
+
+    Note over Client, Health: Basic Health Check Flow
+    
+    Client->>+API: GET /health
+    Note right of Client: No authentication required<br/>for basic health check
+    
+    API->>+Health: Check basic system status
+    
+    Health->>Health: Check application status
+    Health->>Health: Verify service availability
+    
+    Health-->>-API: System status: UP
+    
+    API-->>-Client: HTTP 200 OK
+    Note left of API: {
+      "status": "UP",
+      "timestamp": "2024-12-19T10:30:00.000Z"
+    }
+```
+
+### 2.2 Detailed Health Check
+
+```mermaid
+sequenceDiagram
+    participant Client as Monitoring System
+    participant API as Task API Gateway
+    participant Health as Health Service
     participant DB as Database
-    participant Cache as Redis Cache
     participant Auth as Auth Service
+    participant Audit as Audit Service
+    participant Cache as Redis Cache
 
-    Note over Monitor, Auth: Health Check Flow
+    Note over Client, Cache: Detailed Health Check Flow
     
-    Monitor->>+LB: GET /health
-    LB->>+API: Forward health check
+    Client->>+API: GET /health/detailed
     
-    par Basic Health Check
-        API->>API: Check application status
-    and Database Health
-        API->>+DB: SELECT 1
-        DB-->>-API: Connection OK
-    and Cache Health
-        API->>+Cache: PING
-        Cache-->>-API: PONG
-    and Auth Service Health
-        API->>+Auth: Health endpoint
-        Auth-->>-API: Service healthy
-    end
+    API->>+Health: Check comprehensive system status
     
-    API-->>-LB: Health status aggregate
-    LB-->>-Monitor: HTTP 200 OK
+    Health->>+DB: Check database connectivity
+    DB-->>-Health: Connection OK, latency: 15ms
     
-    Note over Monitor: Response includes:<br/>• Overall status<br/>• Component statuses<br/>• Response times<br/>• Timestamp
+    Health->>+Auth: Check auth service
+    Auth-->>-Health: Service OK, response: 45ms
+    
+    Health->>+Audit: Check audit service
+    Audit-->>-Health: Service OK, response: 32ms
+    
+    Health->>+Cache: Check Redis cache
+    Cache-->>-Health: Cache OK, response: 8ms
+    
+    Health->>Health: Aggregate component status
+    Health->>Health: Calculate overall health
+    
+    Health-->>-API: Detailed health report
+    
+    API-->>-Client: HTTP 200 OK + Detailed Status
+    Note left of API: {
+      "status": "UP",
+      "timestamp": "2024-12-19T10:30:00.000Z",
+      "components": {
+        "database": {"status": "UP", "responseTime": 15},
+        "authService": {"status": "UP", "responseTime": 45},
+        "auditService": {"status": "UP", "responseTime": 32},
+        "cache": {"status": "UP", "responseTime": 8}
+      }
+    }
 ```
 
----
+## 3. Error Handling and Recovery Sequences
 
-## 4. Bulk Task Creation Sequence Diagram
-
-### Description
-This sequence diagram illustrates the flow for bulk task creation operations with batch processing and transaction management.
+### 3.1 Database Connection Failure with Circuit Breaker
 
 ```mermaid
 sequenceDiagram
     participant Client as API Consumer
-    participant Controller as Task Controller
-    participant Service as Task Service
-    participant Validator as Batch Validator
-    participant DB as Database
-    participant Cache as Redis Cache
-    participant WS as WebSocket Service
-    participant Clients as Connected Clients
+    participant API as Task API Gateway
+    participant Controller as TaskController
+    participant Service as TaskService
+    participant CB as Circuit Breaker
+    participant DAL as Data Access Layer
+    participant DB as PostgreSQL Database
+    participant Monitor as Monitoring Service
 
-    Note over Client, Clients: Bulk Task Creation Flow
+    Note over Client, Monitor: Database Failure with Circuit Breaker
     
-    Client->>+Controller: POST /api/tasks/bulk
-    Note right of Client: Batch size limit: 100 tasks
+    Client->>+API: POST /api/tasks
+    API->>+Controller: createTask(CreateTaskDto)
+    Controller->>+Service: createTask(validatedDto)
     
-    Controller->>+Service: createBulkTasks(taskArray)
-    Service->>+Validator: Validate all tasks
+    Service->>+CB: Execute with circuit breaker
+    CB->>+DAL: Attempt database operation
     
-    alt All Tasks Valid
-        Validator-->>-Service: Validation passed
-        Service->>+DB: BEGIN TRANSACTION
-        
-        loop For each task batch (10 tasks)
-            Service->>DB: INSERT batch into tasks
-            Service->>Cache: Cache batch data
-        end
-        
-        Service->>DB: COMMIT TRANSACTION
-        DB-->>-Service: Bulk insert complete
-        
-        Service->>+WS: Broadcast bulk creation
-        WS->>Clients: Bulk task notification
-        WS-->>-Service: Broadcast complete
-        
-        Service-->>-Controller: Bulk creation result
-        Controller-->>-Client: HTTP 201 Created
-        
-    else Validation Errors
-        Validator-->>-Service: Validation errors
-        Service-->>-Controller: Partial validation failed
-        Controller-->>-Client: HTTP 400 Bad Request
-        Note over Controller: Response includes:<br/>• Failed task indices<br/>• Specific error messages<br/>• Successful task count
-    end
+    DAL->>+DB: INSERT INTO tasks
+    DB-->>-DAL: Connection timeout/failure
+    
+    DAL-->>-CB: DatabaseException
+    
+    CB->>CB: Record failure
+    CB->>CB: Check failure threshold (5 failures)
+    CB->>CB: Open circuit breaker
+    
+    CB-->>-Service: CircuitBreakerOpenException
+    
+    Service->>+Monitor: Record circuit breaker event
+    Monitor->>Monitor: Update error metrics
+    Monitor->>Monitor: Trigger alert
+    Monitor-->>-Service: Alert sent
+    
+    Service-->>-Controller: ServiceUnavailableException
+    Controller-->>-API: HTTP 503 Service Unavailable
+    
+    API-->>-Client: HTTP 503 + Error Response
+    Note left of API: {
+      "error": {
+        "code": "SERVICE_UNAVAILABLE",
+        "message": "Service temporarily unavailable",
+        "retryAfter": 60
+      }
+    }
 ```
 
----
-
-## 5. Real-Time Synchronization Sequence Diagram
-
-### Description
-This sequence diagram shows the real-time synchronization flow when tasks are created and need to be broadcast to all connected clients.
+### 3.2 Audit Service Failure with Graceful Degradation
 
 ```mermaid
 sequenceDiagram
-    participant User1 as User 1 (Creator)
-    participant API as Task API
-    participant Redis as Redis Pub/Sub
-    participant WS1 as WebSocket Server 1
-    participant WS2 as WebSocket Server 2
-    participant User2 as User 2 (Connected)
-    participant User3 as User 3 (Connected)
+    participant Client as API Consumer
+    participant API as Task API Gateway
+    participant Controller as TaskController
+    participant Service as TaskService
+    participant DAL as Data Access Layer
+    participant DB as PostgreSQL Database
+    participant Audit as Audit Service
+    participant FallbackAudit as Fallback Audit Queue
+    participant Monitor as Monitoring Service
 
-    Note over User1, User3: Real-Time Task Synchronization
+    Note over Client, Monitor: Audit Service Failure - Graceful Degradation
     
-    User1->>+API: Create task
-    API->>API: Process and store task
-    API->>+Redis: PUBLISH task_created event
-    Note right of Redis: Event payload:<br/>• Task data<br/>• User context<br/>• Timestamp
+    Client->>+API: POST /api/tasks
+    API->>+Controller: createTask(CreateTaskDto)
+    Controller->>+Service: createTask(validatedDto)
     
-    Redis->>WS1: Notify subscribers
-    Redis->>WS2: Notify subscribers
-    Redis-->>-API: Publish confirmed
+    Service->>+DAL: Begin transaction
+    DAL->>+DB: INSERT INTO tasks
+    DB-->>-DAL: Task created successfully
+    DAL-->>-Service: Transaction committed
     
-    par WebSocket Server 1
-        WS1->>User2: Send task creation event
-        User2->>User2: Update UI with new task
-    and WebSocket Server 2
-        WS2->>User3: Send task creation event
-        User3->>User3: Update UI with new task
-    end
+    Service->>+Audit: Log task creation event
     
-    API-->>-User1: Task creation response
+    Audit->>Audit: Attempt to log audit event
+    Audit-->>-Service: AuditServiceException (timeout)
     
-    Note over User1, User3: Target synchronization time: < 500ms
+    Service->>+FallbackAudit: Queue audit event
+    Note right of Service: Fallback to message queue<br/>for eventual audit processing
+    
+    FallbackAudit->>FallbackAudit: Store audit event
+    FallbackAudit-->>-Service: Event queued successfully
+    
+    Service->>+Monitor: Record audit service failure
+    Monitor->>Monitor: Update service health metrics
+    Monitor->>Monitor: Trigger degraded service alert
+    Monitor-->>-Service: Alert sent
+    
+    Service-->>-Controller: Task created (audit queued)
+    Controller-->>-API: HTTP 201 Created
+    
+    API-->>-Client: HTTP 201 + TaskResponse
+    Note left of API: Task creation successful<br/>despite audit service failure
 ```
 
+## 4. Performance and Monitoring Sequences
+
+### 4.1 Performance Monitoring and Metrics Collection
+
+```mermaid
+sequenceDiagram
+    participant Client as API Consumer
+    participant API as Task API Gateway
+    participant Controller as TaskController
+    participant Service as TaskService
+    participant Monitor as Monitoring Service
+    participant Metrics as Metrics Store
+    participant Alert as Alerting System
+
+    Note over Client, Alert: Performance Monitoring Flow
+    
+    Client->>+API: POST /api/tasks
+    Note right of Client: Start request timer
+    
+    API->>+Monitor: Start request tracking
+    Monitor->>Monitor: Record request start time
+    Monitor->>Monitor: Generate correlation ID
+    
+    API->>+Controller: createTask(CreateTaskDto)
+    
+    Controller->>+Monitor: Record controller entry
+    Monitor->>Monitor: Track controller metrics
+    
+    Controller->>+Service: createTask(validatedDto)
+    
+    Service->>+Monitor: Record service entry
+    Monitor->>Monitor: Track service metrics
+    
+    Service-->>-Controller: Task created successfully
+    
+    Controller->>+Monitor: Record controller exit
+    Monitor->>Monitor: Calculate controller duration
+    Monitor-->>-Controller: Metrics recorded
+    
+    Controller-->>-API: HTTP 201 Created
+    
+    API->>+Monitor: Complete request tracking
+    Monitor->>Monitor: Calculate total response time
+    Monitor->>Monitor: Update success counter
+    Monitor->>Monitor: Update throughput metrics
+    
+    Monitor->>+Metrics: Store performance data
+    Metrics->>Metrics: Store response time (185ms)
+    Metrics->>Metrics: Update success rate (99.95%)
+    Metrics->>Metrics: Update hourly throughput
+    Metrics-->>-Monitor: Data stored
+    
+    Monitor->>+Alert: Check SLA thresholds
+    Alert->>Alert: Response time < 200ms ✓
+    Alert->>Alert: Error rate < 0.1% ✓
+    Alert->>Alert: All SLAs within limits
+    Alert-->>-Monitor: No alerts triggered
+    
+    Monitor-->>-API: Monitoring complete
+    
+    API-->>-Client: HTTP 201 + TaskResponse
+    Note left of Client: Request completed in 185ms
+```
+
+## 5. Security and Audit Sequences
+
+### 5.1 Comprehensive Security and Audit Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as API Consumer
+    participant WAF as Web Application Firewall
+    participant API as Task API Gateway
+    participant Auth as Authentication Service
+    participant AuthZ as Authorization Service
+    participant Controller as TaskController
+    participant Service as TaskService
+    participant Audit as Audit Service
+    participant SIEM as Security Information System
+    participant Compliance as Compliance Monitor
+
+    Note over Client, Compliance: Security and Audit Flow
+    
+    Client->>+WAF: POST /api/tasks
+    Note right of Client: Request with Bearer token
+    
+    WAF->>WAF: Check IP whitelist
+    WAF->>WAF: Scan for malicious patterns
+    WAF->>WAF: Rate limit check
+    WAF->>WAF: DDoS protection
+    
+    WAF->>+API: Forward clean request
+    
+    API->>+Auth: Validate JWT token
+    
+    Auth->>Auth: Verify token signature
+    Auth->>Auth: Check token expiration
+    Auth->>Auth: Validate token claims
+    
+    Auth->>+SIEM: Log authentication event
+    SIEM->>SIEM: Record auth success
+    SIEM->>SIEM: Update user session tracking
+    SIEM-->>-Auth: Event logged
+    
+    Auth-->>-API: Token valid + user context
+    
+    API->>+AuthZ: Check user permissions
+    
+    AuthZ->>AuthZ: Load user roles
+    AuthZ->>AuthZ: Check task creation permission
+    AuthZ->>AuthZ: Validate resource access
+    
+    AuthZ->>+SIEM: Log authorization event
+    SIEM->>SIEM: Record permission check
+    SIEM->>SIEM: Update access patterns
+    SIEM-->>-AuthZ: Event logged
+    
+    AuthZ-->>-API: Authorization granted
+    
+    API->>+Controller: createTask(CreateTaskDto)
+    
+    Controller->>+Service: createTask(validatedDto)
+    
+    Service->>+Audit: Log task creation attempt
+    
+    Audit->>Audit: Create audit record
+    Audit->>Audit: Include user attribution
+    Audit->>Audit: Add request details
+    Audit->>Audit: Include correlation ID
+    
+    Audit->>+Compliance: Send compliance event
+    
+    Compliance->>Compliance: Check GDPR requirements
+    Compliance->>Compliance: Validate SOX controls
+    Compliance->>Compliance: Update audit trail
+    
+    Compliance-->>-Audit: Compliance validated
+    
+    Audit-->>-Service: Audit logged successfully
+    
+    Service-->>-Controller: Task created successfully
+    
+    Controller->>+Audit: Log successful completion
+    
+    Audit->>+SIEM: Send security event
+    SIEM->>SIEM: Update threat intelligence
+    SIEM->>SIEM: Check for anomalies
+    SIEM->>SIEM: Update user behavior profile
+    SIEM-->>-Audit: Security analysis complete
+    
+    Audit-->>-Controller: Final audit complete
+    
+    Controller-->>-API: HTTP 201 Created
+    API-->>-WAF: Response with security headers
+    WAF-->>-Client: HTTP 201 + TaskResponse
+```
+
+## Diagram Standards and Conventions
+
+### Participant Naming
+- **External Systems**: Clear, descriptive names (API Consumer, Load Balancer)
+- **Internal Components**: Service-oriented names (TaskController, TaskService)
+- **Infrastructure**: Technology-specific names (PostgreSQL Database, Redis Cache)
+
+### Message Formatting
+- **Synchronous Calls**: Solid arrows (->>) with return values (-->)
+- **Asynchronous Calls**: Dotted arrows where applicable
+- **Error Flows**: Red highlighting with exception details
+- **Success Flows**: Green highlighting for happy paths
+
+### Note Placement
+- **Right Notes**: Request details, parameters, headers
+- **Left Notes**: Response details, error messages, data structures
+- **Over Notes**: Flow descriptions, business context
+
+### Error Handling
+- All error scenarios include specific HTTP status codes
+- Error responses include structured error objects
+- Monitoring and alerting included in error flows
+- Recovery mechanisms and fallback strategies documented
+
+### Compliance and Security
+- Authentication and authorization flows clearly depicted
+- Audit logging integrated into all business flows
+- Security monitoring and SIEM integration shown
+- Compliance checkpoints and validation included
+
 ---
 
-## Sequence Diagram Standards and Conventions
-
-### 1. Participant Naming
-- Use clear, descriptive names for all participants
-- Follow consistent naming conventions across diagrams
-- Group related components logically
-
-### 2. Message Types
-- **Synchronous calls**: Solid arrows (->>) 
-- **Asynchronous calls**: Dashed arrows (-->>)
-- **Return messages**: Dashed arrows with return values
-- **Self-calls**: Loops back to same participant
-
-### 3. Notes and Annotations
-- Include timing requirements where applicable
-- Document important data structures in notes
-- Highlight error conditions and edge cases
-- Reference related architectural decisions
-
-### 4. Error Handling
-- Use alternative flows (alt/else) for error scenarios
-- Include comprehensive error response details
-- Show logging and monitoring integration
-- Document retry and fallback mechanisms
-
-### 5. Performance Considerations
-- Include response time targets
-- Show parallel processing where applicable
-- Document caching strategies
-- Highlight bottlenecks and optimization points
-
----
-
-## Compliance and Traceability
-
-### ADR Mappings
-- **DEMO-2350**: Task creation endpoint implementation
-- **HLD-TASK-API-001**: High-level design alignment
-- **API-CONTRACT-001**: API contract compliance
-
-### Non-Functional Requirements
-- **Performance**: < 200ms response time (95th percentile)
-- **Availability**: 99.99% uptime requirement
-- **Security**: JWT authentication and authorization
-- **Scalability**: Horizontal scaling support
-- **Monitoring**: Comprehensive observability
-
-### Quality Attributes
-- **Maintainability**: Clear separation of concerns
-- **Testability**: Well-defined interaction points
-- **Reliability**: Comprehensive error handling
-- **Security**: Authentication and input validation
-- **Performance**: Optimized data flow and caching
-
----
-
-**Document Information**
-- **Version**: 1.0
-- **Last Updated**: 2024
-- **Prepared By**: Senior Solution Architect
-- **Review Status**: Ready for Technical Review
-- **Compliance**: Enterprise Architecture Standards
+**Document Version**: 1.0  
+**Last Updated**: 2024-12-19  
+**Generated From**: HLD Document, API Contract Outline, NFR Requirements  
+**ADR Reference**: DEMO-2350 - Task creation API endpoint implementation  
+**Compliance**: GDPR, SOX, ISO 27001, PCI-DSS Ready  
+**Review Status**: Architecture Review Pending
