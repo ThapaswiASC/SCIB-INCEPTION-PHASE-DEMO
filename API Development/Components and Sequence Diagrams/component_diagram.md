@@ -1,836 +1,620 @@
-# Component Diagrams
-# Youth Account Management System
+# Component Diagram - Task Creation Synchronization System
 
 ## Document Information
-- **Document Version**: 1.0
-- **Date**: 2024
-- **System**: Youth Account Management System
-- **Traceability**: SCIB-25, SCIB-26, SCIB-27, SCIB-28, SCIB-29, SCIB-30
-- **Architecture Pattern**: Microservices with API Gateway
+- **Version**: 1.0
+- **Date**: 2024-12-19
+- **System**: SCIB Task Management Platform
+- **Story Reference**: DEMO-1841
+- **Generated From**: HLD Document v1.0
 
 ---
 
-## 1. System Context Diagram (C4 Level 1)
+## Overview
+This component diagram illustrates the architectural components and their relationships in the SCIB Task Creation Synchronization System. The diagram shows the complete system architecture from frontend components to backend services, data storage, and external integrations.
 
-### Description
-High-level view of the Youth Account Management System and its external dependencies.
+---
+
+## System Architecture Component Diagram
 
 ```mermaid
-graph TB
-    %% External Users
-    Parent["👤 Parent/Guardian<br/>Primary User"]
-    Youth["👤 Youth Account Holder<br/>Secondary User"]
-    Admin["👤 System Administrator<br/>Operations"]
-    Auditor["👤 Compliance Auditor<br/>Regulatory"]
+C4Component
+    title Component Diagram - Task Creation Synchronization System
     
-    %% Main System
-    YouthSystem["🏦 Youth Account Management System<br/>Core Banking Platform<br/>Manages youth accounts, transfers, limits"]
+    Container_Boundary(frontend, "Frontend Layer - Angular SPA") {
+        Component(taskForm, "TaskCreationFormComponent", "Angular Component", "Task creation form with real-time validation and optimistic UI updates")
+        Component(taskList, "TaskListComponent", "Angular Component", "Displays tasks with real-time updates and animations")
+        Component(wsClient, "WebSocketClientService", "Angular Service", "Manages WebSocket connections and real-time event handling")
+        Component(apiClient, "ApiClientService", "Angular Service", "HTTP client for REST API communication")
+        Component(taskAnimation, "TaskAnimationService", "Angular Service", "Handles task appearance animations and transitions")
+        Component(validation, "ValidationService", "Angular Service", "Client-side validation and error handling")
+        Component(stateManager, "TaskStateManager", "Angular Service", "Manages task state and optimistic updates")
+    }
     
-    %% External Systems
-    CoreBanking["🏛️ Core Banking System<br/>Legacy System<br/>Account management & transactions"]
-    PaymentGateway["💳 Payment Gateway<br/>External Service<br/>Payment processing & validation"]
-    NotificationService["📧 Notification Service<br/>External Service<br/>Email, SMS, Push notifications"]
-    AuditSystem["📊 Audit & Compliance System<br/>External Service<br/>Regulatory reporting & audit trails"]
-    IdentityProvider["🔐 Identity Provider<br/>External Service<br/>OAuth 2.0 authentication"]
+    Container_Boundary(gateway, "API Gateway Layer") {
+        Component(loadBalancer, "Load Balancer", "NGINX/HAProxy", "Routes requests and provides SSL termination")
+        Component(apiGateway, "API Gateway", "Spring Cloud Gateway", "Request routing, authentication, and rate limiting")
+    }
     
-    %% User Interactions
-    Parent -.->|"Manages youth accounts<br/>Configures limits<br/>Transfers funds"| YouthSystem
-    Youth -.->|"Views account balance<br/>Checks spending history"| YouthSystem
-    Admin -.->|"System administration<br/>User management"| YouthSystem
-    Auditor -.->|"Compliance monitoring<br/>Audit trail access"| YouthSystem
+    Container_Boundary(backend, "Backend Services Layer - Spring Boot") {
+        Component(taskController, "TaskController", "Spring REST Controller", "Handles task creation REST API endpoints")
+        Component(wsController, "WebSocketController", "Spring WebSocket", "Manages WebSocket connections and broadcasting")
+        Component(taskValidationSvc, "TaskValidationService", "Spring Service", "Comprehensive task validation with business rules")
+        Component(taskCreationSvc, "TaskCreationService", "Spring Service", "Orchestrates task creation workflow")
+        Component(batchProcessingSvc, "BatchProcessingService", "Spring Service", "Handles bulk task creation operations")
+        Component(broadcastSvc, "WebSocketBroadcastService", "Spring Service", "Manages real-time event broadcasting")
+        Component(auditSvc, "AuditService", "Spring Service", "Logs all operations for compliance")
+        Component(authSvc, "AuthenticationService", "Spring Security", "JWT token validation and user authentication")
+    }
     
-    %% System Integrations
-    YouthSystem -->|"Account queries<br/>Balance updates<br/>Transaction processing"| CoreBanking
-    YouthSystem -->|"Payment authorization<br/>Fund transfers<br/>Transaction validation"| PaymentGateway
-    YouthSystem -->|"Email notifications<br/>SMS alerts<br/>Push messages"| NotificationService
-    YouthSystem -->|"Audit events<br/>Compliance data<br/>Transaction logs"| AuditSystem
-    YouthSystem -->|"User authentication<br/>Token validation<br/>Authorization"| IdentityProvider
+    Container_Boundary(data, "Data Layer") {
+        ComponentDb(postgres, "PostgreSQL Database", "PostgreSQL 14", "Primary data storage for tasks, users, and boards")
+        Component(redis, "Redis Cache/Pub-Sub", "Redis 7", "Caching and real-time event messaging")
+        Component(taskRepo, "TaskRepository", "Spring Data JPA", "Data access layer for task operations")
+        Component(userRepo, "UserRepository", "Spring Data JPA", "Data access layer for user operations")
+        Component(boardRepo, "BoardRepository", "Spring Data JPA", "Data access layer for board operations")
+    }
     
-    %% Styling
-    classDef userClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef systemClass fill:#f3e5f5,stroke:#4a148c,stroke-width:3px
-    classDef externalClass fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    Container_Boundary(external, "External Systems") {
+        System_Ext(authProvider, "Authentication Provider", "External OAuth/SAML provider for user authentication")
+        System_Ext(monitoring, "Monitoring System", "Prometheus/Grafana for metrics and alerting")
+        System_Ext(logging, "Logging System", "ELK Stack for centralized logging")
+        System_Ext(notification, "Notification Service", "Email/SMS service for user notifications")
+    }
     
-    class Parent,Youth,Admin,Auditor userClass
-    class YouthSystem systemClass
-    class CoreBanking,PaymentGateway,NotificationService,AuditSystem,IdentityProvider externalClass
+    %% Frontend Component Relationships
+    Rel(taskForm, apiClient, "Makes API calls", "HTTP/REST")
+    Rel(taskForm, wsClient, "Subscribes to events", "WebSocket")
+    Rel(taskForm, validation, "Validates input", "Method calls")
+    Rel(taskForm, stateManager, "Updates state", "Method calls")
+    Rel(taskList, wsClient, "Receives events", "WebSocket")
+    Rel(taskList, taskAnimation, "Triggers animations", "Method calls")
+    Rel(wsClient, stateManager, "Updates task state", "Method calls")
+    Rel(apiClient, validation, "Handles errors", "Method calls")
+    
+    %% Frontend to Gateway
+    Rel(apiClient, loadBalancer, "API requests", "HTTPS")
+    Rel(wsClient, loadBalancer, "WebSocket connection", "WSS")
+    
+    %% Gateway Layer
+    Rel(loadBalancer, apiGateway, "Routes requests", "HTTP/WebSocket")
+    
+    %% Gateway to Backend
+    Rel(apiGateway, taskController, "Routes API calls", "HTTP")
+    Rel(apiGateway, wsController, "Routes WebSocket", "WebSocket")
+    
+    %% Backend Service Relationships
+    Rel(taskController, authSvc, "Validates tokens", "Method calls")
+    Rel(taskController, taskValidationSvc, "Validates tasks", "Method calls")
+    Rel(taskController, taskCreationSvc, "Creates tasks", "Method calls")
+    Rel(taskController, batchProcessingSvc, "Batch operations", "Method calls")
+    Rel(taskController, auditSvc, "Logs operations", "Method calls")
+    
+    Rel(wsController, authSvc, "Validates connections", "Method calls")
+    Rel(wsController, broadcastSvc, "Broadcasts events", "Method calls")
+    
+    Rel(taskCreationSvc, taskValidationSvc, "Pre-creation validation", "Method calls")
+    Rel(taskCreationSvc, taskRepo, "Persists tasks", "JPA")
+    Rel(taskCreationSvc, redis, "Publishes events", "Redis Protocol")
+    Rel(taskCreationSvc, auditSvc, "Logs creation", "Method calls")
+    
+    Rel(batchProcessingSvc, taskValidationSvc, "Validates batch", "Method calls")
+    Rel(batchProcessingSvc, taskRepo, "Batch operations", "JPA")
+    Rel(batchProcessingSvc, redis, "Publishes batch events", "Redis Protocol")
+    
+    Rel(broadcastSvc, redis, "Subscribes to events", "Redis Pub/Sub")
+    Rel(broadcastSvc, wsController, "Sends to clients", "Method calls")
+    
+    %% Data Layer Relationships
+    Rel(taskRepo, postgres, "Database operations", "JDBC")
+    Rel(userRepo, postgres, "User queries", "JDBC")
+    Rel(boardRepo, postgres, "Board queries", "JDBC")
+    
+    Rel(taskValidationSvc, taskRepo, "Validation queries", "JPA")
+    Rel(taskValidationSvc, userRepo, "User validation", "JPA")
+    Rel(taskValidationSvc, boardRepo, "Board validation", "JPA")
+    Rel(taskValidationSvc, redis, "Caches validation", "Redis Protocol")
+    
+    %% External System Relationships
+    Rel(authSvc, authProvider, "Token validation", "HTTPS")
+    Rel(auditSvc, logging, "Sends audit logs", "HTTP")
+    Rel(taskCreationSvc, notification, "Task notifications", "HTTP")
+    
+    %% Monitoring Relationships
+    Rel(monitoring, taskController, "Collects metrics", "HTTP")
+    Rel(monitoring, postgres, "Database metrics", "JDBC")
+    Rel(monitoring, redis, "Cache metrics", "Redis Protocol")
 ```
-
-**Key Relationships:**
-- **Primary Users**: Parents manage youth accounts with full control
-- **Secondary Users**: Youth have limited read-only access
-- **External Dependencies**: Core banking, payments, notifications, audit, identity
-- **Compliance**: All interactions logged for regulatory requirements
 
 ---
 
-## 2. Container Diagram (C4 Level 2)
-
-### Description
-Detailed view of the system's containers, showing the microservices architecture and data flow.
+## Frontend Component Architecture
 
 ```mermaid
-graph TB
-    %% Users
-    Parent["👤 Parent User"]
-    Youth["👤 Youth User"]
+C4Component
+    title Frontend Component Architecture - Angular SPA
     
-    %% Frontend Layer
-    subgraph "Frontend Layer"
-        WebApp["📱 Web Application<br/>React.js + TypeScript<br/>Responsive PWA<br/>Port: 3000"]
-        MobileApp["📱 Mobile App<br/>React Native<br/>iOS/Android<br/>Push notifications"]
-    end
+    Container_Boundary(components, "Angular Components") {
+        Component(taskCreationForm, "TaskCreationFormComponent", "Angular Component", "Main task creation form with validation")
+        Component(taskCreationModal, "TaskCreationModalComponent", "Angular Component", "Modal variant of task creation form")
+        Component(batchTaskForm, "BatchTaskFormComponent", "Angular Component", "Bulk task creation interface")
+        Component(taskItem, "TaskItemComponent", "Angular Component", "Individual task display component")
+        Component(taskBoard, "TaskBoardComponent", "Angular Component", "Main board view with columns")
+        Component(errorDisplay, "ErrorDisplayComponent", "Angular Component", "Validation error display")
+    }
     
-    %% API Gateway Layer
-    subgraph "API Gateway Layer"
-        APIGateway["🚪 API Gateway<br/>Kong/AWS API Gateway<br/>Authentication, Rate limiting<br/>Port: 8080"]
-        LoadBalancer["⚖️ Load Balancer<br/>AWS ALB<br/>SSL termination<br/>Health checks"]
-    end
+    Container_Boundary(services, "Angular Services") {
+        Component(taskService, "TaskService", "Angular Service", "Core task operations and state management")
+        Component(wsService, "WebSocketService", "Angular Service", "WebSocket connection and event handling")
+        Component(apiService, "ApiService", "Angular Service", "HTTP client wrapper with error handling")
+        Component(validationService, "ValidationService", "Angular Service", "Client-side validation logic")
+        Component(animationService, "AnimationService", "Angular Service", "Task appearance animations")
+        Component(cacheService, "CacheService", "Angular Service", "Client-side caching for performance")
+        Component(errorService, "ErrorHandlingService", "Angular Service", "Centralized error handling")
+    }
     
-    %% Microservices Layer
-    subgraph "Microservices Layer"
-        YouthService["🏦 Youth Account Service<br/>Java 17 + Spring Boot<br/>Account management<br/>Port: 8081"]
-        TransferService["💸 Fund Transfer Service<br/>Java 17 + Spring Boot<br/>Payment processing<br/>Port: 8082"]
-        LimitService["🎯 Spending Limit Service<br/>Java 17 + Spring Boot<br/>Limit enforcement<br/>Port: 8083"]
-        TransactionService["📊 Transaction Service<br/>Java 17 + Spring Boot<br/>History & analytics<br/>Port: 8084"]
-        NotificationService["📧 Notification Service<br/>Node.js + Express<br/>Multi-channel messaging<br/>Port: 8085"]
-        AuthService["🔐 Auth Service<br/>Java 17 + Spring Security<br/>JWT token management<br/>Port: 8086"]
-    end
+    Container_Boundary(guards, "Angular Guards & Interceptors") {
+        Component(authGuard, "AuthGuard", "Angular Guard", "Route protection and authentication")
+        Component(boardGuard, "BoardAccessGuard", "Angular Guard", "Board-level access control")
+        Component(authInterceptor, "AuthInterceptor", "HTTP Interceptor", "Adds JWT tokens to requests")
+        Component(errorInterceptor, "ErrorInterceptor", "HTTP Interceptor", "Global error handling")
+        Component(loadingInterceptor, "LoadingInterceptor", "HTTP Interceptor", "Loading state management")
+    }
     
-    %% Data Layer
-    subgraph "Data Layer"
-        PrimaryDB[("🗄️ Primary Database<br/>PostgreSQL 14<br/>ACID transactions<br/>Port: 5432")]
-        ReadReplica[("📖 Read Replica<br/>PostgreSQL 14<br/>Read-only queries<br/>Port: 5433")]
-        Cache[("⚡ Redis Cache<br/>Session & data caching<br/>TTL management<br/>Port: 6379")]
-        MessageQueue["📬 Message Queue<br/>RabbitMQ/AWS SQS<br/>Async processing<br/>Event streaming"]
-    end
+    Container_Boundary(models, "Data Models & Interfaces") {
+        Component(taskModel, "Task Model", "TypeScript Interface", "Task data structure")
+        Component(validationModel, "ValidationResult Model", "TypeScript Interface", "Validation response structure")
+        Component(wsEventModel, "WebSocket Event Models", "TypeScript Interfaces", "WebSocket message structures")
+        Component(apiResponseModel, "API Response Models", "TypeScript Interfaces", "API response structures")
+    }
     
-    %% External Systems
-    subgraph "External Systems"
-        CoreBanking["🏛️ Core Banking<br/>Legacy SOAP/REST<br/>Account operations"]
-        PaymentGateway["💳 Payment Gateway<br/>Stripe/PayPal<br/>PCI-DSS compliant"]
-        ExternalNotif["📨 External Notifications<br/>SendGrid/Twilio<br/>Email/SMS delivery"]
-        AuditSystem["📊 Audit System<br/>Compliance logging<br/>Regulatory reporting"]
-    end
+    %% Component Relationships
+    Rel(taskCreationForm, taskService, "Creates tasks", "Method calls")
+    Rel(taskCreationForm, validationService, "Validates input", "Method calls")
+    Rel(taskCreationForm, errorDisplay, "Shows errors", "Component binding")
     
-    %% User Connections
-    Parent --> WebApp
-    Youth --> MobileApp
-    WebApp --> LoadBalancer
-    MobileApp --> LoadBalancer
+    Rel(taskBoard, taskItem, "Displays tasks", "Component composition")
+    Rel(taskBoard, wsService, "Receives updates", "Observable subscription")
+    Rel(taskBoard, animationService, "Triggers animations", "Method calls")
     
-    %% Gateway Routing
-    LoadBalancer --> APIGateway
-    APIGateway --> AuthService
-    APIGateway --> YouthService
-    APIGateway --> TransferService
-    APIGateway --> LimitService
-    APIGateway --> TransactionService
+    Rel(taskService, apiService, "Makes API calls", "HTTP requests")
+    Rel(taskService, cacheService, "Caches data", "Method calls")
+    Rel(taskService, wsService, "Subscribes to events", "Observable subscription")
     
-    %% Service Dependencies
-    YouthService --> PrimaryDB
-    YouthService --> Cache
-    YouthService --> MessageQueue
+    Rel(wsService, taskService, "Notifies updates", "Event emission")
+    Rel(apiService, errorService, "Handles errors", "Method calls")
     
-    TransferService --> PrimaryDB
-    TransferService --> Cache
-    TransferService --> CoreBanking
-    TransferService --> PaymentGateway
-    TransferService --> MessageQueue
+    %% Guard and Interceptor relationships
+    Rel(authGuard, taskService, "Checks authentication", "Method calls")
+    Rel(boardGuard, taskService, "Validates board access", "Method calls")
+    Rel(authInterceptor, apiService, "Intercepts requests", "HTTP pipeline")
+    Rel(errorInterceptor, errorService, "Handles errors", "Method calls")
     
-    LimitService --> PrimaryDB
-    LimitService --> Cache
-    LimitService --> MessageQueue
-    
-    TransactionService --> ReadReplica
-    TransactionService --> Cache
-    
-    NotificationService --> MessageQueue
-    NotificationService --> ExternalNotif
-    
-    AuthService --> PrimaryDB
-    AuthService --> Cache
-    
-    %% Database Replication
-    PrimaryDB -.->|"Async replication"| ReadReplica
-    
-    %% Audit Integration
-    YouthService --> AuditSystem
-    TransferService --> AuditSystem
-    LimitService --> AuditSystem
-    TransactionService --> AuditSystem
-    
-    %% Styling
-    classDef frontendClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef gatewayClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef serviceClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef dataClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef externalClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    
-    class WebApp,MobileApp frontendClass
-    class APIGateway,LoadBalancer gatewayClass
-    class YouthService,TransferService,LimitService,TransactionService,NotificationService,AuthService serviceClass
-    class PrimaryDB,ReadReplica,Cache,MessageQueue dataClass
-    class CoreBanking,PaymentGateway,ExternalNotif,AuditSystem externalClass
+    %% Model usage
+    Rel(taskService, taskModel, "Uses data structure", "Type definition")
+    Rel(validationService, validationModel, "Uses validation structure", "Type definition")
+    Rel(wsService, wsEventModel, "Uses event structure", "Type definition")
+    Rel(apiService, apiResponseModel, "Uses response structure", "Type definition")
 ```
-
-**Architecture Patterns:**
-- **Microservices**: Independently deployable services
-- **API Gateway**: Centralized entry point with cross-cutting concerns
-- **CQRS**: Read replicas for query optimization
-- **Event-Driven**: Asynchronous processing with message queues
-- **Caching**: Redis for performance optimization
 
 ---
 
-## 3. Component Diagram - Youth Account Service (SCIB-26)
-
-### Description
-Detailed internal structure of the Youth Account Service responsible for dashboard and account management.
+## Backend Service Architecture
 
 ```mermaid
-graph TB
-    subgraph "Youth Account Service (Port: 8081)"
-        %% API Layer
-        subgraph "API Layer"
-            Controller["🎮 Account Controller<br/>@RestController<br/>Dashboard endpoints<br/>Input validation"]
-            ErrorHandler["❌ Error Handler<br/>@ControllerAdvice<br/>Exception mapping<br/>Standard responses"]
-        end
-        
-        %% Business Layer
-        subgraph "Business Layer"
-            AccountManager["🏦 Account Manager<br/>@Service<br/>Business logic<br/>Account operations"]
-            DashboardAggregator["📊 Dashboard Aggregator<br/>@Component<br/>Data consolidation<br/>Response building"]
-            ValidationService["✅ Validation Service<br/>@Component<br/>Business rules<br/>Data validation"]
-        end
-        
-        %% Integration Layer
-        subgraph "Integration Layer"
-            LimitClient["🎯 Limit Service Client<br/>@FeignClient<br/>Spending limits API<br/>Circuit breaker"]
-            TransactionClient["📊 Transaction Client<br/>@FeignClient<br/>Recent transactions<br/>Timeout handling"]
-            CacheManager["⚡ Cache Manager<br/>@Component<br/>Redis operations<br/>TTL management"]
-        end
-        
-        %% Data Layer
-        subgraph "Data Access Layer"
-            AccountRepository["🗄️ Account Repository<br/>@Repository<br/>JPA/Hibernate<br/>CRUD operations"]
-            AccountEntity["📋 Account Entity<br/>@Entity<br/>Database mapping<br/>Audit fields"]
-        end
-        
-        %% Security Layer
-        subgraph "Security Layer"
-            SecurityConfig["🔐 Security Config<br/>@Configuration<br/>JWT validation<br/>RBAC enforcement"]
-            AuditLogger["📝 Audit Logger<br/>@Component<br/>Action logging<br/>Compliance tracking"]
-        end
-    end
+C4Component
+    title Backend Service Architecture - Spring Boot
     
-    %% External Dependencies
-    APIGateway["🚪 API Gateway"]
-    Database[("🗄️ PostgreSQL")]
-    Cache[("⚡ Redis Cache")]
-    LimitService["🎯 Limit Service"]
-    TransactionService["📊 Transaction Service"]
-    AuditSystem["📊 Audit System"]
+    Container_Boundary(controllers, "Controller Layer") {
+        Component(taskRestController, "TaskRestController", "@RestController", "REST endpoints for task operations")
+        Component(batchController, "BatchTaskController", "@RestController", "Bulk task operation endpoints")
+        Component(validationController, "ValidationController", "@RestController", "Task validation endpoints")
+        Component(wsEventController, "WebSocketController", "@Controller", "WebSocket connection management")
+        Component(healthController, "HealthController", "@RestController", "Health check endpoints")
+    }
     
-    %% Request Flow
-    APIGateway --> Controller
-    Controller --> AccountManager
-    AccountManager --> DashboardAggregator
-    DashboardAggregator --> ValidationService
+    Container_Boundary(services, "Service Layer") {
+        Component(taskCreationService, "TaskCreationService", "@Service", "Core task creation business logic")
+        Component(taskValidationService, "TaskValidationService", "@Service", "Comprehensive task validation")
+        Component(batchProcessingService, "BatchProcessingService", "@Service", "Bulk operation processing")
+        Component(broadcastService, "WebSocketBroadcastService", "@Service", "Real-time event broadcasting")
+        Component(auditService, "AuditService", "@Service", "Compliance and audit logging")
+        Component(cacheService, "CacheService", "@Service", "Redis caching operations")
+        Component(notificationService, "NotificationService", "@Service", "User notification handling")
+    }
     
-    %% Data Access
-    AccountManager --> AccountRepository
-    AccountRepository --> AccountEntity
-    AccountEntity --> Database
+    Container_Boundary(security, "Security Layer") {
+        Component(jwtAuthService, "JwtAuthenticationService", "@Service", "JWT token validation and processing")
+        Component(rbacService, "RoleBasedAccessService", "@Service", "Role-based access control")
+        Component(securityConfig, "SecurityConfiguration", "@Configuration", "Spring Security configuration")
+        Component(corsConfig, "CorsConfiguration", "@Configuration", "Cross-origin request configuration")
+    }
     
-    %% Caching
-    AccountManager --> CacheManager
-    CacheManager --> Cache
+    Container_Boundary(repositories, "Repository Layer") {
+        Component(taskRepository, "TaskRepository", "JpaRepository<Task>", "Task data access operations")
+        Component(userRepository, "UserRepository", "JpaRepository<User>", "User data access operations")
+        Component(boardRepository, "BoardRepository", "JpaRepository<Board>", "Board data access operations")
+        Component(auditRepository, "AuditLogRepository", "JpaRepository<AuditLog>", "Audit log data access")
+    }
     
-    %% External Service Calls
-    DashboardAggregator --> LimitClient
-    DashboardAggregator --> TransactionClient
-    LimitClient --> LimitService
-    TransactionClient --> TransactionService
+    Container_Boundary(config, "Configuration Layer") {
+        Component(wsConfig, "WebSocketConfiguration", "@Configuration", "WebSocket setup and configuration")
+        Component(redisConfig, "RedisConfiguration", "@Configuration", "Redis connection and pub/sub setup")
+        Component(dbConfig, "DatabaseConfiguration", "@Configuration", "Database connection and JPA setup")
+        Component(asyncConfig, "AsyncConfiguration", "@Configuration", "Async processing configuration")
+    }
     
-    %% Security & Audit
-    Controller --> SecurityConfig
-    AccountManager --> AuditLogger
-    AuditLogger --> AuditSystem
+    Container_Boundary(entities, "Entity Layer") {
+        Component(taskEntity, "Task Entity", "@Entity", "Task database mapping")
+        Component(userEntity, "User Entity", "@Entity", "User database mapping")
+        Component(boardEntity, "Board Entity", "@Entity", "Board database mapping")
+        Component(auditEntity, "AuditLog Entity", "@Entity", "Audit log database mapping")
+    }
     
-    %% Error Handling
-    Controller --> ErrorHandler
+    %% Controller to Service relationships
+    Rel(taskRestController, taskCreationService, "Creates tasks", "Method calls")
+    Rel(taskRestController, taskValidationService, "Validates tasks", "Method calls")
+    Rel(taskRestController, auditService, "Logs operations", "Method calls")
     
-    %% Styling
-    classDef apiClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef businessClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef integrationClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef dataClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef securityClass fill:#ffebee,stroke:#d32f2f,stroke-width:2px
-    classDef externalClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    Rel(batchController, batchProcessingService, "Processes batches", "Method calls")
+    Rel(validationController, taskValidationService, "Validates data", "Method calls")
+    Rel(wsEventController, broadcastService, "Manages connections", "Method calls")
     
-    class Controller,ErrorHandler apiClass
-    class AccountManager,DashboardAggregator,ValidationService businessClass
-    class LimitClient,TransactionClient,CacheManager integrationClass
-    class AccountRepository,AccountEntity dataClass
-    class SecurityConfig,AuditLogger securityClass
-    class APIGateway,Database,Cache,LimitService,TransactionService,AuditSystem externalClass
+    %% Service layer relationships
+    Rel(taskCreationService, taskValidationService, "Pre-creation validation", "Method calls")
+    Rel(taskCreationService, taskRepository, "Persists tasks", "JPA operations")
+    Rel(taskCreationService, broadcastService, "Triggers broadcasts", "Method calls")
+    Rel(taskCreationService, auditService, "Logs creation", "Method calls")
+    Rel(taskCreationService, notificationService, "Sends notifications", "Method calls")
+    
+    Rel(batchProcessingService, taskValidationService, "Validates batches", "Method calls")
+    Rel(batchProcessingService, taskRepository, "Batch operations", "JPA batch")
+    Rel(batchProcessingService, broadcastService, "Batch broadcasts", "Method calls")
+    
+    Rel(taskValidationService, taskRepository, "Validation queries", "JPA queries")
+    Rel(taskValidationService, userRepository, "User validation", "JPA queries")
+    Rel(taskValidationService, boardRepository, "Board validation", "JPA queries")
+    Rel(taskValidationService, cacheService, "Caches results", "Method calls")
+    
+    Rel(broadcastService, cacheService, "Uses Redis pub/sub", "Redis operations")
+    
+    %% Security relationships
+    Rel(taskRestController, jwtAuthService, "Validates tokens", "Method calls")
+    Rel(taskRestController, rbacService, "Checks permissions", "Method calls")
+    
+    %% Repository to Entity relationships
+    Rel(taskRepository, taskEntity, "Maps data", "JPA mapping")
+    Rel(userRepository, userEntity, "Maps data", "JPA mapping")
+    Rel(boardRepository, boardEntity, "Maps data", "JPA mapping")
+    Rel(auditRepository, auditEntity, "Maps data", "JPA mapping")
 ```
-
-**Key Responsibilities:**
-- **Dashboard API**: GET /youth-accounts/{id}/dashboard (SCIB-26)
-- **Data Aggregation**: Combines account, limit, and transaction data
-- **Caching**: Redis caching with 5-minute TTL
-- **Security**: JWT validation and RBAC enforcement
-- **Audit**: Complete action logging for compliance
 
 ---
 
-## 4. Component Diagram - Fund Transfer Service (SCIB-27)
-
-### Description
-Detailed structure of the Fund Transfer Service handling secure money transfers between accounts.
+## Data Architecture Components
 
 ```mermaid
-graph TB
-    subgraph "Fund Transfer Service (Port: 8082)"
-        %% API Layer
-        subgraph "API Layer"
-            TransferController["💸 Transfer Controller<br/>@RestController<br/>Transfer endpoints<br/>Rate limiting"]
-            TransferValidator["✅ Transfer Validator<br/>@Component<br/>Input validation<br/>Business rules"]
-        end
-        
-        %% Business Layer
-        subgraph "Business Layer"
-            TransferOrchestrator["🎭 Transfer Orchestrator<br/>@Service<br/>Transaction coordination<br/>Saga pattern"]
-            FundManager["💰 Fund Manager<br/>@Service<br/>Account operations<br/>Balance management"]
-            TransactionManager["🔄 Transaction Manager<br/>@Transactional<br/>ACID compliance<br/>Rollback handling"]
-        end
-        
-        %% Integration Layer
-        subgraph "Integration Layer"
-            CoreBankingClient["🏛️ Core Banking Client<br/>@FeignClient<br/>Account validation<br/>Balance queries"]
-            PaymentGatewayClient["💳 Payment Gateway Client<br/>@Component<br/>Payment processing<br/>PCI compliance"]
-            NotificationPublisher["📧 Notification Publisher<br/>@Component<br/>Event publishing<br/>Message queuing"]
-        end
-        
-        %% Data Layer
-        subgraph "Data Access Layer"
-            TransferRepository["🗄️ Transfer Repository<br/>@Repository<br/>Transfer records<br/>Status tracking"]
-            TransferEntity["📋 Transfer Entity<br/>@Entity<br/>Transfer details<br/>Audit trail"]
-        end
-        
-        %% Security & Compliance
-        subgraph "Security Layer"
-            SecurityFilter["🔐 Security Filter<br/>@Component<br/>Authentication<br/>Authorization"]
-            ComplianceChecker["📊 Compliance Checker<br/>@Service<br/>AML screening<br/>Fraud detection"]
-            AuditTrail["📝 Audit Trail<br/>@Component<br/>Transaction logging<br/>Regulatory compliance"]
-        end
-    end
+C4Component
+    title Data Architecture Components
     
-    %% External Systems
-    APIGateway["🚪 API Gateway"]
-    Database[("🗄️ PostgreSQL")]
-    CoreBanking["🏛️ Core Banking System"]
-    PaymentGateway["💳 Payment Gateway"]
-    MessageQueue["📬 Message Queue"]
-    AuditSystem["📊 Audit System"]
+    Container_Boundary(database, "PostgreSQL Database") {
+        Component(taskTable, "tasks Table", "Database Table", "Primary task storage with constraints")
+        Component(userTable, "users Table", "Database Table", "User information and authentication")
+        Component(boardTable, "boards Table", "Database Table", "Board metadata and configuration")
+        Component(auditTable, "audit_logs Table", "Database Table", "Compliance and audit trail")
+        Component(taskIndexes, "Task Indexes", "Database Indexes", "Performance optimization indexes")
+        Component(constraints, "Database Constraints", "DB Constraints", "Data integrity constraints")
+    }
     
-    %% Request Flow
-    APIGateway --> TransferController
-    TransferController --> TransferValidator
-    TransferValidator --> SecurityFilter
-    SecurityFilter --> TransferOrchestrator
+    Container_Boundary(cache, "Redis Cache Layer") {
+        Component(taskCache, "Task Cache", "Redis Hash", "Frequently accessed task data")
+        Component(validationCache, "Validation Cache", "Redis String", "Cached validation results")
+        Component(sessionCache, "Session Cache", "Redis Hash", "WebSocket session management")
+        Component(pubsubChannel, "Pub/Sub Channels", "Redis Pub/Sub", "Real-time event messaging")
+        Component(rateLimitCache, "Rate Limit Cache", "Redis String", "API rate limiting data")
+    }
     
-    %% Business Logic Flow
-    TransferOrchestrator --> FundManager
-    TransferOrchestrator --> TransactionManager
-    TransferOrchestrator --> ComplianceChecker
+    Container_Boundary(messaging, "Event Messaging") {
+        Component(taskCreatedChannel, "task_created Channel", "Redis Channel", "Single task creation events")
+        Component(batchCreatedChannel, "tasks_batch_created Channel", "Redis Channel", "Batch creation events")
+        Component(taskUpdatedChannel, "task_updated Channel", "Redis Channel", "Task modification events")
+        Component(connectionChannel, "connection_events Channel", "Redis Channel", "WebSocket connection events")
+    }
     
-    %% External Integrations
-    FundManager --> CoreBankingClient
-    FundManager --> PaymentGatewayClient
-    CoreBankingClient --> CoreBanking
-    PaymentGatewayClient --> PaymentGateway
+    Container_Boundary(backup, "Backup and Recovery") {
+        Component(dailyBackup, "Daily Backup", "Backup Process", "Automated daily database backup")
+        Component(incrementalBackup, "Incremental Backup", "Backup Process", "Hourly incremental backups")
+        Component(crossRegionBackup, "Cross-Region Backup", "Backup Process", "Weekly cross-region backup")
+        Component(pointInTimeRecovery, "Point-in-Time Recovery", "Recovery Process", "Database recovery capability")
+    }
     
-    %% Data Persistence
-    TransactionManager --> TransferRepository
-    TransferRepository --> TransferEntity
-    TransferEntity --> Database
+    %% Database relationships
+    Rel(taskTable, userTable, "Foreign key", "assignee_id, created_by")
+    Rel(taskTable, boardTable, "Foreign key", "board_id")
+    Rel(auditTable, userTable, "Foreign key", "user_id")
+    Rel(auditTable, taskTable, "References", "entity_id")
     
-    %% Notifications & Audit
-    TransferOrchestrator --> NotificationPublisher
-    NotificationPublisher --> MessageQueue
-    TransferOrchestrator --> AuditTrail
-    AuditTrail --> AuditSystem
+    Rel(taskIndexes, taskTable, "Optimizes queries", "Index on columns")
+    Rel(constraints, taskTable, "Enforces integrity", "Unique, check constraints")
     
-    %% Styling
-    classDef apiClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef businessClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef integrationClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef dataClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef securityClass fill:#ffebee,stroke:#d32f2f,stroke-width:2px
-    classDef externalClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    %% Cache relationships
+    Rel(taskCache, taskTable, "Caches data", "Read-through cache")
+    Rel(validationCache, taskTable, "Caches validation", "Validation results")
+    Rel(sessionCache, userTable, "Caches sessions", "WebSocket sessions")
     
-    class TransferController,TransferValidator apiClass
-    class TransferOrchestrator,FundManager,TransactionManager businessClass
-    class CoreBankingClient,PaymentGatewayClient,NotificationPublisher integrationClass
-    class TransferRepository,TransferEntity dataClass
-    class SecurityFilter,ComplianceChecker,AuditTrail securityClass
-    class APIGateway,Database,CoreBanking,PaymentGateway,MessageQueue,AuditSystem externalClass
+    %% Messaging relationships
+    Rel(taskCreatedChannel, taskTable, "Publishes events", "On task creation")
+    Rel(batchCreatedChannel, taskTable, "Publishes events", "On batch creation")
+    Rel(taskUpdatedChannel, taskTable, "Publishes events", "On task updates")
+    
+    %% Backup relationships
+    Rel(dailyBackup, taskTable, "Backs up data", "Daily schedule")
+    Rel(dailyBackup, userTable, "Backs up data", "Daily schedule")
+    Rel(dailyBackup, boardTable, "Backs up data", "Daily schedule")
+    Rel(dailyBackup, auditTable, "Backs up data", "Daily schedule")
+    
+    Rel(incrementalBackup, taskTable, "Incremental backup", "Hourly changes")
+    Rel(crossRegionBackup, dailyBackup, "Replicates backup", "Cross-region storage")
+    Rel(pointInTimeRecovery, incrementalBackup, "Uses for recovery", "Recovery process")
 ```
-
-**Key Features:**
-- **Transfer API**: POST /youth-accounts/{id}/fund-transfer (SCIB-27)
-- **ACID Transactions**: Guaranteed consistency with rollback
-- **Saga Pattern**: Distributed transaction coordination
-- **PCI Compliance**: Secure payment processing
-- **Rate Limiting**: 10 transfers per hour per user
 
 ---
 
-## 5. Component Diagram - Spending Limit Service (SCIB-28)
-
-### Description
-Internal structure of the Spending Limit Service for configuring and enforcing spending controls.
+## Integration and External Systems
 
 ```mermaid
-graph TB
-    subgraph "Spending Limit Service (Port: 8083)"
-        %% API Layer
-        subgraph "API Layer"
-            LimitController["🎯 Limit Controller<br/>@RestController<br/>Limit configuration<br/>Real-time validation"]
-            LimitValidator["✅ Limit Validator<br/>@Component<br/>Parameter validation<br/>Business constraints"]
-        end
-        
-        %% Business Layer
-        subgraph "Business Layer"
-            LimitManager["📊 Limit Manager<br/>@Service<br/>Limit operations<br/>Enforcement logic"]
-            SpendingCalculator["🧮 Spending Calculator<br/>@Component<br/>Weekly calculations<br/>Real-time tracking"]
-            NotificationTrigger["🔔 Notification Trigger<br/>@Service<br/>Threshold alerts<br/>Parent notifications"]
-        end
-        
-        %% Enforcement Engine
-        subgraph "Enforcement Engine"
-            RealTimeEnforcer["⚡ Real-time Enforcer<br/>@Component<br/>Transaction validation<br/>Instant blocking"]
-            ThresholdMonitor["📈 Threshold Monitor<br/>@Component<br/>75%, 90% alerts<br/>Proactive warnings"]
-            WeeklyResetter["🔄 Weekly Resetter<br/>@Scheduled<br/>Monday reset<br/>Automated cleanup"]
-        end
-        
-        %% Data Layer
-        subgraph "Data Access Layer"
-            LimitRepository["🗄️ Limit Repository<br/>@Repository<br/>Limit configuration<br/>Spending history"]
-            SpendingRepository["📊 Spending Repository<br/>@Repository<br/>Weekly tracking<br/>Transaction aggregation"]
-            LimitEntity["📋 Limit Entity<br/>@Entity<br/>Configuration data<br/>Effective dates"]
-        end
-        
-        %% Cache Layer
-        subgraph "Cache Layer"
-            LimitCache["⚡ Limit Cache<br/>@Component<br/>Hot limit data<br/>Sub-second access"]
-            SpendingCache["📊 Spending Cache<br/>@Component<br/>Current week totals<br/>Real-time updates"]
-        end
-    end
+C4Component
+    title Integration and External Systems Architecture
     
-    %% External Dependencies
-    APIGateway["🚪 API Gateway"]
-    Database[("🗄️ PostgreSQL")]
-    Cache[("⚡ Redis Cache")]
-    MessageQueue["📬 Message Queue"]
-    NotificationService["📧 Notification Service"]
-    TransactionService["📊 Transaction Service"]
+    Container_Boundary(scib, "SCIB Task Management System") {
+        Component(apiGateway, "API Gateway", "Spring Cloud Gateway", "External API access point")
+        Component(webhookService, "Webhook Service", "Spring Service", "Outbound webhook management")
+        Component(integrationService, "Integration Service", "Spring Service", "External system integration")
+        Component(syncService, "Synchronization Service", "Spring Service", "Data synchronization with external systems")
+    }
     
-    %% Request Flow
-    APIGateway --> LimitController
-    LimitController --> LimitValidator
-    LimitValidator --> LimitManager
+    Container_Boundary(auth, "Authentication Systems") {
+        System_Ext(ssoProvider, "SSO Provider", "SAML/OAuth provider for enterprise authentication")
+        System_Ext(ldapServer, "LDAP Server", "Corporate directory for user information")
+        Component(authAdapter, "Authentication Adapter", "Spring Service", "Adapts external auth to internal format")
+    }
     
-    %% Business Logic
-    LimitManager --> SpendingCalculator
-    LimitManager --> NotificationTrigger
-    LimitManager --> RealTimeEnforcer
+    Container_Boundary(monitoring, "Monitoring and Observability") {
+        System_Ext(prometheus, "Prometheus", "Metrics collection and storage")
+        System_Ext(grafana, "Grafana", "Metrics visualization and dashboards")
+        System_Ext(elkStack, "ELK Stack", "Centralized logging and analysis")
+        System_Ext(jaeger, "Jaeger", "Distributed tracing system")
+        Component(metricsCollector, "Metrics Collector", "Micrometer", "Application metrics collection")
+    }
     
-    %% Monitoring & Enforcement
-    SpendingCalculator --> ThresholdMonitor
-    ThresholdMonitor --> NotificationTrigger
-    WeeklyResetter --> SpendingCalculator
+    Container_Boundary(notification, "Notification Systems") {
+        System_Ext(emailService, "Email Service", "SMTP/SendGrid for email notifications")
+        System_Ext(smsService, "SMS Service", "Twilio/AWS SNS for SMS notifications")
+        System_Ext(slackIntegration, "Slack Integration", "Slack API for team notifications")
+        Component(notificationRouter, "Notification Router", "Spring Service", "Routes notifications to appropriate channels")
+    }
     
-    %% Data Access
-    LimitManager --> LimitRepository
-    SpendingCalculator --> SpendingRepository
-    LimitRepository --> LimitEntity
-    LimitEntity --> Database
-    SpendingRepository --> Database
+    Container_Boundary(analytics, "Analytics and Reporting") {
+        System_Ext(analyticsEngine, "Analytics Engine", "Business intelligence and reporting system")
+        System_Ext(dataWarehouse, "Data Warehouse", "Historical data storage for reporting")
+        Component(dataExporter, "Data Exporter", "Spring Service", "Exports data for analytics")
+        Component(reportingService, "Reporting Service", "Spring Service", "Generates business reports")
+    }
     
-    %% Caching
-    LimitManager --> LimitCache
-    SpendingCalculator --> SpendingCache
-    LimitCache --> Cache
-    SpendingCache --> Cache
+    Container_Boundary(security, "Security Systems") {
+        System_Ext(vaultService, "HashiCorp Vault", "Secrets management and encryption")
+        System_Ext(securityScanner, "Security Scanner", "Vulnerability scanning and assessment")
+        System_Ext(siemSystem, "SIEM System", "Security information and event management")
+        Component(securityAdapter, "Security Adapter", "Spring Service", "Security system integration")
+    }
     
-    %% External Communication
-    NotificationTrigger --> MessageQueue
-    MessageQueue --> NotificationService
-    RealTimeEnforcer --> TransactionService
+    %% Authentication integration
+    Rel(apiGateway, authAdapter, "Validates tokens", "HTTP")
+    Rel(authAdapter, ssoProvider, "Token validation", "HTTPS/SAML")
+    Rel(authAdapter, ldapServer, "User lookup", "LDAP")
     
-    %% Styling
-    classDef apiClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef businessClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef enforcementClass fill:#fff8e1,stroke:#ff8f00,stroke-width:2px
-    classDef dataClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef cacheClass fill:#f1f8e9,stroke:#689f38,stroke-width:2px
-    classDef externalClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    %% Monitoring integration
+    Rel(metricsCollector, prometheus, "Sends metrics", "HTTP")
+    Rel(apiGateway, metricsCollector, "Collects metrics", "Method calls")
+    Rel(grafana, prometheus, "Queries metrics", "PromQL")
+    Rel(integrationService, elkStack, "Sends logs", "HTTP")
+    Rel(apiGateway, jaeger, "Traces requests", "HTTP")
     
-    class LimitController,LimitValidator apiClass
-    class LimitManager,SpendingCalculator,NotificationTrigger businessClass
-    class RealTimeEnforcer,ThresholdMonitor,WeeklyResetter enforcementClass
-    class LimitRepository,SpendingRepository,LimitEntity dataClass
-    class LimitCache,SpendingCache cacheClass
-    class APIGateway,Database,Cache,MessageQueue,NotificationService,TransactionService externalClass
+    %% Notification integration
+    Rel(webhookService, notificationRouter, "Triggers notifications", "Method calls")
+    Rel(notificationRouter, emailService, "Sends emails", "SMTP/HTTP")
+    Rel(notificationRouter, smsService, "Sends SMS", "HTTP")
+    Rel(notificationRouter, slackIntegration, "Posts messages", "HTTP")
+    
+    %% Analytics integration
+    Rel(dataExporter, analyticsEngine, "Exports data", "HTTP/JDBC")
+    Rel(dataExporter, dataWarehouse, "Stores data", "JDBC")
+    Rel(reportingService, dataWarehouse, "Queries data", "SQL")
+    
+    %% Security integration
+    Rel(securityAdapter, vaultService, "Retrieves secrets", "HTTPS")
+    Rel(securityAdapter, securityScanner, "Security scans", "HTTP")
+    Rel(securityAdapter, siemSystem, "Security events", "Syslog/HTTP")
+    
+    %% Cross-system integration
+    Rel(integrationService, webhookService, "Manages webhooks", "Method calls")
+    Rel(syncService, dataExporter, "Syncs data", "Method calls")
 ```
-
-**Key Capabilities:**
-- **Configuration API**: PUT /youth-accounts/{id}/spending-limit (SCIB-28)
-- **Real-time Enforcement**: Transaction validation against limits
-- **Threshold Alerts**: 75%, 90%, and exceed notifications
-- **Weekly Reset**: Automated Monday reset of spending totals
-- **Performance**: Sub-second limit validation with caching
 
 ---
 
-## 6. Data Flow Architecture
-
-### Description
-Overall data flow and integration patterns across all services.
+## Deployment Architecture Components
 
 ```mermaid
-graph LR
-    %% Data Sources
-    subgraph "Data Sources"
-        UserInput["👤 User Input<br/>Web/Mobile Apps"]
-        CoreBankData["🏛️ Core Banking<br/>Account Data"]
-        PaymentData["💳 Payment Gateway<br/>Transaction Data"]
-    end
+C4Deployment
+    title Deployment Architecture - Kubernetes Components
     
-    %% API Gateway Layer
-    subgraph "API Gateway"
-        Gateway["🚪 API Gateway<br/>Rate limiting<br/>Authentication<br/>Request routing"]
-    end
+    Deployment_Node(k8s_cluster, "Kubernetes Cluster", "Production Environment") {
+        Deployment_Node(ingress, "Ingress Layer") {
+            Container(ingressController, "NGINX Ingress Controller", "Load balancing and SSL termination")
+            Container(certManager, "Cert Manager", "Automated SSL certificate management")
+        }
+        
+        Deployment_Node(app_namespace, "Application Namespace") {
+            Deployment_Node(frontend_pods, "Frontend Pods") {
+                Container(angularApp, "Angular SPA", "Static files served by NGINX")
+            }
+            
+            Deployment_Node(backend_pods, "Backend Pods") {
+                Container(springBootApp, "Spring Boot API", "Java 17 application")
+                Container(wsHandler, "WebSocket Handler", "WebSocket service")
+            }
+            
+            Deployment_Node(worker_pods, "Worker Pods") {
+                Container(batchProcessor, "Batch Processor", "Background task processing")
+                Container(notificationWorker, "Notification Worker", "Async notification processing")
+            }
+        }
+        
+        Deployment_Node(data_namespace, "Data Namespace") {
+            Deployment_Node(database_pods, "Database Pods") {
+                ContainerDb(postgresMain, "PostgreSQL Primary", "Main database instance")
+                ContainerDb(postgresReplica, "PostgreSQL Replica", "Read replica for scaling")
+            }
+            
+            Deployment_Node(cache_pods, "Cache Pods") {
+                Container(redisMain, "Redis Primary", "Main cache and pub/sub")
+                Container(redisSentinel, "Redis Sentinel", "High availability management")
+            }
+        }
+        
+        Deployment_Node(monitoring_namespace, "Monitoring Namespace") {
+            Container(prometheus, "Prometheus", "Metrics collection")
+            Container(grafana, "Grafana", "Metrics visualization")
+            Container(alertmanager, "Alert Manager", "Alert routing and management")
+        }
+        
+        Deployment_Node(logging_namespace, "Logging Namespace") {
+            Container(elasticsearch, "Elasticsearch", "Log storage and indexing")
+            Container(logstash, "Logstash", "Log processing pipeline")
+            Container(kibana, "Kibana", "Log visualization")
+            Container(fluentd, "Fluentd", "Log collection agent")
+        }
+    }
     
-    %% Service Mesh
-    subgraph "Microservices"
-        YouthSvc["🏦 Youth Account<br/>Dashboard data"]
-        TransferSvc["💸 Fund Transfer<br/>Payment processing"]
-        LimitSvc["🎯 Spending Limits<br/>Enforcement"]
-        TxnSvc["📊 Transactions<br/>History & analytics"]
-    end
+    Deployment_Node(external_services, "External Services") {
+        System_Ext(cdn, "CloudFlare CDN", "Global content delivery")
+        System_Ext(dns, "Route 53 DNS", "DNS management")
+        System_Ext(backup_storage, "S3 Backup Storage", "Cross-region backup storage")
+    }
     
-    %% Data Processing
-    subgraph "Data Processing"
-        EventProcessor["⚡ Event Processor<br/>Real-time streaming"]
-        BatchProcessor["📦 Batch Processor<br/>Nightly aggregation"]
-        AnalyticsEngine["📈 Analytics Engine<br/>Spending insights"]
-    end
+    %% Traffic flow
+    Rel(cdn, ingressController, "Routes traffic", "HTTPS")
+    Rel(ingressController, angularApp, "Serves static content", "HTTP")
+    Rel(ingressController, springBootApp, "Routes API calls", "HTTP")
+    Rel(ingressController, wsHandler, "Routes WebSocket", "WebSocket")
     
-    %% Data Storage
-    subgraph "Data Storage"
-        TransactionalDB[("🗄️ Transactional DB<br/>PostgreSQL<br/>ACID compliance")]
-        AnalyticsDB[("📊 Analytics DB<br/>Data Warehouse<br/>Historical data")]
-        CacheLayer[("⚡ Cache Layer<br/>Redis<br/>Hot data")]
-    end
+    %% Application relationships
+    Rel(springBootApp, postgresMain, "Database operations", "JDBC")
+    Rel(springBootApp, postgresReplica, "Read operations", "JDBC")
+    Rel(springBootApp, redisMain, "Cache and pub/sub", "Redis Protocol")
+    Rel(wsHandler, redisMain, "Event subscription", "Redis Pub/Sub")
     
-    %% External Systems
-    subgraph "External Integration"
-        NotificationSys["📧 Notifications<br/>Multi-channel"]
-        AuditSys["📊 Audit System<br/>Compliance"]
-        MonitoringSys["📈 Monitoring<br/>Observability"]
-    end
+    %% Background processing
+    Rel(batchProcessor, postgresMain, "Batch operations", "JDBC")
+    Rel(notificationWorker, redisMain, "Queue processing", "Redis Protocol")
     
-    %% Data Flow
-    UserInput --> Gateway
-    CoreBankData --> Gateway
-    PaymentData --> Gateway
+    %% Monitoring relationships
+    Rel(prometheus, springBootApp, "Scrapes metrics", "HTTP")
+    Rel(prometheus, postgresMain, "Database metrics", "HTTP")
+    Rel(prometheus, redisMain, "Cache metrics", "HTTP")
+    Rel(grafana, prometheus, "Queries metrics", "HTTP")
+    Rel(alertmanager, prometheus, "Receives alerts", "HTTP")
     
-    Gateway --> YouthSvc
-    Gateway --> TransferSvc
-    Gateway --> LimitSvc
-    Gateway --> TxnSvc
+    %% Logging relationships
+    Rel(fluentd, springBootApp, "Collects logs", "File/HTTP")
+    Rel(fluentd, logstash, "Forwards logs", "HTTP")
+    Rel(logstash, elasticsearch, "Indexes logs", "HTTP")
+    Rel(kibana, elasticsearch, "Queries logs", "HTTP")
     
-    YouthSvc --> TransactionalDB
-    TransferSvc --> TransactionalDB
-    LimitSvc --> TransactionalDB
-    TxnSvc --> TransactionalDB
-    
-    YouthSvc --> CacheLayer
-    TransferSvc --> CacheLayer
-    LimitSvc --> CacheLayer
-    TxnSvc --> CacheLayer
-    
-    TransactionalDB --> EventProcessor
-    EventProcessor --> AnalyticsEngine
-    EventProcessor --> NotificationSys
-    
-    TransactionalDB --> BatchProcessor
-    BatchProcessor --> AnalyticsDB
-    
-    YouthSvc --> AuditSys
-    TransferSvc --> AuditSys
-    LimitSvc --> AuditSys
-    TxnSvc --> AuditSys
-    
-    YouthSvc --> MonitoringSys
-    TransferSvc --> MonitoringSys
-    LimitSvc --> MonitoringSys
-    TxnSvc --> MonitoringSys
-    
-    %% Styling
-    classDef sourceClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef gatewayClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef serviceClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef processClass fill:#fff8e1,stroke:#ff8f00,stroke-width:2px
-    classDef storageClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef externalClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    
-    class UserInput,CoreBankData,PaymentData sourceClass
-    class Gateway gatewayClass
-    class YouthSvc,TransferSvc,LimitSvc,TxnSvc serviceClass
-    class EventProcessor,BatchProcessor,AnalyticsEngine processClass
-    class TransactionalDB,AnalyticsDB,CacheLayer storageClass
-    class NotificationSys,AuditSys,MonitoringSys externalClass
+    %% External services
+    Rel(postgresMain, backup_storage, "Backup data", "S3 API")
+    Rel(dns, cdn, "DNS resolution", "DNS")
 ```
 
-**Data Flow Patterns:**
-- **Real-time Processing**: Event-driven architecture for immediate responses
-- **Batch Processing**: Nightly aggregation for analytics and reporting
-- **Caching Strategy**: Multi-level caching for performance optimization
-- **Audit Trail**: Complete data lineage for compliance
-- **Monitoring**: Real-time observability across all components
+---
+
+## Component Diagram Summary
+
+### Architecture Layers
+1. **Frontend Layer**: Angular SPA with reactive components and services
+2. **API Gateway Layer**: Load balancing, routing, and security
+3. **Backend Services Layer**: Spring Boot microservices architecture
+4. **Data Layer**: PostgreSQL database with Redis caching and pub/sub
+5. **External Systems**: Authentication, monitoring, notifications, and analytics
+6. **Deployment Layer**: Kubernetes-based containerized deployment
+
+### Key Components by Layer
+
+#### Frontend Components
+- **TaskCreationFormComponent**: Main task creation interface with validation
+- **WebSocketService**: Real-time event handling and connection management
+- **TaskAnimationService**: Smooth task appearance animations
+- **ValidationService**: Client-side validation and error handling
+
+#### Backend Components
+- **TaskCreationService**: Core task creation business logic
+- **TaskValidationService**: Comprehensive server-side validation
+- **WebSocketBroadcastService**: Real-time event broadcasting
+- **BatchProcessingService**: Bulk task operation handling
+
+#### Data Components
+- **PostgreSQL Database**: Primary data storage with constraints and indexes
+- **Redis Cache/Pub-Sub**: Performance caching and real-time messaging
+- **Repository Layer**: JPA-based data access abstraction
+
+#### Integration Components
+- **Authentication Adapter**: External SSO and LDAP integration
+- **Notification Router**: Multi-channel notification delivery
+- **Metrics Collector**: Application performance monitoring
+- **Security Adapter**: Enterprise security system integration
+
+### Architecture Decision Records (ADRs) Implementation
+
+| ADR | Components Affected | Implementation Details |
+|-----|-------------------|----------------------|
+| DEMO-1886 | TaskAnimationService, TaskListComponent | UI/UX animations and transitions |
+| DEMO-1887 | TaskCreationFormComponent, TaskService | Optimistic UI with validation |
+| DEMO-1888 | TaskValidationService, ValidationController | Comprehensive validation service |
+| DEMO-1889 | TaskCreationService, WebSocketBroadcastService | Real-time synchronization architecture |
+| DEMO-1890 | Database constraints, TaskRepository | Data integrity and performance |
+| DEMO-1891 | BatchProcessingService, BatchController | Bulk operation capabilities |
+| DEMO-1892 | Testing components (not shown in production) | E2E testing infrastructure |
+| DEMO-1893 | API documentation components | Complete API documentation |
+
+### Performance and Scalability Features
+
+- **Horizontal Scaling**: Stateless services support multiple instances
+- **Caching Strategy**: Multi-level caching with Redis
+- **Database Optimization**: Indexes and constraints for performance
+- **Async Processing**: Background workers for non-critical operations
+- **Load Balancing**: NGINX ingress with health checks
+- **Auto-scaling**: Kubernetes HPA based on resource utilization
+
+### Security and Compliance Components
+
+- **JWT Authentication**: Token-based security throughout the system
+- **RBAC Authorization**: Role-based access control at multiple layers
+- **Audit Logging**: Comprehensive audit trail for compliance
+- **Input Validation**: Multi-layer validation (client and server)
+- **Secure Communication**: TLS/SSL encryption for all communications
+- **Secrets Management**: HashiCorp Vault integration
+
+### Monitoring and Observability
+
+- **Metrics Collection**: Prometheus-based application and infrastructure metrics
+- **Distributed Tracing**: Jaeger for request tracing across services
+- **Centralized Logging**: ELK stack for log aggregation and analysis
+- **Real-time Dashboards**: Grafana dashboards for operations monitoring
+- **Alerting**: Automated alerts for performance and security issues
 
 ---
 
-## 7. Deployment Architecture
-
-### Description
-Production deployment architecture showing infrastructure components and scaling strategies.
-
-```mermaid
-graph TB
-    %% Internet & CDN
-    Internet["🌐 Internet"]
-    CDN["🚀 CloudFront CDN<br/>Static content<br/>Global edge locations"]
-    
-    %% DNS & Load Balancing
-    Route53["🔗 Route 53<br/>DNS routing<br/>Health checks"]
-    WAF["🛡️ AWS WAF<br/>DDoS protection<br/>Security rules"]
-    
-    %% Load Balancer Tier
-    subgraph "Load Balancer Tier"
-        ALB["⚖️ Application Load Balancer<br/>SSL termination<br/>Path-based routing<br/>Health checks"]
-    end
-    
-    %% Application Tier (Multi-AZ)
-    subgraph "Application Tier - AZ-1a"
-        subgraph "ECS Cluster 1a"
-            WebApp1a["📱 Web App<br/>ECS Fargate<br/>Auto-scaling"]
-            API1a["🚪 API Gateway<br/>ECS Fargate<br/>Rate limiting"]
-            Youth1a["🏦 Youth Service<br/>ECS Fargate<br/>2 instances"]
-            Transfer1a["💸 Transfer Service<br/>ECS Fargate<br/>2 instances"]
-        end
-    end
-    
-    subgraph "Application Tier - AZ-1b"
-        subgraph "ECS Cluster 1b"
-            WebApp1b["📱 Web App<br/>ECS Fargate<br/>Auto-scaling"]
-            API1b["🚪 API Gateway<br/>ECS Fargate<br/>Rate limiting"]
-            Youth1b["🏦 Youth Service<br/>ECS Fargate<br/>2 instances"]
-            Transfer1b["💸 Transfer Service<br/>ECS Fargate<br/>2 instances"]
-        end
-    end
-    
-    %% Data Tier (Multi-AZ)
-    subgraph "Data Tier - AZ-1a"
-        RDSPrimary[("🗄️ RDS PostgreSQL<br/>Primary instance<br/>Multi-AZ failover")]
-        ElastiCache1a[("⚡ ElastiCache Redis<br/>Cluster mode<br/>3 shards")]
-    end
-    
-    subgraph "Data Tier - AZ-1b"
-        RDSStandby[("🗄️ RDS PostgreSQL<br/>Standby instance<br/>Synchronous replication")]
-        ElastiCache1b[("⚡ ElastiCache Redis<br/>Cluster mode<br/>3 replicas")]
-    end
-    
-    subgraph "Data Tier - AZ-1c"
-        RDSReadReplica[("📖 RDS Read Replica<br/>Read-only queries<br/>Async replication")]
-        ElastiCache1c[("⚡ ElastiCache Redis<br/>Cluster mode<br/>3 replicas")]
-    end
-    
-    %% Security & Monitoring
-    subgraph "Security & Monitoring"
-        KMS["🔐 AWS KMS<br/>Encryption keys<br/>Key rotation"]
-        SecretsManager["🔑 Secrets Manager<br/>Database credentials<br/>API keys"]
-        CloudWatch["📊 CloudWatch<br/>Metrics & logs<br/>Alerting"]
-        XRay["🔍 X-Ray<br/>Distributed tracing<br/>Performance insights"]
-    end
-    
-    %% External Services
-    subgraph "External Integration"
-        CoreBankingExt["🏛️ Core Banking<br/>VPN connection<br/>Dedicated line"]
-        PaymentGatewayExt["💳 Payment Gateway<br/>HTTPS/TLS 1.3<br/>PCI compliant"]
-        NotificationExt["📧 Notification APIs<br/>SendGrid/Twilio<br/>Multi-channel"]
-    end
-    
-    %% Traffic Flow
-    Internet --> Route53
-    Route53 --> CDN
-    CDN --> WAF
-    WAF --> ALB
-    
-    ALB --> WebApp1a
-    ALB --> WebApp1b
-    ALB --> API1a
-    ALB --> API1b
-    
-    API1a --> Youth1a
-    API1a --> Transfer1a
-    API1b --> Youth1b
-    API1b --> Transfer1b
-    
-    %% Database Connections
-    Youth1a --> RDSPrimary
-    Youth1b --> RDSPrimary
-    Transfer1a --> RDSPrimary
-    Transfer1b --> RDSPrimary
-    
-    Youth1a --> RDSReadReplica
-    Youth1b --> RDSReadReplica
-    
-    %% Cache Connections
-    Youth1a --> ElastiCache1a
-    Youth1b --> ElastiCache1b
-    Transfer1a --> ElastiCache1a
-    Transfer1b --> ElastiCache1b
-    
-    %% Database Replication
-    RDSPrimary -.->|"Sync replication"| RDSStandby
-    RDSPrimary -.->|"Async replication"| RDSReadReplica
-    
-    %% Cache Replication
-    ElastiCache1a -.->|"Cross-AZ replication"| ElastiCache1b
-    ElastiCache1b -.->|"Cross-AZ replication"| ElastiCache1c
-    
-    %% Security Integration
-    Youth1a --> KMS
-    Transfer1a --> KMS
-    Youth1a --> SecretsManager
-    Transfer1a --> SecretsManager
-    
-    %% Monitoring Integration
-    Youth1a --> CloudWatch
-    Transfer1a --> CloudWatch
-    Youth1a --> XRay
-    Transfer1a --> XRay
-    
-    %% External Connections
-    Transfer1a --> CoreBankingExt
-    Transfer1b --> CoreBankingExt
-    Transfer1a --> PaymentGatewayExt
-    Transfer1b --> PaymentGatewayExt
-    Youth1a --> NotificationExt
-    Youth1b --> NotificationExt
-    
-    %% Styling
-    classDef internetClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
-    classDef lbClass fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef appClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef dataClass fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef securityClass fill:#ffebee,stroke:#d32f2f,stroke-width:2px
-    classDef externalClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    
-    class Internet,CDN,Route53,WAF internetClass
-    class ALB lbClass
-    class WebApp1a,WebApp1b,API1a,API1b,Youth1a,Youth1b,Transfer1a,Transfer1b appClass
-    class RDSPrimary,RDSStandby,RDSReadReplica,ElastiCache1a,ElastiCache1b,ElastiCache1c dataClass
-    class KMS,SecretsManager,CloudWatch,XRay securityClass
-    class CoreBankingExt,PaymentGatewayExt,NotificationExt externalClass
-```
-
-**Deployment Features:**
-- **High Availability**: Multi-AZ deployment with automatic failover
-- **Auto Scaling**: ECS Fargate with CPU/memory-based scaling
-- **Security**: WAF, KMS encryption, Secrets Manager
-- **Monitoring**: CloudWatch metrics, X-Ray tracing
-- **Performance**: CDN, load balancing, read replicas
-
----
-
-## Architecture Decisions & Traceability
-
-### ADR Mapping to Components
-
-| ADR | Component | Responsibility | Implementation |
-|-----|-----------|----------------|----------------|
-| SCIB-25 | System Architecture | Parent fund allocation and management | Overall microservices design |
-| SCIB-26 | Youth Account Service | Dashboard API implementation | Account dashboard endpoint |
-| SCIB-27 | Fund Transfer Service | Fund transfer API development | Secure payment processing |
-| SCIB-28 | Spending Limit Service | Spending limit configuration API | Limit enforcement engine |
-| SCIB-29 | Transaction Service | Transaction history API | History retrieval with analytics |
-| SCIB-30 | API Gateway | OpenAPI/Swagger specification | Standardized API documentation |
-
-### Technology Stack
-
-**Frontend:**
-- React.js 18 + TypeScript
-- Material-UI for design system
-- Progressive Web App (PWA)
-- React Native for mobile
-
-**Backend:**
-- Java 17 + Spring Boot 3.x
-- Spring Security for authentication
-- Spring Data JPA for data access
-- Spring Cloud Gateway for API gateway
-
-**Data:**
-- PostgreSQL 14 for transactional data
-- Redis 6 for caching and sessions
-- RabbitMQ for message queuing
-
-**Infrastructure:**
-- AWS ECS Fargate for containerization
-- AWS RDS for managed databases
-- AWS ElastiCache for managed Redis
-- AWS CloudWatch for monitoring
-
-### Non-Functional Requirements
-
-**Performance:**
-- API response time < 200ms (95th percentile)
-- Dashboard loading < 2 seconds
-- 10,000 concurrent users support
-- Auto-scaling based on CPU/memory
-
-**Security:**
-- OAuth 2.0 + JWT authentication
-- PCI-DSS Level 1 compliance
-- End-to-end encryption (TLS 1.3)
-- Role-based access control (RBAC)
-
-**Availability:**
-- 99.99% uptime SLA
-- Multi-AZ deployment
-- Automated failover < 30 seconds
-- Circuit breaker pattern
-
-**Compliance:**
-- GDPR data protection
-- SOX financial controls
-- BSA regulatory compliance
-- Complete audit trail
-
----
-
-**Document Control:**
-- Version: 1.0
-- Last Updated: 2024
-- Next Review: Monthly
-- Approval: Enterprise Architecture Review Board
-- Implementation Status: Design Phase Complete
-- GitHub Repository: ThapaswiASC/SCIB-INCEPTION-PHASE-DEMO
+**Document Status**: Final v1.0  
+**Generated From**: HLD Document v1.0  
+**Architecture Standards**: C4 Model, TOGAF Compliance  
+**Last Updated**: 2024-12-19
