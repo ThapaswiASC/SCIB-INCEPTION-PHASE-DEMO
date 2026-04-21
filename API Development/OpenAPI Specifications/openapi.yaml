@@ -1,9 +1,1106 @@
 openapi: 3.0.3
 info:
-  title: SCIB Task Management API - Task Creation Synchronization System
+  title: SCIB Real-Time Task Creation Synchronization API
   description: |
-    Comprehensive API specification for the SCIB Task Management System's task creation and real-time synchronization capabilities.
+    Real-time task creation and synchronization API for the SCIB team collaboration platform.
     
-    ## Overview
-    This API enables real-time task creation with synchronization across all connected users within 500ms.
-    Supports single task creation
+    This API enables team members to create tasks that immediately appear across all connected users' boards within 500ms, ensuring team coordination and preventing work duplication.
+    
+    ## Key Features
+    - Real-time task synchronization via WebSocket
+    - Comprehensive task validation with detailed error feedback
+    - Bulk task creation with async processing for large batches
+    - Enterprise-grade security with JWT authentication
+    - Rate limiting and performance optimization
+    
+    ## Architecture
+    - **Frontend**: Angular with TypeScript and reactive forms
+    - **Backend**: Spring Boot with comprehensive validation service
+    - **Database**: PostgreSQL with unique constraints and performance indexes
+    - **Real-time**: WebSocket with Redis pub/sub messaging
+    - **Caching**: Redis for validation result caching and session management
+    
+    ## Performance Guarantees
+    - Single task creation: < 200ms (95th percentile)
+    - Bulk task creation (≤100 tasks): < 2s (95th percentile)
+    - Real-time synchronization: < 500ms across all clients
+    - WebSocket message delivery: < 50ms (95th percentile)
+    
+    ## Compliance & Security
+    - GDPR, ISO 27001, SOC 2 Type II compliance
+    - JWT-based authentication with role-based access control
+    - AES-256 encryption at rest and TLS 1.3 in transit
+    - Comprehensive audit logging and monitoring
+  version: 1.0.0
+  contact:
+    name: SCIB Development Team
+    email: dev-team@scib.platform.com
+    url: https://scib.platform.com/docs
+  license:
+    name: Proprietary
+    url: https://scib.platform.com/license
+  termsOfService: https://scib.platform.com/terms
+
+servers:
+  - url: https://api.scib.platform.com/v1
+    description: Production server
+  - url: https://staging-api.scib.platform.com/v1
+    description: Staging server
+  - url: https://dev-api.scib.platform.com/v1
+    description: Development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/boards/{boardId}/tasks:
+    post:
+      summary: Create a new task
+      description: |
+        Creates a new task in the specified board and broadcasts the creation event to all connected clients via WebSocket.
+        
+        The task will appear on all connected users' boards within 500ms with complete metadata including assignee details, timestamps, and position information.
+        
+        **Validation Rules:**
+        - Title must be unique within the board
+        - Title length: 1-200 characters
+        - Description length: max 2000 characters
+        - Due date must be in the future
+        - Assignee must have access to the board
+        - Column must exist in the board
+        - Maximum 10 tags per task
+      operationId: createTask
+      tags:
+        - Task Creation
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: Unique identifier of the board where the task will be created
+          schema:
+            type: string
+            format: uuid
+          example: "987fcdeb-51a2-43d1-b789-123456789abc"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreationRequest'
+            examples:
+              basic_task:
+                summary: Basic task creation
+                value:
+                  title: "Implement user authentication"
+                  description: "Add JWT-based authentication to the API endpoints with proper validation and error handling"
+                  priority: "HIGH"
+                  columnId: "987fcdeb-51a2-43d1-b789-123456789abc"
+              full_task:
+                summary: Complete task with all fields
+                value:
+                  title: "Setup CI/CD pipeline"
+                  description: "Configure automated build and deployment with Docker and Kubernetes"
+                  assigneeId: "123e4567-e89b-12d3-a456-426614174000"
+                  priority: "MEDIUM"
+                  dueDate: "2024-12-31"
+                  columnId: "987fcdeb-51a2-43d1-b789-123456789abc"
+                  tags: ["devops", "automation", "kubernetes"]
+      responses:
+        '201':
+          description: Task created successfully
+          headers:
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current rate limit window
+              schema:
+                type: integer
+            X-Response-Time:
+              description: Server response time in milliseconds
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+              examples:
+                created_task:
+                  summary: Successfully created task
+                  value:
+                    id: "550e8400-e29b-41d4-a716-446655440000"
+                    title: "Implement user authentication"
+                    description: "Add JWT-based authentication to the API endpoints with proper validation and error handling"
+                    assignee:
+                      id: "123e4567-e89b-12d3-a456-426614174000"
+                      name: "John Doe"
+                      email: "john.doe@company.com"
+                    priority: "HIGH"
+                    dueDate: "2024-12-31"
+                    columnId: "987fcdeb-51a2-43d1-b789-123456789abc"
+                    position: 1
+                    tags: ["authentication", "security", "backend"]
+                    createdBy:
+                      id: "456e7890-e12c-34d5-a678-901234567890"
+                      name: "Jane Smith"
+                      email: "jane.smith@company.com"
+                    createdAt: "2024-01-15T10:30:00Z"
+                    updatedAt: "2024-01-15T10:30:00Z"
+        '400':
+          description: Validation error - Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+              examples:
+                validation_errors:
+                  summary: Multiple validation errors
+                  value:
+                    error:
+                      code: "VALIDATION_FAILED"
+                      message: "Request validation failed"
+                      details:
+                        - field: "title"
+                          code: "REQUIRED"
+                          message: "Title is required"
+                        - field: "title"
+                          code: "MAX_LENGTH_EXCEEDED"
+                          message: "Title must not exceed 200 characters"
+                        - field: "dueDate"
+                          code: "INVALID_DATE"
+                          message: "Due date must be a future date"
+                      timestamp: "2024-01-15T10:30:00Z"
+                      path: "/api/boards/123/tasks"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficient_permissions:
+                  summary: User lacks permission to create tasks
+                  value:
+                    error:
+                      code: "INSUFFICIENT_PERMISSIONS"
+                      message: "User does not have permission to create tasks in this board"
+                      timestamp: "2024-01-15T10:30:00Z"
+                      path: "/api/boards/123/tasks"
+        '404':
+          description: Board or column not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                board_not_found:
+                  summary: Board not found
+                  value:
+                    error:
+                      code: "RESOURCE_NOT_FOUND"
+                      message: "Board or column not found"
+                      details:
+                        resourceType: "board"
+                        resourceId: "invalid-board-id"
+                      timestamp: "2024-01-15T10:30:00Z"
+                      path: "/api/boards/123/tasks"
+        '409':
+          description: Conflict - Duplicate task title
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicate_title:
+                  summary: Task title already exists
+                  value:
+                    error:
+                      code: "DUPLICATE_TASK_TITLE"
+                      message: "A task with this title already exists in the board"
+                      details:
+                        field: "title"
+                        value: "Implement user authentication"
+                        existingTaskId: "existing-task-uuid"
+                      timestamp: "2024-01-15T10:30:00Z"
+                      path: "/api/boards/123/tasks"
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/boards/{boardId}/tasks/batch:
+    post:
+      summary: Create multiple tasks in batch
+      description: |
+        Creates multiple tasks in a single request. For batches with more than 100 tasks, processing is automatically handled asynchronously.
+        
+        **Batch Processing Rules:**
+        - Maximum 1000 tasks per batch
+        - Batches > 100 tasks processed asynchronously
+        - All tasks validated before any are created
+        - Partial success supported with detailed error reporting
+        - Maintains task order across all connected clients
+        
+        **Performance:**
+        - Synchronous batches (≤100 tasks): < 2s response time
+        - Asynchronous batches: Immediate response with status URL
+        - Processing rate: > 100 tasks/second
+      operationId: createTasksBatch
+      tags:
+        - Task Creation
+        - Batch Operations
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: Unique identifier of the board
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchTaskCreationRequest'
+            examples:
+              small_batch:
+                summary: Small synchronous batch
+                value:
+                  tasks:
+                    - title: "Setup CI/CD pipeline"
+                      description: "Configure automated build and deployment"
+                      priority: "HIGH"
+                      columnId: "987fcdeb-51a2-43d1-b789-123456789abc"
+                      tags: ["devops", "automation"]
+                    - title: "Write unit tests"
+                      description: "Add comprehensive test coverage"
+                      priority: "MEDIUM"
+                      columnId: "987fcdeb-51a2-43d1-b789-123456789abc"
+                      assigneeId: "123e4567-e89b-12d3-a456-426614174000"
+                      tags: ["testing", "quality"]
+                  options:
+                    async: false
+                    validateOnly: false
+              validation_only:
+                summary: Validation only request
+                value:
+                  tasks:
+                    - title: "Test task"
+                      priority: "LOW"
+                      columnId: "987fcdeb-51a2-43d1-b789-123456789abc"
+                  options:
+                    validateOnly: true
+      responses:
+        '201':
+          description: Batch processing completed or initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchTaskResponse'
+              examples:
+                synchronous_success:
+                  summary: Synchronous batch completed
+                  value:
+                    batchId: "batch-550e8400-e29b-41d4-a716-446655440000"
+                    status: "COMPLETED"
+                    summary:
+                      totalRequested: 2
+                      successfullyCreated: 2
+                      failed: 0
+                      validationErrors: 0
+                    tasks:
+                      - id: "task-1-uuid"
+                        title: "Setup CI/CD pipeline"
+                        priority: "HIGH"
+                        position: 1
+                        createdAt: "2024-01-15T10:30:00Z"
+                      - id: "task-2-uuid"
+                        title: "Write unit tests"
+                        priority: "MEDIUM"
+                        position: 2
+                        createdAt: "2024-01-15T10:30:01Z"
+                    errors: []
+                    processedAt: "2024-01-15T10:30:01Z"
+                asynchronous_processing:
+                  summary: Asynchronous batch initiated
+                  value:
+                    batchId: "batch-550e8400-e29b-41d4-a716-446655440000"
+                    status: "PROCESSING"
+                    summary:
+                      totalRequested: 500
+                      successfullyCreated: 0
+                      failed: 0
+                      validationErrors: 0
+                    tasks: []
+                    errors: []
+                    processedAt: "2024-01-15T10:30:00Z"
+                    statusUrl: "/api/batches/batch-550e8400-e29b-41d4-a716-446655440000/status"
+        '400':
+          description: Batch validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/boards/{boardId}/tasks/validate:
+    post:
+      summary: Validate task data without creating
+      description: |
+        Validates task data without actually creating the task. Useful for real-time form validation in the UI.
+        
+        **Use Cases:**
+        - Real-time form validation as user types
+        - Pre-validation before batch operations
+        - Checking for duplicate titles
+        - Validating assignee permissions
+        
+        **Performance:**
+        - Response time: < 100ms (95th percentile)
+        - Rate limit: 200 requests per minute per user
+      operationId: validateTask
+      tags:
+        - Task Validation
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          description: Unique identifier of the board
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreationRequest'
+      responses:
+        '200':
+          description: Validation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskValidationResponse'
+              examples:
+                valid_task:
+                  summary: Valid task data
+                  value:
+                    valid: true
+                    errors: []
+                    warnings: []
+                invalid_task:
+                  summary: Invalid task data
+                  value:
+                    valid: false
+                    errors:
+                      - field: "title"
+                        code: "REQUIRED"
+                        message: "Title is required"
+                      - field: "dueDate"
+                        code: "INVALID_DATE"
+                        message: "Due date must be a future date"
+                    warnings:
+                      - field: "assigneeId"
+                        code: "ASSIGNEE_OVERLOADED"
+                        message: "Assignee has 15+ active tasks"
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/batches/{batchId}/status:
+    get:
+      summary: Get batch processing status
+      description: |
+        Retrieves the current status of a batch task creation operation.
+        
+        **Status Values:**
+        - PROCESSING: Batch is currently being processed
+        - COMPLETED: All tasks in batch have been processed
+        - FAILED: Batch processing failed due to system error
+        
+        **Polling Recommendations:**
+        - Poll every 2-5 seconds for batches < 1000 tasks
+        - Poll every 10-30 seconds for larger batches
+        - Stop polling when status is COMPLETED or FAILED
+      operationId: getBatchStatus
+      tags:
+        - Batch Operations
+      parameters:
+        - name: batchId
+          in: path
+          required: true
+          description: Batch operation identifier
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Batch status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchStatusResponse'
+              examples:
+                processing:
+                  summary: Batch in progress
+                  value:
+                    batchId: "batch-550e8400-e29b-41d4-a716-446655440000"
+                    status: "PROCESSING"
+                    progress:
+                      processed: 250
+                      total: 500
+                      percentage: 50.0
+                    summary:
+                      totalRequested: 500
+                      successfullyCreated: 240
+                      failed: 10
+                      validationErrors: 0
+                    estimatedCompletion: "2024-01-15T10:35:00Z"
+                    lastUpdated: "2024-01-15T10:32:30Z"
+                completed:
+                  summary: Batch completed
+                  value:
+                    batchId: "batch-550e8400-e29b-41d4-a716-446655440000"
+                    status: "COMPLETED"
+                    progress:
+                      processed: 500
+                      total: 500
+                      percentage: 100.0
+                    summary:
+                      totalRequested: 500
+                      successfullyCreated: 485
+                      failed: 15
+                      validationErrors: 0
+                    lastUpdated: "2024-01-15T10:35:00Z"
+        '404':
+          description: Batch not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token-based authentication. Include the token in the Authorization header.
+        
+        **Token Requirements:**
+        - Valid JWT token with appropriate claims
+        - Token must not be expired (24-hour lifetime)
+        - User must have board access permissions
+        - Token must include role and permission information
+        
+        **Example:** `Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+
+  schemas:
+    TaskCreationRequest:
+      type: object
+      required:
+        - title
+        - priority
+        - columnId
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Task title, must be unique within the board
+          example: "Implement user authentication"
+        description:
+          type: string
+          maxLength: 2000
+          description: Detailed task description
+          example: "Add JWT-based authentication to the API endpoints with proper validation and error handling"
+        assigneeId:
+          type: string
+          format: uuid
+          description: UUID of the assigned user (must have board access)
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          description: Task priority level
+          example: "HIGH"
+        dueDate:
+          type: string
+          format: date
+          description: Task due date (must be future date)
+          example: "2024-12-31"
+        columnId:
+          type: string
+          format: uuid
+          description: UUID of the target column (must exist in board)
+          example: "987fcdeb-51a2-43d1-b789-123456789abc"
+        tags:
+          type: array
+          maxItems: 10
+          items:
+            type: string
+            maxLength: 50
+          description: Array of task tags for categorization
+          example: ["authentication", "security", "backend"]
+
+    TaskResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Generated task UUID
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        title:
+          type: string
+          description: Task title
+          example: "Implement user authentication"
+        description:
+          type: string
+          description: Task description
+          example: "Add JWT-based authentication to the API endpoints"
+        assignee:
+          $ref: '#/components/schemas/User'
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+          example: "HIGH"
+        dueDate:
+          type: string
+          format: date
+          example: "2024-12-31"
+        columnId:
+          type: string
+          format: uuid
+          example: "987fcdeb-51a2-43d1-b789-123456789abc"
+        position:
+          type: integer
+          minimum: 1
+          description: Task position within the column
+          example: 1
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["authentication", "security", "backend"]
+        createdBy:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+          description: Task creation timestamp
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2024-01-15T10:30:00Z"
+
+    BatchTaskCreationRequest:
+      type: object
+      required:
+        - tasks
+      properties:
+        tasks:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          items:
+            $ref: '#/components/schemas/TaskCreationRequest'
+          description: Array of task creation requests
+        options:
+          type: object
+          properties:
+            async:
+              type: boolean
+              default: false
+              description: Process batch asynchronously (auto-enabled for >100 tasks)
+            validateOnly:
+              type: boolean
+              default: false
+              description: Only validate tasks without creating them
+
+    BatchTaskResponse:
+      type: object
+      properties:
+        batchId:
+          type: string
+          format: uuid
+          description: Batch operation identifier
+          example: "batch-550e8400-e29b-41d4-a716-446655440000"
+        status:
+          type: string
+          enum: [COMPLETED, PROCESSING, FAILED]
+          description: Batch processing status
+          example: "COMPLETED"
+        summary:
+          $ref: '#/components/schemas/BatchSummary'
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskResponse'
+          description: Array of created tasks (if synchronous or completed)
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/BatchTaskError'
+          description: Array of task creation errors
+        processedAt:
+          type: string
+          format: date-time
+          description: Batch processing completion timestamp
+          example: "2024-01-15T10:30:01Z"
+        statusUrl:
+          type: string
+          description: URL to check batch status (for async operations)
+          example: "/api/batches/batch-550e8400-e29b-41d4-a716-446655440000/status"
+
+    BatchSummary:
+      type: object
+      properties:
+        totalRequested:
+          type: integer
+          minimum: 0
+          description: Total number of tasks requested
+          example: 100
+        successfullyCreated:
+          type: integer
+          minimum: 0
+          description: Number of tasks successfully created
+          example: 95
+        failed:
+          type: integer
+          minimum: 0
+          description: Number of tasks that failed to create
+          example: 3
+        validationErrors:
+          type: integer
+          minimum: 0
+          description: Number of tasks with validation errors
+          example: 2
+
+    BatchTaskError:
+      type: object
+      properties:
+        index:
+          type: integer
+          minimum: 0
+          description: Index of the failed task in the original request array
+          example: 5
+        task:
+          $ref: '#/components/schemas/TaskCreationRequest'
+        error:
+          $ref: '#/components/schemas/ErrorResponse'
+
+    BatchStatusResponse:
+      type: object
+      properties:
+        batchId:
+          type: string
+          format: uuid
+          example: "batch-550e8400-e29b-41d4-a716-446655440000"
+        status:
+          type: string
+          enum: [PROCESSING, COMPLETED, FAILED]
+          example: "PROCESSING"
+        progress:
+          type: object
+          properties:
+            processed:
+              type: integer
+              minimum: 0
+              description: Number of tasks processed so far
+              example: 250
+            total:
+              type: integer
+              minimum: 1
+              description: Total number of tasks in the batch
+              example: 500
+            percentage:
+              type: number
+              minimum: 0
+              maximum: 100
+              description: Completion percentage
+              example: 50.0
+        summary:
+          $ref: '#/components/schemas/BatchSummary'
+        estimatedCompletion:
+          type: string
+          format: date-time
+          description: Estimated completion time (for processing batches)
+          example: "2024-01-15T10:35:00Z"
+        lastUpdated:
+          type: string
+          format: date-time
+          description: Last status update timestamp
+          example: "2024-01-15T10:32:30Z"
+
+    TaskValidationResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+          description: Overall validation result
+          example: true
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          description: Array of validation errors
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationWarning'
+          description: Array of validation warnings
+
+    ValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field name that failed validation
+          example: "title"
+        code:
+          type: string
+          description: Error code for programmatic handling
+          example: "REQUIRED"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Title is required"
+
+    ValidationWarning:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field name with warning
+          example: "assigneeId"
+        code:
+          type: string
+          description: Warning code
+          example: "ASSIGNEE_OVERLOADED"
+        message:
+          type: string
+          description: Human-readable warning message
+          example: "Assignee has 15+ active tasks"
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User UUID
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        name:
+          type: string
+          description: User full name
+          example: "John Doe"
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: "john.doe@company.com"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Error code for programmatic handling
+              example: "VALIDATION_FAILED"
+            message:
+              type: string
+              description: Human-readable error message
+              example: "Request validation failed"
+            details:
+              type: object
+              description: Additional error details
+            timestamp:
+              type: string
+              format: date-time
+              description: Error occurrence timestamp
+              example: "2024-01-15T10:30:00Z"
+            path:
+              type: string
+              description: API endpoint path where error occurred
+              example: "/api/boards/123/tasks"
+            correlationId:
+              type: string
+              description: Unique identifier for error tracking
+              example: "abc123-def456-ghi789"
+
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            error:
+              type: object
+              properties:
+                details:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ValidationError'
+                  description: Array of specific validation errors
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "UNAUTHORIZED"
+              message: "Authentication required. Please provide a valid JWT token."
+              timestamp: "2024-01-15T10:30:00Z"
+              path: "/api/boards/123/tasks"
+
+    ForbiddenError:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "INSUFFICIENT_PERMISSIONS"
+              message: "User does not have permission to perform this action"
+              timestamp: "2024-01-15T10:30:00Z"
+              path: "/api/boards/123/tasks"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "RESOURCE_NOT_FOUND"
+              message: "The requested resource was not found"
+              timestamp: "2024-01-15T10:30:00Z"
+              path: "/api/boards/123/tasks"
+
+    BadRequestError:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          description: Request limit per time window
+          schema:
+            type: integer
+            example: 100
+        X-RateLimit-Remaining:
+          description: Remaining requests in current window
+          schema:
+            type: integer
+            example: 0
+        X-RateLimit-Reset:
+          description: Time when rate limit resets (Unix timestamp)
+          schema:
+            type: integer
+            example: 1642248600
+        X-RateLimit-Window:
+          description: Rate limit window in seconds
+          schema:
+            type: integer
+            example: 60
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+            example: 30
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "RATE_LIMIT_EXCEEDED"
+              message: "Rate limit exceeded. Please try again later."
+              details:
+                limit: 100
+                window: 60
+                retryAfter: 30
+              timestamp: "2024-01-15T10:30:00Z"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error:
+              code: "INTERNAL_SERVER_ERROR"
+              message: "An unexpected error occurred while processing the request"
+              correlationId: "abc123-def456-ghi789"
+              timestamp: "2024-01-15T10:30:00Z"
+
+  parameters:
+    BoardId:
+      name: boardId
+      in: path
+      required: true
+      description: Unique identifier of the board
+      schema:
+        type: string
+        format: uuid
+      example: "987fcdeb-51a2-43d1-b789-123456789abc"
+
+    BatchId:
+      name: batchId
+      in: path
+      required: true
+      description: Batch operation identifier
+      schema:
+        type: string
+        format: uuid
+      example: "batch-550e8400-e29b-41d4-a716-446655440000"
+
+  headers:
+    X-RateLimit-Limit:
+      description: Request limit per time window
+      schema:
+        type: integer
+
+    X-RateLimit-Remaining:
+      description: Remaining requests in current window
+      schema:
+        type: integer
+
+    X-RateLimit-Reset:
+      description: Time when rate limit resets (Unix timestamp)
+      schema:
+        type: integer
+
+    X-Response-Time:
+      description: Server response time in milliseconds
+      schema:
+        type: integer
+
+# WebSocket Protocol Documentation
+# Note: OpenAPI 3.0 doesn't natively support WebSocket, but we document the protocol here for reference
+#
+# WebSocket Connection:
+# URL: wss://api.scib.platform.com/ws/boards/{boardId}
+# Authentication: JWT token in connection headers or query parameter
+# Heartbeat: 30-second intervals
+#
+# Message Format:
+# All WebSocket messages follow this structure:
+# {
+#   "type": "string",
+#   "timestamp": "ISO 8601 datetime",
+#   "boardId": "UUID",
+#   "data": "object"
+# }
+#
+# Message Types:
+# 1. TASK_CREATED - New task creation event
+# 2. TASKS_BATCH_CREATED - Batch task creation event
+# 3. CONNECTION_ESTABLISHED - Connection confirmation
+# 4. HEARTBEAT - Keep-alive message
+#
+# Example TASK_CREATED Message:
+# {
+#   "type": "TASK_CREATED",
+#   "timestamp": "2024-01-15T10:30:00Z",
+#   "boardId": "987fcdeb-51a2-43d1-b789-123456789abc",
+#   "data": {
+#     "task": { /* TaskResponse object */ },
+#     "createdBy": { /* User object */ },
+#     "metadata": {
+#       "source": "web",
+#       "userAgent": "Mozilla/5.0...",
+#       "ipAddress": "192.168.1.100"
+#     }
+#   }
+# }
+
+# Rate Limiting Configuration:
+# - Single Task Creation: 100 requests per minute per user
+# - Bulk Task Creation: 10 requests per minute per user  
+# - Task Validation: 200 requests per minute per user
+# - WebSocket Connections: 10 concurrent connections per user
+# - Batch Status Check: 60 requests per minute per user
+
+# Error Codes Reference:
+# Validation Errors:
+# - REQUIRED: Field is required
+# - MAX_LENGTH_EXCEEDED: Field exceeds maximum length
+# - MIN_LENGTH_NOT_MET: Field below minimum length
+# - INVALID_FORMAT: Field format is invalid
+# - INVALID_ENUM_VALUE: Value not in allowed enum
+# - INVALID_DATE: Date format or value invalid
+# - FUTURE_DATE_REQUIRED: Date must be in the future
+# - DUPLICATE_TASK_TITLE: Title already exists in board
+# - INVALID_ASSIGNEE: Assignee not found or no access
+# - INVALID_COLUMN: Column not found in board
+#
+# System Errors:
+# - INSUFFICIENT_PERMISSIONS: User lacks required permissions
+# - RESOURCE_NOT_FOUND: Requested resource not found
+# - RATE_LIMIT_EXCEEDED: Too many requests
+# - INTERNAL_SERVER_ERROR: Unexpected server error
+# - SERVICE_UNAVAILABLE: Service temporarily unavailable
+# - BATCH_SIZE_EXCEEDED: Batch exceeds maximum size
+# - ASYNC_PROCESSING_FAILED: Asynchronous processing error
+
+tags:
+  - name: Task Creation
+    description: |
+      Operations for creating individual tasks with real-time synchronization.
+      
+      All task creation operations trigger WebSocket events to connected clients, ensuring tasks appear across all users' boards within 500ms.
+  - name: Batch Operations
+    description: |
+      Operations for creating multiple tasks in batch with support for asynchronous processing.
+      
+      Batch operations automatically switch to asynchronous processing for large batches (>100 tasks) to maintain system performance.
+  - name: Task Validation
+    description: |
+      Operations for validating task data without creating tasks.
+      
+      Validation endpoints support real-time form validation and pre-validation for batch operations.
+
+externalDocs:
+  description: SCIB Platform Documentation
+  url: https://docs.scib.platform.com/api/task-creation

@@ -1,148 +1,242 @@
-# OpenAPI Specification - SCIB Task Management API
+# OpenAPI Specification - Real-Time Task Creation Synchronization API
 
 ## Overview
 
-This directory contains the OpenAPI 3.0.3 specification for the SCIB Task Management System's Task Creation Synchronization API.
+This directory contains the complete OpenAPI 3.0.3 specification for the Real-Time Task Creation Synchronization API, automatically generated from the High-Level Design (HLD) document and API Contract Outline.
 
 ## Files
 
-- `openapi.yaml` - Complete OpenAPI specification for the Task Creation API
+### `openapi.yaml`
+Complete OpenAPI specification including:
+- **REST API Endpoints**: Single task creation, bulk creation, validation, and batch status
+- **Request/Response Schemas**: Comprehensive data models with validation rules
+- **Error Handling**: Detailed error responses and status codes
+- **Security Definitions**: JWT authentication and authorization
+- **Rate Limiting**: API rate limits and headers
+- **WebSocket Protocol**: Documentation of real-time messaging (as comments)
 
 ## API Features
 
 ### Core Functionality
-- **Real-time Task Creation**: Tasks appear on all connected users' boards within 500ms
-- **Batch Task Processing**: Create up to 1000 tasks in a single request
-- **Comprehensive Validation**: Server-side validation with detailed error responses
-- **WebSocket Integration**: Real-time synchronization via WebSocket events
+- **Real-time Task Synchronization**: Tasks appear across all connected clients within 500ms
+- **Comprehensive Validation**: Server-side validation with detailed error feedback
+- **Batch Processing**: Support for bulk task creation with async processing
+- **Performance Optimization**: Response time guarantees and rate limiting
 
-### Authentication & Security
-- JWT-based authentication with 24-hour token expiration
-- Role-based access control (RBAC) at board level
-- TLS 1.3 encryption for all communications
-- Comprehensive input validation and sanitization
-- Rate limiting and DDoS protection
+### Security & Compliance
+- **JWT Authentication**: Secure token-based authentication
+- **Role-Based Access Control**: Granular permissions based on user roles
+- **Data Protection**: AES-256 encryption and TLS 1.3 transport security
+- **Audit Logging**: Complete audit trail for compliance
 
-### Performance Targets
-- Task creation API: < 200ms response time (95th percentile)
-- Batch processing: < 2000ms for 100 tasks
-- WebSocket broadcast: < 50ms from creation to publish
-- Real-time synchronization: < 500ms end-to-end
+### Performance Guarantees
+- **Single Task Creation**: < 200ms (95th percentile)
+- **Bulk Task Creation**: < 2s for batches ≤100 tasks
+- **Real-time Sync**: < 500ms across all clients
+- **WebSocket Delivery**: < 50ms message latency
 
-## API Endpoints
+## Architecture Integration
 
-### Task Management
-- `POST /api/boards/{boardId}/tasks` - Create a single task
-- `POST /api/boards/{boardId}/tasks/batch` - Create multiple tasks
-- `POST /api/boards/{boardId}/tasks/validate` - Validate task data
+### Technology Stack
+- **Frontend**: Angular with TypeScript and reactive forms
+- **Backend**: Spring Boot with comprehensive validation service
+- **Database**: PostgreSQL with unique constraints and performance indexes
+- **Real-time**: WebSocket with Redis pub/sub messaging
+- **Caching**: Redis for validation results and session management
 
-### System
-- `GET /health` - Health check endpoint
+### ADR Mappings
+This specification implements decisions from the following Architectural Decision Records:
 
-### WebSocket
-- `wss://api.scib.com/ws/boards/{boardId}` - Real-time task synchronization
+| ADR | Component | Implementation |
+|-----|-----------|----------------|
+| DEMO-1886 | UI/UX | Task creation form with real-time validation |
+| DEMO-1887 | Frontend | Angular reactive forms integration |
+| DEMO-1888 | Backend | Comprehensive validation service |
+| DEMO-1889 | Backend | Task creation and WebSocket broadcasting |
+| DEMO-1890 | Database | Unique constraints and performance optimization |
+| DEMO-1891 | Backend | Batch processing with async support |
+| DEMO-1892 | Testing | E2E test strategy for multi-user scenarios |
+| DEMO-1893 | Documentation | Complete API specification |
+
+## Usage Examples
+
+### Single Task Creation
+```bash
+curl -X POST "https://api.scib.platform.com/v1/api/boards/{boardId}/tasks" \
+  -H "Authorization: Bearer {jwt_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Implement user authentication",
+    "description": "Add JWT-based authentication",
+    "priority": "HIGH",
+    "columnId": "column-uuid",
+    "assigneeId": "user-uuid",
+    "tags": ["authentication", "security"]
+  }'
+```
+
+### Batch Task Creation
+```bash
+curl -X POST "https://api.scib.platform.com/v1/api/boards/{boardId}/tasks/batch" \
+  -H "Authorization: Bearer {jwt_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tasks": [
+      {
+        "title": "Setup CI/CD pipeline",
+        "priority": "HIGH",
+        "columnId": "column-uuid"
+      },
+      {
+        "title": "Write unit tests",
+        "priority": "MEDIUM",
+        "columnId": "column-uuid"
+      }
+    ],
+    "options": {
+      "async": false
+    }
+  }'
+```
+
+### Task Validation
+```bash
+curl -X POST "https://api.scib.platform.com/v1/api/boards/{boardId}/tasks/validate" \
+  -H "Authorization: Bearer {jwt_token}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Test task",
+    "priority": "LOW",
+    "columnId": "column-uuid"
+  }'
+```
+
+## WebSocket Protocol
+
+### Connection
+```javascript
+const ws = new WebSocket('wss://api.scib.platform.com/ws/boards/{boardId}?token={jwt_token}');
+
+ws.onmessage = (event) => {
+  const message = JSON.parse(event.data);
+  if (message.type === 'TASK_CREATED') {
+    // Handle new task creation
+    updateUI(message.data.task);
+  }
+};
+```
+
+### Message Types
+- **TASK_CREATED**: Single task creation event
+- **TASKS_BATCH_CREATED**: Batch task creation event
+- **CONNECTION_ESTABLISHED**: Connection confirmation
+- **HEARTBEAT**: Keep-alive message
+
+## Rate Limiting
+
+| Endpoint | Rate Limit | Window |
+|----------|------------|--------|
+| Single Task Creation | 100 requests | per minute |
+| Bulk Task Creation | 10 requests | per minute |
+| Task Validation | 200 requests | per minute |
+| Batch Status Check | 60 requests | per minute |
+| WebSocket Connections | 10 concurrent | per user |
 
 ## Error Handling
 
-The API provides comprehensive error handling with standardized error codes:
+### Common Error Codes
+- **400 Bad Request**: Validation errors
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: Resource not found
+- **409 Conflict**: Duplicate task title
+- **429 Too Many Requests**: Rate limit exceeded
+- **500 Internal Server Error**: System error
 
-- `400` - Validation errors with field-specific details
-- `401` - Authentication required
-- `403` - Insufficient permissions
-- `404` - Resource not found (board, user, etc.)
-- `409` - Conflict (duplicate title)
-- `422` - Business rule violation
-- `429` - Rate limit exceeded
-- `500` - Internal server error
-
-## Rate Limits
-
-| Endpoint | Limit | Window | Scope |
-|----------|-------|--------|---------|
-| Single task creation | 100 requests | 1 minute | Per user |
-| Batch task creation | 10 requests | 1 minute | Per user |
-| Task validation | 200 requests | 1 minute | Per user |
-| WebSocket connections | 50 connections | N/A | Per user |
-
-## WebSocket Events
-
-### Event Types
-- `TASK_CREATED` - Single task creation event
-- `TASKS_BATCH_CREATED` - Batch task creation event
-- `CONNECTION_ESTABLISHED` - WebSocket connection established
-- `CONNECTION_ERROR` - Connection error event
-
-### Connection
-```
-wss://api.scib.com/ws/boards/{boardId}?token={jwt_token}
+### Error Response Format
+```json
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message": "Request validation failed",
+    "details": [
+      {
+        "field": "title",
+        "code": "REQUIRED",
+        "message": "Title is required"
+      }
+    ],
+    "timestamp": "2024-01-15T10:30:00Z",
+    "path": "/api/boards/123/tasks",
+    "correlationId": "abc123-def456-ghi789"
+  }
+}
 ```
 
-## Compliance & Standards
+## Validation Rules
 
-- **OpenAPI 3.0.3** specification compliance
-- **GDPR** compliant data handling
-- **SOC 2 Type II** certified security controls
-- **ISO 27001** aligned security framework
-- **OWASP Top 10** protection
+### Task Creation Validation
+- **Title**: 1-200 characters, unique per board
+- **Description**: Max 2000 characters
+- **Priority**: Must be LOW, MEDIUM, HIGH, or CRITICAL
+- **Due Date**: Must be future date if provided
+- **Assignee**: Must have board access
+- **Column**: Must exist in the board
+- **Tags**: Max 10 tags, 50 characters each
 
-## Related Documentation
+### Batch Validation
+- **Batch Size**: 1-1000 tasks per batch
+- **Async Threshold**: >100 tasks automatically processed async
+- **Validation**: All tasks validated before any are created
+- **Ordering**: Task order maintained across all clients
 
-- **High-Level Design**: `API Development/Requirement Documents/HLDDocument.txt`
-- **API Contract**: `API Development/Requirement Documents/APIContractOutline.txt`
-- **Non-Functional Requirements**: `API Development/Requirement Documents/NFR.txt`
-- **Story Reference**: DEMO-1841
+## Monitoring & Observability
 
-## Implementation Notes
+### Performance Metrics
+- API response times with percentile tracking
+- Real-time synchronization latency
+- WebSocket connection health
+- Database query performance
+- Error rates and patterns
 
-### Architecture Decisions
-- **Real-time Synchronization** (DEMO-1889): WebSocket + Redis Pub/Sub
-- **Optimistic UI Pattern** (DEMO-1887): Immediate local updates
-- **Comprehensive Validation** (DEMO-1888): Server-side validation
-- **Batch Processing** (DEMO-1891): Efficient bulk operations
-- **Database Optimization** (DEMO-1890): Constraints and indexing
+### Audit Logging
+- All task creation events logged
+- User action attribution
+- IP address and device tracking
+- Correlation IDs for request tracing
+- Compliance audit trails
 
-### Performance Considerations
-- Stateless service design for horizontal scaling
-- Database connection pooling and query optimization
-- Redis pub/sub for low-latency event broadcasting
-- Batch processing with transaction management
-- Comprehensive caching strategy
+## Compliance & Security
 
-### Security Implementation
-- JWT token validation on all endpoints
-- Board-level access control enforcement
-- Input validation and sanitization
-- SQL injection prevention via parameterized queries
-- XSS protection through output encoding
+### Data Protection
+- **GDPR Compliance**: Data subject rights support
+- **ISO 27001**: Information security management
+- **SOC 2 Type II**: Service organization controls
+- **Data Encryption**: AES-256 at rest, TLS 1.3 in transit
 
-## Development
+### Access Control
+- **JWT Authentication**: Token-based security
+- **RBAC**: Role-based access control
+- **Board Permissions**: Resource-level security
+- **Session Management**: Secure session handling
 
-### Validation
-The OpenAPI specification can be validated using:
-```bash
-swagger-codegen validate -i openapi.yaml
-```
+## Development & Testing
 
-### Code Generation
-Client SDKs can be generated using:
-```bash
-swagger-codegen generate -i openapi.yaml -l typescript-angular -o ./client
-```
+### API Testing
+- Interactive documentation available at `/swagger-ui`
+- Postman collection available for download
+- SDK support for popular programming languages
+- Comprehensive test suite with E2E scenarios
 
-### Testing
-API testing can be performed using the specification with tools like:
-- Postman (import OpenAPI spec)
-- Insomnia (import OpenAPI spec)
-- Newman (automated testing)
-- Dredd (API testing framework)
+### Environment URLs
+- **Production**: `https://api.scib.platform.com/v1`
+- **Staging**: `https://staging-api.scib.platform.com/v1`
+- **Development**: `https://dev-api.scib.platform.com/v1`
 
-## Version History
+---
 
-- **v1.0.0** - Initial release with task creation and synchronization features
-
-## Support
-
-For questions or issues regarding this API specification:
-- Development Team: dev-team@scib.com
-- Documentation: API Development/Requirement Documents/
-- Issue Tracking: DEMO-1841
+**Generated From**: HLD Document and API Contract Outline  
+**Generation Date**: 2024-01-15  
+**API Version**: 1.0.0  
+**OpenAPI Version**: 3.0.3  
+**Compliance**: Enterprise standards validated
