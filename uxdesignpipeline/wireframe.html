@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Responsive Kanban Testing — Wireframe</title>
+  <title>Kanban Board — Wireframe</title>
   <style>
     /* ── Wireframe Palette ── */
     :root {
@@ -21,10 +21,16 @@
       --wf-active:     #222222;
       --sp1:4px;--sp2:8px;--sp3:12px;--sp4:16px;--sp5:20px;--sp6:24px;--sp8:32px;
       --r-sm:4px;--r-md:6px;--r-lg:8px;--r-xl:10px;--r-pill:9999px;--r-circle:50%;
-      /* ── Accessibility tokens (accessibilitystandards.json) ── */
+      
+      /* ── Accessibility tokens ── */
       --wf-focus-color:  #1A3A8F;
       --wf-focus-width:  3px;
       --wf-focus-style:  solid;
+      
+      /* ── Kanban Column Colors ── */
+      --todo-bg: #E3F2FD;
+      --progress-bg: #FFF3E0;
+      --done-bg: #E8F5E8;
     }
 
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -35,6 +41,21 @@
       line-height:1.5;
     }
 
+    /* ── Skip link (WCAG Motor — Keyboard Navigability) ── */
+    .skip-link{
+      position:absolute;top:-999px;left:8px;z-index:9999;
+      background:var(--wf-surface);color:var(--wf-text);
+      padding:8px 16px;border-radius:var(--r-md);font-weight:700;font-size:13px;
+      text-decoration:none;border:2px solid var(--wf-focus-color);
+    }
+    .skip-link:focus{top:8px}
+
+    /* ── Global focus ring ── */
+    :focus-visible{
+      outline:var(--wf-focus-width) var(--wf-focus-style) var(--wf-focus-color);
+      outline-offset:2px;border-radius:var(--r-sm);
+    }
+
     /* ── Annotation helper ── */
     .note{font-size:9px;color:var(--wf-text-dim);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:3px}
 
@@ -43,7 +64,7 @@
 
     /* ── SIDEBAR ── */
     .sidebar{
-      width:220px;flex-shrink:0;background:var(--wf-surface);
+      width:280px;flex-shrink:0;background:var(--wf-surface);
       border-right:2px solid var(--wf-border);display:flex;
       flex-direction:column;padding:var(--sp5) var(--sp4);overflow-y:auto;
     }
@@ -51,7 +72,6 @@
     .brand{display:flex;align-items:center;gap:var(--sp3);padding-bottom:var(--sp4);
       border-bottom:1px solid var(--wf-border);margin-bottom:var(--sp4)}
 
-    /* logo placeholder */
     .brand-ico{width:32px;height:32px;border-radius:var(--r-md);
       background:var(--wf-fill-hi);border:1.5px solid var(--wf-border-hi);
       display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--wf-accent);flex-shrink:0}
@@ -67,6 +87,7 @@
       display:flex;align-items:center;gap:var(--sp3);
       padding:8px var(--sp3);border-radius:var(--r-md);cursor:pointer;
       font-size:12px;color:var(--wf-text-muted);border:1px solid transparent;
+      role:menuitem;tabindex:0;
     }
 
     .nav-list li:hover{background:var(--wf-fill-lo);border-color:var(--wf-border)}
@@ -76,7 +97,6 @@
       color:var(--wf-active);font-weight:700;
     }
 
-    /* icon placeholder box */
     .wf-ico{width:14px;height:14px;border:1.5px solid currentColor;border-radius:2px;flex-shrink:0;opacity:.5}
 
     .nav-pill{margin-left:auto;background:var(--wf-fill-hi);color:var(--wf-text);
@@ -109,7 +129,6 @@
 
     .h-right{display:flex;align-items:center;gap:var(--sp3);margin-left:auto}
 
-    /* icon button placeholder */
     .ico-btn{width:32px;height:32px;border-radius:var(--r-circle);
       border:1.5px solid var(--wf-border);background:var(--wf-fill-lo);
       display:grid;place-items:center;cursor:pointer;position:relative;color:var(--wf-text-muted)}
@@ -117,7 +136,6 @@
     .notif-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;
       background:var(--wf-border-hi);border-radius:var(--r-circle);border:1.5px solid var(--wf-surface)}
 
-    /* avatar placeholder */
     .avatar{width:28px;height:28px;border-radius:var(--r-circle);
       background:var(--wf-fill-hi);border:1.5px solid var(--wf-border-hi);
       display:grid;place-items:center;font-size:9px;font-weight:700;color:var(--wf-text);flex-shrink:0}
@@ -131,15 +149,6 @@
 
     .page{display:none;padding:var(--sp5) var(--sp6)}.page.active{display:block}
 
-    /* ── CARD ── */
-    .card{
-      background:var(--wf-surface);border:1.5px solid var(--wf-border);
-      border-radius:var(--r-xl);padding:var(--sp4);margin-bottom:var(--sp4);
-    }
-
-    .card-title{font-size:12px;font-weight:700;color:var(--wf-text);
-      margin-bottom:var(--sp4);padding-bottom:var(--sp2);border-bottom:1px solid var(--wf-fill-md)}
-
     /* ── PAGE HEADER ── */
     .ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--sp5)}
 
@@ -147,10 +156,51 @@
 
     .ph-sub{font-size:11px;color:var(--wf-text-muted);margin-top:2px}
 
-    /* ── GRID ── */
-    .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp4);margin-bottom:var(--sp4)}
+    /* ── KANBAN BOARD ── */
+    .kanban-board{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp4);height:calc(100vh - 200px)}
 
-    .g2{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp4);margin-bottom:var(--sp4)}
+    .kanban-column{
+      background:var(--wf-surface);border:1.5px solid var(--wf-border);
+      border-radius:var(--r-xl);display:flex;flex-direction:column;
+      min-height:0;
+    }
+
+    .column-header{
+      padding:var(--sp4);border-bottom:1px solid var(--wf-border);
+      display:flex;justify-content:space-between;align-items:center;
+      flex-shrink:0;
+    }
+
+    .column-title{font-size:14px;font-weight:700;color:var(--wf-text)}
+
+    .task-count{background:var(--wf-fill-hi);color:var(--wf-text);
+      font-size:10px;font-weight:700;padding:2px 6px;border-radius:var(--r-pill);
+      border:1px solid var(--wf-border-hi)}
+
+    .column-content{flex:1;padding:var(--sp3);overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp3)}
+
+    .task-card{
+      background:var(--wf-surface);border:1.5px solid var(--wf-border);
+      border-radius:var(--r-lg);padding:var(--sp3);cursor:pointer;
+      transition:all 0.2s ease;
+    }
+
+    .task-card:hover{background:var(--wf-fill-lo);border-color:var(--wf-border-hi)}
+
+    .task-title{font-size:12px;font-weight:600;margin-bottom:var(--sp2)}
+
+    .task-meta{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--wf-text-muted)}
+
+    .priority-badge{padding:1px 6px;border-radius:var(--r-pill);font-size:9px;font-weight:600}
+
+    .priority-high{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2}
+    .priority-medium{background:#FFF3E0;color:#F57C00;border:1px solid #FFE0B2}
+    .priority-low{background:#E8F5E8;color:#2E7D32;border:1px solid #C8E6C9}
+
+    /* ── Column Specific Styling ── */
+    .todo-column .column-header{background:var(--todo-bg)}
+    .progress-column .column-header{background:var(--progress-bg)}
+    .done-column .column-header{background:var(--done-bg)}
 
     /* ── BUTTONS ── */
     .btn{
@@ -160,95 +210,49 @@
       border:1.5px solid var(--wf-border-hi);background:var(--wf-fill-lo);color:var(--wf-text);
     }
 
-    .btn .button-content{display:flex;align-items:center;gap:var(--sp2)}
-
     .btn-primary{background:var(--wf-fill-hi);border-color:var(--wf-active);color:var(--wf-active);font-weight:700}
-
     .btn-primary:hover{background:var(--wf-border)}
 
     .btn-secondary{background:var(--wf-fill-lo);border-color:var(--wf-border)}
-
     .btn-secondary:hover{background:var(--wf-fill-md)}
-
-    .btn-danger{background:var(--wf-fill-lo);border-color:var(--wf-border-hi);
-      color:var(--wf-text-muted);text-decoration:line-through dotted}
-
-    .btn-ghost{background:transparent;border-color:transparent;color:var(--wf-text-muted)}
 
     .btn-sm{height:26px;padding:3px 10px;font-size:11px}
 
-    /* ── BADGES ── */
-    .badge{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;
-      border-radius:var(--r-pill);font-size:10px;font-weight:600;
-      background:var(--wf-fill-lo);border:1px solid var(--wf-border);color:var(--wf-text-muted)}
+    /* ── MOBILE RESPONSIVE ── */
+    .mobile-tabs{display:none}
 
-    .badge-success{border-style:solid}
-
-    .badge-danger{border-style:dashed}
-
-    .badge-brand{background:var(--wf-fill-md);border-color:var(--wf-border-hi);color:var(--wf-accent)}
-
-    .badge-neutral{opacity:.7}
-
-    .dot::before{content:'';width:5px;height:5px;border-radius:var(--r-circle);
-      background:currentColor;display:inline-block}
-
-    /* ── TABS ── */
-    .tabs{display:flex;border-bottom:2px solid var(--wf-border);margin-bottom:var(--sp4);gap:2px}
-
-    .tab{padding:var(--sp2) var(--sp4);font-size:12px;color:var(--wf-text-dim);cursor:pointer;
-      border-bottom:2px solid transparent;margin-bottom:-2px}
-
-    .tab:hover{color:var(--wf-text)}
-
-    .tab.active{color:var(--wf-active);border-bottom-color:var(--wf-active);font-weight:700}
-
-    /* ── Skip link (WCAG Motor — Keyboard Navigability) ── */
-    .skip-link{
-      position:absolute;top:-999px;left:8px;z-index:9999;
-      background:var(--wf-surface);color:var(--wf-text);
-      padding:8px 16px;border-radius:var(--r-md);font-weight:700;font-size:13px;
-      text-decoration:none;border:2px solid var(--wf-focus-color);
+    @media (max-width: 767px) {
+      .kanban-board{display:none}
+      .mobile-tabs{display:flex;border-bottom:2px solid var(--wf-border);margin-bottom:var(--sp4)}
+      .mobile-column{display:none}
+      .mobile-column.active{display:block}
+      .tab{padding:var(--sp3) var(--sp4);font-size:12px;color:var(--wf-text-dim);cursor:pointer;
+        border-bottom:2px solid transparent;margin-bottom:-2px;flex:1;text-align:center}
+      .tab:hover{color:var(--wf-text)}
+      .tab.active{color:var(--wf-active);border-bottom-color:var(--wf-active);font-weight:700}
     }
 
-    .skip-link:focus{top:8px}
-
-    /* ── Global focus ring (accessibilitystandards.json: --focus-outline-*) ── */
-    :focus-visible{
-      outline:var(--wf-focus-width) var(--wf-focus-style) var(--wf-focus-color);
-      outline-offset:2px;border-radius:var(--r-sm);
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .kanban-board{grid-template-columns:1fr 1fr;gap:var(--sp3)}
+      .done-column{grid-column:1/-1;margin-top:var(--sp4)}
     }
 
-    /* ── TOGGLE ── */
-    .toggle-row{display:flex;justify-content:space-between;align-items:center;
-      padding:var(--sp3) 0;border-bottom:1px solid var(--wf-fill-md)}
+    /* ── MODAL ── */
+    .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);
+      display:none;align-items:center;justify-content:center;z-index:1000}
 
-    .toggle-row:last-child{border-bottom:none}
+    .modal.active{display:flex}
 
-    .toggle-lbl{font-size:12px;font-weight:500;color:var(--wf-text)}
+    .modal-content{background:var(--wf-surface);border-radius:var(--r-xl);
+      padding:var(--sp6);max-width:500px;width:90%;max-height:80vh;overflow-y:auto}
 
-    .toggle-hint{font-size:10px;color:var(--wf-text-dim);margin-top:1px}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp4)}
 
-    .ava-toggle-container{display:flex;align-items:center}
+    .modal-title{font-size:16px;font-weight:700}
 
-    .toggle-wrapper{width:40px;height:20px;border-radius:var(--r-pill);
-      background:var(--wf-fill-lo);border:1.5px solid var(--wf-border);
-      cursor:pointer;position:relative;padding:2px;flex-shrink:0}
+    .close-btn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--wf-text-muted)}
 
-    .toggle-wrapper.on{background:var(--wf-fill-hi);border-color:var(--wf-border-hi)}
-
-    .toggle-slider{width:14px;height:14px;border-radius:var(--r-circle);
-      background:var(--wf-border-hi);border:1px solid var(--wf-border);
-      position:relative;z-index:1}
-
-    /* WCAG § Respect for Motion */
-    @media (prefers-reduced-motion:no-preference){
-      .toggle-slider{transition:transform .2s}
-    }
-
-    .toggle-wrapper.on .toggle-slider{transform:translateX(18px);background:var(--wf-accent)}
-
-    /* ── INPUT ── */
+    /* ── FORM ── */
     .field{margin-bottom:var(--sp4)}
 
     .field label{display:block;font-size:11px;font-weight:600;color:var(--wf-text-muted);margin-bottom:3px}
@@ -266,146 +270,12 @@
 
     .field textarea{resize:vertical;min-height:60px}
 
-    /* ── LIST ITEM ── */
-    .li{
-      display:flex;align-items:flex-start;gap:var(--sp3);
-      padding:var(--sp4);background:var(--wf-surface);
-      border:1.5px solid var(--wf-border);border-radius:var(--r-lg);
-      margin-bottom:var(--sp3);
-    }
-
-    .li:hover{background:var(--wf-fill-lo);border-color:var(--wf-border-hi)}
-
-    /* icon placeholder */
-    .li-ico{width:34px;height:34px;border-radius:var(--r-sm);
-      background:var(--wf-fill-md);border:1.5px solid var(--wf-border);
-      display:grid;place-items:center;flex-shrink:0;font-size:16px}
-
-    .li-title{font-size:12px;font-weight:700;margin-bottom:2px}
-
-    .li-sub{font-size:11px;color:var(--wf-text-muted);line-height:1.5}
-
-    .li-acts{display:flex;flex-direction:column;gap:var(--sp2);flex-shrink:0;margin-left:auto}
-
-    /* ── INFO ROW ── */
-    .inf-row{display:flex;justify-content:space-between;align-items:center;
-      padding:7px 0;border-bottom:1px solid var(--wf-fill-md);font-size:12px}
-
-    .inf-row:last-child{border-bottom:none}
-
-    .inf-l{font-size:10px;color:var(--wf-text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-
-    .inf-v{font-weight:600;color:var(--wf-text)}
-
-    /* ── STAT CARD ── */
-    .stat-ico{width:34px;height:34px;border-radius:var(--r-sm);
-      background:var(--wf-fill-md);border:1.5px dashed var(--wf-border);
-      display:grid;place-items:center;margin-bottom:var(--sp3);font-size:14px}
-
-    .stat-lbl{font-size:10px;color:var(--wf-text-muted);font-weight:600;text-transform:uppercase;margin-bottom:2px}
-
-    .stat-val{font-size:22px;font-weight:700;line-height:1;color:var(--wf-text)}
-
-    .stat-hint{font-size:10px;color:var(--wf-text-muted);margin-top:3px}
-
-    /* ── STEPPER ── */
-    .stepper{display:flex;align-items:flex-start;width:100%;margin-bottom:var(--sp5)}
-
-    .step{display:flex;flex-direction:column;align-items:center;flex:1;position:relative}
-
-    .step::after{content:'';position:absolute;top:14px;left:50%;width:100%;height:1px;
-      background:var(--wf-border);z-index:0}
-
-    .step:last-child::after{display:none}
-
-    .step.done::after{background:var(--wf-border-hi)}
-
-    .step-circle{
-      width:28px;height:28px;border-radius:var(--r-circle);
-      border:1.5px solid var(--wf-border);background:var(--wf-fill-lo);
-      display:grid;place-items:center;font-size:11px;font-weight:700;
-      z-index:1;position:relative;color:var(--wf-text-muted);
-    }
-
-    .step-circle.active{border-color:var(--wf-active);background:var(--wf-fill-hi);color:var(--wf-active);border-width:2px}
-
-    .step-circle.done{border-color:var(--wf-border-hi);background:var(--wf-fill-md);color:var(--wf-text)}
-
-    .step-lbl{font-size:10px;color:var(--wf-text-dim);margin-top:4px;text-align:center}
-
-    .step.active .step-lbl,.step.done .step-lbl{color:var(--wf-active);font-weight:600}
-
-    /* ── SLOT PICKER ── */
-    .slots{display:flex;flex-wrap:wrap;gap:var(--sp2)}
-
-    .slot{padding:4px 10px;border:1.5px solid var(--wf-border);border-radius:var(--r-sm);
-      font-size:11px;font-weight:500;color:var(--wf-text-muted);cursor:pointer;
-      background:var(--wf-fill-lo)}
-
-    .slot:hover{border-color:var(--wf-border-hi);color:var(--wf-text)}
-
-    .slot.sel{background:var(--wf-fill-md);color:var(--wf-active);border-color:var(--wf-border-hi);font-weight:700}
-
-    .slot.full{opacity:.35;cursor:not-allowed;text-decoration:line-through}
-
-    /* ── MISC ── */
-    .divider{border-top:1px dashed var(--wf-border);margin:var(--sp4) 0}
-
-    .flex-row{display:flex;gap:var(--sp3);flex-wrap:wrap}
-
-    .ok-wrap{text-align:center;padding:var(--sp8) var(--sp5)}
-
-    .ok-ring{width:56px;height:56px;border-radius:var(--r-circle);
-      background:var(--wf-fill-md);border:2px solid var(--wf-border-hi);
-      display:grid;place-items:center;margin:0 auto var(--sp4)}
-
-    .ok-title{font-size:18px;font-weight:700;margin-bottom:var(--sp2)}
-
-    .ok-sub{font-size:12px;color:var(--wf-text-muted);margin-bottom:var(--sp5)}
-
-    .sel-opt{
-      display:flex;align-items:center;gap:var(--sp3);padding:9px var(--sp3);
-      border:1.5px solid var(--wf-border);border-radius:var(--r-sm);cursor:pointer;
-      font-size:12px;color:var(--wf-text-muted);margin-bottom:var(--sp2);
-      background:var(--wf-fill-lo);
-    }
-
-    .sel-opt:hover{border-color:var(--wf-border-hi);color:var(--wf-text)}
-
-    .sel-opt.on{border-color:var(--wf-active);background:var(--wf-fill-md);color:var(--wf-active);font-weight:700}
-
-    .sel-dot{width:12px;height:12px;border-radius:var(--r-circle);border:1.5px solid var(--wf-border);flex-shrink:0}
-
-    .sel-opt.on .sel-dot{border-color:var(--wf-active);background:var(--wf-active)}
-
-    .reminder{display:flex;align-items:center;gap:var(--sp3);padding:var(--sp3) var(--sp4);
-      background:var(--wf-fill-lo);border:1.5px dashed var(--wf-border);
-      border-radius:var(--r-md);margin-bottom:var(--sp2)}
-
-    .msg-bubble{padding:var(--sp3);border-radius:var(--r-md);font-size:12px;
-      max-width:85%;line-height:1.5}
-
-    .msg-left{background:var(--wf-fill-lo);border:1.5px solid var(--wf-border)}
-
-    .msg-right{background:var(--wf-fill-md);border:1.5px solid var(--wf-border-hi)}
-
-    .inbox-row{display:flex;align-items:center;gap:var(--sp3);padding:var(--sp3);
-      border-radius:var(--r-sm);cursor:pointer}
-
-    .inbox-row:hover{background:var(--wf-fill-lo)}
-
-    .inbox-row+.inbox-row{border-top:1px solid var(--wf-fill-md)}
-
-    /* redline annotations */
-    [data-wf]{position:relative}
-
-    [data-wf]::after{content:attr(data-wf);
-      position:absolute;top:-14px;left:0;
-      font-size:8px;color:#E91E63;font-family:'Inter',sans-serif;
-      white-space:nowrap;pointer-events:none;letter-spacing:.05em}
+    /* ── ACCESSIBILITY FEATURES ── */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
     /* ── Watermark ── */
-    body::after{content:'WIREFRAME — Responsive Kanban Testing v1.0';
+    body::after{content:'WIREFRAME — Kanban Board v1.0';
       position:fixed;bottom:8px;right:12px;
       font-size:9px;color:var(--wf-text-dim);letter-spacing:.1em;pointer-events:none}
 
@@ -414,968 +284,699 @@
     ::-webkit-scrollbar-track{background:transparent}
     ::-webkit-scrollbar-thumb{background:var(--wf-border);border-radius:var(--r-pill)}
 
-    /* ── Custom styles for testing interface ── */
-    .viewport-frame{
-      border:2px solid var(--wf-border-hi);
-      border-radius:var(--r-lg);
-      background:var(--wf-surface);
-      padding:var(--sp4);
-      margin:var(--sp4) 0;
-    }
-
-    .viewport-label{
-      font-size:10px;
-      font-weight:700;
-      color:var(--wf-text-muted);
-      text-transform:uppercase;
-      letter-spacing:.1em;
-      margin-bottom:var(--sp2);
-    }
-
-    .kanban-mockup{
-      display:flex;
-      gap:var(--sp3);
-      min-height:200px;
-      background:var(--wf-fill-lo);
-      border:1px dashed var(--wf-border);
-      border-radius:var(--r-md);
-      padding:var(--sp3);
-    }
-
-    .kanban-column{
-      flex:1;
-      background:var(--wf-surface);
-      border:1px solid var(--wf-border);
-      border-radius:var(--r-sm);
-      padding:var(--sp3);
-      min-height:180px;
-    }
-
-    .column-header{
-      font-size:11px;
-      font-weight:700;
-      color:var(--wf-text);
-      margin-bottom:var(--sp3);
-      padding-bottom:var(--sp2);
-      border-bottom:1px solid var(--wf-fill-md);
-    }
-
-    .kanban-card{
-      background:var(--wf-fill-lo);
-      border:1px solid var(--wf-border);
-      border-radius:var(--r-sm);
-      padding:var(--sp2);
-      margin-bottom:var(--sp2);
-      font-size:10px;
-      color:var(--wf-text-muted);
-    }
-
-    .test-status{
-      display:inline-flex;
-      align-items:center;
-      gap:var(--sp2);
-      padding:2px 6px;
-      border-radius:var(--r-pill);
-      font-size:10px;
-      font-weight:600;
-    }
-
-    .test-status.pending{
-      background:var(--wf-fill-lo);
-      color:var(--wf-text-muted);
-      border:1px solid var(--wf-border);
-    }
-
-    .test-status.running{
-      background:var(--wf-fill-md);
-      color:var(--wf-accent);
-      border:1px solid var(--wf-border-hi);
-    }
-
-    .test-status.passed{
-      background:var(--wf-fill-hi);
-      color:var(--wf-active);
-      border:1px solid var(--wf-active);
-    }
-
-    .test-status.failed{
-      background:var(--wf-fill-lo);
-      color:var(--wf-text-muted);
-      border:1px dashed var(--wf-border-hi);
-    }
-
-    .progress-bar{
-      width:100%;
-      height:8px;
-      background:var(--wf-fill-lo);
-      border-radius:var(--r-pill);
-      overflow:hidden;
-      margin:var(--sp3) 0;
-    }
-
-    .progress-fill{
-      height:100%;
-      background:var(--wf-fill-hi);
-      border-radius:var(--r-pill);
-      transition:width 0.3s ease;
-    }
-
-    .screenshot-placeholder{
-      width:100%;
-      height:120px;
-      background:var(--wf-fill-lo);
-      border:1px dashed var(--wf-border);
-      border-radius:var(--r-md);
-      display:grid;
-      place-items:center;
-      font-size:10px;
-      color:var(--wf-text-dim);
-      margin:var(--sp3) 0;
+    /* Motion respect */
+    @media (prefers-reduced-motion: no-preference) {
+      .task-card{transition:all 0.2s ease}
     }
   </style>
 </head>
 <body>
-  <a href="#main" class="skip-link">Skip to main content</a>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   
   <div id="app">
     <!-- ── SIDEBAR ── -->
     <nav class="sidebar" role="navigation" aria-label="Main navigation">
       <div class="brand">
-        <div class="brand-ico" aria-hidden="true">RT</div>
-        <div class="brand-name">Responsive Testing</div>
+        <div class="brand-ico" aria-hidden="true">KB</div>
+        <div class="brand-name">Kanban Board</div>
       </div>
       
-      <div class="nav-label">Testing Workflow</div>
-      <ul class="nav-list" role="menubar">
-        <li role="menuitem" tabindex="0" class="active" onclick="nav(this,'setup')" onkeydown="navKey(event,this,'setup')">
+      <div class="nav-label">Views</div>
+      <ul class="nav-list" role="menu">
+        <li class="active" role="menuitem" tabindex="0" onclick="nav(this,'desktop-board')" onkeydown="navKey(event,this,'desktop-board')" aria-label="Desktop Kanban Board">
           <div class="wf-ico" aria-hidden="true"></div>
-          Test Environment Setup
+          Desktop Board
         </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'mobile')" onkeydown="navKey(event,this,'mobile')">
+        <li role="menuitem" tabindex="-1" onclick="nav(this,'mobile-board')" onkeydown="navKey(event,this,'mobile-board')" aria-label="Mobile Kanban Board">
           <div class="wf-ico" aria-hidden="true"></div>
-          Mobile Testing (375px)
+          Mobile Board
         </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'tablet')" onkeydown="navKey(event,this,'tablet')">
+        <li role="menuitem" tabindex="-1" onclick="nav(this,'tablet-board')" onkeydown="navKey(event,this,'tablet-board')" aria-label="Tablet Kanban Board">
           <div class="wf-ico" aria-hidden="true"></div>
-          Tablet Testing (768px)
+          Tablet Board
         </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'desktop')" onkeydown="navKey(event,this,'desktop')">
+        <li role="menuitem" tabindex="-1" onclick="nav(this,'accessible-board')" onkeydown="navKey(event,this,'accessible-board')" aria-label="Accessible Kanban Board">
           <div class="wf-ico" aria-hidden="true"></div>
-          Desktop Testing (1024px)
-        </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'results')" onkeydown="navKey(event,this,'results')">
-          <div class="wf-ico" aria-hidden="true"></div>
-          Test Results Summary
+          Accessible Board
         </li>
       </ul>
       
-      <div class="nav-label">Tools</div>
-      <ul class="nav-list" role="menubar">
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'manual')" onkeydown="navKey(event,this,'manual')">
+      <div class="nav-label">Task Management</div>
+      <ul class="nav-list" role="menu">
+        <li role="menuitem" tabindex="-1" onclick="nav(this,'task-detail')" onkeydown="navKey(event,this,'task-detail')" aria-label="Task Detail View">
           <div class="wf-ico" aria-hidden="true"></div>
-          Manual Testing
-          <span class="nav-pill">Alt</span>
+          Task Detail
         </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'reports')" onkeydown="navKey(event,this,'reports')">
+        <li role="menuitem" tabindex="-1" onclick="nav(this,'add-task')" onkeydown="navKey(event,this,'add-task')" aria-label="Add New Task">
           <div class="wf-ico" aria-hidden="true"></div>
-          Test Reports
+          Add Task
+        </li>
+        <li role="menuitem" tabindex="-1" onclick="nav(this,'bulk-operations')" onkeydown="navKey(event,this,'bulk-operations')" aria-label="Bulk Operations">
+          <div class="wf-ico" aria-hidden="true"></div>
+          Bulk Operations
+        </li>
+      </ul>
+      
+      <div class="nav-label">Settings</div>
+      <ul class="nav-list" role="menu">
+        <li role="menuitem" tabindex="-1" onclick="nav(this,'accessibility-settings')" onkeydown="navKey(event,this,'accessibility-settings')" aria-label="Accessibility Settings">
+          <div class="wf-ico" aria-hidden="true"></div>
+          Accessibility
+        </li>
+        <li role="menuitem" tabindex="-1" onclick="nav(this,'responsive-settings')" onkeydown="navKey(event,this,'responsive-settings')" aria-label="Responsive Settings">
+          <div class="wf-ico" aria-hidden="true"></div>
+          Responsive
         </li>
       </ul>
       
       <div class="sb-foot">
-        Responsive Testing v1.0 · WCAG 2.2 AA
+        Kanban Board v1.0 · WCAG 2.2 AA ©2024
       </div>
     </nav>
 
     <!-- ── MAIN ── -->
-    <main id="main">
+    <main id="main" role="main">
       <!-- ── HEADER ── -->
-      <header class="header">
+      <header class="header" role="banner">
         <div class="search">
-          <input type="search" placeholder="Search tests..." aria-label="Search tests">
+          <input type="search" placeholder="Search tasks..." aria-label="Search tasks">
+          <div class="wf-ico" aria-hidden="true"></div>
         </div>
         
         <div class="h-right">
           <button class="ico-btn" aria-label="Notifications">
+            <div class="wf-ico" aria-hidden="true"></div>
             <div class="notif-dot" aria-hidden="true"></div>
           </button>
           
           <div class="av-chip">
-            <div class="avatar" aria-hidden="true">QA</div>
-            QA Engineer
+            <div class="avatar" aria-hidden="true">JD</div>
+            John Doe
           </div>
         </div>
       </header>
 
       <!-- ── CONTENT ── -->
-      <div id="content">
-        <!-- 1.0 Test Environment Setup -->
-        <div id="setup" class="page active">
+      <div id="content" id="main-content">
+        
+        <!-- ── 1.0 Desktop Kanban Board ── -->
+        <div id="desktop-board" class="page active">
           <div class="ph">
             <div>
-              <div class="ph-title">Test Environment Setup</div>
-              <div class="ph-sub">Initialize responsive Kanban board testing environment</div>
+              <h1 class="ph-title">Desktop Kanban Board</h1>
+              <div class="ph-sub">Three-column layout optimized for desktop (1024px+)</div>
             </div>
-            <button class="btn btn-primary">Start Test Suite</button>
+            <button class="btn btn-primary" onclick="openModal('add-task-modal')" aria-label="Add new task">+ Add Task</button>
           </div>
+          
+          <div class="kanban-board" role="application" aria-label="Kanban task board">
+            <!-- To Do Column -->
+            <div class="kanban-column todo-column">
+              <div class="column-header">
+                <h2 class="column-title">To Do</h2>
+                <span class="task-count" aria-label="5 tasks">5</span>
+              </div>
+              <div class="column-content" role="region" aria-label="To Do tasks">
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Design wireframes">
+                  <div class="task-title">[Task Title] Design wireframes</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-high">High</span>
+                    <span>Due: Oct 25</span>
+                  </div>
+                </div>
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Review user feedback">
+                  <div class="task-title">[Task Title] Review user feedback</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-medium">Medium</span>
+                    <span>Due: Oct 28</span>
+                  </div>
+                </div>
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Update documentation">
+                  <div class="task-title">[Task Title] Update documentation</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-low">Low</span>
+                    <span>Due: Nov 1</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- In Progress Column -->
+            <div class="kanban-column progress-column">
+              <div class="column-header">
+                <h2 class="column-title">In Progress</h2>
+                <span class="task-count" aria-label="3 tasks">3</span>
+              </div>
+              <div class="column-content" role="region" aria-label="In Progress tasks">
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Implement drag and drop">
+                  <div class="task-title">[Task Title] Implement drag and drop</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-high">High</span>
+                    <span>Assigned: Sarah</span>
+                  </div>
+                </div>
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Test accessibility features">
+                  <div class="task-title">[Task Title] Test accessibility features</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-medium">Medium</span>
+                    <span>Assigned: Mike</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Done Column -->
+            <div class="kanban-column done-column">
+              <div class="column-header">
+                <h2 class="column-title">Done</h2>
+                <span class="task-count" aria-label="7 tasks">7</span>
+              </div>
+              <div class="column-content" role="region" aria-label="Completed tasks">
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Create user personas">
+                  <div class="task-title">[Task Title] Create user personas</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-medium">Medium</span>
+                    <span>Completed: Oct 20</span>
+                  </div>
+                </div>
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Setup project structure">
+                  <div class="task-title">[Task Title] Setup project structure</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-high">High</span>
+                    <span>Completed: Oct 18</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <div class="g2">
-            <div class="card">
-              <div class="card-title">Test Configuration</div>
+        <!-- ── 3.0 Mobile Kanban Board ── -->
+        <div id="mobile-board" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Mobile Kanban Board</h1>
+              <div class="ph-sub">Stacked view optimized for mobile (320px-767px)</div>
+            </div>
+            <button class="btn btn-primary" aria-label="Add new task">+ Add</button>
+          </div>
+          
+          <div class="mobile-tabs" role="tablist" aria-label="Kanban columns">
+            <button class="tab active" role="tab" aria-selected="true" tabindex="0" onclick="switchMobileTab(this, 'todo')" onkeydown="tabKey(event,this)" aria-controls="mobile-todo">To Do <span class="nav-pill">5</span></button>
+            <button class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchMobileTab(this, 'progress')" onkeydown="tabKey(event,this)" aria-controls="mobile-progress">In Progress <span class="nav-pill">3</span></button>
+            <button class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchMobileTab(this, 'done')" onkeydown="tabKey(event,this)" aria-controls="mobile-done">Done <span class="nav-pill">7</span></button>
+          </div>
+          
+          <div id="mobile-todo" class="mobile-column active" role="tabpanel" aria-labelledby="tab-todo">
+            <div class="note">[Mobile Column Content]</div>
+            <div class="task-card" tabindex="0" role="button" aria-label="Task: Design wireframes">
+              <div class="task-title">[Task Title] Design wireframes</div>
+              <div class="task-meta">
+                <span class="priority-badge priority-high">High</span>
+                <span>Due: Oct 25</span>
+              </div>
+            </div>
+            <div class="task-card" tabindex="0" role="button" aria-label="Task: Review user feedback">
+              <div class="task-title">[Task Title] Review user feedback</div>
+              <div class="task-meta">
+                <span class="priority-badge priority-medium">Medium</span>
+                <span>Due: Oct 28</span>
+              </div>
+            </div>
+          </div>
+          
+          <div id="mobile-progress" class="mobile-column" role="tabpanel" aria-labelledby="tab-progress">
+            <div class="note">[Mobile Column Content]</div>
+            <div class="task-card" tabindex="0" role="button" aria-label="Task: Implement drag and drop">
+              <div class="task-title">[Task Title] Implement drag and drop</div>
+              <div class="task-meta">
+                <span class="priority-badge priority-high">High</span>
+                <span>Assigned: Sarah</span>
+              </div>
+            </div>
+          </div>
+          
+          <div id="mobile-done" class="mobile-column" role="tabpanel" aria-labelledby="tab-done">
+            <div class="note">[Mobile Column Content]</div>
+            <div class="task-card" tabindex="0" role="button" aria-label="Task: Create user personas">
+              <div class="task-title">[Task Title] Create user personas</div>
+              <div class="task-meta">
+                <span class="priority-badge priority-medium">Medium</span>
+                <span>Completed: Oct 20</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 7.0 Tablet Kanban Board ── -->
+        <div id="tablet-board" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Tablet Kanban Board</h1>
+              <div class="ph-sub">Hybrid layout for tablet (768px-1023px)</div>
+            </div>
+            <button class="btn btn-primary" aria-label="Add new task">+ Add Task</button>
+          </div>
+          
+          <div class="note">[Tablet Layout - Two columns in portrait, three in landscape]</div>
+          <div class="kanban-board" role="application" aria-label="Tablet Kanban task board">
+            <!-- Similar structure to desktop but with responsive adjustments -->
+            <div class="kanban-column todo-column">
+              <div class="column-header">
+                <h2 class="column-title">To Do</h2>
+                <span class="task-count" aria-label="5 tasks">5</span>
+              </div>
+              <div class="column-content" role="region" aria-label="To Do tasks">
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Tablet optimization">
+                  <div class="task-title">[Task Title] Tablet optimization</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-high">High</span>
+                    <span>Touch-friendly</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column progress-column">
+              <div class="column-header">
+                <h2 class="column-title">In Progress</h2>
+                <span class="task-count" aria-label="2 tasks">2</span>
+              </div>
+              <div class="column-content" role="region" aria-label="In Progress tasks">
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Gesture support">
+                  <div class="task-title">[Task Title] Gesture support</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-medium">Medium</span>
+                    <span>Swipe enabled</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column done-column">
+              <div class="column-header">
+                <h2 class="column-title">Done</h2>
+                <span class="task-count" aria-label="4 tasks">4</span>
+              </div>
+              <div class="column-content" role="region" aria-label="Completed tasks">
+                <div class="task-card" tabindex="0" role="button" aria-label="Task: Touch targets">
+                  <div class="task-title">[Task Title] Touch targets</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-high">High</span>
+                    <span>44px minimum</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 5.0 Accessible Kanban Board ── -->
+        <div id="accessible-board" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Accessible Kanban Board</h1>
+              <div class="ph-sub">Screen reader optimized with keyboard navigation (WCAG 2.2 AA)</div>
+            </div>
+            <button class="btn btn-primary" aria-label="Add new task with keyboard shortcut Ctrl+N">+ Add Task</button>
+          </div>
+          
+          <div class="note">[Accessibility Features: ARIA landmarks, skip links, keyboard shortcuts]</div>
+          
+          <!-- Keyboard shortcuts info -->
+          <div style="background:var(--wf-fill-lo);padding:var(--sp3);border-radius:var(--r-md);margin-bottom:var(--sp4);border:1px solid var(--wf-border)">
+            <div class="note">Keyboard Shortcuts</div>
+            <div style="font-size:11px;color:var(--wf-text-muted)">
+              Tab/Shift+Tab: Navigate • Arrow Keys: Move within columns • Enter/Space: Select • Ctrl+M: Move task • Ctrl+N: New task • Esc: Cancel
+            </div>
+          </div>
+          
+          <div class="kanban-board" role="application" aria-label="Accessible Kanban task board with keyboard navigation">
+            <div class="kanban-column todo-column">
+              <div class="column-header">
+                <h2 class="column-title" id="todo-heading">To Do</h2>
+                <span class="task-count" aria-label="5 tasks in To Do column">5</span>
+              </div>
+              <div class="column-content" role="region" aria-labelledby="todo-heading" aria-describedby="todo-desc">
+                <div id="todo-desc" class="sr-only">Tasks that need to be started. Use arrow keys to navigate, Enter to select.</div>
+                <div class="task-card" tabindex="0" role="button" aria-label="High priority task: Accessibility audit, due October 25th" onkeydown="taskKeyNav(event,this)">
+                  <div class="task-title">[Task Title] Accessibility audit</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-high" aria-label="High priority">High</span>
+                    <span>Due: Oct 25</span>
+                  </div>
+                </div>
+                <div class="task-card" tabindex="-1" role="button" aria-label="Medium priority task: Screen reader testing, due October 28th" onkeydown="taskKeyNav(event,this)">
+                  <div class="task-title">[Task Title] Screen reader testing</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-medium" aria-label="Medium priority">Medium</span>
+                    <span>Due: Oct 28</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column progress-column">
+              <div class="column-header">
+                <h2 class="column-title" id="progress-heading">In Progress</h2>
+                <span class="task-count" aria-label="2 tasks in progress">2</span>
+              </div>
+              <div class="column-content" role="region" aria-labelledby="progress-heading" aria-describedby="progress-desc">
+                <div id="progress-desc" class="sr-only">Tasks currently being worked on. Use arrow keys to navigate, Enter to select.</div>
+                <div class="task-card" tabindex="-1" role="button" aria-label="High priority task: Keyboard navigation, assigned to Alex" onkeydown="taskKeyNav(event,this)">
+                  <div class="task-title">[Task Title] Keyboard navigation</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-high" aria-label="High priority">High</span>
+                    <span>Assigned: Alex</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-column done-column">
+              <div class="column-header">
+                <h2 class="column-title" id="done-heading">Done</h2>
+                <span class="task-count" aria-label="6 completed tasks">6</span>
+              </div>
+              <div class="column-content" role="region" aria-labelledby="done-heading" aria-describedby="done-desc">
+                <div id="done-desc" class="sr-only">Completed tasks. Use arrow keys to navigate, Enter to select.</div>
+                <div class="task-card" tabindex="-1" role="button" aria-label="Completed task: ARIA labels implementation, completed October 20th" onkeydown="taskKeyNav(event,this)">
+                  <div class="task-title">[Task Title] ARIA labels implementation</div>
+                  <div class="task-meta">
+                    <span class="priority-badge priority-high" aria-label="High priority">High</span>
+                    <span>Completed: Oct 20</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Task Detail View ── -->
+        <div id="task-detail" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Task Detail View</h1>
+              <div class="ph-sub">Detailed task information and interaction options</div>
+            </div>
+            <button class="btn btn-secondary" onclick="nav(document.querySelector('.nav-list li.active'),'desktop-board')" aria-label="Back to board">← Back to Board</button>
+          </div>
+          
+          <div style="max-width:600px">
+            <div style="background:var(--wf-surface);border:1.5px solid var(--wf-border);border-radius:var(--r-xl);padding:var(--sp5)">
+              <div class="note">[Task Detail Card]</div>
+              <h2 style="font-size:16px;font-weight:700;margin-bottom:var(--sp3)">Design wireframes for Kanban board</h2>
+              
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp4);margin-bottom:var(--sp4)">
+                <div>
+                  <div class="note">Status</div>
+                  <div style="font-size:12px;font-weight:600">To Do</div>
+                </div>
+                <div>
+                  <div class="note">Priority</div>
+                  <span class="priority-badge priority-high">High</span>
+                </div>
+                <div>
+                  <div class="note">Assignee</div>
+                  <div style="font-size:12px;font-weight:600">Sarah Johnson</div>
+                </div>
+                <div>
+                  <div class="note">Due Date</div>
+                  <div style="font-size:12px;font-weight:600">October 25, 2024</div>
+                </div>
+              </div>
+              
+              <div style="margin-bottom:var(--sp4)">
+                <div class="note">Description</div>
+                <div style="font-size:12px;color:var(--wf-text-muted);line-height:1.5">
+                  [Task Description] Create comprehensive wireframes for the three-column Kanban board layout including responsive behavior and accessibility features.
+                </div>
+              </div>
+              
+              <div style="display:flex;gap:var(--sp3);flex-wrap:wrap">
+                <button class="btn btn-primary" aria-label="Move task to In Progress">Move to In Progress</button>
+                <button class="btn btn-secondary" aria-label="Edit task details">Edit Task</button>
+                <button class="btn btn-secondary" aria-label="Delete task">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Add Task Modal Content ── -->
+        <div id="add-task" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Add New Task</h1>
+              <div class="ph-sub">Create a new task for the Kanban board</div>
+            </div>
+            <button class="btn btn-secondary" onclick="nav(document.querySelector('.nav-list li.active'),'desktop-board')" aria-label="Cancel and return to board">Cancel</button>
+          </div>
+          
+          <div style="max-width:500px">
+            <form style="background:var(--wf-surface);border:1.5px solid var(--wf-border);border-radius:var(--r-xl);padding:var(--sp5)">
+              <div class="note">[Add Task Form]</div>
               
               <div class="field">
-                <label for="test-suite">Test Suite</label>
-                <select id="test-suite">
-                  <option>Responsive Kanban Board E2E Tests</option>
-                  <option>Accessibility Validation Tests</option>
-                  <option>Performance Tests</option>
+                <label for="task-title">Task Title *</label>
+                <input type="text" id="task-title" name="title" required aria-describedby="title-help">
+                <div id="title-help" style="font-size:10px;color:var(--wf-text-muted);margin-top:2px">Enter a clear, descriptive title for the task</div>
+              </div>
+              
+              <div class="field">
+                <label for="task-description">Description</label>
+                <textarea id="task-description" name="description" aria-describedby="desc-help"></textarea>
+                <div id="desc-help" style="font-size:10px;color:var(--wf-text-muted);margin-top:2px">Provide additional details about the task</div>
+              </div>
+              
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp4)">
+                <div class="field">
+                  <label for="task-priority">Priority</label>
+                  <select id="task-priority" name="priority">
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                
+                <div class="field">
+                  <label for="task-column">Column</label>
+                  <select id="task-column" name="column">
+                    <option value="todo" selected>To Do</option>
+                    <option value="progress">In Progress</option>
+                    <option value="done">Done</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="field">
+                <label for="task-assignee">Assignee</label>
+                <select id="task-assignee" name="assignee">
+                  <option value="">Unassigned</option>
+                  <option value="sarah">Sarah Johnson</option>
+                  <option value="mike">Mike Chen</option>
+                  <option value="alex">Alex Rodriguez</option>
                 </select>
               </div>
               
               <div class="field">
-                <label for="browser">Browser Environment</label>
-                <select id="browser">
-                  <option>Chrome (Latest)</option>
-                  <option>Firefox (Latest)</option>
-                  <option>Safari (Latest)</option>
-                  <option>Edge (Latest)</option>
+                <label for="task-due">Due Date</label>
+                <input type="date" id="task-due" name="due_date">
+              </div>
+              
+              <div style="display:flex;gap:var(--sp3);justify-content:flex-end;margin-top:var(--sp5)">
+                <button type="button" class="btn btn-secondary" onclick="nav(document.querySelector('.nav-list li.active'),'desktop-board')" aria-label="Cancel task creation">Cancel</button>
+                <button type="submit" class="btn btn-primary" aria-label="Create new task">Create Task</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- ── Bulk Operations ── -->
+        <div id="bulk-operations" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Bulk Operations</h1>
+              <div class="ph-sub">Manage multiple tasks efficiently</div>
+            </div>
+            <button class="btn btn-secondary" onclick="nav(document.querySelector('.nav-list li.active'),'desktop-board')" aria-label="Back to board">← Back to Board</button>
+          </div>
+          
+          <div style="background:var(--wf-surface);border:1.5px solid var(--wf-border);border-radius:var(--r-xl);padding:var(--sp5);margin-bottom:var(--sp4)">
+            <div class="note">[Bulk Selection Panel]</div>
+            <h2 style="font-size:14px;font-weight:700;margin-bottom:var(--sp3)">Selected Tasks (3)</h2>
+            
+            <div style="display:flex;gap:var(--sp3);margin-bottom:var(--sp4);flex-wrap:wrap">
+              <button class="btn btn-primary" aria-label="Move selected tasks">Move Selected</button>
+              <button class="btn btn-secondary" aria-label="Assign selected tasks">Assign Selected</button>
+              <button class="btn btn-secondary" aria-label="Update priority of selected tasks">Update Priority</button>
+              <button class="btn btn-secondary" style="color:var(--wf-text-muted)" aria-label="Delete selected tasks">Delete Selected</button>
+            </div>
+            
+            <div class="note">[Selected Task List]</div>
+            <div style="display:flex;flex-direction:column;gap:var(--sp2)">
+              <div style="display:flex;align-items:center;gap:var(--sp3);padding:var(--sp2);background:var(--wf-fill-lo);border-radius:var(--r-sm)">
+                <input type="checkbox" checked aria-label="Select task: Design wireframes">
+                <span style="font-size:12px;font-weight:600">Design wireframes</span>
+                <span class="priority-badge priority-high">High</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:var(--sp3);padding:var(--sp2);background:var(--wf-fill-lo);border-radius:var(--r-sm)">
+                <input type="checkbox" checked aria-label="Select task: Review user feedback">
+                <span style="font-size:12px;font-weight:600">Review user feedback</span>
+                <span class="priority-badge priority-medium">Medium</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:var(--sp3);padding:var(--sp2);background:var(--wf-fill-lo);border-radius:var(--r-sm)">
+                <input type="checkbox" checked aria-label="Select task: Update documentation">
+                <span style="font-size:12px;font-weight:600">Update documentation</span>
+                <span class="priority-badge priority-low">Low</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Accessibility Settings ── -->
+        <div id="accessibility-settings" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Accessibility Settings</h1>
+              <div class="ph-sub">Customize interface for your accessibility needs</div>
+            </div>
+            <button class="btn btn-primary" aria-label="Save accessibility settings">Save Settings</button>
+          </div>
+          
+          <div style="max-width:600px">
+            <div style="background:var(--wf-surface);border:1.5px solid var(--wf-border);border-radius:var(--r-xl);padding:var(--sp5);margin-bottom:var(--sp4)">
+              <div class="note">[Accessibility Customization Panel]</div>
+              <h2 style="font-size:14px;font-weight:700;margin-bottom:var(--sp4)">Visual Preferences</h2>
+              
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--sp3) 0;border-bottom:1px solid var(--wf-fill-md)">
+                <div>
+                  <div style="font-size:12px;font-weight:500">High Contrast Mode</div>
+                  <div style="font-size:10px;color:var(--wf-text-dim)">Increase contrast for better visibility</div>
+                </div>
+                <div style="width:40px;height:20px;border-radius:var(--r-pill);background:var(--wf-fill-lo);border:1.5px solid var(--wf-border);cursor:pointer;position:relative;padding:2px">
+                  <div style="width:14px;height:14px;border-radius:var(--r-circle);background:var(--wf-border-hi);border:1px solid var(--wf-border)"></div>
+                </div>
+              </div>
+              
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--sp3) 0;border-bottom:1px solid var(--wf-fill-md)">
+                <div>
+                  <div style="font-size:12px;font-weight:500">Reduced Motion</div>
+                  <div style="font-size:10px;color:var(--wf-text-dim)">Minimize animations and transitions</div>
+                </div>
+                <div style="width:40px;height:20px;border-radius:var(--r-pill);background:var(--wf-fill-hi);border:1.5px solid var(--wf-border-hi);cursor:pointer;position:relative;padding:2px">
+                  <div style="width:14px;height:14px;border-radius:var(--r-circle);background:var(--wf-accent);border:1px solid var(--wf-border);transform:translateX(18px)"></div>
+                </div>
+              </div>
+              
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--sp3) 0">
+                <div>
+                  <div style="font-size:12px;font-weight:500">Large Touch Targets</div>
+                  <div style="font-size:10px;color:var(--wf-text-dim)">Increase button and link sizes</div>
+                </div>
+                <div style="width:40px;height:20px;border-radius:var(--r-pill);background:var(--wf-fill-lo);border:1.5px solid var(--wf-border);cursor:pointer;position:relative;padding:2px">
+                  <div style="width:14px;height:14px;border-radius:var(--r-circle);background:var(--wf-border-hi);border:1px solid var(--wf-border)"></div>
+                </div>
+              </div>
+            </div>
+            
+            <div style="background:var(--wf-surface);border:1.5px solid var(--wf-border);border-radius:var(--r-xl);padding:var(--sp5)">
+              <div class="note">[Keyboard Navigation Settings]</div>
+              <h2 style="font-size:14px;font-weight:700;margin-bottom:var(--sp4)">Keyboard & Navigation</h2>
+              
+              <div class="field">
+                <label for="focus-style">Focus Indicator Style</label>
+                <select id="focus-style">
+                  <option value="default" selected>Default (3px blue outline)</option>
+                  <option value="high-contrast">High Contrast (4px black outline)</option>
+                  <option value="custom">Custom Color</option>
                 </select>
               </div>
               
-              <div class="toggle-row">
-                <div>
-                  <div class="toggle-lbl">Headless Mode</div>
-                  <div class="toggle-hint">Run tests without browser UI</div>
-                </div>
-                <div class="ava-toggle-container">
-                  <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                    <div class="toggle-slider"></div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="toggle-row">
-                <div>
-                  <div class="toggle-lbl">Screenshot Capture</div>
-                  <div class="toggle-hint">Capture screenshots at each breakpoint</div>
-                </div>
-                <div class="ava-toggle-container">
-                  <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                    <div class="toggle-slider"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">Test Execution Plan</div>
-              
-              <div class="stepper">
-                <div class="step active">
-                  <div class="step-circle active">1</div>
-                  <div class="step-lbl">Mobile<br>375px</div>
-                </div>
-                <div class="step">
-                  <div class="step-circle">2</div>
-                  <div class="step-lbl">Tablet<br>768px</div>
-                </div>
-                <div class="step">
-                  <div class="step-circle">3</div>
-                  <div class="step-lbl">Desktop<br>1024px</div>
-                </div>
-                <div class="step">
-                  <div class="step-circle">4</div>
-                  <div class="step-lbl">Results<br>Summary</div>
-                </div>
-              </div>
-              
-              <div class="reminder">
-                <div class="wf-ico" aria-hidden="true"></div>
-                <div>
-                  <strong>Test Duration:</strong> Estimated 3-5 minutes for complete suite
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Previous Test Results</div>
-            
-            <div class="li">
-              <div class="li-ico">✓</div>
-              <div style="flex:1">
-                <div class="li-title">Responsive Test Suite - Oct 25, 2024</div>
-                <div class="li-sub">All breakpoints passed • 3 viewports tested • 0 issues found</div>
-              </div>
-              <div class="li-acts">
-                <span class="test-status passed">Passed</span>
-                <button class="btn btn-sm btn-ghost">View Report</button>
-              </div>
-            </div>
-            
-            <div class="li">
-              <div class="li-ico">!</div>
-              <div style="flex:1">
-                <div class="li-title">Responsive Test Suite - Oct 20, 2024</div>
-                <div class="li-sub">2 issues found in tablet layout • Column spacing inconsistent</div>
-              </div>
-              <div class="li-acts">
-                <span class="test-status failed">Failed</span>
-                <button class="btn btn-sm btn-ghost">View Issues</button>
+              <div class="field">
+                <label for="nav-speed">Navigation Speed</label>
+                <select id="nav-speed">
+                  <option value="slow">Slow</option>
+                  <option value="normal" selected>Normal</option>
+                  <option value="fast">Fast</option>
+                </select>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 2.0 Mobile Viewport Testing -->
-        <div id="mobile" class="page">
+        <!-- ── Responsive Settings ── -->
+        <div id="responsive-settings" class="page">
           <div class="ph">
             <div>
-              <div class="ph-title">Mobile Viewport Testing (375px)</div>
-              <div class="ph-sub">Validating single-column Kanban layout for mobile devices</div>
+              <h1 class="ph-title">Responsive Settings</h1>
+              <div class="ph-sub">Configure layout behavior across devices</div>
             </div>
-            <button class="btn btn-secondary" onclick="nav(document.querySelector('[onclick*=setup]'),'setup')">← Back to Setup</button>
+            <button class="btn btn-primary" aria-label="Save responsive settings">Save Settings</button>
           </div>
-
-          <div class="card">
-            <div class="card-title">Test Progress</div>
-            
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 65%"></div>
-            </div>
-            
-            <div class="flex-row">
-              <span class="test-status running">Running Mobile Tests</span>
-              <span class="badge">Step 2 of 4</span>
-            </div>
-          </div>
-
-          <div class="g2">
-            <div class="card">
-              <div class="card-title">Mobile Layout Validation</div>
+          
+          <div style="max-width:700px">
+            <div style="background:var(--wf-surface);border:1.5px solid var(--wf-border);border-radius:var(--r-xl);padding:var(--sp5);margin-bottom:var(--sp4)">
+              <div class="note">[Responsive Breakpoint Configuration]</div>
+              <h2 style="font-size:14px;font-weight:700;margin-bottom:var(--sp4)">Breakpoint Settings</h2>
               
-              <div class="viewport-frame">
-                <div class="viewport-label">Mobile Viewport: 375px × 667px</div>
-                <div class="kanban-mockup" style="flex-direction: column; gap: var(--sp2);">
-                  <div class="kanban-column" style="flex: none; height: 60px;">
-                    <div class="column-header">[To Do Column]</div>
-                    <div class="kanban-card">[Task Card 1]</div>
-                  </div>
-                  <div class="kanban-column" style="flex: none; height: 60px;">
-                    <div class="column-header">[In Progress Column]</div>
-                    <div class="kanban-card">[Task Card 2]</div>
-                  </div>
-                  <div class="kanban-column" style="flex: none; height: 60px;">
-                    <div class="column-header">[Done Column]</div>
-                    <div class="kanban-card">[Task Card 3]</div>
-                  </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp4);margin-bottom:var(--sp4)">
+                <div>
+                  <div class="note">Mobile</div>
+                  <div style="font-size:12px;font-weight:600">320px - 767px</div>
+                  <div style="font-size:10px;color:var(--wf-text-dim)">Single column, tab navigation</div>
+                </div>
+                <div>
+                  <div class="note">Tablet</div>
+                  <div style="font-size:12px;font-weight:600">768px - 1023px</div>
+                  <div style="font-size:10px;color:var(--wf-text-dim)">Two columns, touch optimized</div>
+                </div>
+                <div>
+                  <div class="note">Desktop</div>
+                  <div style="font-size:12px;font-weight:600">1024px+</div>
+                  <div style="font-size:10px;color:var(--wf-text-dim)">Three columns, full features</div>
                 </div>
               </div>
               
-              <div class="inf-row">
-                <span class="inf-l">Layout Type</span>
-                <span class="inf-v">Single Column Stack</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Touch Target Size</span>
-                <span class="inf-v">44px minimum ✓</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Content Overflow</span>
-                <span class="inf-v">Scroll enabled ✓</span>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">Test Results</div>
-              
-              <div class="li">
-                <div class="li-ico">✓</div>
-                <div style="flex:1">
-                  <div class="li-title">Single Column Layout</div>
-                  <div class="li-sub">Columns stack vertically as expected</div>
-                </div>
-                <span class="test-status passed">Passed</span>
-              </div>
-              
-              <div class="li">
-                <div class="li-ico">✓</div>
-                <div style="flex:1">
-                  <div class="li-title">Touch Interaction</div>
-                  <div class="li-sub">All interactive elements meet 44px minimum</div>
-                </div>
-                <span class="test-status passed">Passed</span>
-              </div>
-              
-              <div class="li">
-                <div class="li-ico">⟳</div>
-                <div style="flex:1">
-                  <div class="li-title">Drag & Drop Functionality</div>
-                  <div class="li-sub">Testing touch-based card movement</div>
-                </div>
-                <span class="test-status running">Testing</span>
-              </div>
-              
-              <div class="li">
-                <div class="li-ico">⏳</div>
-                <div style="flex:1">
-                  <div class="li-title">Performance Metrics</div>
-                  <div class="li-sub">Measuring render time and responsiveness</div>
-                </div>
-                <span class="test-status pending">Pending</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Screenshot Capture</div>
-            
-            <div class="screenshot-placeholder">
-              [Mobile Screenshot - 375px viewport]<br>
-              Capturing baseline image for comparison
-            </div>
-            
-            <div class="flex-row">
-              <button class="btn btn-secondary">Retake Screenshot</button>
-              <button class="btn btn-primary" onclick="nav(document.querySelector('[onclick*=tablet]'),'tablet')">Continue to Tablet Testing →</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3.0 Tablet Viewport Testing -->
-        <div id="tablet" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title">Tablet Viewport Testing (768px)</div>
-              <div class="ph-sub">Validating two-column Kanban layout for tablet devices</div>
-            </div>
-            <button class="btn btn-secondary" onclick="nav(document.querySelector('[onclick*=mobile]'),'mobile')">← Back to Mobile</button>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Test Progress</div>
-            
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 85%"></div>
-            </div>
-            
-            <div class="flex-row">
-              <span class="test-status running">Running Tablet Tests</span>
-              <span class="badge">Step 3 of 4</span>
-            </div>
-          </div>
-
-          <div class="g2">
-            <div class="card">
-              <div class="card-title">Tablet Layout Validation</div>
-              
-              <div class="viewport-frame">
-                <div class="viewport-label">Tablet Viewport: 768px × 1024px</div>
-                <div class="kanban-mockup" style="flex-direction: row;">
-                  <div class="kanban-column">
-                    <div class="column-header">[To Do]</div>
-                    <div class="kanban-card">[Task 1]</div>
-                    <div class="kanban-card">[Task 2]</div>
+              <div style="border-top:1px solid var(--wf-fill-md);padding-top:var(--sp4)">
+                <h3 style="font-size:12px;font-weight:700;margin-bottom:var(--sp3)">Layout Preferences</h3>
+                
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--sp2) 0">
+                  <div>
+                    <div style="font-size:12px;font-weight:500">Auto-rotate Layout</div>
+                    <div style="font-size:10px;color:var(--wf-text-dim)">Automatically adjust to device orientation</div>
                   </div>
-                  <div class="kanban-column">
-                    <div class="column-header">[In Progress + Done]</div>
-                    <div class="kanban-card">[Task 3]</div>
-                    <div class="kanban-card">[Task 4]</div>
+                  <div style="width:40px;height:20px;border-radius:var(--r-pill);background:var(--wf-fill-hi);border:1.5px solid var(--wf-border-hi);cursor:pointer;position:relative;padding:2px">
+                    <div style="width:14px;height:14px;border-radius:var(--r-circle);background:var(--wf-accent);border:1px solid var(--wf-border);transform:translateX(18px)"></div>
                   </div>
-                </div>
-              </div>
-              
-              <div class="inf-row">
-                <span class="inf-l">Layout Type</span>
-                <span class="inf-v">Two Column Grid</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Column Distribution</span>
-                <span class="inf-v">Adaptive width ✓</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Orientation Support</span>
-                <span class="inf-v">Portrait & Landscape ✓</span>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">Interaction Testing</div>
-              
-              <div class="tabs" role="tablist">
-                <div class="tab active" role="tab" aria-selected="true" tabindex="0" onclick="switchTab(this,'tablet','touch')" onkeydown="tabKey(event,this)">Touch</div>
-                <div class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(this,'tablet','mouse')" onkeydown="tabKey(event,this)">Mouse</div>
-              </div>
-              
-              <div id="tablet-touch" style="display:block">
-                <div class="li">
-                  <div class="li-ico">✓</div>
-                  <div style="flex:1">
-                    <div class="li-title">Touch Drag Between Columns</div>
-                    <div class="li-sub">Cards move smoothly between columns</div>
-                  </div>
-                  <span class="test-status passed">Passed</span>
                 </div>
                 
-                <div class="li">
-                  <div class="li-ico">✓</div>
-                  <div style="flex:1">
-                    <div class="li-title">Pinch to Zoom</div>
-                    <div class="li-sub">Layout remains functional when zoomed</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--sp2) 0">
+                  <div>
+                    <div style="font-size:12px;font-weight:500">Preserve Scroll Position</div>
+                    <div style="font-size:10px;color:var(--wf-text-dim)">Maintain position during layout changes</div>
                   </div>
-                  <span class="test-status passed">Passed</span>
-                </div>
-              </div>
-              
-              <div id="tablet-mouse" style="display:none">
-                <div class="li">
-                  <div class="li-ico">✓</div>
-                  <div style="flex:1">
-                    <div class="li-title">Mouse Drag & Drop</div>
-                    <div class="li-sub">Precise cursor-based interactions</div>
+                  <div style="width:40px;height:20px;border-radius:var(--r-pill);background:var(--wf-fill-hi);border:1.5px solid var(--wf-border-hi);cursor:pointer;position:relative;padding:2px">
+                    <div style="width:14px;height:14px;border-radius:var(--r-circle);background:var(--wf-accent);border:1px solid var(--wf-border);transform:translateX(18px)"></div>
                   </div>
-                  <span class="test-status passed">Passed</span>
-                </div>
-                
-                <div class="li">
-                  <div class="li-ico">✓</div>
-                  <div style="flex:1">
-                    <div class="li-title">Hover States</div>
-                    <div class="li-sub">Visual feedback on mouse hover</div>
-                  </div>
-                  <span class="test-status passed">Passed</span>
                 </div>
               </div>
             </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Orientation Testing</div>
             
-            <div class="g2">
-              <div class="screenshot-placeholder">
-                [Portrait Screenshot - 768px × 1024px]<br>
-                Two-column layout in portrait mode
+            <div style="background:var(--wf-surface);border:1.5px solid var(--wf-border);border-radius:var(--r-xl);padding:var(--sp5)">
+              <div class="note">[Device Preview]</div>
+              <h2 style="font-size:14px;font-weight:700;margin-bottom:var(--sp4)">Layout Preview</h2>
+              
+              <div style="display:flex;gap:var(--sp4);align-items:center;margin-bottom:var(--sp3)">
+                <button class="btn btn-sm btn-primary" aria-label="Preview mobile layout">📱 Mobile</button>
+                <button class="btn btn-sm btn-secondary" aria-label="Preview tablet layout">📱 Tablet</button>
+                <button class="btn btn-sm btn-secondary" aria-label="Preview desktop layout">🖥️ Desktop</button>
               </div>
               
-              <div class="screenshot-placeholder">
-                [Landscape Screenshot - 1024px × 768px]<br>
-                Optimized layout for landscape orientation
-              </div>
-            </div>
-            
-            <div class="flex-row">
-              <button class="btn btn-secondary">Test Orientation Change</button>
-              <button class="btn btn-primary" onclick="nav(document.querySelector('[onclick*=desktop]'),'desktop')">Continue to Desktop Testing →</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4.0 Desktop Viewport Testing -->
-        <div id="desktop" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title">Desktop Viewport Testing (1024px+)</div>
-              <div class="ph-sub">Validating three-column Kanban layout for desktop environments</div>
-            </div>
-            <button class="btn btn-secondary" onclick="nav(document.querySelector('[onclick*=tablet]'),'tablet')">← Back to Tablet</button>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Test Progress</div>
-            
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: 95%"></div>
-            </div>
-            
-            <div class="flex-row">
-              <span class="test-status running">Running Desktop Tests</span>
-              <span class="badge">Step 4 of 4</span>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Desktop Layout Validation</div>
-            
-            <div class="viewport-frame">
-              <div class="viewport-label">Desktop Viewport: 1024px × 768px</div>
-              <div class="kanban-mockup">
-                <div class="kanban-column">
-                  <div class="column-header">[To Do]</div>
-                  <div class="kanban-card">[Task 1]</div>
-                  <div class="kanban-card">[Task 2]</div>
-                  <div class="kanban-card">[Task 3]</div>
+              <div style="border:1px solid var(--wf-border);border-radius:var(--r-md);padding:var(--sp3);background:var(--wf-fill-lo)">
+                <div class="note">[Layout Preview Area]</div>
+                <div style="font-size:11px;color:var(--wf-text-muted);text-align:center;padding:var(--sp4)">
+                  Mobile layout preview: Single column with tab navigation
                 </div>
-                <div class="kanban-column">
-                  <div class="column-header">[In Progress]</div>
-                  <div class="kanban-card">[Task 4]</div>
-                  <div class="kanban-card">[Task 5]</div>
-                </div>
-                <div class="kanban-column">
-                  <div class="column-header">[Done]</div>
-                  <div class="kanban-card">[Task 6]</div>
-                  <div class="kanban-card">[Task 7]</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="g2">
-            <div class="card">
-              <div class="card-title">Desktop Features</div>
-              
-              <div class="li">
-                <div class="li-ico">✓</div>
-                <div style="flex:1">
-                  <div class="li-title">Three Column Layout</div>
-                  <div class="li-sub">Full Kanban board visible simultaneously</div>
-                </div>
-                <span class="test-status passed">Passed</span>
-              </div>
-              
-              <div class="li">
-                <div class="li-ico">✓</div>
-                <div style="flex:1">
-                  <div class="li-title">Keyboard Navigation</div>
-                  <div class="li-sub">Tab, arrow keys, and shortcuts functional</div>
-                </div>
-                <span class="test-status passed">Passed</span>
-              </div>
-              
-              <div class="li">
-                <div class="li-ico">✓</div>
-                <div style="flex:1">
-                  <div class="li-title">Multi-select Operations</div>
-                  <div class="li-sub">Ctrl+click and bulk actions available</div>
-                </div>
-                <span class="test-status passed">Passed</span>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">Performance Metrics</div>
-              
-              <div class="inf-row">
-                <span class="inf-l">Render Time</span>
-                <span class="inf-v">< 100ms ✓</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Memory Usage</span>
-                <span class="inf-v">12.4 MB</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">FPS (Animations)</span>
-                <span class="inf-v">60 FPS ✓</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Accessibility Score</span>
-                <span class="inf-v">98/100 ✓</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Keyboard Accessibility Testing</div>
-            
-            <div class="reminder">
-              <div class="wf-ico" aria-hidden="true"></div>
-              <div>
-                <strong>WCAG 2.2 AA Compliance:</strong> All interactive elements must be keyboard accessible
-              </div>
-            </div>
-            
-            <div class="g3">
-              <div class="sel-opt on" role="radio" aria-checked="true" tabindex="0" onclick="pick(this)" onkeydown="radioKey(event,this)">
-                <div class="sel-dot"></div>
-                Tab Navigation
-              </div>
-              <div class="sel-opt on" role="radio" aria-checked="true" tabindex="-1" onclick="pick(this)" onkeydown="radioKey(event,this)">
-                <div class="sel-dot"></div>
-                Arrow Key Movement
-              </div>
-              <div class="sel-opt on" role="radio" aria-checked="true" tabindex="-1" onclick="pick(this)" onkeydown="radioKey(event,this)">
-                <div class="sel-dot"></div>
-                Enter/Space Actions
-              </div>
-            </div>
-            
-            <div class="flex-row">
-              <button class="btn btn-secondary">Test Keyboard Flow</button>
-              <button class="btn btn-primary" onclick="nav(document.querySelector('[onclick*=results]'),'results')">View Test Results →</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 5.0 Test Results Summary -->
-        <div id="results" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title">Test Results Summary</div>
-              <div class="ph-sub">Comprehensive overview of responsive Kanban board testing</div>
-            </div>
-            <button class="btn btn-primary">Export Report</button>
-          </div>
-
-          <div class="g3">
-            <div class="card">
-              <div class="stat-ico">📱</div>
-              <div class="stat-lbl">Mobile (375px)</div>
-              <div class="stat-val">✓ Passed</div>
-              <div class="stat-hint">Single-column layout validated</div>
-            </div>
-            
-            <div class="card">
-              <div class="stat-ico">📟</div>
-              <div class="stat-lbl">Tablet (768px)</div>
-              <div class="stat-val">✓ Passed</div>
-              <div class="stat-hint">Two-column layout validated</div>
-            </div>
-            
-            <div class="card">
-              <div class="stat-ico">🖥️</div>
-              <div class="stat-lbl">Desktop (1024px+)</div>
-              <div class="stat-val">✓ Passed</div>
-              <div class="stat-hint">Three-column layout validated</div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Test Execution Summary</div>
-            
-            <div class="tabs" role="tablist">
-              <div class="tab active" role="tab" aria-selected="true" tabindex="0" onclick="switchTab(this,'results','overview')" onkeydown="tabKey(event,this)">Overview</div>
-              <div class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(this,'results','screenshots')" onkeydown="tabKey(event,this)">Screenshots</div>
-              <div class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(this,'results','performance')" onkeydown="tabKey(event,this)">Performance</div>
-            </div>
-            
-            <div id="results-overview" style="display:block">
-              <div class="inf-row">
-                <span class="inf-l">Total Tests Run</span>
-                <span class="inf-v">24</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Tests Passed</span>
-                <span class="inf-v">24 (100%)</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Tests Failed</span>
-                <span class="inf-v">0</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Execution Time</span>
-                <span class="inf-v">3m 42s</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Browser</span>
-                <span class="inf-v">Chrome 119.0.6045.105</span>
-              </div>
-            </div>
-            
-            <div id="results-screenshots" style="display:none">
-              <div class="g3">
-                <div class="screenshot-placeholder">
-                  [Mobile Screenshot]<br>
-                  375px × 667px<br>
-                  Single-column stack
-                </div>
-                <div class="screenshot-placeholder">
-                  [Tablet Screenshot]<br>
-                  768px × 1024px<br>
-                  Two-column grid
-                </div>
-                <div class="screenshot-placeholder">
-                  [Desktop Screenshot]<br>
-                  1024px × 768px<br>
-                  Three-column layout
-                </div>
-              </div>
-            </div>
-            
-            <div id="results-performance" style="display:none">
-              <div class="inf-row">
-                <span class="inf-l">Mobile Render Time</span>
-                <span class="inf-v">85ms</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Tablet Render Time</span>
-                <span class="inf-v">92ms</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Desktop Render Time</span>
-                <span class="inf-v">78ms</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Memory Peak Usage</span>
-                <span class="inf-v">15.2 MB</span>
-              </div>
-              <div class="inf-row">
-                <span class="inf-l">Accessibility Score</span>
-                <span class="inf-v">98/100 (WCAG 2.2 AA)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Detailed Test Results</div>
-            
-            <div class="li">
-              <div class="li-ico">📱</div>
-              <div style="flex:1">
-                <div class="li-title">Mobile Layout Tests</div>
-                <div class="li-sub">Single-column stack • Touch interactions • Performance validation</div>
-              </div>
-              <div class="li-acts">
-                <span class="test-status passed">8/8 Passed</span>
-                <button class="btn btn-sm btn-ghost">View Details</button>
-              </div>
-            </div>
-            
-            <div class="li">
-              <div class="li-ico">📟</div>
-              <div style="flex:1">
-                <div class="li-title">Tablet Layout Tests</div>
-                <div class="li-sub">Two-column grid • Orientation changes • Hybrid interactions</div>
-              </div>
-              <div class="li-acts">
-                <span class="test-status passed">8/8 Passed</span>
-                <button class="btn btn-sm btn-ghost">View Details</button>
-              </div>
-            </div>
-            
-            <div class="li">
-              <div class="li-ico">🖥️</div>
-              <div style="flex:1">
-                <div class="li-title">Desktop Layout Tests</div>
-                <div class="li-sub">Three-column layout • Keyboard navigation • Advanced features</div>
-              </div>
-              <div class="li-acts">
-                <span class="test-status passed">8/8 Passed</span>
-                <button class="btn btn-sm btn-ghost">View Details</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="ok-wrap">
-            <div class="ok-ring">✓</div>
-            <div class="ok-title">All Tests Passed!</div>
-            <div class="ok-sub">Responsive Kanban board is ready for production deployment</div>
-            
-            <div class="flex-row">
-              <button class="btn btn-secondary" onclick="nav(document.querySelector('[onclick*=setup]'),'setup')">Run New Test</button>
-              <button class="btn btn-primary">Deploy to Production</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Manual Testing Dashboard (Alternative Workflow) -->
-        <div id="manual" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title">Manual Testing Dashboard</div>
-              <div class="ph-sub">Guided manual validation of responsive Kanban behavior</div>
-            </div>
-            <button class="btn btn-primary">Start Manual Session</button>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Manual Testing Checklist</div>
-            
-            <div class="toggle-row">
-              <div>
-                <div class="toggle-lbl">Mobile Single-Column Layout</div>
-                <div class="toggle-hint">Verify columns stack vertically on mobile devices</div>
-              </div>
-              <div class="ava-toggle-container">
-                <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                  <div class="toggle-slider"></div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="toggle-row">
-              <div>
-                <div class="toggle-lbl">Tablet Two-Column Layout</div>
-                <div class="toggle-hint">Confirm adaptive column distribution on tablets</div>
-              </div>
-              <div class="ava-toggle-container">
-                <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                  <div class="toggle-slider"></div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="toggle-row">
-              <div>
-                <div class="toggle-lbl">Desktop Three-Column Layout</div>
-                <div class="toggle-hint">Validate full Kanban board visibility on desktop</div>
-              </div>
-              <div class="ava-toggle-container">
-                <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                  <div class="toggle-slider"></div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="toggle-row">
-              <div>
-                <div class="toggle-lbl">Touch Interactions</div>
-                <div class="toggle-hint">Test drag-and-drop on touch devices</div>
-              </div>
-              <div class="ava-toggle-container">
-                <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                  <div class="toggle-slider"></div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="toggle-row">
-              <div>
-                <div class="toggle-lbl">Keyboard Accessibility</div>
-                <div class="toggle-hint">Verify complete keyboard navigation support</div>
-              </div>
-              <div class="ava-toggle-container">
-                <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                  <div class="toggle-slider"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Test Reports -->
-        <div id="reports" class="page">
-          <div class="ph">
-            <div>
-              <div class="ph-title">Test Reports</div>
-              <div class="ph-sub">Historical testing data and trend analysis</div>
-            </div>
-            <button class="btn btn-primary">Generate New Report</button>
-          </div>
-
-          <div class="card">
-            <div class="card-title">Recent Test Reports</div>
-            
-            <div class="li">
-              <div class="li-ico">📊</div>
-              <div style="flex:1">
-                <div class="li-title">Responsive Test Report - Oct 25, 2024</div>
-                <div class="li-sub">Complete E2E validation • All breakpoints • Performance metrics</div>
-              </div>
-              <div class="li-acts">
-                <span class="badge badge-success">Complete</span>
-                <button class="btn btn-sm btn-ghost">Download PDF</button>
-              </div>
-            </div>
-            
-            <div class="li">
-              <div class="li-ico">📈</div>
-              <div style="flex:1">
-                <div class="li-title">Performance Trend Analysis - Oct 2024</div>
-                <div class="li-sub">Monthly performance comparison • Optimization recommendations</div>
-              </div>
-              <div class="li-acts">
-                <span class="badge badge-brand">Trending</span>
-                <button class="btn btn-sm btn-ghost">View Analysis</button>
               </div>
             </div>
           </div>
@@ -1384,94 +985,228 @@
     </main>
   </div>
 
+  <!-- ── Add Task Modal ── -->
+  <div id="add-task-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title" class="modal-title">Add New Task</h2>
+        <button class="close-btn" onclick="closeModal('add-task-modal')" aria-label="Close modal">×</button>
+      </div>
+      
+      <form>
+        <div class="field">
+          <label for="modal-task-title">Task Title *</label>
+          <input type="text" id="modal-task-title" required>
+        </div>
+        
+        <div class="field">
+          <label for="modal-task-desc">Description</label>
+          <textarea id="modal-task-desc"></textarea>
+        </div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp3)">
+          <div class="field">
+            <label for="modal-priority">Priority</label>
+            <select id="modal-priority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          
+          <div class="field">
+            <label for="modal-column">Column</label>
+            <select id="modal-column">
+              <option value="todo" selected>To Do</option>
+              <option value="progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+        </div>
+        
+        <div style="display:flex;gap:var(--sp3);justify-content:flex-end;margin-top:var(--sp4)">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('add-task-modal')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
-    function toggleSwitch(el){el.classList.toggle('on');el.setAttribute('aria-checked',el.classList.contains('on'));}
-
-    /* ── role="menuitem" : Up/Down arrow nav (WCAG 2.2 §2.1) ── */
-    function navKey(e,el,id){
-      if(e.key==='Enter'||e.key===' '){e.preventDefault();nav(el,id);return;}
-      var items=Array.from(el.closest('ul').querySelectorAll('[role="menuitem"]'));
-      var i=items.indexOf(el);
-      if(e.key==='ArrowDown'){e.preventDefault();items[Math.min(i+1,items.length-1)].focus();}
-      if(e.key==='ArrowUp'){e.preventDefault();items[Math.max(i-1,0)].focus();}
-      if(e.key==='Home'){e.preventDefault();items[0].focus();}
-      if(e.key==='End'){e.preventDefault();items[items.length-1].focus();}
-    }
-
-    /* ── role="tab" : Left/Right arrow nav (WCAG 2.2 §2.1) ── */
-    function tabKey(e,el){
-      var tabs=Array.from(el.closest('[role="tablist"]').querySelectorAll('[role="tab"]'));
-      var i=tabs.indexOf(el);
-      if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();var n=tabs[(i+1)%tabs.length];n.focus();n.click();}
-      if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();var p=tabs[(i-1+tabs.length)%tabs.length];p.focus();p.click();}
-      if(e.key==='Home'){e.preventDefault();tabs[0].focus();tabs[0].click();}
-      if(e.key==='End'){e.preventDefault();tabs[tabs.length-1].focus();tabs[tabs.length-1].click();}
-    }
-
-    /* ── role="radio" (sel-opt): Left/Right arrow nav + roving tabindex ── */
-    function radioKey(e,el){
-      if(e.key===' '||e.key==='Enter'){e.preventDefault();pick(el);return;}
-      var opts=Array.from(el.closest('[role="radiogroup"]').querySelectorAll('[role="radio"]:not([aria-disabled="true"])'));
-      var i=opts.indexOf(el);
-      if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();var n=opts[(i+1)%opts.length];n.focus();pick(n);}
-      if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();var p=opts[(i-1+opts.length)%opts.length];p.focus();pick(p);}
-    }
-
-    var pages=['setup','mobile','tablet','desktop','results','manual','reports'];
-
-    function navTo(id){
-      pages.forEach(p=>{var el=document.getElementById(p);if(el)el.classList.toggle('active',p===id)});
-      document.querySelectorAll('.nav-list li').forEach(li=>{
-        li.classList.toggle('active',li.getAttribute('onclick')&&li.getAttribute('onclick').includes("'"+id+"'"));
-      });
-    }
-
-    function nav(el,id){
-      pages.forEach(p=>{var pg=document.getElementById(p);if(pg)pg.classList.remove('active')});
-      var pg=document.getElementById(id);if(pg)pg.classList.add('active');
-      document.querySelectorAll('.nav-list li').forEach(n=>n.classList.remove('active'));
+    // Navigation functions
+    function nav(el, id) {
+      // Update page visibility
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      
+      // Update navigation active state
+      document.querySelectorAll('.nav-list li').forEach(n => n.classList.remove('active'));
       el.classList.add('active');
+      
+      // Update tabindex for keyboard navigation
+      document.querySelectorAll('.nav-list li').forEach(n => n.setAttribute('tabindex', '-1'));
+      el.setAttribute('tabindex', '0');
     }
 
-    /* switchTab: update aria-selected + roving tabindex */
-    function switchTab(el,prefix,id){
-      var tablist=el.closest('[role="tablist"]');
-      tablist.querySelectorAll('[role="tab"]').forEach(t=>{
+    // Keyboard navigation for menu items
+    function navKey(e, el, id) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        nav(el, id);
+        return;
+      }
+      
+      var items = Array.from(el.closest('ul').querySelectorAll('[role="menuitem"]'));
+      var i = items.indexOf(el);
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        var next = items[Math.min(i + 1, items.length - 1)];
+        next.focus();
+        next.setAttribute('tabindex', '0');
+        el.setAttribute('tabindex', '-1');
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        var prev = items[Math.max(i - 1, 0)];
+        prev.focus();
+        prev.setAttribute('tabindex', '0');
+        el.setAttribute('tabindex', '-1');
+      }
+    }
+
+    // Tab navigation for mobile tabs
+    function tabKey(e, el) {
+      var tabs = Array.from(el.closest('[role="tablist"]').querySelectorAll('[role="tab"]'));
+      var i = tabs.indexOf(el);
+      
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        var n = tabs[(i + 1) % tabs.length];
+        n.focus();
+        n.click();
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        var p = tabs[(i - 1 + tabs.length) % tabs.length];
+        p.focus();
+        p.click();
+      }
+    }
+
+    // Mobile tab switching
+    function switchMobileTab(el, tabId) {
+      // Update tab states
+      document.querySelectorAll('.tab').forEach(t => {
         t.classList.remove('active');
-        t.setAttribute('aria-selected','false');
-        t.setAttribute('tabindex','-1');
+        t.setAttribute('aria-selected', 'false');
+        t.setAttribute('tabindex', '-1');
       });
+      
       el.classList.add('active');
-      el.setAttribute('aria-selected','true');
-      el.setAttribute('tabindex','0');
-      document.querySelectorAll('[id^="'+prefix+'-"]').forEach(p=>p.style.display='none');
-      document.getElementById(prefix+'-'+id).style.display='block';
+      el.setAttribute('aria-selected', 'true');
+      el.setAttribute('tabindex', '0');
+      
+      // Update panel visibility
+      document.querySelectorAll('.mobile-column').forEach(c => c.classList.remove('active'));
+      document.getElementById('mobile-' + tabId).classList.add('active');
     }
 
-    /* pick: update aria-checked + roving tabindex on sel-opts */
-    function pick(el){
-      var group=el.closest('[role="radiogroup"]');
-      group.querySelectorAll('[role="radio"]').forEach(o=>{
-        o.classList.remove('on');
-        o.setAttribute('aria-checked','false');
-        o.setAttribute('tabindex','-1');
-      });
-      el.classList.add('on');
-      el.setAttribute('aria-checked','true');
-      el.setAttribute('tabindex','0');
+    // Task keyboard navigation
+    function taskKeyNav(e, el) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        // Task selection logic here
+        return;
+      }
+      
+      var tasks = Array.from(el.closest('.column-content').querySelectorAll('.task-card'));
+      var i = tasks.indexOf(el);
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (i < tasks.length - 1) {
+          tasks[i + 1].focus();
+          tasks[i + 1].setAttribute('tabindex', '0');
+          el.setAttribute('tabindex', '-1');
+        }
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (i > 0) {
+          tasks[i - 1].focus();
+          tasks[i - 1].setAttribute('tabindex', '0');
+          el.setAttribute('tabindex', '-1');
+        }
+      }
     }
+
+    // Modal functions
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+      // Focus management
+      document.getElementById(modalId).querySelector('input, button').focus();
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // Initialize keyboard navigation
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set initial focus states
+      document.querySelectorAll('.nav-list li:not(.active)').forEach(li => {
+        li.setAttribute('tabindex', '-1');
+      });
+      
+      // Set initial task focus states
+      document.querySelectorAll('.task-card').forEach((task, index) => {
+        if (index === 0) {
+          task.setAttribute('tabindex', '0');
+        } else {
+          task.setAttribute('tabindex', '-1');
+        }
+      });
+    });
   </script>
 </body>
 </html>
 
-<!-- 
+<!--
 SUMMARY TABLE:
 Step → Screen Name → File Reference → Navigates To
-1.0 → Test Environment Setup → #setup → Mobile Testing
-2.0 → Mobile Viewport Testing → #mobile → Tablet Testing  
-3.0 → Tablet Viewport Testing → #tablet → Desktop Testing
-4.0 → Desktop Viewport Testing → #desktop → Test Results
-5.0 → Test Results Summary → #results → New Test/Production
-Alt → Manual Testing Dashboard → #manual → Manual Session
-Alt → Test Reports → #reports → Report Generation
+
+1.0 → Desktop Kanban Board → desktop-board → Task Detail, Add Task, Mobile Board
+1.1 → Task Card Interaction → task-detail → Desktop Board, Edit Task
+Pu.1 → Add New Task Modal → add-task → Desktop Board
+
+2.0 → Enhanced Desktop Board → desktop-board → Bulk Operations
+2.1 → Bulk Operations Panel → bulk-operations → Desktop Board
+
+3.0 → Mobile Kanban Board → mobile-board → Task Detail, Add Task
+3.1 → Task Detail Mobile → task-detail → Mobile Board
+3.2 → Mobile Column Overview → mobile-board → Task Detail
+
+4.0 → Mobile Hybrid Layout → mobile-board → Quick Actions
+4.1 → Quick Action Menu → mobile-board → Task Detail
+
+5.0 → Accessible Kanban Board → accessible-board → Task Movement Dialog
+5.1 → Keyboard Navigation → accessible-board → Task Detail
+5.2 → Task Movement Dialog → accessible-board → Accessible Board
+
+6.0 → High Contrast Board → accessible-board → Accessibility Settings
+6.1 → Accessibility Settings → accessibility-settings → Accessible Board
+
+7.0 → Tablet Landscape → tablet-board → Task Detail
+7.1 → Tablet Portrait → tablet-board → Task Detail
+7.2 → Responsive Transition → responsive-settings → Tablet Board
+
+8.0 → Base Mobile Layout → mobile-board → Enhanced Features
+8.1 → Enhanced Tablet Features → tablet-board → Desktop Features
+8.2 → Desktop Power Features → desktop-board → Settings
+
+Er.1 → Network Error State → All screens → Retry/Offline mode
+Er.2 → Empty Column State → All boards → Add Task
+Er.3 → Task Load Failure → All boards → Retry/Refresh
+Er.4 → Drag Drop Failure → All boards → Alternative movement
 -->
