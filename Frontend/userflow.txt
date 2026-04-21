@@ -6,7 +6,14 @@
     <title>Kanban Board User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true });
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
     </script>
     <style>
         body {
@@ -35,99 +42,161 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            margin-top: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .description h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .description p {
+            color: #666;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board User Flow Diagram</h1>
+        <h1>Kanban Board Application - User Flow Diagram</h1>
         
+        <div class="description">
+            <h2>User Flow Overview</h2>
+            <p>This diagram illustrates the complete user journey through the Kanban Board application, including navigation paths, task management workflows, and system interactions. The flow covers authentication, dashboard navigation, Kanban board operations, task management, and accessibility features.</p>
+        </div>
+
         <div class="mermaid">
-            flowchart TD
-                Start[User Opens Application]
-                Start --> Login[User Authentication]
-                Login --> Dashboard[Load Dashboard]
-                Dashboard --> Sidebar[Navigate Sidebar]
-                
-                Sidebar --> KanbanBoard[Access Kanban Board]
-                Sidebar --> AllTasks[View All Tasks]
-                Sidebar --> Calendar[Open Calendar]
-                Sidebar --> Settings[Access Settings]
-                
-                KanbanBoard --> ViewColumns[View Three Columns]
-                ViewColumns --> TodoColumn[To Do Column]
-                ViewColumns --> InProgressColumn[In Progress Column]
-                ViewColumns --> DoneColumn[Done Column]
-                
-                TodoColumn --> ViewTasks[View Tasks in Column]
-                InProgressColumn --> ViewTasks
-                DoneColumn --> ViewTasks
-                
-                ViewTasks --> DragTask[Drag Task Between Columns]
-                ViewTasks --> ClickTask[Click Task for Details]
-                ViewTasks --> AddTask[Click Add Task Button]
-                
-                DragTask --> UpdateStatus[Update Task Status]
-                UpdateStatus --> SaveChanges[Save to Database]
-                SaveChanges --> RefreshBoard[Refresh Board View]
-                
-                ClickTask --> TaskModal[Open Task Details Modal]
-                TaskModal --> EditTask[Edit Task Information]
-                TaskModal --> CloseModal[Close Modal]
-                EditTask --> SaveTask[Save Task Changes]
-                SaveTask --> CloseModal
-                CloseModal --> RefreshBoard
-                
-                AddTask --> CreateModal[Open Create Task Modal]
-                CreateModal --> FillForm[Fill Task Form]
-                FillForm --> SubmitTask[Submit New Task]
-                SubmitTask --> SaveNewTask[Save to Database]
-                SaveNewTask --> CloseModal
-                
-                Dashboard --> SearchBar[Use Search Function]
-                SearchBar --> FilterTasks[Filter Tasks by Query]
-                FilterTasks --> DisplayResults[Display Filtered Results]
-                DisplayResults --> ViewTasks
-                
-                Dashboard --> UserMenu[Access User Menu]
-                UserMenu --> Notifications[View Notifications]
-                UserMenu --> ThemeToggle[Toggle Theme]
-                UserMenu --> Profile[View Profile]
-                
-                Settings --> Preferences[Update Preferences]
-                Settings --> Accessibility[Accessibility Settings]
-                Preferences --> SaveSettings[Save Configuration]
-                Accessibility --> SaveSettings
-                SaveSettings --> Dashboard
-                
-                AllTasks --> TaskList[View Complete Task List]
-                TaskList --> FilterByStatus[Filter by Status]
-                TaskList --> SortTasks[Sort Tasks]
-                FilterByStatus --> ViewTasks
-                SortTasks --> ViewTasks
-                
-                Calendar --> MonthView[View Monthly Calendar]
-                Calendar --> WeekView[View Weekly Calendar]
-                MonthView --> TaskDeadlines[View Task Deadlines]
-                WeekView --> TaskDeadlines
-                TaskDeadlines --> ClickTask
-                
-                RefreshBoard --> ViewColumns
+flowchart TD
+    Start[User Opens Application]
+    Start --> Auth{Authentication Required}
+    Auth -->|Yes| Login[Login Page]
+    Auth -->|No| Dashboard[Dashboard Page]
+    Login --> LoginForm[Enter Credentials]
+    LoginForm --> AuthValidation{Valid Credentials}
+    AuthValidation -->|Yes| Dashboard
+    AuthValidation -->|No| LoginError[Show Login Error]
+    LoginError --> LoginForm
+    
+    Dashboard --> HeaderSearch[Search Functionality]
+    Dashboard --> SidebarNav[Sidebar Navigation]
+    Dashboard --> MainContent[Main Content Area]
+    
+    HeaderSearch --> SearchInput[Enter Search Query]
+    SearchInput --> SearchResults[Display Search Results]
+    SearchResults --> ViewResult[View Search Result]
+    ViewResult --> MainContent
+    
+    SidebarNav --> WorkspaceSection[Workspace Section]
+    SidebarNav --> TeamSection[Team Section]
+    SidebarNav --> AccessibilitySection[Accessibility Section]
+    
+    WorkspaceSection --> DashboardNav[Navigate to Dashboard]
+    WorkspaceSection --> KanbanNav[Navigate to Kanban Board]
+    WorkspaceSection --> AnalyticsNav[Navigate to Analytics]
+    
+    TeamSection --> TeamPerformance[Team Performance]
+    TeamSection --> Reports[Reports]
+    
+    AccessibilitySection --> KeyboardHelp[Keyboard Help]
+    AccessibilitySection --> ScreenReader[Screen Reader Mode]
+    
+    DashboardNav --> Dashboard
+    KanbanNav --> KanbanBoard[Kanban Board Page]
+    AnalyticsNav --> Analytics[Analytics Page]
+    
+    KanbanBoard --> ViewColumns[View Three Columns]
+    ViewColumns --> TodoColumn[To Do Column]
+    ViewColumns --> ProgressColumn[In Progress Column]
+    ViewColumns --> DoneColumn[Done Column]
+    
+    TodoColumn --> ViewTodoTasks[View To Do Tasks]
+    ProgressColumn --> ViewProgressTasks[View In Progress Tasks]
+    DoneColumn --> ViewDoneTasks[View Done Tasks]
+    
+    ViewTodoTasks --> TaskCard[Task Card Component]
+    ViewProgressTasks --> TaskCard
+    ViewDoneTasks --> TaskCard
+    
+    TaskCard --> TaskActions{Task Action}
+    TaskActions -->|Click| ViewTaskDetails[View Task Details]
+    TaskActions -->|Drag| DragTask[Drag Task]
+    TaskActions -->|Edit| EditTask[Edit Task]
+    
+    ViewTaskDetails --> TaskModal[Task Detail Modal]
+    TaskModal --> TaskForm[Task Form]
+    TaskForm --> TaskFormActions{Form Action}
+    TaskFormActions -->|Save| SaveTask[Save Task Changes]
+    TaskFormActions -->|Cancel| CloseModal[Close Modal]
+    TaskFormActions -->|Delete| DeleteTask[Delete Task]
+    
+    SaveTask --> UpdateKanban[Update Kanban Board]
+    DeleteTask --> UpdateKanban
+    CloseModal --> KanbanBoard
+    UpdateKanban --> KanbanBoard
+    
+    DragTask --> DropZone{Drop Zone}
+    DropZone -->|Valid Drop| MoveTask[Move Task to New Column]
+    DropZone -->|Invalid Drop| ReturnTask[Return Task to Original Position]
+    MoveTask --> UpdateKanban
+    ReturnTask --> KanbanBoard
+    
+    EditTask --> TaskModal
+    
+    KanbanBoard --> AddNewTask[Add New Task Button]
+    AddNewTask --> CreateTaskModal[Create Task Modal]
+    CreateTaskModal --> TaskForm
+    
+    Analytics --> ViewMetrics[View Performance Metrics]
+    ViewMetrics --> WorkflowDistribution[Workflow Distribution]
+    ViewMetrics --> TeamWorkload[Team Workload]
+    ViewMetrics --> TrendAnalysis[Trend Analysis]
+    
+    TeamPerformance --> ViewTeamStats[View Team Statistics]
+    Reports --> GenerateReport[Generate Reports]
+    
+    KeyboardHelp --> ViewShortcuts[View Keyboard Shortcuts]
+    ScreenReader --> AccessibleView[Accessible View Mode]
+    
+    MainContent --> UserActions[User Actions Menu]
+    UserActions --> Notifications[View Notifications]
+    UserActions --> Settings[User Settings]
+    UserActions --> UserProfile[User Profile]
+    
+    Notifications --> NotificationList[Notification List]
+    NotificationList --> MarkAsRead[Mark as Read]
+    MarkAsRead --> MainContent
+    
+    Settings --> UserPreferences[User Preferences]
+    UserPreferences --> SavePreferences[Save Preferences]
+    SavePreferences --> MainContent
+    
+    UserProfile --> EditProfile[Edit Profile]
+    EditProfile --> SaveProfile[Save Profile]
+    SaveProfile --> MainContent
+    
+    MainContent --> Logout[Logout]
+    Logout --> Start
         </div>
         
         <div class="description">
-            <h2>User Flow Description</h2>
-            <p>This diagram illustrates the complete user journey through the Kanban Board application:</p>
+            <h2>Key User Journeys</h2>
+            <p><strong>Primary Flows:</strong></p>
             <ul>
-                <li><strong>Authentication & Dashboard:</strong> Users start by logging in and accessing the main dashboard</li>
-                <li><strong>Navigation:</strong> The sidebar provides access to different sections including Kanban Board, All Tasks, Calendar, and Settings</li>
-                <li><strong>Kanban Board Interaction:</strong> Users can view three columns (To Do, In Progress, Done) and interact with tasks through drag-and-drop or clicking</li>
-                <li><strong>Task Management:</strong> Tasks can be created, edited, moved between columns, and viewed in detail through modal dialogs</li>
-                <li><strong>Search & Filter:</strong> Users can search for specific tasks and filter results across the application</li>
-                <li><strong>Settings & Preferences:</strong> Users can customize their experience through settings and accessibility options</li>
-                <li><strong>Alternative Views:</strong> The application provides multiple ways to view tasks including list view and calendar view</li>
+                <li><strong>Authentication Flow:</strong> User login and credential validation</li>
+                <li><strong>Navigation Flow:</strong> Moving between Dashboard, Kanban Board, Analytics, and other sections</li>
+                <li><strong>Task Management Flow:</strong> Creating, editing, viewing, and deleting tasks</li>
+                <li><strong>Kanban Operations:</strong> Drag-and-drop task movement between columns</li>
+                <li><strong>Search Flow:</strong> Finding and accessing specific content</li>
+                <li><strong>Accessibility Flow:</strong> Keyboard navigation and screen reader support</li>
+            </ul>
+            
+            <p><strong>Interactive Elements:</strong></p>
+            <ul>
+                <li>Three-column Kanban layout (To Do, In Progress, Done)</li>
+                <li>Drag-and-drop task cards with validation</li>
+                <li>Modal dialogs for task creation and editing</li>
+                <li>Sidebar navigation with hierarchical structure</li>
+                <li>Header search functionality</li>
+                <li>User action menus and notifications</li>
             </ul>
         </div>
     </div>
