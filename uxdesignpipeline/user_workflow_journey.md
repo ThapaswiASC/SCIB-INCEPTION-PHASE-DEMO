@@ -1,674 +1,402 @@
-# User Workflow Journey: Three-Column Kanban Board
+# User Workflow Journey: Task Creation Form Design
 
 ## Experience Overview
 
-The Kanban board experience enables users to visualize, organize, and manage their work through a three-column layout system. This experience encompasses task management, workflow visualization, team collaboration, and progress tracking.
+The Task Management experience encompasses multiple user scenarios around creating, managing, and organizing tasks within a project management system. This document focuses specifically on the task creation workflow based on the requirements for designing a comprehensive task creation form UI.
 
----
+## Scenario 1: Standard Task Creation
 
-## Scenario 1: Task Management and Organization
+**Context & User Scenario:**
+Sarah, a project manager, needs to create a new task for her development team. She has all the necessary information including task title, description, priority level, and knows which team member should be assigned. She wants to quickly create the task with all required details to ensure clear communication and proper task tracking.
 
-### User Scenario
-Sarah, a project manager at a software development company, needs to organize her team's sprint tasks efficiently. She has 15 tasks from the current sprint that need to be categorized and tracked through different stages of completion. She wants to quickly visualize the team's workload distribution and identify potential bottlenecks in their workflow.
+### Workflow Variation 1A: Direct Task Creation (Primary Flow)
 
-### User Goal
-Help Sarah efficiently organize, categorize, and track tasks through different stages of completion while maintaining clear visibility of team workload and progress.
+**User Goal:** Successfully create a complete task with all mandatory information in a streamlined, efficient manner.
 
-### Business Goal
-Increase team productivity and project visibility by providing an intuitive task management interface that reduces time spent on administrative overhead and improves workflow transparency.
+**Business Goal:** Ensure all tasks contain essential information for proper project tracking, team coordination, and workflow management while maintaining high user adoption of the task creation feature.
 
-### Workflow Variation 1A: Standard Task Organization Flow
+**Screen Documentation:**
 
-#### Screens:
-
-**1.0 Kanban Board Dashboard [type: primary]**
+**1.0 Task Dashboard [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Provide comprehensive overview of all tasks across the three workflow stages with immediate visual clarity of workload distribution.
+Page Goal: Provide users with an overview of existing tasks and easy access to create new tasks.
 
 Screen Description:
-1. User can view three distinct columns: 'To Do', 'In Progress', and 'Done'
-2. User can see task cards within each column with essential information (title, assignee, priority)
-3. User can drag and drop tasks between columns to update status
-4. User can view column headers with task counts for each stage
-5. User can access quick actions for adding new tasks
-6. User can filter tasks by assignee, priority, or labels
-7. User can view team member avatars on task cards
-8. User can see visual indicators for task priority and due dates
+1. User can view existing tasks in a list or card format
+2. User can filter and sort tasks by various criteria
+3. User can access task creation via prominent "+ Create Task" button
+4. User can search for existing tasks
+5. User can view task statistics and project progress
+6. User can navigate to individual task details
 
 Design Problems:
-- HMW help users quickly identify overloaded columns or bottlenecks?
-- HMW make task information scannable without overwhelming the interface?
-- HMW ensure drag-and-drop interactions are accessible across devices?
-- HMW communicate task priority and urgency effectively?
+i. HMW make the task creation entry point immediately discoverable without overwhelming the interface?
+ii. HMW balance showing existing tasks while encouraging new task creation?
+iii. HMW help users understand the current project state before adding new tasks?
+iv. HMW prevent duplicate task creation by showing relevant existing tasks?
 
 Design Opportunities:
-- What if the system could automatically highlight workflow bottlenecks?
-- What if users could customize column names based on their workflow?
-- What if the board could show estimated completion times for each column?
-- What if we could provide real-time collaboration indicators when multiple users are active?
+i. What if the system could suggest task templates based on project type?
+ii. What if we could show task creation shortcuts for frequently used task types?
+iii. What if the interface could predict when users are likely to create tasks?
+iv. What if we could provide contextual task creation based on current project phase?
 
-**1.0-D Task Detail View [type: detail]**
-- HOW IT IS REACHED: Click on any task card from the Kanban board
+**Pu.1 Task Creation Form Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "+ Create Task" button from Task Dashboard
 - NAVBAR PRESENCE: No
 
-Page Goal: Provide comprehensive task information and enable detailed task management without losing context of the overall board.
+Page Goal: Capture all mandatory task information efficiently while providing clear guidance and validation feedback.
 
 Screen Description:
-1. User can view complete task details including description, comments, and attachments
-2. User can edit task properties (title, description, assignee, priority, due date)
-3. User can add comments and collaborate with team members
-4. User can view task history and status changes
-5. User can attach files or link related resources
-6. User can navigate to previous/next task without returning to board
-7. User can change task status via dropdown or quick actions
-8. User can set task dependencies and relationships
+1. User enters task title in a prominent text field with character count
+2. User provides detailed task description in an expandable text area
+3. User selects priority level from a clear visual priority selector (High, Medium, Low)
+4. User assigns task to team member via searchable dropdown with user avatars
+5. User can optionally set due date using date picker
+6. User can add tags or labels for categorization
+7. Form provides real-time validation with clear error messaging
+8. User can save as draft or create task immediately
+9. Loading state shows progress during task creation
+10. Success confirmation appears upon successful creation
 
 Design Problems:
-- HMW maintain context of the board position while viewing task details?
-- HMW make task editing efficient without multiple page loads?
-- HMW ensure all task information is accessible without scrolling excessively?
-- HMW facilitate team collaboration within the task context?
+i. HMW ensure users complete all mandatory fields without feeling overwhelmed?
+ii. HMW provide clear validation feedback without interrupting the user's flow?
+iii. HMW make priority selection intuitive and visually clear?
+iv. HMW help users select the right assignee when team size is large?
+v. HMW handle form errors gracefully while maintaining user progress?
 
 Design Opportunities:
-- What if the detail view could show related tasks from the same project?
-- What if users could see who else is currently viewing the same task?
-- What if the system could suggest optimal assignees based on workload and skills?
-- What if we could provide AI-powered task completion estimates?
+i. What if the form could auto-suggest assignees based on task type or previous assignments?
+ii. What if we could provide task templates to speed up creation?
+iii. What if the system could validate task uniqueness in real-time?
+iv. What if we could offer smart defaults based on user behavior patterns?
+v. What if the form could adapt its layout based on user preferences?
 
-**Pu.1 Add New Task Modal [type: modal]**
-- HOW IT IS REACHED: Click "+ Add Task" button from Kanban board
-- NAVBAR PRESENCE: No
+### Workflow Variation 1B: Quick Task Creation (Simplified Flow)
 
-Page Goal: Enable quick task creation with essential information while maintaining workflow momentum.
+**User Goal:** Rapidly create a basic task with minimal required information when time is limited.
 
-Screen Description:
-1. User can enter task title and description
-2. User can assign task to team members via dropdown or search
-3. User can set task priority level (High, Medium, Low)
-4. User can set due date using date picker
-5. User can add labels or tags for categorization
-6. User can choose initial column placement (defaults to 'To Do')
-7. User can save and create another task or save and close
-8. User can cancel and return to board without saving
+**Business Goal:** Lower the barrier to task creation while still capturing essential information for project tracking.
 
-Design Problems:
-- HMW minimize the number of required fields while capturing essential information?
-- HMW make task creation fast enough to not interrupt workflow?
-- HMW ensure new tasks are placed in the most logical column?
-- HMW help users provide adequate task details without overwhelming them?
+**Screen Documentation:**
 
-Design Opportunities:
-- What if the system could auto-suggest task details based on similar previous tasks?
-- What if users could create tasks via voice input or quick templates?
-- What if the modal could show current team workload to help with assignment decisions?
-- What if we could integrate with external tools to import task details?
-
-### Workflow Variation 1B: Bulk Task Management Flow
-
-#### Screens:
-
-**1.1 Kanban Board with Bulk Selection [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item, then enable bulk selection mode
-- NAVBAR PRESENCE: Yes
-
-Page Goal: Enable efficient management of multiple tasks simultaneously while maintaining visual clarity of the board structure.
-
-Screen Description:
-1. User can select multiple tasks using checkboxes or keyboard shortcuts
-2. User can view bulk action toolbar with options for selected tasks
-3. User can move multiple tasks between columns simultaneously
-4. User can bulk edit properties like assignee, priority, or labels
-5. User can delete multiple tasks with confirmation
-6. User can export selected tasks to external formats
-7. User can see selection count and clear selection option
-8. User can filter and select tasks based on criteria
-
-Design Problems:
-- HMW make bulk selection intuitive without cluttering the interface?
-- HMW ensure bulk actions don't accidentally affect unintended tasks?
-- HMW maintain visual hierarchy when selection mode is active?
-- HMW provide clear feedback for bulk operations in progress?
-
-Design Opportunities:
-- What if users could create custom bulk action workflows?
-- What if the system could suggest optimal bulk operations based on task patterns?
-- What if we could provide undo functionality for bulk operations?
-- What if users could save bulk selection criteria as smart filters?
-
-**Pu.2 Bulk Edit Modal [type: modal]**
-- HOW IT IS REACHED: Click "Edit Selected" button after selecting multiple tasks
-- NAVBAR PRESENCE: No
-
-Page Goal: Provide efficient bulk editing capabilities while clearly communicating which tasks will be affected.
-
-Screen Description:
-1. User can view list of selected tasks with current properties
-2. User can modify common properties (assignee, priority, due date, labels)
-3. User can choose which properties to update (selective bulk editing)
-4. User can preview changes before applying
-5. User can see warnings for conflicting or problematic changes
-6. User can apply changes and return to board
-7. User can cancel without making changes
-8. User can remove individual tasks from bulk edit selection
-
-Design Problems:
-- HMW clearly communicate which tasks will be affected by bulk changes?
-- HMW handle conflicts when tasks have different current values?
-- HMW prevent accidental bulk changes that could disrupt workflow?
-- HMW make the bulk edit process efficient for large numbers of tasks?
-
-Design Opportunities:
-- What if the system could show the impact of bulk changes before applying?
-- What if users could create bulk edit templates for common operations?
-- What if we could provide intelligent suggestions for bulk edits based on task relationships?
-- What if the system could automatically resolve common bulk edit conflicts?
-
-#### Navigation Structure (Scenario 1):
-1.0 Kanban Board Dashboard
-
-#### User Journey Flow (Scenario 1):
-**Variation 1A:** 1.0 Kanban Board Dashboard → [click task card] → 1.0-D Task Detail View → [click + Add Task] → Pu.1 Add New Task Modal → [submit] → 1.0 Kanban Board Dashboard (updated)
-
-**Variation 1B:** 1.0 Kanban Board Dashboard → [enable bulk selection] → 1.1 Kanban Board with Bulk Selection → [select multiple tasks] → Pu.2 Bulk Edit Modal → [apply changes] → 1.0 Kanban Board Dashboard (updated)
-
----
-
-## Scenario 2: Team Collaboration and Progress Tracking
-
-### User Scenario
-Mike, a team lead, needs to monitor his distributed team's progress on a critical project deadline approaching in two weeks. He wants to identify team members who might be overloaded, track overall project velocity, and facilitate communication around blockers or dependencies. He needs to ensure the team stays aligned and can quickly address any issues that arise.
-
-### User Goal
-Help Mike effectively monitor team progress, identify potential issues early, and facilitate team communication to ensure project success and deadline adherence.
-
-### Business Goal
-Improve project delivery success rates and team satisfaction by providing comprehensive visibility into team performance, workload distribution, and collaboration patterns.
-
-### Workflow Variation 2A: Progress Monitoring and Analytics Flow
-
-#### Screens:
-
-**2.0 Team Progress Dashboard [type: primary]**
+**1.0 Task Dashboard [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Provide comprehensive team performance insights and progress visualization to enable data-driven team management decisions.
+[Same as Variation 1A]
 
-Screen Description:
-1. User can view team workload distribution across all members
-2. User can see project velocity metrics and burndown charts
-3. User can identify bottlenecks and overloaded team members
-4. User can view task completion trends over time
-5. User can access individual team member performance summaries
-6. User can see upcoming deadlines and at-risk tasks
-7. User can view team collaboration metrics and communication patterns
-8. User can filter analytics by date range, project, or team member
-
-Design Problems:
-- HMW present complex analytics in an easily digestible format?
-- HMW help team leads identify actionable insights from the data?
-- HMW balance individual performance visibility with team privacy?
-- HMW make progress tracking motivating rather than punitive?
-
-Design Opportunities:
-- What if the system could predict project completion dates based on current velocity?
-- What if we could provide personalized recommendations for workload balancing?
-- What if the dashboard could automatically flag potential risks or issues?
-- What if we could integrate team mood or satisfaction metrics alongside performance data?
-
-**2.0-D Team Member Detail View [type: detail]**
-- HOW IT IS REACHED: Click on team member card or name from Team Progress Dashboard
+**Pu.2 Quick Task Creation Drawer [type: modal]**
+- HOW IT IS REACHED: Clicking "Quick Add" button or keyboard shortcut from Task Dashboard
 - NAVBAR PRESENCE: No
 
-Page Goal: Provide detailed individual performance insights while maintaining team context and enabling targeted support or intervention.
+Page Goal: Enable rapid task creation with minimal friction while ensuring core information is captured.
 
 Screen Description:
-1. User can view individual team member's current task load and status
-2. User can see performance trends and productivity metrics over time
-3. User can view task completion history and patterns
-4. User can access communication history and collaboration frequency
-5. User can see upcoming deadlines and potential scheduling conflicts
-6. User can view skill utilization and development opportunities
-7. User can initiate direct communication or schedule check-ins
-8. User can reassign tasks or adjust workload as needed
+1. User enters task title in a single prominent field
+2. Priority is set to default (Medium) with option to quickly change
+3. Assignee defaults to current user with quick reassignment option
+4. Description field is optional and collapsible
+5. One-click creation with "Add Task" button
+6. Option to "Add & Create Another" for batch creation
+7. Minimal validation focuses only on required title field
+8. Instant feedback and return to dashboard
 
 Design Problems:
-- HMW provide meaningful individual insights without creating surveillance concerns?
-- HMW help team leads support struggling team members effectively?
-- HMW balance performance monitoring with team member autonomy?
-- HMW make individual data actionable for both leads and team members?
+i. HMW balance speed with information completeness?
+ii. HMW ensure quick tasks don't become incomplete or unclear?
+iii. HMW make it easy to upgrade quick tasks to full tasks later?
+iv. HMW provide appropriate defaults without limiting flexibility?
 
 Design Opportunities:
-- What if the system could suggest optimal task assignments based on individual strengths?
-- What if we could provide personalized productivity insights to team members?
-- What if the platform could recommend skill development opportunities?
-- What if we could facilitate peer-to-peer mentoring based on complementary skills?
+i. What if quick tasks could be automatically enhanced with AI suggestions?
+ii. What if the system learned user patterns to improve quick task defaults?
+iii. What if we could provide one-click task duplication for similar tasks?
+iv. What if quick creation could adapt based on current project context?
 
-**Pu.3 Workload Rebalancing Modal [type: modal]**
-- HOW IT IS REACHED: Click "Rebalance Workload" button from Team Progress Dashboard
-- NAVBAR PRESENCE: No
+## Scenario 2: Task Creation with Validation Errors
 
-Page Goal: Enable intelligent task redistribution to optimize team performance and prevent burnout while maintaining project momentum.
+**Context & User Scenario:**
+Mike, a team lead, is creating a task but encounters validation errors due to missing required information or invalid data entry. He needs clear guidance to correct the errors and successfully complete the task creation without losing his progress.
 
-Screen Description:
-1. User can view current workload distribution across team members
-2. User can see suggested task reassignments based on capacity and skills
-3. User can manually drag tasks between team members
-4. User can view impact predictions for proposed changes
-5. User can set workload limits and preferences for each team member
-6. User can preview timeline changes resulting from reassignments
-7. User can communicate changes to affected team members
-8. User can apply changes with automatic notifications
+### Workflow Variation 2A: Error Recovery Flow
 
-Design Problems:
-- HMW make workload rebalancing decisions transparent and fair?
-- HMW ensure task reassignments don't disrupt existing progress?
-- HMW help team leads make optimal assignment decisions quickly?
-- HMW communicate workload changes sensitively to team members?
+**User Goal:** Successfully resolve validation errors and complete task creation without losing entered information.
 
-Design Opportunities:
-- What if the system could automatically suggest optimal workload distribution?
-- What if we could factor in individual preferences and working styles?
-- What if the platform could predict the impact of reassignments on team morale?
-- What if we could provide alternative scenarios for workload balancing?
+**Business Goal:** Maintain user engagement during error states while ensuring data quality and completeness.
 
-### Workflow Variation 2B: Real-time Collaboration Flow
+**Screen Documentation:**
 
-#### Screens:
-
-**2.1 Collaborative Kanban Board [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item with collaboration features enabled
+**1.0 Task Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Facilitate real-time team collaboration with live updates, communication tools, and shared awareness of team activity.
+[Same as previous scenarios]
 
-Screen Description:
-1. User can see real-time cursors and activity indicators of other team members
-2. User can view live updates as tasks are moved or modified by others
-3. User can access integrated chat or comment system for quick communication
-4. User can see who is currently viewing or editing specific tasks
-5. User can participate in collaborative task planning sessions
-6. User can view recent team activity feed and notifications
-7. User can initiate video calls or screen sharing directly from tasks
-8. User can collaborate on task estimation and planning in real-time
-
-Design Problems:
-- HMW provide real-time collaboration without creating visual chaos?
-- HMW ensure all team members can participate regardless of their location or device?
-- HMW balance real-time updates with individual focus and productivity?
-- HMW make collaborative features discoverable without overwhelming the interface?
-
-Design Opportunities:
-- What if the system could facilitate virtual stand-up meetings within the board?
-- What if we could provide contextual collaboration suggestions based on task dependencies?
-- What if the platform could automatically resolve conflicts when multiple users edit simultaneously?
-- What if we could integrate with popular communication tools seamlessly?
-
-**Pu.4 Team Communication Panel [type: modal]**
-- HOW IT IS REACHED: Click "Team Chat" or communication icon from Collaborative Kanban Board
+**Pu.1 Task Creation Form Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "+ Create Task" button from Task Dashboard
 - NAVBAR PRESENCE: No
 
-Page Goal: Provide contextual team communication that maintains connection to work items while enabling efficient collaboration.
+[Same base functionality as Scenario 1A with additional error handling]
+
+**Er.1 Form Validation Error State [type: state]**
+- HOW IT IS REACHED: Attempting to submit form with validation errors
+- NAVBAR PRESENCE: No
+
+Page Goal: Clearly communicate validation errors and guide users toward resolution without losing form progress.
 
 Screen Description:
-1. User can participate in task-specific or general team conversations
-2. User can share files, screenshots, or links relevant to current work
-3. User can mention specific team members or reference tasks directly
-4. User can view conversation history organized by task or topic
-5. User can set communication preferences and notification settings
-6. User can initiate voice or video calls with team members
-7. User can create and manage communication channels for different projects
-8. User can access quick emoji reactions and status updates
+1. Form remains open with all user-entered data preserved
+2. Error summary appears at top of form with count of issues
+3. Individual field errors highlighted with red borders and specific error messages
+4. Required field indicators become more prominent
+5. Error messages provide specific guidance (e.g., "Title must be at least 3 characters")
+6. Submit button remains disabled until all errors are resolved
+7. Real-time validation provides immediate feedback as users correct errors
+8. Success indicators appear as fields are corrected
 
 Design Problems:
-- HMW keep communication contextual to current work without fragmenting conversations?
-- HMW ensure important communications don't get lost in chat streams?
-- HMW balance real-time communication with focused work time?
-- HMW make communication accessible across different time zones and schedules?
+i. HMW communicate errors clearly without overwhelming the user?
+ii. HMW maintain user motivation to complete the form despite errors?
+iii. HMW prioritize which errors users should address first?
+iv. HMW prevent users from losing their work during error correction?
 
 Design Opportunities:
-- What if the system could automatically summarize important decisions from conversations?
-- What if we could provide smart notifications that respect individual work patterns?
-- What if the platform could suggest relevant team members for specific discussions?
-- What if we could integrate AI-powered language translation for global teams?
+i. What if the system could provide contextual help for each error type?
+ii. What if we could offer auto-correction suggestions for common errors?
+iii. What if the form could guide users through error resolution step-by-step?
+iv. What if we could learn from common errors to improve form design?
 
-#### Navigation Structure (Scenario 2):
-2.0 Team Progress Dashboard
+### Workflow Variation 2B: Progressive Validation Flow
 
-#### User Journey Flow (Scenario 2):
-**Variation 2A:** 2.0 Team Progress Dashboard → [click team member] → 2.0-D Team Member Detail View → [click rebalance workload] → Pu.3 Workload Rebalancing Modal → [apply changes] → 2.0 Team Progress Dashboard (updated)
+**User Goal:** Receive immediate feedback during form completion to prevent errors before submission.
 
-**Variation 2B:** 2.1 Collaborative Kanban Board → [click team chat] → Pu.4 Team Communication Panel → [send message] → 2.1 Collaborative Kanban Board (with live updates)
+**Business Goal:** Reduce form abandonment and improve data quality through proactive validation.
 
----
+**Screen Documentation:**
 
-## Scenario 3: Project Setup and Customization
+**Pu.3 Progressive Task Creation Form [type: modal]**
+- HOW IT IS REACHED: Clicking "+ Create Task" button with progressive validation enabled
+- NAVBAR PRESENCE: No
 
-### User Scenario
-Alex, a department head, is setting up a new project workspace for a cross-functional team of 12 members working on a product launch. The team includes designers, developers, marketers, and QA specialists, each with different workflow needs. Alex needs to configure the Kanban board to accommodate different work types, establish team conventions, and ensure the system supports their specific project requirements.
+Page Goal: Guide users through successful task creation with real-time validation and assistance.
 
-### User Goal
-Help Alex efficiently configure and customize the Kanban board system to match the team's specific workflow needs while establishing clear conventions and ensuring all team members can work effectively.
+Screen Description:
+1. Fields validate immediately upon losing focus (blur events)
+2. Success indicators (green checkmarks) appear for correctly completed fields
+3. Inline suggestions appear for partially completed fields
+4. Character counters and format hints provide proactive guidance
+5. Submit button progressively enables as required fields are completed
+6. Field completion progress indicator shows overall form status
+7. Contextual help tooltips provide guidance without cluttering interface
+8. Smart defaults populate based on user history and project context
 
-### Business Goal
-Increase user adoption and long-term engagement by providing flexible customization options that accommodate diverse team workflows and project requirements.
+Design Problems:
+i. HMW provide helpful validation without being intrusive or annoying?
+ii. HMW balance immediate feedback with allowing users to work at their own pace?
+iii. HMW ensure progressive validation doesn't slow down experienced users?
+iv. HMW make validation feedback accessible to all users including screen reader users?
 
-### Workflow Variation 3A: Initial Project Setup Flow
+Design Opportunities:
+i. What if the system could predict and prevent common validation errors?
+ii. What if we could provide personalized validation based on user behavior?
+iii. What if the form could adapt its validation timing to user preferences?
+iv. What if we could use machine learning to improve validation suggestions over time?
 
-#### Screens:
+## Scenario 3: Bulk Task Creation
 
-**3.0 Project Setup Wizard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item or "Create New Project" button
+**Context & User Scenario:**
+Jenna, a project coordinator, needs to create multiple related tasks for a new project phase. She wants to efficiently create several tasks without having to repeat common information like project context, assignee groups, or similar priorities.
+
+### Workflow Variation 3A: Batch Creation Flow
+
+**User Goal:** Efficiently create multiple related tasks while minimizing repetitive data entry.
+
+**Business Goal:** Support efficient project setup and task management for complex projects while maintaining data consistency.
+
+**Screen Documentation:**
+
+**1.0 Task Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Guide users through comprehensive project configuration while making setup decisions clear and reversible.
+[Same as previous scenarios]
 
-Screen Description:
-1. User can enter project basic information (name, description, timeline)
-2. User can select project template or start from scratch
-3. User can configure column names and workflow stages
-4. User can set up team members and assign roles/permissions
-5. User can define task types, priorities, and labeling systems
-6. User can establish project conventions and guidelines
-7. User can configure integrations with external tools
-8. User can preview and test configuration before finalizing
-
-Design Problems:
-- HMW make project setup comprehensive without overwhelming new users?
-- HMW ensure setup decisions can be easily modified later?
-- HMW help users choose appropriate configurations for their team size and type?
-- HMW balance flexibility with simplicity in configuration options?
-
-Design Opportunities:
-- What if the system could recommend optimal configurations based on team composition?
-- What if we could provide setup templates for common project types?
-- What if the wizard could learn from successful project setups to improve recommendations?
-- What if we could offer guided tours of different configuration options?
-
-**3.0-D Template Preview [type: detail]**
-- HOW IT IS REACHED: Click on any template option from Project Setup Wizard
+**Pu.4 Batch Task Creation Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "Bulk Create" option from Task Dashboard dropdown
 - NAVBAR PRESENCE: No
 
-Page Goal: Provide comprehensive template preview that helps users make informed configuration decisions.
+Page Goal: Enable efficient creation of multiple tasks with shared attributes and minimal repetitive input.
 
 Screen Description:
-1. User can view complete template configuration including columns, task types, and workflows
-2. User can see example tasks and typical usage patterns for the template
-3. User can preview how the template would look with their team size
-4. User can compare multiple templates side by side
-5. User can customize template elements before applying
-6. User can view success stories or case studies for similar teams
-7. User can access detailed documentation for template best practices
-8. User can save customized templates for future use
+1. User sets common attributes (project, assignee group, priority, due date range)
+2. User can add multiple task titles in a list format
+3. Each task row allows individual customization of shared defaults
+4. User can import task list from CSV or copy-paste from external sources
+5. Preview section shows how tasks will be created
+6. Bulk validation highlights any issues across all tasks
+7. User can create all tasks at once or review individually
+8. Progress indicator shows creation status for each task
+9. Summary report shows successful creations and any failures
 
 Design Problems:
-- HMW help users understand the implications of different template choices?
-- HMW make template previews realistic and relevant to user's context?
-- HMW ensure users can easily customize templates without starting from scratch?
-- HMW provide enough information for confident decision-making?
+i. HMW make bulk creation efficient without sacrificing individual task quality?
+ii. HMW handle validation errors across multiple tasks clearly?
+iii. HMW allow customization of individual tasks within bulk creation?
+iv. HMW provide clear feedback on bulk operation progress and results?
 
 Design Opportunities:
-- What if templates could be dynamically adjusted based on team feedback?
-- What if we could show predicted outcomes based on similar team configurations?
-- What if users could test templates with sample data before committing?
-- What if the system could suggest hybrid approaches combining multiple templates?
+i. What if the system could suggest task breakdowns based on project templates?
+ii. What if we could provide intelligent task sequencing and dependency suggestions?
+iii. What if bulk creation could learn from previous project patterns?
+iv. What if we could offer collaborative bulk creation for team planning sessions?
 
-**Pu.5 Team Member Invitation Modal [type: modal]**
-- HOW IT IS REACHED: Click "Invite Team Members" button from Project Setup Wizard
-- NAVBAR PRESENCE: No
+### Workflow Variation 3B: Template-Based Creation Flow
 
-Page Goal: Streamline team member onboarding while ensuring appropriate access controls and role assignments.
+**User Goal:** Quickly create tasks based on predefined templates for common project types.
 
-Screen Description:
-1. User can enter team member email addresses individually or in bulk
-2. User can assign roles and permission levels for each invitee
-3. User can customize invitation messages with project context
-4. User can set up onboarding sequences and welcome materials
-5. User can configure notification preferences for new members
-6. User can preview invitation emails before sending
-7. User can track invitation status and follow up on pending invites
-8. User can import team members from existing systems or directories
+**Business Goal:** Standardize task creation processes while reducing setup time for recurring project types.
 
-Design Problems:
-- HMW make team invitation efficient for large teams without sacrificing personalization?
-- HMW ensure appropriate security and access controls during invitation process?
-- HMW help new team members understand their role and responsibilities immediately?
-- HMW balance automation with personal touch in team onboarding?
+**Screen Documentation:**
 
-Design Opportunities:
-- What if the system could suggest optimal role assignments based on team member profiles?
-- What if we could provide personalized onboarding paths for different roles?
-- What if invitations could include interactive project previews?
-- What if we could facilitate introductions between team members automatically?
-
-### Workflow Variation 3B: Advanced Customization Flow
-
-#### Screens:
-
-**3.1 Board Customization Interface [type: primary]**
-- HOW IT IS REACHED: Navigate to customization section via sidebar nav item
+**2.0 Template Library [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Provide comprehensive board customization capabilities while maintaining usability and preventing configuration complexity.
+Page Goal: Provide access to task templates and enable template-based task creation.
 
 Screen Description:
-1. User can modify column names, colors, and workflow rules
-2. User can create custom task types with specific fields and properties
-3. User can set up automation rules and workflow triggers
-4. User can configure board layout and visual preferences
-5. User can establish custom labeling and categorization systems
-6. User can define team-specific terminology and conventions
-7. User can set up integration connections and data synchronization
-8. User can preview changes in real-time before applying
+1. User can browse available task templates by category
+2. User can preview template contents and structure
+3. User can search templates by keywords or project type
+4. User can create custom templates from existing tasks
+5. User can share templates with team members
+6. User can initiate task creation from selected template
 
 Design Problems:
-- HMW provide powerful customization without making the interface overwhelming?
-- HMW ensure customizations don't break core functionality or user experience?
-- HMW help users understand the impact of configuration changes?
-- HMW balance team-wide consistency with individual preferences?
+i. HMW make template discovery and selection intuitive?
+ii. HMW balance template standardization with customization needs?
+iii. HMW help users understand when to use templates vs. custom creation?
+iv. HMW manage template versioning and updates?
 
 Design Opportunities:
-- What if the system could suggest optimizations based on team usage patterns?
-- What if we could provide A/B testing capabilities for different configurations?
-- What if customizations could be shared and adopted across similar teams?
-- What if the platform could automatically adapt to changing team needs over time?
+i. What if templates could be automatically suggested based on project context?
+ii. What if we could provide collaborative template creation and editing?
+iii. What if templates could include conditional logic for different scenarios?
+iv. What if the system could learn from successful projects to suggest new templates?
 
-**Pu.6 Automation Rules Builder [type: modal]**
-- HOW IT IS REACHED: Click "Create Automation" button from Board Customization Interface
+**Pu.5 Template Task Creation Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "Use Template" from Template Library
 - NAVBAR PRESENCE: No
 
-Page Goal: Enable powerful workflow automation while keeping rule creation accessible to non-technical users.
+Page Goal: Customize template-based tasks for current project context while maintaining template benefits.
 
 Screen Description:
-1. User can create trigger-based automation rules using visual builder
-2. User can define conditions and actions for automated workflows
-3. User can test automation rules with sample data before activation
-4. User can view and manage existing automation rules
-5. User can set up notifications and alerts for automated actions
-6. User can create conditional logic and complex rule combinations
-7. User can monitor automation performance and effectiveness
-8. User can share and collaborate on automation rule development
+1. Template structure is pre-populated with placeholder content
+2. User customizes template variables (project name, team members, dates)
+3. User can modify individual tasks within the template
+4. User can add or remove tasks from the template
+5. Preview shows final task structure before creation
+6. User can save customizations as a new template variant
+7. Batch creation processes all template tasks
+8. Success confirmation shows created tasks with links to view them
 
 Design Problems:
-- HMW make automation rule creation intuitive for users without technical backgrounds?
-- HMW ensure automation rules don't create unexpected or disruptive behaviors?
-- HMW help users understand the full impact of automation on their workflow?
-- HMW balance automation power with system reliability and predictability?
+i. HMW make template customization clear and efficient?
+ii. HMW prevent users from accidentally breaking template structure?
+iii. HMW handle template updates when underlying templates change?
+iv. HMW provide appropriate guidance for template customization?
 
 Design Opportunities:
-- What if the system could suggest automation opportunities based on repetitive user actions?
-- What if we could provide pre-built automation templates for common scenarios?
-- What if automation rules could learn and adapt based on team feedback?
-- What if we could provide simulation capabilities to test complex automation scenarios?
+i. What if templates could include smart defaults based on current project data?
+ii. What if we could provide real-time collaboration on template customization?
+iii. What if templates could include automated task dependencies and scheduling?
+iv. What if the system could suggest template improvements based on usage patterns?
 
-#### Navigation Structure (Scenario 3):
-3.0 Project Setup Wizard
+## Navigation Structure (Sidebar/Navbar - Primary Screens Only):
+1.0 Task Dashboard | 2.0 Template Library
 
-#### User Journey Flow (Scenario 3):
-**Variation 3A:** 3.0 Project Setup Wizard → [click template] → 3.0-D Template Preview → [click invite team] → Pu.5 Team Member Invitation Modal → [send invites] → 3.0 Project Setup Wizard (complete setup)
+## User Journey Flows:
 
-**Variation 3B:** 3.1 Board Customization Interface → [click create automation] → Pu.6 Automation Rules Builder → [create rule] → 3.1 Board Customization Interface (with new automation active)
+**Standard Task Creation Flow:**
+1.0 Task Dashboard → [click + Create Task] → Pu.1 Task Creation Form Modal [type: modal] → [submit] → 1.0 Task Dashboard (updated with new task)
 
----
+**Quick Task Creation Flow:**
+1.0 Task Dashboard → [click Quick Add] → Pu.2 Quick Task Creation Drawer [type: modal] → [submit] → 1.0 Task Dashboard (updated)
 
-## Settings and Configuration
+**Error Recovery Flow:**
+1.0 Task Dashboard → [click + Create Task] → Pu.1 Task Creation Form Modal [type: modal] → [submit with errors] → Er.1 Form Validation Error State [type: state] → [correct errors] → [submit] → 1.0 Task Dashboard (updated)
 
-**4.0 Settings [type: settings]**
-- HOW IT IS REACHED: Click settings icon or gear menu from any screen
-- NAVBAR PRESENCE: No
+**Progressive Validation Flow:**
+1.0 Task Dashboard → [click + Create Task] → Pu.3 Progressive Task Creation Form [type: modal] → [real-time validation] → [submit] → 1.0 Task Dashboard (updated)
 
-Page Goal: Provide centralized access to all user preferences, system configurations, and accessibility options.
+**Batch Creation Flow:**
+1.0 Task Dashboard → [click Bulk Create] → Pu.4 Batch Task Creation Modal [type: modal] → [submit] → 1.0 Task Dashboard (updated with multiple tasks)
 
-Screen Description:
-1. **Display Preferences**
-   - Theme selection (Light, Dark, High Contrast)
-   - Color customization options
-   - Typography and font size adjustments
-   - Layout density preferences
-
-2. **Accessibility Options**
-   - Screen reader compatibility toggle
-   - High contrast mode toggle
-   - Keyboard navigation preferences
-   - Motion and animation controls
-   - Focus indicator customization
-
-3. **Notification Settings**
-   - Email notification preferences
-   - In-app notification controls
-   - Real-time update settings
-   - Quiet hours and do-not-disturb modes
-
-4. **Integration Management**
-   - Connected app configurations
-   - API access and webhook settings
-   - Data export and import options
-   - Third-party tool synchronization
-
-5. **Privacy and Security**
-   - Account security settings
-   - Data sharing preferences
-   - Activity logging controls
-   - Two-factor authentication setup
-
-Design Problems:
-- HMW organize extensive settings without creating overwhelming navigation?
-- HMW ensure critical accessibility settings are easily discoverable?
-- HMW make settings changes immediately apparent in their effects?
-- HMW balance comprehensive options with sensible defaults?
-
-Design Opportunities:
-- What if settings could be automatically optimized based on user behavior patterns?
-- What if we could provide guided setup for complex integrations?
-- What if the system could suggest personalized settings based on role and usage?
-- What if we could offer settings synchronization across multiple devices?
-
----
-
-## Error States and Edge Cases
-
-**Er.1 Network Connection Error [type: state]**
-- Condition of any screen when network connectivity is lost
-- Shows offline mode capabilities and data synchronization status
-- Provides clear guidance on what functionality remains available
-- Offers retry mechanisms and connection troubleshooting
-
-**Er.2 Empty Board State [type: state]**
-- Condition of Kanban board when no tasks exist
-- Provides onboarding guidance and quick task creation options
-- Shows example tasks or templates to help users get started
-- Offers import options for existing task lists
-
-**Er.3 Overloaded Column Warning [type: state]**
-- Condition when a column exceeds recommended task limits
-- Provides visual indicators and performance warnings
-- Suggests workload balancing or column subdivision
-- Offers automated task distribution options
-
-**Er.4 Permission Denied Access [type: state]**
-- Condition when user lacks sufficient permissions for requested action
-- Clearly explains permission requirements and restrictions
-- Provides contact information for access requests
-- Offers alternative actions within user's permission level
-
----
+**Template-Based Creation Flow:**
+1.0 Task Dashboard → [click Templates] → 2.0 Template Library → [select template] → Pu.5 Template Task Creation Modal [type: modal] → [customize and submit] → 1.0 Task Dashboard (updated)
 
 ## ACCESSIBILITY NOTES
 
 **Keyboard Navigation:**
-- All primary screens support full keyboard navigation with logical tab order
-- Arrow keys navigate between task cards within columns
-- Enter key opens task details, Space key selects tasks for bulk operations
-- Escape key closes modals and returns to previous screen
-- Custom keyboard shortcuts for common actions (Ctrl+N for new task, Ctrl+F for filter)
+- All primary screens (1.0, 2.0) support full keyboard navigation with logical tab order
+- Modal forms (Pu.1-Pu.5) trap focus within the modal and return focus to trigger element on close
+- Form fields follow logical tab sequence: Title → Description → Priority → Assignee → Additional fields
+- Escape key closes modals, Enter key submits forms when appropriate
 
 **ARIA Labels and Landmarks:**
-- Each column marked as region with descriptive labels ("To Do tasks", "In Progress tasks", "Completed tasks")
-- Task cards include comprehensive ARIA descriptions with status, assignee, and priority
-- Live regions announce task movements and status changes
-- Form controls include descriptive labels and error messaging
-- Navigation landmarks clearly identify main content, sidebar, and modal areas
+- Main navigation marked with role="navigation" and aria-label="Main navigation"
+- Form sections use fieldset and legend elements for grouping
+- Required fields marked with aria-required="true"
+- Error messages associated with fields using aria-describedby
+- Live regions (aria-live="polite") announce form validation results
+- Modal dialogs use role="dialog" with appropriate aria-labelledby and aria-describedby
 
 **Screen Reader Announcements:**
-- Task status changes announced immediately ("Task moved to In Progress")
-- Bulk operations provide summary announcements ("5 tasks updated successfully")
-- Real-time collaboration activities announced contextually
-- Error states and validation messages announced with appropriate urgency levels
-- Progress indicators and loading states provide ongoing status updates
+- Form validation errors announced immediately when they occur
+- Success messages announced when tasks are created
+- Loading states announced with "Creating task, please wait"
+- Progress updates announced during batch operations
+- Field completion status announced in progressive validation
 
 **High Contrast Mode:**
 - Toggled via Settings screen, applies as CSS class site-wide
-- Maintains minimum 4.5:1 contrast ratio for all text elements
-- Uses distinct patterns and shapes in addition to color coding
-- Ensures focus indicators remain visible in high contrast mode
-- Preserves all functionality while enhancing visual accessibility
+- Ensures 4.5:1 contrast ratio for all text and interactive elements
+- Error states use both color and iconography for identification
+- Focus indicators remain visible in high contrast mode
 
 **Focus Indicators:**
-- Visible focus rings on all interactive elements with 2px minimum thickness
-- Focus indicators use high contrast colors that work across all themes
-- Focus management maintains logical flow during modal interactions
-- Skip links provided for efficient navigation to main content areas
+- 2px solid blue outline for keyboard focus on all interactive elements
+- Focus indicators never hidden or reduced below 2px thickness
+- Custom focus styles for complex components like priority selectors
+- Focus visible on all modal trigger elements
 
 **Minimum Touch Targets:**
-- All interactive elements maintain 44px minimum touch target size
+- 44px minimum size for all interactive elements including buttons, form fields, and links
 - Adequate spacing between adjacent interactive elements
-- Drag handles and resize controls optimized for touch interaction
-- Mobile-specific touch gestures documented and consistently implemented
-
----
+- Form field touch targets include labels for easier interaction
 
 ## VIEWPORT BEHAVIOUR
 
-**1.0 Kanban Board Dashboard**
-- Desktop (1024px+): Three-column layout with 300px minimum column width, horizontal scrolling if needed
-- Tablet (768px–1023px): Maintains three-column layout with responsive column widths, optimized touch targets
-- Mobile (320px–767px): Single-column stack with swipe navigation between columns, full-width task cards
+**1.0 Task Dashboard**
+- Desktop (1024px+): Three-column layout with sidebar navigation, main task list, and details panel
+- Tablet (768px–1023px): Two-column layout with collapsible sidebar, main content area
+- Mobile (320px–767px): Single column with hamburger menu, stacked task cards
 
-**2.0 Team Progress Dashboard**
-- Desktop (1024px+): Multi-panel layout with charts and metrics in grid formation
-- Tablet (768px–1023px): Two-column responsive grid with stacked chart elements
-- Mobile (320px–767px): Single-column vertical stack with horizontally scrollable chart containers
+**2.0 Template Library**
+- Desktop (1024px+): Grid layout with 3-4 template cards per row, sidebar filters
+- Tablet (768px–1023px): 2-3 template cards per row, collapsible filter panel
+- Mobile (320px–767px): Single column template list, bottom sheet filters
 
-**3.0 Project Setup Wizard**
-- Desktop (1024px+): Centered form layout with progress sidebar and preview panel
-- Tablet (768px–1023px): Full-width form with collapsible sidebar and bottom progress indicator
-- Mobile (320px–767px): Single-column form with step-by-step progression and mobile-optimized inputs
+**Modal Forms (Pu.1-Pu.5)**
+- Desktop (1024px+): Centered modal with fixed width (600px), overlay background
+- Tablet (768px–1023px): Full-width modal with margins, adjusted field layouts
+- Mobile (320px–767px): Full-screen modal with mobile-optimized form layouts, larger touch targets
 
-**Task Detail Views (All -D screens)**
-- Desktop (1024px+): Modal overlay with maximum 800px width, centered positioning
-- Tablet (768px–1023px): Full-screen overlay with close button and optimized spacing
-- Mobile (320px–767px): Full-screen view with native mobile navigation patterns
-
-**Modal Components (All Pu.X screens)**
-- Desktop (1024px+): Centered overlay with backdrop, maximum 600px width for forms
-- Tablet (768px–1023px): Responsive modal sizing with touch-optimized controls
-- Mobile (320px–767px): Bottom sheet or full-screen presentation based on content complexity
-
-**Settings Screen**
-- Desktop (1024px+): Two-column layout with navigation sidebar and content panel
-- Tablet (768px–1023px): Collapsible navigation with full-width content sections
-- Mobile (320px–767px): Single-column accordion-style sections with mobile-optimized form controls
-
-These viewport adaptations ensure consistent functionality across all device types while optimizing the interface for each screen size's unique interaction patterns and constraints.
+**Form Field Adaptations:**
+- Desktop: Multi-column form layouts where appropriate
+- Tablet: Adjusted field widths and spacing for touch interaction
+- Mobile: Single-column layout, larger form fields, optimized keyboard types for different input fields
