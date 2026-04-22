@@ -1,233 +1,317 @@
-# Sequence Diagram - Task Creation API Endpoint
+# Sequence Diagram - Task Management API
+## Task Creation Flow
 
-## Overview
-This sequence diagram illustrates the complete flow for creating a task through the Task Management API endpoint, including authentication, validation, business logic processing, and data persistence.
-
-## Sequence Diagram
-
-```mermaid
-sequenceDiagram
-    participant Client as API Consumer<br/>(Mobile/Web App)
-    participant Gateway as API Gateway<br/>(Load Balancer)
-    participant Auth as Authentication<br/>Service
-    participant Controller as Task Controller<br/>(HTTP Layer)
-    participant DTO as CreateTaskDto<br/>(Validation Layer)
-    participant Service as Task Service<br/>(Business Logic)
-    participant Cache as Redis Cache<br/>(Session/Data)
-    participant DB as Task Database<br/>(PostgreSQL)
-    participant Audit as Audit Service<br/>(Compliance)
-    participant Notif as Notification<br/>Service
-
-    Note over Client, Notif: Task Creation Flow - POST /api/tasks
-    
-    %% Authentication Phase
-    Client->>+Gateway: POST /api/tasks<br/>Authorization: Bearer <jwt_token><br/>Content-Type: application/json
-    Gateway->>Gateway: Rate Limiting Check<br/>(100 req/min per user)
-    Gateway->>+Auth: Validate JWT Token<br/>X-Request-ID: correlation-id
-    
-    alt Valid Token
-        Auth-->>-Gateway: Token Valid<br/>User: {id, roles, permissions}
-        Gateway->>+Controller: Forward Request<br/>+ User Context
-    else Invalid Token
-        Auth-->>Gateway: 401 Unauthorized
-        Gateway-->>Client: 401 Unauthorized<br/>{error: "UNAUTHORIZED"}
-    end
-    
-    %% Request Validation Phase
-    Controller->>+DTO: Validate Request Body<br/>{title, description, priority, etc.}
-    DTO->>DTO: Field Validation<br/>- Title: required, max 255 chars<br/>- Priority: enum validation<br/>- DueDate: future date check
-    
-    alt Validation Success
-        DTO-->>-Controller: Validation Passed<br/>Sanitized Data
-    else Validation Failure
-        DTO-->>Controller: 400 Bad Request<br/>Validation Errors
-        Controller-->>Gateway: 400 Bad Request<br/>{error: "VALIDATION_ERROR"}
-        Gateway-->>-Client: 400 Bad Request
-    end
-    
-    %% Authorization Check
-    Controller->>Controller: Check User Permissions<br/>Can user create tasks?
-    
-    alt Insufficient Permissions
-        Controller-->>Gateway: 403 Forbidden<br/>{error: "FORBIDDEN"}
-        Gateway-->>Client: 403 Forbidden
-    end
-    
-    %% Business Logic Processing
-    Controller->>+Service: createTask(createTaskDto, userContext)
-    
-    %% Cache Check for User/Assignee Validation
-    Service->>+Cache: Check User Permissions<br/>Key: user:{userId}:permissions
-    
-    alt Cache Hit
-        Cache-->>Service: User Permissions Data
-    else Cache Miss
-        Cache-->>Service: Cache Miss
-        Service->>+Auth: Get User Permissions
-        Auth-->>-Service: User Permissions
-        Service->>Cache: Cache Permissions<br/>TTL: 5 minutes
-    end
-    
-    Cache-->>-Service: Permission Data Retrieved
-    
-    %% Assignee Validation (if assigneeId provided)
-    opt Assignee ID Provided
-        Service->>+Cache: Validate Assignee<br/>Key: user:{assigneeId}:active
-        
-        alt Assignee Cache Hit
-            Cache-->>Service: Assignee Status: Active
-        else Assignee Cache Miss
-            Cache-->>Service: Cache Miss
-            Service->>+Auth: Validate Assignee Status
-            Auth-->>-Service: Assignee Status
-            Service->>Cache: Cache Assignee Status<br/>TTL: 1 minute
-        end
-        
-        Cache-->>-Service: Assignee Validation Complete
-        
-        alt Inactive Assignee
-            Service-->>Controller: 422 Unprocessable Entity<br/>{error: "INVALID_ASSIGNEE"}
-            Controller-->>Gateway: 422 Unprocessable Entity
-            Gateway-->>Client: 422 Unprocessable Entity
-        end
-    end
-    
-    %% Business Rule Validation
-    Service->>Service: Apply Business Rules<br/>- Unique title per user<br/>- Due date constraints<br/>- Priority validation
-    
-    %% Check for Duplicate Task
-    Service->>+DB: Check Duplicate Task<br/>SELECT COUNT(*) WHERE title ILIKE %title%<br/>AND createdBy = userId
-    DB-->>-Service: Duplicate Check Result
-    
-    alt Duplicate Found
-        Service-->>Controller: 409 Conflict<br/>{error: "DUPLICATE_TASK"}
-        Controller-->>Gateway: 409 Conflict
-        Gateway-->>Client: 409 Conflict
-    end
-    
-    %% Data Persistence
-    Service->>Service: Generate Task ID<br/>UUID v4
-    Service->>Service: Prepare Task Entity<br/>+ Timestamps, User Context
-    
-    Service->>+DB: BEGIN TRANSACTION
-    Service->>DB: INSERT INTO tasks<br/>(id, title, description, status, priority, dueDate, assigneeId, createdBy, createdAt, updatedAt)
-    
-    alt Database Success
-        DB-->>Service: Task Created Successfully<br/>Returning: task_id, created_at
-        Service->>DB: COMMIT TRANSACTION
-        DB-->>-Service: Transaction Committed
-        
-        %% Audit Logging
-        Service->>+Audit: Log Task Creation<br/>{action: "TASK_CREATED", taskId, userId, timestamp, metadata}
-        Audit->>Audit: Store Audit Record<br/>Immutable Log Entry
-        Audit-->>-Service: Audit Logged
-        
-        %% Cache Updates
-        Service->>Cache: Invalidate User Task Cache<br/>Key: tasks:user:{userId}:*
-        Service->>Cache: Cache New Task<br/>Key: task:{taskId}<br/>TTL: 1 hour
-        
-        %% Prepare Response
-        Service->>Service: Build Task Response<br/>Include all task fields + metadata
-        Service-->>-Controller: Task Created Successfully<br/>TaskResponse Object
-        
-    else Database Failure
-        DB-->>Service: Database Error
-        Service->>DB: ROLLBACK TRANSACTION
-        DB-->>Service: Transaction Rolled Back
-        Service-->>Controller: 500 Internal Server Error<br/>{error: "INTERNAL_SERVER_ERROR"}
-        Controller-->>Gateway: 500 Internal Server Error
-        Gateway-->>Client: 500 Internal Server Error
-    end
-    
-    %% Success Response
-    Controller->>Controller: Format HTTP Response<br/>Status: 201 Created<br/>Headers: Location, X-Request-ID
-    Controller-->>-Gateway: 201 Created<br/>Location: /api/tasks/{taskId}<br/>Body: TaskResponse
-    
-    Gateway->>Gateway: Add Response Headers<br/>X-Rate-Limit-Remaining<br/>X-Rate-Limit-Reset
-    Gateway-->>-Client: 201 Created<br/>Task Successfully Created
-    
-    %% Asynchronous Notifications (Fire and Forget)
-    par Async Notifications
-        Service->>+Notif: Send Task Creation Notification<br/>{taskId, assigneeId, createdBy, title}
-        Notif->>Notif: Process Notification<br/>- Email to assignee<br/>- Push notification<br/>- Webhook to integrations
-        Notif-->>-Service: Notification Queued
-    end
-    
-    Note over Client, Notif: Task Creation Complete - Response Time Target: <200ms
-```
-
-## Flow Description
-
-### 1. Authentication Phase
-- **API Gateway** receives the request and performs rate limiting checks
-- **Authentication Service** validates the JWT token and returns user context
-- Invalid tokens result in immediate 401 Unauthorized response
-
-### 2. Request Validation Phase
-- **CreateTaskDto** performs comprehensive field validation
-- Validates required fields, data types, formats, and constraints
-- Returns detailed validation errors for any failures
-
-### 3. Authorization Phase
-- **Task Controller** checks if the user has permissions to create tasks
-- Returns 403 Forbidden if insufficient permissions
-
-### 4. Business Logic Processing
-- **Task Service** orchestrates the business logic
-- Validates assignee status (if provided) using cache-first approach
-- Applies business rules including duplicate checking
-- Handles all business rule violations with appropriate error responses
-
-### 5. Data Persistence
-- **Database Transaction** ensures data consistency
-- **Audit Service** logs all task creation events for compliance
-- **Cache Updates** maintain data consistency and performance
-
-### 6. Response Generation
-- **HTTP Response** formatted with proper status codes and headers
-- **Rate Limiting Headers** included for client awareness
-- **Asynchronous Notifications** triggered without blocking the response
-
-## Error Handling Scenarios
-
-| Error Type | HTTP Status | Response Time Impact | Recovery Action |
-|------------|-------------|---------------------|------------------|
-| Invalid Token | 401 | Minimal | Client re-authentication |
-| Validation Error | 400 | Minimal | Client data correction |
-| Insufficient Permissions | 403 | Minimal | Contact administrator |
-| Duplicate Task | 409 | Low | Modify task title |
-| Business Rule Violation | 422 | Low | Correct business data |
-| Rate Limit Exceeded | 429 | Minimal | Client backoff/retry |
-| Database Error | 500 | High | System recovery |
-
-## Performance Characteristics
-
-- **Target Response Time**: < 200ms for 95% of requests
-- **Database Query Time**: < 50ms for task insertion
-- **Cache Access Time**: < 5ms for permission checks
-- **Authentication Time**: < 100ms for token validation
-- **Audit Logging**: Asynchronous, no impact on response time
-
-## Security Measures
-
-- **JWT Token Validation** at API Gateway level
-- **Rate Limiting** prevents abuse (100 req/min per user)
-- **Input Sanitization** prevents injection attacks
-- **Audit Trail** maintains compliance and security monitoring
-- **Permission Caching** with appropriate TTL for security vs. performance balance
-
-## Compliance Features
-
-- **Complete Audit Trail** for all task creation events
-- **Immutable Logging** for regulatory compliance
-- **Data Validation** ensures data integrity
-- **User Attribution** tracks all actions to specific users
-- **Timestamp Accuracy** for legal and compliance requirements
+### Version: 1.0
+### Date: 2024
+### Generated from: HLD Document and API Contract Outline
 
 ---
 
-**Diagram Version**: 1.0  
-**Last Updated**: 2024  
-**Architecture**: Microservices with API Gateway Pattern  
-**Compliance**: GDPR, ISO 27001, SOX Ready  
-**Performance Target**: <200ms Response Time
+## Overview
+
+This sequence diagram illustrates the complete flow for creating a task through the Task Management API, including authentication, validation, business logic processing, data persistence, and audit logging.
+
+## Primary Flow: Task Creation
+
+```mermaid
+sequenceDiagram
+    participant Client as API Consumer
+    participant Gateway as API Gateway/Load Balancer
+    participant Auth as Authentication Service
+    participant Controller as Task Controller
+    participant Middleware as Validation Middleware
+    participant Service as Task Service
+    participant Database as PostgreSQL Database
+    participant Audit as Audit Service
+    participant Cache as Redis Cache
+    
+    Note over Client, Cache: Task Creation Request Flow
+    
+    Client->>Gateway: POST /api/tasks
+    Note right of Client: Request includes:<br/>- JWT Bearer Token<br/>- Task payload<br/>- X-Request-ID header
+    
+    Gateway->>Gateway: Rate Limiting Check
+    Note right of Gateway: Validate rate limits:<br/>- 100 requests/minute<br/>- Return 429 if exceeded
+    
+    Gateway->>Auth: Validate JWT Token
+    Note right of Auth: Token validation:<br/>- Signature verification<br/>- Expiration check<br/>- User permissions
+    
+    alt Token Invalid
+        Auth-->>Gateway: 401 Unauthorized
+        Gateway-->>Client: 401 Unauthorized Response
+    else Token Valid
+        Auth-->>Gateway: Token Valid + User Context
+        
+        Gateway->>Controller: Forward Request with User Context
+        Note right of Controller: Headers include:<br/>- Validated user ID<br/>- Request correlation ID<br/>- Rate limit info
+        
+        Controller->>Middleware: Validate Request DTO
+        Note right of Middleware: Validation checks:<br/>- Required fields present<br/>- Data types correct<br/>- Field length constraints<br/>- Enum value validation
+        
+        alt Validation Fails
+            Middleware-->>Controller: Validation Errors
+            Controller-->>Gateway: 400 Bad Request
+            Gateway-->>Client: 400 Bad Request Response
+            Note left of Client: Response includes:<br/>- Field-specific errors<br/>- Error codes<br/>- Correlation ID
+        else Validation Passes
+            Middleware-->>Controller: Validated DTO
+            
+            Controller->>Service: createTask(validatedDto, userContext)
+            Note right of Service: Business logic processing
+            
+            Service->>Service: Business Rule Validation
+            Note right of Service: Checks include:<br/>- Due date in future<br/>- Title uniqueness per user<br/>- User assignment validation
+            
+            alt Business Rules Fail
+                Service-->>Controller: Business Logic Error
+                
+                alt Conflict (Duplicate Title)
+                    Controller-->>Gateway: 409 Conflict
+                    Gateway-->>Client: 409 Conflict Response
+                else Unprocessable Entity (Invalid Assignment)
+                    Controller-->>Gateway: 422 Unprocessable Entity
+                    Gateway-->>Client: 422 Unprocessable Entity Response
+                end
+            else Business Rules Pass
+                Service->>Service: Data Sanitization
+                Note right of Service: Security measures:<br/>- XSS prevention<br/>- SQL injection protection<br/>- Input sanitization
+                
+                Service->>Database: BEGIN TRANSACTION
+                
+                Service->>Database: INSERT INTO tasks
+                Note right of Database: Task data:<br/>- Generated UUID<br/>- Sanitized content<br/>- Audit fields<br/>- Timestamps
+                
+                alt Database Error
+                    Database-->>Service: Database Error
+                    Service->>Database: ROLLBACK TRANSACTION
+                    Service-->>Controller: 500 Internal Server Error
+                    Controller-->>Gateway: 500 Internal Server Error
+                    Gateway-->>Client: 500 Internal Server Error Response
+                else Database Success
+                    Database-->>Service: Task Created (with ID)
+                    
+                    Service->>Audit: Log Task Creation Event
+                    Note right of Audit: Audit data:<br/>- User ID<br/>- Action: CREATE_TASK<br/>- Task ID<br/>- Timestamp<br/>- Request correlation ID
+                    
+                    Audit-->>Service: Audit Logged
+                    
+                    Service->>Database: COMMIT TRANSACTION
+                    Database-->>Service: Transaction Committed
+                    
+                    Service->>Cache: Cache User Task Count
+                    Note right of Cache: Performance optimization:<br/>- Update user statistics<br/>- Cache frequently accessed data
+                    Cache-->>Service: Cache Updated
+                    
+                    Service-->>Controller: Task Created Successfully
+                    
+                    Controller->>Controller: Format Response
+                    Note right of Controller: Response formatting:<br/>- Add Location header<br/>- Include rate limit headers<br/>- Add correlation ID
+                    
+                    Controller-->>Gateway: 201 Created Response
+                    Gateway-->>Client: 201 Created Response
+                    Note left of Client: Response includes:<br/>- Complete task object<br/>- Location header<br/>- Rate limit headers<br/>- Correlation ID
+                end
+            end
+        end
+    end
+```
+
+## Error Handling Flows
+
+### Authentication Error Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as API Consumer
+    participant Gateway as API Gateway
+    participant Auth as Authentication Service
+    
+    Client->>Gateway: POST /api/tasks (Invalid/Missing Token)
+    Gateway->>Auth: Validate JWT Token
+    Auth-->>Gateway: 401 Token Invalid/Missing
+    Gateway-->>Client: 401 Unauthorized
+    Note left of Client: Error Response:<br/>{<br/>  "statusCode": 401,<br/>  "message": "Unauthorized",<br/>  "error": "Invalid or missing token"<br/>}
+```
+
+### Rate Limiting Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as API Consumer
+    participant Gateway as API Gateway
+    
+    Client->>Gateway: POST /api/tasks (Rate Limit Exceeded)
+    Gateway->>Gateway: Check Rate Limits
+    Gateway-->>Client: 429 Too Many Requests
+    Note left of Client: Headers include:<br/>- Retry-After: 60<br/>- X-Rate-Limit-Remaining: 0<br/>- X-Rate-Limit-Reset: timestamp
+```
+
+### Database Connection Error Flow
+
+```mermaid
+sequenceDiagram
+    participant Service as Task Service
+    participant Database as PostgreSQL Database
+    participant Circuit as Circuit Breaker
+    
+    Service->>Circuit: Check Circuit State
+    
+    alt Circuit Open
+        Circuit-->>Service: Circuit Open - Fail Fast
+        Service-->>Service: Return Cached Error Response
+    else Circuit Closed
+        Circuit->>Database: Attempt Connection
+        
+        alt Connection Fails
+            Database-->>Circuit: Connection Timeout/Error
+            Circuit->>Circuit: Increment Failure Count
+            Circuit-->>Service: Database Unavailable
+            
+            alt Failure Threshold Reached
+                Circuit->>Circuit: Open Circuit
+            end
+        else Connection Success
+            Database-->>Circuit: Connection Established
+            Circuit->>Circuit: Reset Failure Count
+            Circuit-->>Service: Proceed with Operation
+        end
+    end
+```
+
+## Performance Optimization Flows
+
+### Caching Strategy Flow
+
+```mermaid
+sequenceDiagram
+    participant Service as Task Service
+    participant Cache as Redis Cache
+    participant Database as PostgreSQL Database
+    
+    Service->>Cache: Check User Task Statistics
+    
+    alt Cache Hit
+        Cache-->>Service: Return Cached Data
+        Note right of Service: Fast response:<br/>< 10ms from cache
+    else Cache Miss
+        Cache-->>Service: Cache Miss
+        Service->>Database: Query User Statistics
+        Database-->>Service: Return Statistics
+        Service->>Cache: Update Cache (TTL: 300s)
+        Cache-->>Service: Cache Updated
+    end
+```
+
+## Monitoring and Observability
+
+### Request Tracing Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as API Consumer
+    participant Gateway as API Gateway
+    participant Service as Task Service
+    participant Monitoring as APM System
+    
+    Client->>Gateway: POST /api/tasks (X-Request-ID: req-123)
+    Gateway->>Gateway: Generate Trace ID
+    Gateway->>Service: Forward Request (Trace-ID: trace-456)
+    
+    par Parallel Processing
+        Service->>Service: Process Request
+    and Monitoring Collection
+        Gateway->>Monitoring: Log Request Start
+        Service->>Monitoring: Log Processing Events
+        Service->>Monitoring: Log Performance Metrics
+    end
+    
+    Service-->>Gateway: Response
+    Gateway->>Monitoring: Log Request Complete
+    Gateway-->>Client: Response (X-Request-ID: req-123)
+```
+
+## Security Flow
+
+### Input Sanitization and Validation Flow
+
+```mermaid
+sequenceDiagram
+    participant Controller as Task Controller
+    participant Validator as Input Validator
+    participant Sanitizer as Data Sanitizer
+    participant Service as Task Service
+    
+    Controller->>Validator: Validate Input DTO
+    
+    Validator->>Validator: Schema Validation
+    Note right of Validator: Checks:<br/>- Required fields<br/>- Data types<br/>- Length constraints<br/>- Format validation
+    
+    Validator->>Validator: Security Validation
+    Note right of Validator: Security checks:<br/>- Malicious pattern detection<br/>- Script injection attempts<br/>- SQL injection patterns
+    
+    alt Validation Fails
+        Validator-->>Controller: Validation Errors
+    else Validation Passes
+        Validator-->>Sanitizer: Valid Input
+        
+        Sanitizer->>Sanitizer: Sanitize Input
+        Note right of Sanitizer: Sanitization:<br/>- HTML encoding<br/>- Script removal<br/>- Special character handling
+        
+        Sanitizer-->>Service: Sanitized Data
+    end
+```
+
+---
+
+## Flow Characteristics
+
+### Performance Targets
+- **Total Response Time**: < 200ms (P95)
+- **Authentication**: < 50ms
+- **Validation**: < 20ms
+- **Business Logic**: < 50ms
+- **Database Operation**: < 80ms
+- **Audit Logging**: Asynchronous (non-blocking)
+
+### Error Recovery
+- **Retry Strategy**: Exponential backoff for transient failures
+- **Circuit Breaker**: Fail-fast for downstream service failures
+- **Graceful Degradation**: Partial functionality during service outages
+
+### Security Measures
+- **Authentication**: JWT token validation on every request
+- **Authorization**: Role-based access control (RBAC)
+- **Input Validation**: Multi-layer validation (DTO + Business + Database)
+- **Audit Trail**: Complete audit logging for compliance
+
+### Scalability Considerations
+- **Stateless Design**: No server-side session state
+- **Horizontal Scaling**: Load balancing across multiple instances
+- **Database Scaling**: Read replicas for query optimization
+- **Caching**: Redis for performance optimization
+
+---
+
+## Compliance and Audit
+
+### Audit Trail Requirements
+- **User Actions**: All user actions logged with correlation IDs
+- **Data Changes**: Before/after values for data modifications
+- **Security Events**: Authentication, authorization, and access attempts
+- **System Events**: Errors, performance issues, and system state changes
+
+### GDPR Compliance
+- **Data Minimization**: Only necessary data collected and processed
+- **Consent Tracking**: User consent logged and tracked
+- **Right to be Forgotten**: Support for data deletion requests
+- **Data Portability**: Export capabilities for user data
+
+---
+
+**Document Metadata**
+- **Generated From**: HLD Document v1.0, API Contract Outline v1.0
+- **Architecture Pattern**: Layered Architecture with Microservices
+- **Technology Stack**: Node.js/NestJS, PostgreSQL, Redis, JWT
+- **Compliance**: GDPR, ISO27001, SOC2, PCI-DSS
+- **Performance Target**: < 200ms response time, 99.9% availability
+- **Security**: JWT authentication, input validation, audit logging
