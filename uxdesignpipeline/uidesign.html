@@ -1,1697 +1,1817 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KanbanBoard — Light · Project Management</title>
-  <style>
-    /* ── Play+ Light Theme Tokens (light.css + base.css names inlined) ── */
-    :root {
-      --color-brand-primary:#E91E63;--rgb-brand-primary:233,30,99;
-      --color-brand-primary-hover:#C2185B;--color-brand-primary-active:#9C27B0;
-      --color-brand-secondary:#2196F3;--rgb-brand-secondary:33,150,243;
-      --color-brand-secondary-hover:#1976D2;--color-brand-secondary-active:#0D47A1;
-      
-      --glass-background-color:rgba(255,255,255,0.6);
-      --surface-glass-border:rgba(255,255,255,0.7);
-      --surface-glass-bg:rgba(255,255,255,0.15);
-      --glass-backdrop-blur:12px;
-      --glass-elevation:0px 4px 12px rgba(0,0,0,0.1);
-      --global-elevation-01:0px 2px 4px rgba(0,0,0,0.08);
-      --global-elevation-02:0px 4px 12px rgba(0,0,0,0.1);
-      --global-glassmorphic-blur-30:blur(15px);--global-glassmorphic-blur-60:blur(30px);--global-glassmorphic-blur-90:blur(45px);
-      
-      --glass-0-blur:blur(4px);--glass-0-border:1px solid rgba(255,255,255,0.8);
-      --glass-0-shadow:0 8px 32px rgba(0,0,0,0.15),0 4px 16px rgba(0,0,0,0.1),inset 0 -1px 0 rgba(0,0,0,0.1);
-      --glass-10-blur:blur(12px);--glass-10-border:0px solid rgba(255,255,255,0.6);
-      --glass-10-shadow:0 10px 25px rgba(0,0,0,0.15),0 5px 15px rgba(0,0,0,0.10);
-      --glass-25-blur:blur(8px);--glass-25-border:1px solid rgba(255,255,255,0.4);
-      --glass-25-shadow:0 8px 20px rgba(0,0,0,0.12),0 4px 10px rgba(0,0,0,0.08);
-      --glass-100-blur:blur(20px);--glass-100-border:1px solid rgba(255,255,255,0.3);
-      --glass-100-shadow:0 4px 30px rgba(0,0,0,0.1);
-      
-      --global-background:#f0f4ff;--color-input-background:rgba(255,255,255,.75);
-      --color-text-primary:#4C515B;--color-text-muted:#898E99;--color-text-subtle:#B0B5BE;
-      --color-border-default:rgba(0,0,0,.10);--color-border-focus:var(--color-brand-primary);
-      
-      --global-color-green-500:#2E9E72;--global-color-red-500:#D64545;
-      --global-color-yellow-500:#C97A1A;--global-color-blue-500:#3B6FD4;
-      --global-color-deep-purple-500:#7B52BC;
-      
-      --green-bg:rgba(46,158,114,.12);--red-bg:rgba(214,69,69,.10);
-      --amber-bg:rgba(201,122,26,.10);--blue-bg:rgba(59,111,212,.10);
-      
-      --gradient-brand:linear-gradient(135deg,var(--color-brand-primary),#9c27b0);
-      --gradient-mesh:radial-gradient(ellipse at 15% 55%,rgba(233,30,99,.13) 0%,transparent 55%),
-        radial-gradient(ellipse at 85% 15%,rgba(156,39,176,.10) 0%,transparent 50%),
-        radial-gradient(ellipse at 55% 88%,rgba(59,111,212,.09) 0%,transparent 48%),
-        radial-gradient(ellipse at 70% 50%,rgba(255,255,255,.65) 0%,transparent 70%);
-      
-      --global-font-family-body:'Inter',sans-serif;--global-font-family-heading:'Mulish',sans-serif;
-      --global-spacing-1:4px;--global-spacing-2:8px;--global-spacing-3:12px;--global-spacing-4:16px;
-      --global-spacing-5:20px;--global-spacing-6:24px;--global-spacing-7:28px;--global-spacing-8:32px;
-      --global-radius-sm:6px;--global-radius-md:8px;--global-radius-lg:12px;--global-radius-xl:16px;
-      --global-radius-pill:9999px;--global-radius-circle:50%;
-      --global-motion-duration-swift:.2s;--global-motion-easing-standard:cubic-bezier(.4,0,.2,1);
-      
-      --focus-outline-color:#3B6FD4;--focus-outline-style:solid;--focus-outline-width:3px;
-      
-      /* Kanban Column Colors */
-      --todo-bg: #E3F2FD;
-      --progress-bg: #FFF3E0;
-      --done-bg: #E8F5E8;
-    }
-
-    /* ── Reset ── */
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family:var(--global-font-family-body);color:var(--color-text-primary);font-size:14px;line-height:1.5;
-      height:100vh;overflow:hidden;display:flex;background:var(--global-background);
-    }
-    body::before{
-      content:'';position:fixed;inset:0;background:var(--gradient-mesh);pointer-events:none;z-index:0;
-    }
-    @media(prefers-reduced-motion:no-preference){
-      body::before{animation:meshShift 14s ease-in-out infinite alternate}
-    }
-    @keyframes meshShift{
-      0%{opacity:.85;transform:scale(1)}
-      100%{opacity:1;transform:scale(1.05) rotate(.8deg)}
-    }
-
-    /* ── Skip link (WCAG Motor — Keyboard Navigability) ── */
-    .skip-link{
-      position:absolute;top:-999px;left:8px;z-index:9999;
-      background:var(--global-background);color:var(--color-text-primary);
-      padding:8px 16px;border-radius:var(--global-radius-md);font-weight:700;font-size:13px;
-      text-decoration:none;border:2px solid var(--focus-outline-color);
-    }
-    .skip-link:focus{top:8px}
-
-    /* ── Global focus ring (accessibilitystandards.txt: --focus-outline-*) ── */
-    :focus-visible{
-      outline:var(--focus-outline-width) var(--focus-outline-style) var(--focus-outline-color);
-      outline-offset:2px;border-radius:var(--global-radius-sm);
-    }
-
-    /* ── Layout ── */
-    #app{display:flex;width:100%;height:100vh;overflow:hidden;position:relative;z-index:1}
-
-    /* ── SIDEBAR — glass-100 ── */
-    .sidebar{
-      width:234px;flex-shrink:0;display:flex;flex-direction:column;
-      padding:var(--global-spacing-5) var(--global-spacing-4);overflow-y:auto;
-      background:rgba(255,255,255,.82);backdrop-filter:var(--glass-100-blur);
-      -webkit-backdrop-filter:var(--glass-100-blur);border-right:var(--glass-25-border);
-      box-shadow:var(--glass-100-shadow);
-    }
-
-    .brand{
-      display:flex;align-items:center;gap:var(--global-spacing-3);
-      padding-bottom:var(--global-spacing-5);border-bottom:1px solid rgba(0,0,0,.08);
-      margin-bottom:var(--global-spacing-4)
-    }
-
-    .brand-ico{
-      width:34px;height:34px;border-radius:var(--global-radius-md);
-      background:var(--gradient-brand);display:grid;place-items:center;
-      font-weight:800;font-family:var(--global-font-family-heading);color:#fff;font-size:14px;
-      flex-shrink:0;box-shadow:0 4px 12px rgba(var(--rgb-brand-primary),.30)
-    }
-
-    .brand-name{
-      font-family:var(--global-font-family-heading);font-weight:800;font-size:15px;
-      color:var(--color-text-primary)
-    }
-    .brand-name b{color:var(--color-brand-primary)}
-
-    .nav-label{
-      font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-      color:var(--color-text-subtle);padding:var(--global-spacing-4) 0 var(--global-spacing-2)
-    }
-
-    .nav-list{list-style:none;display:flex;flex-direction:column;gap:2px}
-    .nav-list li{
-      display:flex;align-items:center;gap:var(--global-spacing-3);
-      padding:9px var(--global-spacing-3);border-radius:var(--global-radius-md);
-      cursor:pointer;font-size:13px;font-weight:500;color:var(--color-text-muted);
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-      border:1px solid transparent;
-    }
-    .nav-list li:hover{
-      background:var(--glass-background-color);border-color:rgba(0,0,0,.07);
-      color:var(--color-text-primary)
-    }
-    .nav-list li.active{
-      background:linear-gradient(135deg,rgba(var(--rgb-brand-primary),.10),rgba(156,39,176,.07));
-      border-color:rgba(var(--rgb-brand-primary),.2);color:var(--color-brand-primary);
-      font-weight:600;box-shadow:0 2px 12px rgba(var(--rgb-brand-primary),.10);
-    }
-
-    .nav-pill{
-      margin-left:auto;background:var(--color-brand-primary);color:#fff;
-      font-size:10px;font-weight:700;padding:2px 7px;border-radius:var(--global-radius-pill);
-      box-shadow:0 2px 8px rgba(var(--rgb-brand-primary),.30)
-    }
-
-    .sb-foot{
-      margin-top:auto;padding-top:var(--global-spacing-4);
-      border-top:1px solid rgba(0,0,0,.08);font-size:11px;
-      color:var(--color-text-subtle);line-height:1.7
-    }
-
-    /* ── MAIN ── */
-    #main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-
-    /* ── HEADER — glass-25 ── */
-    .header{
-      height:54px;flex-shrink:0;background:rgba(255,255,255,.72);
-      backdrop-filter:var(--glass-25-blur);-webkit-backdrop-filter:var(--glass-25-blur);
-      border-bottom:var(--glass-100-border);box-shadow:var(--global-elevation-01);
-      display:flex;align-items:center;padding:0 var(--global-spacing-5);gap:var(--global-spacing-3);
-    }
-
-    .search{
-      display:flex;align-items:center;gap:var(--global-spacing-2);flex:1;max-width:340px;
-      background:var(--glass-background-color);border:var(--glass-25-border);
-      border-radius:var(--global-radius-sm);padding:var(--global-spacing-2) var(--global-spacing-3);
-      transition:border-color var(--global-motion-duration-swift) var(--global-motion-easing-standard),
-                 box-shadow var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-    }
-    .search:focus-within{
-      border-color:rgba(var(--rgb-brand-primary),.4);
-      box-shadow:0 0 0 3px rgba(var(--rgb-brand-primary),.08)
-    }
-    .search input{
-      border:none;background:transparent;outline:none;font-size:13px;
-      font-family:var(--global-font-family-body);color:var(--color-text-primary);flex:1
-    }
-    .search input::placeholder{color:var(--color-text-subtle)}
-
-    .h-right{display:flex;align-items:center;gap:var(--global-spacing-3);margin-left:auto}
-
-    .ico-btn{
-      width:34px;height:34px;border-radius:var(--global-radius-circle);
-      border:var(--glass-25-border);background:var(--glass-background-color);
-      display:grid;place-items:center;cursor:pointer;position:relative;
-      color:var(--color-text-muted);
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard)
-    }
-    .ico-btn:hover{
-      background:rgba(255,255,255,.88);border-color:rgba(var(--rgb-brand-primary),.25);
-      color:var(--color-brand-primary)
-    }
-
-    .notif-dot{
-      position:absolute;top:6px;right:6px;width:6px;height:6px;
-      background:var(--global-color-red-500);border-radius:var(--global-radius-circle);
-      border:1.5px solid var(--global-background);box-shadow:0 0 6px rgba(214,69,69,.5)
-    }
-
-    .avatar{
-      width:30px;height:30px;border-radius:var(--global-radius-circle);
-      background:var(--gradient-brand);display:grid;place-items:center;
-      font-size:11px;font-weight:700;color:#fff;flex-shrink:0;
-      box-shadow:var(--glass-elevation),0 0 0 2px rgba(var(--rgb-brand-primary),.15)
-    }
-
-    .av-chip{
-      display:flex;align-items:center;gap:var(--global-spacing-2);
-      padding:3px 10px 3px 3px;border:var(--glass-25-border);
-      border-radius:var(--global-radius-pill);background:var(--glass-background-color);
-      cursor:pointer;font-size:13px;font-weight:500;color:var(--color-text-primary);
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard)
-    }
-    .av-chip:hover{
-      background:rgba(255,255,255,.88);border-color:rgba(var(--rgb-brand-primary),.25)
-    }
-
-    /* ── CONTENT ── */
-    #content{flex:1;overflow-y:auto;background:transparent}
-    .page{display:none;padding:var(--global-spacing-5) var(--global-spacing-6)}.page.active{display:block}
-
-    /* ── Glass CARD — glass-10 ── */
-    .card{
-      background:var(--glass-background-color);backdrop-filter:var(--glass-10-blur);
-      -webkit-backdrop-filter:var(--glass-10-blur);border:var(--glass-0-border);
-      border-radius:var(--global-radius-xl);padding:var(--global-spacing-4);
-      box-shadow:var(--glass-25-shadow);
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-    }
-    .card:hover{
-      background:rgba(255,255,255,.80);border-color:rgba(255,255,255,.95);
-      box-shadow:var(--glass-0-shadow)
-    }
-
-    .card-title{
-      font-family:var(--global-font-family-heading);font-size:14px;font-weight:700;
-      color:var(--color-text-primary);margin-bottom:var(--global-spacing-4)
-    }
-
-    /* ── Page header ── */
-    .ph{
-      display:flex;justify-content:space-between;align-items:flex-start;
-      margin-bottom:var(--global-spacing-5)
-    }
-    .ph-title{
-      font-family:var(--global-font-family-heading);font-size:20px;font-weight:800;
-      color:var(--color-text-primary)
-    }
-    .ph-sub{font-size:12px;color:var(--color-text-muted);margin-top:2px}
-
-    /* ── KANBAN SPECIFIC STYLES ── */
-    .kanban-container{
-      display:flex;gap:var(--global-spacing-6);height:calc(100vh - 120px);
-      padding:var(--global-spacing-5);overflow-x:auto
-    }
-    .kanban-column{
-      flex:1;min-width:320px;background:var(--glass-background-color);
-      backdrop-filter:var(--glass-10-blur);-webkit-backdrop-filter:var(--glass-10-blur);
-      border:var(--glass-0-border);border-radius:var(--global-radius-xl);
-      display:flex;flex-direction:column;max-height:100%;
-      box-shadow:var(--glass-25-shadow);
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-    }
-    .kanban-column:hover{
-      background:rgba(255,255,255,.80);border-color:rgba(255,255,255,.95);
-      box-shadow:var(--glass-0-shadow)
-    }
-
-    .column-header{
-      padding:var(--global-spacing-4);border-bottom:1px solid rgba(0,0,0,.08);
-      display:flex;justify-content:space-between;align-items:center;
-      border-radius:var(--global-radius-xl) var(--global-radius-xl) 0 0;
-    }
-    .column-title{
-      font-family:var(--global-font-family-heading);font-size:16px;font-weight:700;
-      color:var(--color-text-primary)
-    }
-    .task-count{
-      background:rgba(var(--rgb-brand-primary),.10);color:var(--color-brand-primary);
-      font-size:11px;font-weight:700;padding:3px 8px;border-radius:var(--global-radius-pill);
-      border:1px solid rgba(var(--rgb-brand-primary),.20);
-      box-shadow:0 2px 8px rgba(var(--rgb-brand-primary),.15)
-    }
-
-    .column-body{
-      flex:1;padding:var(--global-spacing-3);overflow-y:auto;
-      display:flex;flex-direction:column;gap:var(--global-spacing-3)
-    }
-
-    .task-card{
-      background:var(--glass-background-color);backdrop-filter:var(--glass-25-blur);
-      -webkit-backdrop-filter:var(--glass-25-blur);border:var(--glass-0-border);
-      border-radius:var(--global-radius-lg);padding:var(--global-spacing-4);
-      cursor:pointer;min-height:44px;display:flex;flex-direction:column;
-      gap:var(--global-spacing-2);box-shadow:var(--global-elevation-01);
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-    }
-    .task-card:hover{
-      background:rgba(255,255,255,.80);border-color:rgba(var(--rgb-brand-primary),.25);
-      transform:translateX(2px);box-shadow:var(--glass-25-shadow)
-    }
-    .task-card:focus{
-      outline:var(--focus-outline-width) var(--focus-outline-style) var(--focus-outline-color);
-      outline-offset:2px
-    }
-
-    .task-title{
-      font-size:13px;font-weight:600;color:var(--color-text-primary);
-      margin-bottom:var(--global-spacing-2)
-    }
-    .task-meta{
-      display:flex;justify-content:space-between;align-items:center;
-      font-size:11px;color:var(--color-text-muted)
-    }
-    .task-assignee{display:flex;align-items:center;gap:var(--global-spacing-2)}
-    .task-priority{
-      padding:2px 6px;border-radius:var(--global-radius-sm);font-size:10px;font-weight:600
-    }
-    .task-priority.high{
-      background:var(--red-bg);color:var(--global-color-red-500);
-      border:1px solid rgba(214,69,69,.2)
-    }
-    .task-priority.medium{
-      background:var(--amber-bg);color:var(--global-color-yellow-500);
-      border:1px solid rgba(201,122,26,.2)
-    }
-    .task-priority.low{
-      background:var(--blue-bg);color:var(--global-color-blue-500);
-      border:1px solid rgba(59,111,212,.2)
-    }
-
-    /* Column specific backgrounds */
-    .todo-column .column-header{background:var(--todo-bg)}
-    .progress-column .column-header{background:var(--progress-bg)}
-    .done-column .column-header{background:var(--done-bg)}
-
-    /* ── BUTTONS — Play+ .ava-button structure ── */
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;
-      border-radius:var(--global-radius-md);font-family:var(--global-font-family-body);
-      font-weight:600;cursor:pointer;white-space:nowrap;font-size:13px;
-      padding:7px 15px;height:34px;border:none;
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-      min-height:44px;min-width:44px;
-    }
-    .btn .button-content{
-      display:flex;align-items:center;justify-content:center;
-      gap:var(--global-spacing-2);position:relative;z-index:1
-    }
-    .btn-primary{
-      background:linear-gradient(135deg,var(--color-brand-primary),#9c27b0);
-      color:#fff;border:1px solid rgba(var(--rgb-brand-primary),.25);
-      box-shadow:var(--glass-elevation),0 0 12px rgba(var(--rgb-brand-primary),.25);
-    }
-    .btn-primary:hover{
-      box-shadow:var(--glass-0-shadow),0 0 20px rgba(var(--rgb-brand-primary),.30);
-      transform:translateY(-1px) scale(1.02)
-    }
-    .btn-secondary{
-      background:var(--glass-background-color);border:var(--glass-0-border);
-      color:var(--color-text-primary)
-    }
-    .btn-secondary:hover{
-      background:rgba(255,255,255,.88);border-color:rgba(var(--rgb-brand-primary),.3);
-      color:var(--color-brand-primary)
-    }
-    .btn-sm{height:28px;padding:4px 10px;font-size:12px;min-height:28px;min-width:28px}
-
-    /* ── BADGES ── */
-    .badge{
-      display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
-      border-radius:var(--global-radius-pill);font-size:11px;font-weight:600
-    }
-    .badge-success{
-      background:var(--green-bg);color:var(--global-color-green-500);
-      border:1px solid rgba(46,158,114,.2)
-    }
-    .badge-danger{
-      background:var(--red-bg);color:var(--global-color-red-500);
-      border:1px solid rgba(214,69,69,.2)
-    }
-    .badge-warning{
-      background:var(--amber-bg);color:var(--global-color-yellow-500);
-      border:1px solid rgba(201,122,26,.2)
-    }
-    .badge-info{
-      background:var(--blue-bg);color:var(--global-color-blue-500);
-      border:1px solid rgba(59,111,212,.2)
-    }
-    .badge-brand{
-      background:rgba(var(--rgb-brand-primary),.10);color:var(--color-brand-primary);
-      border:1px solid rgba(var(--rgb-brand-primary),.20)
-    }
-    .dot::before{
-      content:'';width:5px;height:5px;border-radius:var(--global-radius-circle);
-      background:currentColor;display:inline-block
-    }
-
-    /* ── FILTERS ── */
-    .filters{display:flex;gap:var(--global-spacing-3);margin-bottom:var(--global-spacing-4);flex-wrap:wrap}
-    .filter-btn{
-      padding:6px 12px;border:var(--glass-25-border);border-radius:var(--global-radius-sm);
-      background:var(--glass-background-color);font-size:12px;cursor:pointer;
-      min-height:44px;font-weight:500;color:var(--color-text-muted);
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-      backdrop-filter:var(--glass-25-blur);-webkit-backdrop-filter:var(--glass-25-blur);
-    }
-    .filter-btn:hover{
-      background:rgba(255,255,255,.88);border-color:rgba(var(--rgb-brand-primary),.3);
-      color:var(--color-brand-primary)
-    }
-    .filter-btn.active{
-      background:rgba(var(--rgb-brand-primary),.10);color:var(--color-brand-primary);
-      border-color:rgba(var(--rgb-brand-primary),.40);font-weight:600;
-      box-shadow:0 2px 12px rgba(var(--rgb-brand-primary),.15)
-    }
-
-    /* ── ANALYTICS OVERLAY ── */
-    .analytics-overlay{
-      position:absolute;top:0;left:0;width:100%;height:100%;
-      background:rgba(255,255,255,0.95);backdrop-filter:var(--glass-100-blur);
-      -webkit-backdrop-filter:var(--glass-100-blur);display:none;
-      padding:var(--global-spacing-6);overflow-y:auto;z-index:100
-    }
-    .analytics-overlay.active{display:block}
-    .analytics-grid{
-      display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-      gap:var(--global-spacing-4)
-    }
-    .metric-card{
-      background:var(--glass-background-color);backdrop-filter:var(--glass-10-blur);
-      -webkit-backdrop-filter:var(--glass-10-blur);border:var(--glass-0-border);
-      border-radius:var(--global-radius-lg);padding:var(--global-spacing-4);
-      box-shadow:var(--glass-25-shadow);
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-    }
-    .metric-card:hover{
-      background:rgba(255,255,255,.80);border-color:rgba(255,255,255,.95);
-      box-shadow:var(--glass-0-shadow)
-    }
-    .metric-title{
-      font-size:12px;font-weight:600;color:var(--color-text-muted);
-      margin-bottom:var(--global-spacing-2)
-    }
-    .metric-value{
-      font-family:var(--global-font-family-heading);font-size:24px;font-weight:800;
-      color:var(--color-text-primary);line-height:1
-    }
-    .metric-hint{font-size:11px;color:var(--color-text-muted);margin-top:4px}
-
-    /* ── MOBILE STYLES ── */
-    .mobile-kanban{display:none}
-    @media (max-width: 767px) {
-      .kanban-container{display:none}
-      .mobile-kanban{display:block;padding:var(--global-spacing-4)}
-      .mobile-columns{
-        display:flex;overflow-x:auto;gap:var(--global-spacing-4);
-        padding-bottom:var(--global-spacing-4)
-      }
-      .mobile-column{min-width:280px;flex-shrink:0}
-      .sidebar{width:200px}
-      .ph-title{font-size:18px}
-    }
-
-    /* ── MODAL ── */
-    .modal{
-      position:fixed;top:0;left:0;width:100%;height:100%;
-      background:rgba(0,0,0,0.5);backdrop-filter:var(--glass-100-blur);
-      -webkit-backdrop-filter:var(--glass-100-blur);display:none;
-      align-items:center;justify-content:center;z-index:1000
-    }
-    .modal.active{display:flex}
-    .modal-content{
-      background:var(--glass-background-color);backdrop-filter:var(--glass-10-blur);
-      -webkit-backdrop-filter:var(--glass-10-blur);border-radius:var(--global-radius-xl);
-      padding:var(--global-spacing-6);max-width:500px;width:90%;max-height:80vh;
-      overflow-y:auto;border:var(--glass-0-border);box-shadow:var(--glass-0-shadow)
-    }
-    .modal-header{
-      display:flex;justify-content:space-between;align-items:center;
-      margin-bottom:var(--global-spacing-4)
-    }
-    .modal-title{
-      font-family:var(--global-font-family-heading);font-size:16px;font-weight:700;
-      color:var(--color-text-primary)
-    }
-    .close-btn{
-      background:none;border:none;font-size:18px;cursor:pointer;
-      color:var(--color-text-muted);width:32px;height:32px;
-      border-radius:var(--global-radius-circle);display:grid;place-items:center;
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard)
-    }
-    .close-btn:hover{
-      background:var(--glass-background-color);color:var(--color-brand-primary)
-    }
-
-    /* ── INPUT ── */
-    .field{margin-bottom:var(--global-spacing-4)}
-    .field label{
-      display:block;font-size:12px;font-weight:500;color:var(--color-text-muted);
-      margin-bottom:var(--global-spacing-1)
-    }
-    .field input,.field select,.field textarea{
-      width:100%;padding:var(--global-spacing-2) var(--global-spacing-3);
-      border:1px solid rgba(0,0,0,.12);border-radius:var(--global-radius-sm);
-      font-family:var(--global-font-family-body);font-size:13px;
-      color:var(--color-text-primary);background:var(--color-input-background);
-      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);outline:none;
-      transition:all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-    }
-    .field input:focus,.field select:focus,.field textarea:focus{
-      border-color:rgba(var(--rgb-brand-primary),.5);
-      box-shadow:0 0 0 3px rgba(var(--rgb-brand-primary),.10);
-    }
-    .field textarea{resize:vertical;min-height:68px}
-
-    /* ── Accessibility helpers ── */
-    .sr-only{
-      position:absolute;width:1px;height:1px;padding:0;margin:-1px;
-      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0
-    }
-
-    /* ── Status indicators ── */
-    .status-dot{
-      width:6px;height:6px;border-radius:var(--global-radius-circle);
-      display:inline-block;margin-left:4px
-    }
-    .status-online{background:var(--global-color-green-500)}
-    .status-away{background:var(--global-color-yellow-500)}
-    .status-offline{background:var(--color-text-subtle)}
-
-    /* ── Workload indicators ── */
-    .workload-bar{
-      width:60px;height:8px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden
-    }
-    .workload-fill{
-      height:100%;background:var(--global-color-green-500);transition:width .3s ease
-    }
-    .workload-fill.medium{background:var(--global-color-yellow-500)}
-    .workload-fill.high{background:var(--global-color-red-500)}
-
-    /* ── Drop zones ── */
-    .drop-zone{
-      border:2px dashed rgba(var(--rgb-brand-primary),.3);border-radius:var(--global-radius-md);
-      padding:var(--global-spacing-4);margin-bottom:var(--global-spacing-3);
-      background:rgba(var(--rgb-brand-primary),.05);text-align:center;
-      color:var(--color-text-muted);font-size:11px;display:none
-    }
-    .drop-zone.active{display:block}
-
-    /* Scrollbar */
-    ::-webkit-scrollbar{width:5px}
-    ::-webkit-scrollbar-track{background:transparent}
-    ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:var(--global-radius-pill)}
-    ::-webkit-scrollbar-thumb:hover{background:rgba(var(--rgb-brand-primary),.35)}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KanbanBoard — Play+ Design System</title>
+    <style>
+        /* ── Play+ Design System Tokens ── */
+        @import url("https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Mulish:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap");
+        
+        :root {
+            /* ── Global Color Tokens ── */
+            --global-color-pink-50: #FDE9EF;
+            --global-color-pink-100: #F8B9CF;
+            --global-color-pink-200: #F598B7;
+            --global-color-pink-300: #F06896;
+            --global-color-pink-400: #ED4B82;
+            --global-color-pink-500: #E91E63;
+            --global-color-pink-600: #D41B5A;
+            --global-color-pink-700: #A51546;
+            --global-color-pink-800: #801136;
+            --global-color-pink-900: #620D2A;
+            
+            --global-color-blue-50: #E9EFFD;
+            --global-color-blue-100: #BBCFF9;
+            --global-color-blue-200: #9AB7F6;
+            --global-color-blue-300: #6C96F2;
+            --global-color-blue-400: #5082EF;
+            --global-color-blue-500: #2563EB;
+            --global-color-blue-600: #215AD6;
+            --global-color-blue-700: #1A46A7;
+            --global-color-blue-800: #143681;
+            --global-color-blue-900: #0F2A63;
+            
+            --global-color-pulse-blue-50: #E6F3FF;
+            --global-color-pulse-blue-100: #B0D9FF;
+            --global-color-pulse-blue-200: #8AC6FF;
+            --global-color-pulse-blue-300: #54ADFF;
+            --global-color-pulse-blue-400: #339DFF;
+            --global-color-pulse-blue-500: #0084FF;
+            --global-color-pulse-blue-600: #0078E8;
+            --global-color-pulse-blue-700: #005EB5;
+            --global-color-pulse-blue-800: #00498C;
+            --global-color-pulse-blue-900: #00376B;
+            
+            --global-color-deep-purple-50: #F3E8FF;
+            --global-color-deep-purple-100: #D9B3FF;
+            --global-color-deep-purple-200: #C78CFF;
+            --global-color-deep-purple-300: #AF54FF;
+            --global-color-deep-purple-400: #9F33FF;
+            --global-color-deep-purple-500: #8A00FF;
+            --global-color-deep-purple-600: #7D00E8;
+            --global-color-deep-purple-700: #6200B5;
+            --global-color-deep-purple-800: #4C008C;
+            --global-color-deep-purple-900: #3A006B;
+            
+            --global-color-gray-50: #F9FAFB;
+            --global-color-gray-100: #F3F4F6;
+            --global-color-gray-200: #E5E7EB;
+            --global-color-gray-300: #D1D5DB;
+            --global-color-gray-400: #9CA3AF;
+            --global-color-gray-500: #6B7280;
+            --global-color-gray-600: #4B5563;
+            --global-color-gray-700: #374151;
+            --global-color-gray-800: #1F2937;
+            --global-color-gray-900: #111827;
+            
+            --global-color-white: #FFFFFF;
+            --global-color-black: #000000;
+            
+            --global-color-green-50: #ECFDF5;
+            --global-color-green-100: #D1FAE5;
+            --global-color-green-200: #A7F3D0;
+            --global-color-green-300: #6EE7B7;
+            --global-color-green-400: #34D399;
+            --global-color-green-500: #10B981;
+            --global-color-green-600: #059669;
+            --global-color-green-700: #047857;
+            --global-color-green-800: #065F46;
+            --global-color-green-900: #064E3B;
+            
+            --global-color-red-50: #FEF2F2;
+            --global-color-red-100: #FEE2E2;
+            --global-color-red-200: #FECACA;
+            --global-color-red-300: #FCA5A5;
+            --global-color-red-400: #F87171;
+            --global-color-red-500: #EF4444;
+            --global-color-red-600: #DC2626;
+            --global-color-red-700: #B91C1C;
+            --global-color-red-800: #991B1B;
+            --global-color-red-900: #7F1D1D;
+            
+            --global-color-yellow-50: #FFFBEB;
+            --global-color-yellow-100: #FEF3C7;
+            --global-color-yellow-200: #FDE68A;
+            --global-color-yellow-300: #FCD34D;
+            --global-color-yellow-400: #FBBF24;
+            --global-color-yellow-500: #F59E0B;
+            --global-color-yellow-600: #D97706;
+            --global-color-yellow-700: #B45309;
+            --global-color-yellow-800: #92400E;
+            --global-color-yellow-900: #78350F;
+            
+            /* ── Semantic Tokens (Light Theme) ── */
+            --color-brand-primary: var(--global-color-pink-500);
+            --color-brand-primary-hover: var(--global-color-pink-600);
+            --color-brand-primary-active: var(--global-color-pink-700);
+            --color-brand-secondary: var(--global-color-blue-500);
+            
+            --color-text-primary: var(--global-color-gray-900);
+            --color-text-secondary: var(--global-color-gray-700);
+            --color-text-muted: var(--global-color-gray-500);
+            --color-text-placeholder: var(--global-color-gray-400);
+            --color-text-disabled: var(--global-color-gray-300);
+            --color-text-interactive: var(--color-brand-primary);
+            --color-text-interactive-hover: var(--color-brand-primary-hover);
+            --color-text-error: var(--global-color-red-600);
+            --color-text-success: var(--global-color-green-600);
+            --color-text-warning: var(--global-color-yellow-600);
+            
+            --color-background-primary: var(--global-color-white);
+            --color-background-secondary: var(--global-color-gray-50);
+            --color-background-tertiary: var(--global-color-gray-100);
+            --color-background-disabled: var(--global-color-gray-100);
+            --color-background-overlay: rgba(0, 0, 0, 0.5);
+            
+            --color-border-default: var(--global-color-gray-200);
+            --color-border-interactive: var(--global-color-gray-300);
+            --color-border-focus: var(--color-brand-primary);
+            --color-border-error: var(--global-color-red-300);
+            --color-border-success: var(--global-color-green-300);
+            --color-border-warning: var(--global-color-yellow-300);
+            
+            /* ── Glassmorphism Tokens ── */
+            --glass-backdrop-blur: 12px;
+            --glass-background-color: rgba(255, 255, 255, 0.8);
+            --glass-border-color: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            
+            /* ── Typography Tokens ── */
+            --font-family-display: 'Mulish', sans-serif;
+            --font-family-body: 'Inter', sans-serif;
+            
+            --font-size-xs: 0.75rem;    /* 12px */
+            --font-size-sm: 0.875rem;   /* 14px */
+            --font-size-base: 1rem;     /* 16px */
+            --font-size-lg: 1.125rem;   /* 18px */
+            --font-size-xl: 1.25rem;    /* 20px */
+            --font-size-2xl: 1.5rem;    /* 24px */
+            --font-size-3xl: 1.875rem;  /* 30px */
+            
+            --font-weight-normal: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+            --font-weight-extrabold: 800;
+            
+            --line-height-tight: 1.25;
+            --line-height-normal: 1.5;
+            --line-height-relaxed: 1.75;
+            
+            /* ── Spacing Tokens ── */
+            --global-spacing-1: 0.25rem;  /* 4px */
+            --global-spacing-2: 0.5rem;   /* 8px */
+            --global-spacing-3: 0.75rem;  /* 12px */
+            --global-spacing-4: 1rem;     /* 16px */
+            --global-spacing-5: 1.25rem;  /* 20px */
+            --global-spacing-6: 1.5rem;   /* 24px */
+            --global-spacing-8: 2rem;     /* 32px */
+            --global-spacing-10: 2.5rem;  /* 40px */
+            --global-spacing-12: 3rem;    /* 48px */
+            --global-spacing-16: 4rem;    /* 64px */
+            
+            /* ── Border Radius Tokens ── */
+            --global-radius-sm: 0.375rem;  /* 6px */
+            --global-radius-md: 0.5rem;    /* 8px */
+            --global-radius-lg: 0.75rem;   /* 12px */
+            --global-radius-xl: 1rem;      /* 16px */
+            --global-radius-2xl: 1.5rem;   /* 24px */
+            --global-radius-pill: 9999px;
+            --global-radius-circle: 50%;
+            
+            /* ── Shadow Tokens ── */
+            --global-elevation-01: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+            --global-elevation-02: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+            --global-elevation-03: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+            --global-elevation-04: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+            
+            /* ── Motion Tokens ── */
+            --motion-duration-fast: 150ms;
+            --motion-duration-normal: 250ms;
+            --motion-duration-slow: 350ms;
+            --motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+            --motion-easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+            --motion-easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
+            
+            /* ── Accessibility Tokens ── */
+            --accessibility-focus-ring-width: 3px;
+            --accessibility-focus-ring-style: solid;
+            --accessibility-focus-ring-color: var(--color-brand-secondary);
+            --accessibility-focus-ring-offset: 2px;
+            --accessibility-min-target-size: 44px;
+        }
+        
+        /* ── Reset & Base Styles ── */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-normal);
+            line-height: var(--line-height-normal);
+            color: var(--color-text-primary);
+            background: var(--color-background-secondary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        /* ── Skip Link (Accessibility) ── */
+        .skip-link {
+            position: absolute;
+            top: -999px;
+            left: var(--global-spacing-2);
+            z-index: 9999;
+            background: var(--color-background-primary);
+            color: var(--color-text-primary);
+            padding: var(--global-spacing-2) var(--global-spacing-4);
+            border-radius: var(--global-radius-md);
+            font-weight: var(--font-weight-bold);
+            text-decoration: none;
+            border: 2px solid var(--accessibility-focus-ring-color);
+        }
+        
+        .skip-link:focus {
+            top: var(--global-spacing-2);
+        }
+        
+        /* ── Global Focus Ring ── */
+        :focus-visible {
+            outline: var(--accessibility-focus-ring-width) var(--accessibility-focus-ring-style) var(--accessibility-focus-ring-color);
+            outline-offset: var(--accessibility-focus-ring-offset);
+            border-radius: var(--global-radius-sm);
+        }
+        
+        /* ── Layout ── */
+        #app {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: var(--glass-background-color);
+            backdrop-filter: blur(var(--glass-backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--glass-backdrop-blur));
+            border-right: 1px solid var(--color-border-default);
+            display: flex;
+            flex-direction: column;
+            padding: var(--global-spacing-6) var(--global-spacing-5);
+            overflow-y: auto;
+            box-shadow: var(--global-elevation-02);
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-3);
+            padding-bottom: var(--global-spacing-5);
+            border-bottom: 1px solid var(--color-border-default);
+            margin-bottom: var(--global-spacing-5);
+        }
+        
+        .brand-ico {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--global-radius-lg);
+            background: linear-gradient(135deg, var(--color-brand-primary), var(--global-color-deep-purple-500));
+            display: grid;
+            place-items: center;
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            font-family: var(--font-family-display);
+            color: var(--global-color-white);
+            flex-shrink: 0;
+            box-shadow: var(--global-elevation-02);
+        }
+        
+        .brand-name {
+            font-family: var(--font-family-display);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+        }
+        
+        .nav-label {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-bold);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--color-text-muted);
+            padding: var(--global-spacing-4) 0 var(--global-spacing-2);
+        }
+        
+        .nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: var(--global-spacing-1);
+        }
+        
+        .nav-list li {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-3);
+            padding: var(--global-spacing-3);
+            border-radius: var(--global-radius-lg);
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-text-secondary);
+            border: 1px solid transparent;
+            transition: all var(--motion-duration-fast) var(--motion-easing-standard);
+            min-height: var(--accessibility-min-target-size);
+        }
+        
+        .nav-list li:hover {
+            background: rgba(var(--global-color-pink-500), 0.05);
+            border-color: rgba(var(--global-color-pink-500), 0.1);
+            color: var(--color-text-interactive);
+        }
+        
+        .nav-list li.active {
+            background: linear-gradient(135deg, rgba(var(--global-color-pink-500), 0.1), rgba(var(--global-color-deep-purple-500), 0.05));
+            border-color: rgba(var(--global-color-pink-500), 0.2);
+            color: var(--color-brand-primary);
+            font-weight: var(--font-weight-semibold);
+            box-shadow: var(--global-elevation-01);
+        }
+        
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: var(--global-radius-sm);
+            background: currentColor;
+            opacity: 0.6;
+            flex-shrink: 0;
+        }
+        
+        .nav-list li.active .nav-icon {
+            opacity: 1;
+        }
+        
+        /* ── MAIN ── */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+        }
+        
+        /* ── HEADER ── */
+        .header {
+            height: 72px;
+            flex-shrink: 0;
+            background: var(--glass-background-color);
+            backdrop-filter: blur(var(--glass-backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--glass-backdrop-blur));
+            border-bottom: 1px solid var(--color-border-default);
+            display: flex;
+            align-items: center;
+            padding: 0 var(--global-spacing-6);
+            gap: var(--global-spacing-4);
+            box-shadow: var(--global-elevation-01);
+        }
+        
+        .search {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-3);
+            flex: 1;
+            max-width: 400px;
+            background: var(--color-background-primary);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--global-radius-lg);
+            padding: var(--global-spacing-3) var(--global-spacing-4);
+            transition: all var(--motion-duration-fast) var(--motion-easing-standard);
+            box-shadow: var(--global-elevation-01);
+        }
+        
+        .search:focus-within {
+            border-color: var(--color-border-focus);
+            box-shadow: 0 0 0 3px rgba(var(--global-color-pink-500), 0.1);
+        }
+        
+        .search-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--color-text-muted);
+            border-radius: var(--global-radius-sm);
+            opacity: 0.6;
+        }
+        
+        .search input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: var(--font-size-sm);
+            font-family: var(--font-family-body);
+            color: var(--color-text-primary);
+            flex: 1;
+        }
+        
+        .search input::placeholder {
+            color: var(--color-text-placeholder);
+        }
+        
+        .h-right {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-3);
+            margin-left: auto;
+        }
+        
+        .ico-btn {
+            width: var(--accessibility-min-target-size);
+            height: var(--accessibility-min-target-size);
+            border-radius: var(--global-radius-circle);
+            border: 1px solid var(--color-border-default);
+            background: var(--color-background-primary);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            position: relative;
+            color: var(--color-text-muted);
+            transition: all var(--motion-duration-fast) var(--motion-easing-standard);
+            box-shadow: var(--global-elevation-01);
+        }
+        
+        .ico-btn:hover {
+            background: var(--color-background-tertiary);
+            border-color: var(--color-border-interactive);
+            color: var(--color-text-interactive);
+            transform: translateY(-1px);
+            box-shadow: var(--global-elevation-02);
+        }
+        
+        .ico-btn-icon {
+            width: 20px;
+            height: 20px;
+            background: currentColor;
+            border-radius: var(--global-radius-sm);
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--global-radius-circle);
+            background: linear-gradient(135deg, var(--color-brand-primary), var(--global-color-deep-purple-500));
+            display: grid;
+            place-items: center;
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-bold);
+            color: var(--global-color-white);
+            flex-shrink: 0;
+            box-shadow: var(--global-elevation-02);
+            cursor: pointer;
+            transition: all var(--motion-duration-fast) var(--motion-easing-standard);
+        }
+        
+        .avatar:hover {
+            transform: scale(1.05);
+            box-shadow: var(--global-elevation-03);
+        }
+        
+        /* ── CONTENT ── */
+        #content {
+            flex: 1;
+            overflow-y: auto;
+            background: var(--color-background-secondary);
+        }
+        
+        .page {
+            display: none;
+            padding: var(--global-spacing-6);
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* ── Page Header ── */
+        .ph {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--global-spacing-6);
+        }
+        
+        .ph-title {
+            font-family: var(--font-family-display);
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-extrabold);
+            color: var(--color-text-primary);
+            line-height: var(--line-height-tight);
+        }
+        
+        .ph-sub {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+            margin-top: var(--global-spacing-1);
+        }
+        
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--global-radius-lg);
+            font-family: var(--font-family-body);
+            font-weight: var(--font-weight-semibold);
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: var(--font-size-sm);
+            padding: var(--global-spacing-3) var(--global-spacing-5);
+            min-height: var(--accessibility-min-target-size);
+            border: 1px solid transparent;
+            transition: all var(--motion-duration-fast) var(--motion-easing-standard);
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-brand-primary), var(--global-color-deep-purple-500));
+            color: var(--global-color-white);
+            border-color: var(--color-brand-primary);
+            box-shadow: var(--global-elevation-02);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--global-elevation-03);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: var(--global-elevation-01);
+        }
+        
+        .btn-secondary {
+            background: var(--color-background-primary);
+            border-color: var(--color-border-default);
+            color: var(--color-text-primary);
+            box-shadow: var(--global-elevation-01);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--color-background-tertiary);
+            border-color: var(--color-border-interactive);
+            color: var(--color-text-interactive);
+            transform: translateY(-1px);
+            box-shadow: var(--global-elevation-02);
+        }
+        
+        /* ── KANBAN BOARD ── */
+        .kanban-container {
+            display: flex;
+            gap: var(--global-spacing-6);
+            height: calc(100vh - 200px);
+            overflow-x: auto;
+            padding-bottom: var(--global-spacing-4);
+        }
+        
+        .kanban-column {
+            flex: 1;
+            min-width: 320px;
+            background: var(--glass-background-color);
+            backdrop-filter: blur(var(--glass-backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--glass-backdrop-blur));
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--global-radius-2xl);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--global-elevation-02);
+            transition: all var(--motion-duration-normal) var(--motion-easing-standard);
+        }
+        
+        .kanban-column:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--global-elevation-03);
+        }
+        
+        .column-header {
+            padding: var(--global-spacing-5);
+            border-bottom: 1px solid var(--color-border-default);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, rgba(var(--global-color-pink-500), 0.03), rgba(var(--global-color-deep-purple-500), 0.02));
+            border-radius: var(--global-radius-2xl) var(--global-radius-2xl) 0 0;
+        }
+        
+        .column-title {
+            font-family: var(--font-family-display);
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+        }
+        
+        .task-count {
+            background: linear-gradient(135deg, var(--color-brand-primary), var(--global-color-deep-purple-500));
+            color: var(--global-color-white);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-bold);
+            padding: var(--global-spacing-1) var(--global-spacing-3);
+            border-radius: var(--global-radius-pill);
+            box-shadow: var(--global-elevation-01);
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .column-content {
+            flex: 1;
+            padding: var(--global-spacing-5);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: var(--global-spacing-4);
+        }
+        
+        /* ── TASK CARDS ── */
+        .task-card {
+            background: var(--color-background-primary);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--global-radius-xl);
+            padding: var(--global-spacing-4);
+            cursor: pointer;
+            transition: all var(--motion-duration-normal) var(--motion-easing-standard);
+            box-shadow: var(--global-elevation-01);
+            min-height: var(--accessibility-min-target-size);
+        }
+        
+        .task-card:hover {
+            border-color: var(--color-border-interactive);
+            transform: translateY(-2px);
+            box-shadow: var(--global-elevation-03);
+        }
+        
+        .task-card:focus {
+            border-color: var(--color-border-focus);
+            box-shadow: 0 0 0 3px rgba(var(--global-color-pink-500), 0.1);
+        }
+        
+        .task-title {
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-primary);
+            margin-bottom: var(--global-spacing-3);
+            line-height: var(--line-height-tight);
+        }
+        
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+        }
+        
+        .task-assignee {
+            display: flex;
+            align-items: center;
+            gap: var(--global-spacing-2);
+        }
+        
+        .assignee-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--global-radius-circle);
+            background: linear-gradient(135deg, var(--global-color-blue-400), var(--global-color-pulse-blue-500));
+            border: 2px solid var(--color-background-primary);
+            display: grid;
+            place-items: center;
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-bold);
+            color: var(--global-color-white);
+            box-shadow: var(--global-elevation-01);
+        }
+        
+        /* ── PRIORITY BADGES ── */
+        .priority-badge {
+            padding: var(--global-spacing-1) var(--global-spacing-2);
+            border-radius: var(--global-radius-pill);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            border: 1px solid;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+        
+        .priority-high {
+            background: var(--global-color-red-50);
+            color: var(--global-color-red-700);
+            border-color: var(--global-color-red-200);
+        }
+        
+        .priority-medium {
+            background: var(--global-color-yellow-50);
+            color: var(--global-color-yellow-700);
+            border-color: var(--global-color-yellow-200);
+        }
+        
+        .priority-low {
+            background: var(--global-color-green-50);
+            color: var(--global-color-green-700);
+            border-color: var(--global-color-green-200);
+        }
+        
+        /* ── MOBILE TABS ── */
+        .mobile-tabs {
+            display: none;
+            background: var(--glass-background-color);
+            backdrop-filter: blur(var(--glass-backdrop-blur));
+            -webkit-backdrop-filter: blur(var(--glass-backdrop-blur));
+            border-bottom: 1px solid var(--color-border-default);
+            margin-bottom: var(--global-spacing-5);
+            border-radius: var(--global-radius-xl);
+            overflow: hidden;
+            box-shadow: var(--global-elevation-01);
+        }
+        
+        .mobile-tab {
+            flex: 1;
+            padding: var(--global-spacing-4);
+            text-align: center;
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-muted);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -1px;
+            transition: all var(--motion-duration-fast) var(--motion-easing-standard);
+            min-height: var(--accessibility-min-target-size);
+        }
+        
+        .mobile-tab:hover {
+            color: var(--color-text-interactive);
+            background: rgba(var(--global-color-pink-500), 0.05);
+        }
+        
+        .mobile-tab.active {
+            color: var(--color-brand-primary);
+            border-bottom-color: var(--color-brand-primary);
+            background: rgba(var(--global-color-pink-500), 0.1);
+        }
+        
+        /* ── MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--color-background-overlay);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: var(--color-background-primary);
+            border: 1px solid var(--color-border-default);
+            border-radius: var(--global-radius-2xl);
+            padding: var(--global-spacing-8);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--global-elevation-04);
+            animation: modalSlideIn var(--motion-duration-normal) var(--motion-easing-decelerate);
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--global-spacing-6);
+            padding-bottom: var(--global-spacing-4);
+            border-bottom: 1px solid var(--color-border-default);
+        }
+        
+        .modal-title {
+            font-family: var(--font-family-display);
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+        }
+        
+        .close-btn {
+            width: var(--accessibility-min-target-size);
+            height: var(--accessibility-min-target-size);
+            border: 1px solid var(--color-border-default);
+            background: var(--color-background-tertiary);
+            border-radius: var(--global-radius-circle);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-lg);
+            transition: all var(--motion-duration-fast) var(--motion-easing-standard);
+        }
+        
+        .close-btn:hover {
+            background: var(--global-color-red-50);
+            border-color: var(--global-color-red-200);
+            color: var(--global-color-red-600);
+        }
+        
+        /* ── ERROR STATE ── */
+        .error-container {
+            text-align: center;
+            padding: var(--global-spacing-16);
+        }
+        
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--global-radius-circle);
+            background: var(--global-color-red-50);
+            border: 3px solid var(--global-color-red-200);
+            display: grid;
+            place-items: center;
+            margin: 0 auto var(--global-spacing-6);
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--global-color-red-600);
+            box-shadow: var(--global-elevation-02);
+        }
+        
+        .error-title {
+            font-family: var(--font-family-display);
+            font-size: var(--font-size-2xl);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--global-spacing-3);
+            color: var(--color-text-primary);
+        }
+        
+        .error-message {
+            font-size: var(--font-size-base);
+            color: var(--color-text-muted);
+            margin-bottom: var(--global-spacing-8);
+            line-height: var(--line-height-relaxed);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .flex-row {
+            display: flex;
+            gap: var(--global-spacing-4);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        /* ── RESPONSIVE DESIGN ── */
+        @media (max-width: 1023px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .kanban-container {
+                gap: var(--global-spacing-4);
+            }
+            
+            .kanban-column {
+                min-width: 280px;
+            }
+        }
+        
+        @media (max-width: 767px) {
+            .sidebar {
+                width: 200px;
+            }
+            
+            .header {
+                padding: 0 var(--global-spacing-4);
+            }
+            
+            .page {
+                padding: var(--global-spacing-4);
+            }
+            
+            .kanban-container {
+                flex-direction: column;
+                height: auto;
+                gap: var(--global-spacing-4);
+            }
+            
+            .kanban-column {
+                min-width: auto;
+                width: 100%;
+            }
+            
+            .mobile-tabs {
+                display: flex;
+            }
+            
+            .ph {
+                flex-direction: column;
+                gap: var(--global-spacing-4);
+                align-items: flex-start;
+            }
+        }
+        
+        /* ── SCROLLBAR STYLING ── */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--color-background-tertiary);
+            border-radius: var(--global-radius-pill);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-border-interactive);
+            border-radius: var(--global-radius-pill);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-text-muted);
+        }
+        
+        /* ── REDUCED MOTION ── */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
 </head>
 <body>
-  <a href="#main" class="skip-link">Skip to main content</a>
-  
-  <div id="app">
-    <!-- ── SIDEBAR ── -->
-    <nav class="sidebar" role="navigation" aria-label="Main navigation">
-      <div class="brand">
-        <div class="brand-ico" aria-hidden="true">KB</div>
-        <div class="brand-name">Kanban<b>Board</b></div>
-      </div>
-      
-      <div class="nav-label">Workflows</div>
-      <ul class="nav-list" role="menu">
-        <li role="menuitem" tabindex="0" class="active" onclick="nav(this,'desktop-board')" onkeydown="navKey(event,this,'desktop-board')">
-          <div style="width:14px;height:14px;background:currentColor;border-radius:2px;opacity:.7" aria-hidden="true"></div>
-          Desktop Board
-        </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'task-interaction')" onkeydown="navKey(event,this,'task-interaction')">
-          <div style="width:14px;height:14px;background:currentColor;border-radius:2px;opacity:.7" aria-hidden="true"></div>
-          Task Interaction
-        </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'mobile-board')" onkeydown="navKey(event,this,'mobile-board')">
-          <div style="width:14px;height:14px;background:currentColor;border-radius:2px;opacity:.7" aria-hidden="true"></div>
-          Mobile Board
-        </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'collaborative')" onkeydown="navKey(event,this,'collaborative')">
-          <div style="width:14px;height:14px;background:currentColor;border-radius:2px;opacity:.7" aria-hidden="true"></div>
-          Collaborative View
-        </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'analytics')" onkeydown="navKey(event,this,'analytics')">
-          <div style="width:14px;height:14px;background:currentColor;border-radius:2px;opacity:.7" aria-hidden="true"></div>
-          Analytics View
-        </li>
-        <li role="menuitem" tabindex="-1" onclick="nav(this,'accessible')" onkeydown="navKey(event,this,'accessible')">
-          <div style="width:14px;height:14px;background:currentColor;border-radius:2px;opacity:.7" aria-hidden="true"></div>
-          Accessible Board
-        </li>
-      </ul>
-      
-      <div class="sb-foot">
-        KanbanBoard v2.1 · Play+ Design System
-      </div>
-    </nav>
-
-    <!-- ── MAIN ── -->
-    <main id="main" role="main">
-      <!-- ── HEADER ── -->
-      <header class="header" role="banner">
-        <div class="search" role="search">
-          <div style="width:16px;height:16px;opacity:.6" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-            </svg>
-          </div>
-          <input type="search" placeholder="Search tasks..." aria-label="Search tasks">
-        </div>
-        <div class="h-right">
-          <button class="ico-btn" aria-label="Notifications">
-            <div style="width:16px;height:16px" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-              </svg>
+    <a href="#main" class="skip-link">Skip to main content</a>
+    
+    <div id="app">
+        <!-- ── SIDEBAR ── -->
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="brand">
+                <div class="brand-ico" aria-hidden="true">KB</div>
+                <div class="brand-name">KanbanBoard</div>
             </div>
-            <div class="notif-dot" aria-hidden="true"></div>
-          </button>
-          <div class="av-chip">
-            <div class="avatar" aria-hidden="true">SM</div>
-            Sarah Manager
-          </div>
-        </div>
-      </header>
-
-      <!-- ── CONTENT ── -->
-      <div id="content">
-        <!-- 1.0 Desktop Kanban Board Dashboard -->
-        <div id="desktop-board" class="page active">
-          <div class="ph">
-            <div>
-              <h1 class="ph-title">Project Dashboard</h1>
-              <div class="ph-sub">Manage tasks across workflow stages</div>
-            </div>
-            <button class="btn btn-primary">
-              <div class="button-content">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                </svg>
-                Add Task
-              </div>
-            </button>
-          </div>
-          
-          <div class="kanban-container" role="application" aria-label="Kanban board">
-            <!-- To Do Column -->
-            <div class="kanban-column todo-column">
-              <div class="column-header">
-                <h2 class="column-title">To Do</h2>
-                <span class="task-count" aria-label="4 tasks">4</span>
-              </div>
-              <div class="column-body" role="list" aria-label="To Do tasks">
-                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskModal('task1')" aria-describedby="task1-desc">
-                  <div class="task-title">Implement user authentication</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">JD</div>
-                      <span>John Doe</span>
-                    </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                  <div id="task1-desc" class="sr-only">High priority task assigned to John Doe</div>
+            
+            <div class="nav-label">Views</div>
+            <ul class="nav-list" role="menu">
+                <li class="active" role="menuitem" tabindex="0" onclick="nav(this, 'desktop-board')" onkeydown="navKey(event, this, 'desktop-board')" aria-label="Desktop Board View">
+                    <div class="nav-icon" aria-hidden="true"></div>
+                    Desktop Board
+                </li>
+                <li role="menuitem" tabindex="-1" onclick="nav(this, 'tablet-board')" onkeydown="navKey(event, this, 'tablet-board')" aria-label="Tablet Board View">
+                    <div class="nav-icon" aria-hidden="true"></div>
+                    Tablet View
+                </li>
+                <li role="menuitem" tabindex="-1" onclick="nav(this, 'mobile-board')" onkeydown="navKey(event, this, 'mobile-board')" aria-label="Mobile Board View">
+                    <div class="nav-icon" aria-hidden="true"></div>
+                    Mobile View
+                </li>
+            </ul>
+            
+            <div class="nav-label">States</div>
+            <ul class="nav-list" role="menu">
+                <li role="menuitem" tabindex="-1" onclick="nav(this, 'task-detail')" onkeydown="navKey(event, this, 'task-detail')" aria-label="Task Detail Popup">
+                    <div class="nav-icon" aria-hidden="true"></div>
+                    Task Detail
+                </li>
+                <li role="menuitem" tabindex="-1" onclick="nav(this, 'error-state')" onkeydown="navKey(event, this, 'error-state')" aria-label="Error State">
+                    <div class="nav-icon" aria-hidden="true"></div>
+                    Error State
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- ── MAIN ── -->
+        <main id="main" role="main">
+            <!-- ── HEADER ── -->
+            <header class="header" role="banner">
+                <div class="search">
+                    <div class="search-icon" aria-hidden="true"></div>
+                    <input type="search" placeholder="Search tasks..." aria-label="Search tasks">
                 </div>
                 
-                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskModal('task2')">
-                  <div class="task-title">Design landing page</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">AS</div>
-                      <span>Alice Smith</span>
-                    </div>
-                    <div class="task-priority medium">Medium</div>
-                  </div>
-                </div>
-                
-                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskModal('task3')">
-                  <div class="task-title">Setup CI/CD pipeline</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">BJ</div>
-                      <span>Bob Johnson</span>
-                    </div>
-                    <div class="task-priority low">Low</div>
-                  </div>
-                </div>
-                
-                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskModal('task4')">
-                  <div class="task-title">Write API documentation</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">CD</div>
-                      <span>Carol Davis</span>
-                    </div>
-                    <div class="task-priority medium">Medium</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- In Progress Column -->
-            <div class="kanban-column progress-column">
-              <div class="column-header">
-                <h2 class="column-title">In Progress</h2>
-                <span class="task-count" aria-label="2 tasks">2</span>
-              </div>
-              <div class="column-body" role="list" aria-label="In Progress tasks">
-                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskModal('task5')">
-                  <div class="task-title">Database optimization</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">EM</div>
-                      <span>Eve Miller</span>
-                    </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                </div>
-                
-                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskModal('task6')">
-                  <div class="task-title">Mobile app testing</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">FW</div>
-                      <span>Frank Wilson</span>
-                    </div>
-                    <div class="task-priority medium">Medium</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Done Column -->
-            <div class="kanban-column done-column">
-              <div class="column-header">
-                <h2 class="column-title">Done</h2>
-                <span class="task-count" aria-label="3 tasks">3</span>
-              </div>
-              <div class="column-body" role="list" aria-label="Done tasks">
-                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskModal('task7')">
-                  <div class="task-title">User research analysis</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">GT</div>
-                      <span>Grace Taylor</span>
-                    </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                </div>
-                
-                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskModal('task8')">
-                  <div class="task-title">Security audit</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">HB</div>
-                      <span>Henry Brown</span>
-                    </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                </div>
-                
-                <div class="task-card" role="listitem" tabindex="0" onclick="openTaskModal('task9')">
-                  <div class="task-title">Logo design</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">IG</div>
-                      <span>Ivy Green</span>
-                    </div>
-                    <div class="task-priority low">Low</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 1.1 Task Card Interaction State -->
-        <div id="task-interaction" class="page">
-          <div class="ph">
-            <div>
-              <h1 class="ph-title">Task Interaction</h1>
-              <div class="ph-sub">Hover and focus states with quick actions</div>
-            </div>
-          </div>
-          
-          <div class="kanban-container">
-            <div class="kanban-column todo-column">
-              <div class="column-header">
-                <h2 class="column-title">To Do</h2>
-                <span class="task-count">4</span>
-              </div>
-              <div class="column-body">
-                <div class="drop-zone active">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="opacity:.5">
-                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                  </svg>
-                  <div>Drop task here</div>
-                </div>
-                
-                <!-- Highlighted task card with hover state -->
-                <div class="task-card" style="background:rgba(255,255,255,.85);border-color:rgba(233,30,99,.3);transform:translateX(2px);box-shadow:var(--glass-25-shadow)" tabindex="0">
-                  <div class="task-title">Implement user authentication</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">JD</div>
-                      <span>John Doe</span>
-                    </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                  <!-- Quick actions appear on hover/focus -->
-                  <div style="display:flex;gap:var(--global-spacing-2);margin-top:var(--global-spacing-2);">
-                    <button class="btn btn-secondary btn-sm">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                      </svg>
+                <div class="h-right">
+                    <button class="ico-btn" aria-label="Notifications">
+                        <div class="ico-btn-icon" aria-hidden="true"></div>
                     </button>
-                    <button class="btn btn-secondary btn-sm">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                      </svg>
+                    <button class="ico-btn" aria-label="Settings">
+                        <div class="ico-btn-icon" aria-hidden="true"></div>
                     </button>
-                    <button class="btn btn-secondary btn-sm">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                      </svg>
-                    </button>
-                  </div>
-                  <div style="margin-top:var(--global-spacing-2);font-size:10px;color:var(--color-text-subtle);display:flex;align-items:center;gap:4px;">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="opacity:.6">
-                      <path d="M13 7h-2v4H7v2h4v4h2v-4h4v-2h-4V7zm-1-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-                    </svg>
-                    Drag to move
-                  </div>
+                    <div class="avatar" aria-label="User profile" tabindex="0">JD</div>
+                </div>
+            </header>
+            
+            <!-- ── CONTENT ── -->
+            <div id="content">
+                <!-- ── DESKTOP KANBAN BOARD ── -->
+                <div id="desktop-board" class="page active">
+                    <div class="ph">
+                        <div>
+                            <h1 class="ph-title">Project Dashboard</h1>
+                            <div class="ph-sub">Three-column Kanban board layout - Desktop view (1024px+)</div>
+                        </div>
+                        <button class="btn btn-primary" aria-label="Add new task">+ Add Task</button>
+                    </div>
+                    
+                    <div class="kanban-container" role="application" aria-label="Kanban board with three columns">
+                        <!-- TO DO COLUMN -->
+                        <div class="kanban-column" role="region" aria-labelledby="todo-header">
+                            <div class="column-header">
+                                <h2 id="todo-header" class="column-title">To Do</h2>
+                                <span class="task-count" aria-label="5 tasks">5</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Design wireframes" onclick="showTaskDetail('task1')">
+                                    <div class="task-title">Design wireframes</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">SM</div>
+                                            <span>Sarah M.</span>
+                                        </div>
+                                        <span class="priority-badge priority-high">High</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: User research" onclick="showTaskDetail('task2')">
+                                    <div class="task-title">User research</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                            <span>John D.</span>
+                                        </div>
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: API documentation" onclick="showTaskDetail('task3')">
+                                    <div class="task-title">API documentation</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">AL</div>
+                                            <span>Alex L.</span>
+                                        </div>
+                                        <span class="priority-badge priority-low">Low</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Component library setup">
+                                    <div class="task-title">Component library setup</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">MK</div>
+                                            <span>Mike K.</span>
+                                        </div>
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Design system tokens">
+                                    <div class="task-title">Design system tokens</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">LS</div>
+                                            <span>Lisa S.</span>
+                                        </div>
+                                        <span class="priority-badge priority-high">High</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- IN PROGRESS COLUMN -->
+                        <div class="kanban-column" role="region" aria-labelledby="progress-header">
+                            <div class="column-header">
+                                <h2 id="progress-header" class="column-title">In Progress</h2>
+                                <span class="task-count" aria-label="3 tasks">3</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Frontend development" onclick="showTaskDetail('task4')">
+                                    <div class="task-title">Frontend development</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">MK</div>
+                                            <span>Mike K.</span>
+                                        </div>
+                                        <span class="priority-badge priority-high">High</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Database setup" onclick="showTaskDetail('task5')">
+                                    <div class="task-title">Database setup</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">LS</div>
+                                            <span>Lisa S.</span>
+                                        </div>
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Authentication system">
+                                    <div class="task-title">Authentication system</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">RT</div>
+                                            <span>Robert T.</span>
+                                        </div>
+                                        <span class="priority-badge priority-high">High</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- DONE COLUMN -->
+                        <div class="kanban-column" role="region" aria-labelledby="done-header">
+                            <div class="column-header">
+                                <h2 id="done-header" class="column-title">Done</h2>
+                                <span class="task-count" aria-label="7 tasks">7</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Project setup" onclick="showTaskDetail('task6')">
+                                    <div class="task-title">Project setup</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">RT</div>
+                                            <span>Robert T.</span>
+                                        </div>
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Requirements gathering" onclick="showTaskDetail('task7')">
+                                    <div class="task-title">Requirements gathering</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">EM</div>
+                                            <span>Emma M.</span>
+                                        </div>
+                                        <span class="priority-badge priority-low">Low</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Initial mockups">
+                                    <div class="task-title">Initial mockups</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">SM</div>
+                                            <span>Sarah M.</span>
+                                        </div>
+                                        <span class="priority-badge priority-low">Low</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Stakeholder interviews">
+                                    <div class="task-title">Stakeholder interviews</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                            <span>John D.</span>
+                                        </div>
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Technology research">
+                                    <div class="task-title">Technology research</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">AL</div>
+                                            <span>Alex L.</span>
+                                        </div>
+                                        <span class="priority-badge priority-low">Low</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Brand guidelines">
+                                    <div class="task-title">Brand guidelines</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">EM</div>
+                                            <span>Emma M.</span>
+                                        </div>
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Competitive analysis">
+                                    <div class="task-title">Competitive analysis</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                            <span>John D.</span>
+                                        </div>
+                                        <span class="priority-badge priority-low">Low</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="task-card" tabindex="0">
-                  <div class="task-title">Design landing page</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">AS</div>
-                      <span>Alice Smith</span>
+                <!-- ── TABLET KANBAN BOARD ── -->
+                <div id="tablet-board" class="page">
+                    <div class="ph">
+                        <div>
+                            <h1 class="ph-title">Project Dashboard</h1>
+                            <div class="ph-sub">Tablet responsive view (768px-1023px) - Touch-optimized with reduced gutters</div>
+                        </div>
+                        <button class="btn btn-primary" aria-label="Add new task">+ Add Task</button>
                     </div>
-                    <div class="task-priority medium">Medium</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column progress-column">
-              <div class="column-header">
-                <h2 class="column-title">In Progress</h2>
-                <span class="task-count">2</span>
-              </div>
-              <div class="column-body">
-                <div class="task-card" tabindex="0">
-                  <div class="task-title">Database optimization</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">EM</div>
-                      <span>Eve Miller</span>
+                    
+                    <div class="kanban-container" role="application" aria-label="Kanban board tablet view">
+                        <!-- Same column structure as desktop but with responsive styling -->
+                        <div class="kanban-column" role="region" aria-labelledby="tablet-todo-header">
+                            <div class="column-header">
+                                <h2 id="tablet-todo-header" class="column-title">To Do</h2>
+                                <span class="task-count" aria-label="5 tasks">5</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Design wireframes">
+                                    <div class="task-title">Design wireframes</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">SM</div>
+                                            <span>Sarah M.</span>
+                                        </div>
+                                        <span class="priority-badge priority-high">High</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: User research">
+                                    <div class="task-title">User research</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                            <span>John D.</span>
+                                        </div>
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" aria-labelledby="tablet-progress-header">
+                            <div class="column-header">
+                                <h2 id="tablet-progress-header" class="column-title">In Progress</h2>
+                                <span class="task-count" aria-label="3 tasks">3</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Frontend development">
+                                    <div class="task-title">Frontend development</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">MK</div>
+                                            <span>Mike K.</span>
+                                        </div>
+                                        <span class="priority-badge priority-high">High</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Database setup">
+                                    <div class="task-title">Database setup</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">LS</div>
+                                            <span>Lisa S.</span>
+                                        </div>
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column" role="region" aria-labelledby="tablet-done-header">
+                            <div class="column-header">
+                                <h2 id="tablet-done-header" class="column-title">Done</h2>
+                                <span class="task-count" aria-label="7 tasks">7</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Project setup">
+                                    <div class="task-title">Project setup</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">RT</div>
+                                            <span>Robert T.</span>
+                                        </div>
+                                        <span class="priority-badge priority-medium">Medium</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Requirements gathering">
+                                    <div class="task-title">Requirements gathering</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">EM</div>
+                                            <span>Emma M.</span>
+                                        </div>
+                                        <span class="priority-badge priority-low">Low</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column done-column">
-              <div class="column-header">
-                <h2 class="column-title">Done</h2>
-                <span class="task-count">3</span>
-              </div>
-              <div class="column-body">
-                <div class="task-card" tabindex="0">
-                  <div class="task-title">User research analysis</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">GT</div>
-                      <span>Grace Taylor</span>
-                    </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2.0 Mobile Kanban Board -->
-        <div id="mobile-board" class="page">
-          <div class="ph">
-            <div>
-              <h1 class="ph-title">Mobile Board</h1>
-              <div class="ph-sub">Touch-optimized horizontal scrolling</div>
-            </div>
-          </div>
-          
-          <div class="mobile-kanban">
-            <div class="mobile-columns">
-              <div class="kanban-column mobile-column todo-column">
-                <div class="column-header">
-                  <h2 class="column-title">To Do</h2>
-                  <span class="task-count">4</span>
-                </div>
-                <div class="column-body">
-                  <div class="task-card" tabindex="0">
-                    <div class="task-title">User authentication</div>
-                    <div class="task-meta">
-                      <div class="task-assignee">
-                        <div class="avatar">JD</div>
-                        <span>John</span>
-                      </div>
-                      <div class="task-priority high">High</div>
-                    </div>
-                  </div>
-                  
-                  <div class="task-card" tabindex="0">
-                    <div class="task-title">Landing page design</div>
-                    <div class="task-meta">
-                      <div class="task-assignee">
-                        <div class="avatar">AS</div>
-                        <span>Alice</span>
-                      </div>
-                      <div class="task-priority medium">Med</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="kanban-column mobile-column progress-column">
-                <div class="column-header">
-                  <h2 class="column-title">In Progress</h2>
-                  <span class="task-count">2</span>
-                </div>
-                <div class="column-body">
-                  <div class="task-card" tabindex="0">
-                    <div class="task-title">Database optimization</div>
-                    <div class="task-meta">
-                      <div class="task-assignee">
-                        <div class="avatar">EM</div>
-                        <span>Eve</span>
-                      </div>
-                      <div class="task-priority high">High</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="kanban-column mobile-column done-column">
-                <div class="column-header">
-                  <h2 class="column-title">Done</h2>
-                  <span class="task-count">3</span>
-                </div>
-                <div class="column-body">
-                  <div class="task-card" tabindex="0">
-                    <div class="task-title">User research</div>
-                    <div class="task-meta">
-                      <div class="task-assignee">
-                        <div class="avatar">GT</div>
-                        <span>Grace</span>
-                      </div>
-                      <div class="task-priority high">High</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div style="margin-top:var(--global-spacing-4);font-size:11px;color:var(--color-text-muted);text-align:center;">
-              <div class="badge badge-info">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-                </svg>
-                Swipe to navigate columns
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3.0 Collaborative Kanban Dashboard -->
-        <div id="collaborative" class="page">
-          <div class="ph">
-            <div>
-              <h1 class="ph-title">Collaborative Dashboard</h1>
-              <div class="ph-sub">Real-time team collaboration and workload monitoring</div>
-            </div>
-            <button class="btn btn-secondary" onclick="nav(this,'analytics')">
-              <div class="button-content">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
-                </svg>
-                Analytics
-              </div>
-            </button>
-          </div>
-          
-          <div class="filters">
-            <button class="filter-btn active" tabindex="0">All Team</button>
-            <button class="filter-btn" tabindex="0" onclick="nav(this,'team-filter')">John Doe</button>
-            <button class="filter-btn" tabindex="0">Alice Smith</button>
-            <button class="filter-btn" tabindex="0">Bob Johnson</button>
-            <div style="margin-left:auto;display:flex;align-items:center;gap:var(--global-spacing-3);">
-              <div class="badge badge-success dot">4 online</div>
-              <div class="badge badge-warning dot">2 away</div>
-            </div>
-          </div>
-          
-          <div class="kanban-container">
-            <div class="kanban-column todo-column">
-              <div class="column-header">
-                <h2 class="column-title">To Do</h2>
-                <div style="display:flex;align-items:center;gap:var(--global-spacing-2);">
-                  <span class="task-count">4</span>
-                  <div style="font-size:10px;color:var(--color-text-muted);">12h</div>
-                </div>
-              </div>
-              <div class="column-body">
-                <div class="task-card" tabindex="0">
-                  <div class="task-title">Implement user authentication</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">JD</div>
-                      <span>John Doe</span>
-                      <div class="status-dot status-online" aria-label="Online" title="Online"></div>
-                    </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                  <div style="margin-top:var(--global-spacing-2);font-size:10px;color:var(--color-text-subtle);">
-                    <div class="badge badge-brand">Updated 2 min ago</div>
-                  </div>
                 </div>
                 
-                <div class="task-card" tabindex="0">
-                  <div class="task-title">Design landing page</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">AS</div>
-                      <span>Alice Smith</span>
-                      <div class="status-dot status-away" aria-label="Away" title="Away"></div>
+                <!-- ── MOBILE KANBAN BOARD ── -->
+                <div id="mobile-board" class="page">
+                    <div class="ph">
+                        <div>
+                            <h1 class="ph-title">Project Dashboard</h1>
+                            <div class="ph-sub">Mobile responsive view (320px-767px) - Single column with tab navigation</div>
+                        </div>
+                        <button class="btn btn-primary" aria-label="Add new task">+ Add Task</button>
                     </div>
-                    <div class="task-priority medium">Medium</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column progress-column">
-              <div class="column-header">
-                <h2 class="column-title">In Progress</h2>
-                <div style="display:flex;align-items:center;gap:var(--global-spacing-2);">
-                  <span class="task-count">2</span>
-                  <div style="font-size:10px;color:var(--color-text-muted);">16h</div>
-                  <div class="badge badge-warning" style="font-size:9px;padding:1px 4px;">High Load</div>
-                </div>
-              </div>
-              <div class="column-body">
-                <div class="task-card" style="border-left:3px solid var(--global-color-yellow-500);" tabindex="0">
-                  <div class="task-title">Database optimization</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">EM</div>
-                      <span>Eve Miller</span>
-                      <div class="status-dot status-online"></div>
+                    
+                    <!-- Mobile Tab Navigation -->
+                    <div class="mobile-tabs" role="tablist" aria-label="Column navigation">
+                        <button class="mobile-tab active" role="tab" aria-selected="true" tabindex="0" onclick="switchMobileTab(this, 'todo')" onkeydown="tabKey(event, this)" aria-controls="mobile-todo">To Do (5)</button>
+                        <button class="mobile-tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchMobileTab(this, 'progress')" onkeydown="tabKey(event, this)" aria-controls="mobile-progress">In Progress (3)</button>
+                        <button class="mobile-tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchMobileTab(this, 'done')" onkeydown="tabKey(event, this)" aria-controls="mobile-done">Done (7)</button>
                     </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                  <div style="margin-top:var(--global-spacing-2);font-size:10px;color:var(--color-text-subtle);">
-                    <div class="badge badge-success">Active now</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column done-column">
-              <div class="column-header">
-                <h2 class="column-title">Done</h2>
-                <div style="display:flex;align-items:center;gap:var(--global-spacing-2);">
-                  <span class="task-count">3</span>
-                  <div style="font-size:10px;color:var(--color-text-muted);">24h</div>
-                </div>
-              </div>
-              <div class="column-body">
-                <div class="task-card" tabindex="0">
-                  <div class="task-title">User research analysis</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">GT</div>
-                      <span>Grace Taylor</span>
+                    
+                    <!-- Mobile Column Content -->
+                    <div id="mobile-todo" class="kanban-column" role="tabpanel" aria-labelledby="mobile-todo-tab" style="display: block;">
+                        <div class="column-content">
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Design wireframes">
+                                <div class="task-title">Design wireframes</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">SM</div>
+                                        <span>Sarah M.</span>
+                                    </div>
+                                    <span class="priority-badge priority-high">High</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: User research">
+                                <div class="task-title">User research</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                        <span>John D.</span>
+                                    </div>
+                                    <span class="priority-badge priority-medium">Medium</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: API documentation">
+                                <div class="task-title">API documentation</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">AL</div>
+                                        <span>Alex L.</span>
+                                    </div>
+                                    <span class="priority-badge priority-low">Low</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Component library setup">
+                                <div class="task-title">Component library setup</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">MK</div>
+                                        <span>Mike K.</span>
+                                    </div>
+                                    <span class="priority-badge priority-medium">Medium</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Design system tokens">
+                                <div class="task-title">Design system tokens</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">LS</div>
+                                        <span>Lisa S.</span>
+                                    </div>
+                                    <span class="priority-badge priority-high">High</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                  <div style="margin-top:var(--global-spacing-2);font-size:10px;color:var(--color-text-subtle);">
-                    Completed 1 day ago
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3.1 Team Member Filter View -->
-        <div id="team-filter" class="page">
-          <div class="ph">
-            <div>
-              <h1 class="ph-title">John Doe's Tasks</h1>
-              <div class="ph-sub">Individual workload and task management</div>
-            </div>
-            <button class="btn btn-secondary" onclick="nav(this,'collaborative')">
-              <div class="button-content">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-                </svg>
-                Back to Team
-              </div>
-            </button>
-          </div>
-          
-          <div class="filters">
-            <div class="filter-btn active">John Doe</div>
-            <div style="margin-left:auto;display:flex;align-items:center;gap:var(--global-spacing-3);">
-              <div style="font-size:11px;color:var(--color-text-muted);">Workload: 8h / 40h capacity</div>
-              <div class="workload-bar">
-                <div class="workload-fill" style="width:20%;"></div>
-              </div>
-              <div class="status-dot status-online"></div>
-            </div>
-          </div>
-          
-          <div class="kanban-container">
-            <div class="kanban-column todo-column">
-              <div class="column-header">
-                <h2 class="column-title">To Do</h2>
-                <span class="task-count">1</span>
-              </div>
-              <div class="column-body">
-                <div class="task-card" style="border:2px solid rgba(var(--rgb-brand-primary),.3);" tabindex="0">
-                  <div class="task-title">Implement user authentication</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">JD</div>
-                      <span>John Doe</span>
-                      <div class="status-dot status-online"></div>
+                    
+                    <div id="mobile-progress" class="kanban-column" role="tabpanel" aria-labelledby="mobile-progress-tab" style="display: none;">
+                        <div class="column-content">
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Frontend development">
+                                <div class="task-title">Frontend development</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">MK</div>
+                                        <span>Mike K.</span>
+                                    </div>
+                                    <span class="priority-badge priority-high">High</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Database setup">
+                                <div class="task-title">Database setup</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">LS</div>
+                                        <span>Lisa S.</span>
+                                    </div>
+                                    <span class="priority-badge priority-medium">Medium</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Authentication system">
+                                <div class="task-title">Authentication system</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">RT</div>
+                                        <span>Robert T.</span>
+                                    </div>
+                                    <span class="priority-badge priority-high">High</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="task-priority high">High</div>
-                  </div>
-                  <div style="margin-top:var(--global-spacing-3);">
-                    <button class="btn btn-secondary btn-sm">
-                      <div class="button-content">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                        </svg>
-                        Reassign
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column progress-column">
-              <div class="column-header">
-                <h2 class="column-title">In Progress</h2>
-                <span class="task-count">0</span>
-              </div>
-              <div class="column-body">
-                <div style="text-align:center;padding:var(--global-spacing-6);color:var(--color-text-subtle);">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor" style="opacity:.3;margin-bottom:var(--global-spacing-2);">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                  </svg>
-                  <div style="font-size:12px;">No tasks in progress</div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column done-column">
-              <div class="column-header">
-                <h2 class="column-title">Done</h2>
-                <span class="task-count">2</span>
-              </div>
-              <div class="column-body">
-                <div class="task-card" style="opacity:0.7;" tabindex="0">
-                  <div class="task-title">Setup development environment</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar">JD</div>
-                      <span>John Doe</span>
+                    
+                    <div id="mobile-done" class="kanban-column" role="tabpanel" aria-labelledby="mobile-done-tab" style="display: none;">
+                        <div class="column-content">
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Project setup">
+                                <div class="task-title">Project setup</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">RT</div>
+                                        <span>Robert T.</span>
+                                    </div>
+                                    <span class="priority-badge priority-medium">Medium</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Requirements gathering">
+                                <div class="task-title">Requirements gathering</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">EM</div>
+                                        <span>Emma M.</span>
+                                    </div>
+                                    <span class="priority-badge priority-low">Low</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Initial mockups">
+                                <div class="task-title">Initial mockups</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">SM</div>
+                                        <span>Sarah M.</span>
+                                    </div>
+                                    <span class="priority-badge priority-low">Low</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Stakeholder interviews">
+                                <div class="task-title">Stakeholder interviews</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                        <span>John D.</span>
+                                    </div>
+                                    <span class="priority-badge priority-medium">Medium</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Technology research">
+                                <div class="task-title">Technology research</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">AL</div>
+                                        <span>Alex L.</span>
+                                    </div>
+                                    <span class="priority-badge priority-low">Low</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Brand guidelines">
+                                <div class="task-title">Brand guidelines</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">EM</div>
+                                        <span>Emma M.</span>
+                                    </div>
+                                    <span class="priority-badge priority-medium">Medium</span>
+                                </div>
+                            </div>
+                            
+                            <div class="task-card" tabindex="0" role="button" aria-label="Task: Competitive analysis">
+                                <div class="task-title">Competitive analysis</div>
+                                <div class="task-meta">
+                                    <div class="task-assignee">
+                                        <div class="assignee-avatar" aria-hidden="true">JD</div>
+                                        <span>John D.</span>
+                                    </div>
+                                    <span class="priority-badge priority-low">Low</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="task-priority medium">Medium</div>
-                  </div>
-                  <div style="margin-top:var(--global-spacing-2);font-size:10px;color:var(--color-text-subtle);">
-                    Completed 2 days ago
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4.0 Analytics Overlay -->
-        <div id="analytics" class="page">
-          <div class="kanban-container" style="position:relative;">
-            <!-- Analytics Overlay -->
-            <div class="analytics-overlay active">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--global-spacing-5);">
-                <div>
-                  <h1 class="ph-title">Workflow Analytics</h1>
-                  <div class="ph-sub">Performance insights and bottleneck detection</div>
-                </div>
-                <button class="btn btn-secondary" onclick="nav(this,'collaborative')">
-                  <div class="button-content">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                    </svg>
-                    Close Analytics
-                  </div>
-                </button>
-              </div>
-              
-              <div class="analytics-grid">
-                <div class="metric-card">
-                  <div class="metric-title">Column Throughput</div>
-                  <div class="metric-value">2.3</div>
-                  <div class="metric-hint">tasks/day average</div>
-                  <div style="margin-top:var(--global-spacing-3);height:60px;background:var(--glass-background-color);border:var(--glass-25-border);border-radius:var(--global-radius-sm);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);font-size:11px;">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="opacity:.4;">
-                      <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>
-                    </svg>
-                  </div>
                 </div>
                 
-                <div class="metric-card">
-                  <div class="metric-title">Average Completion Time</div>
-                  <div class="metric-value">3.2</div>
-                  <div class="metric-hint">days per task</div>
-                  <div style="margin-top:var(--global-spacing-3);height:60px;background:var(--glass-background-color);border:var(--glass-25-border);border-radius:var(--global-radius-sm);display:flex;align-items:center;justify-content:center;color:var(--color-text-muted);font-size:11px;">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="opacity:.4;">
-                      <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
-                      <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
-                    </svg>
-                  </div>
+                <!-- ── TASK DETAIL POPUP ── -->
+                <div id="task-detail" class="page">
+                    <div class="ph">
+                        <div>
+                            <h1 class="ph-title">Task Detail Popup</h1>
+                            <div class="ph-sub">Modal overlay for task details and quick actions</div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="showTaskModal()" aria-label="Show task detail modal">Show Modal</button>
+                    </div>
+                    
+                    <div class="kanban-container">
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <h2 class="column-title">To Do</h2>
+                                <span class="task-count">5</span>
+                            </div>
+                            <div class="column-content">
+                                <div class="task-card" tabindex="0" role="button" aria-label="Task: Design wireframes - Click to view details" onclick="showTaskModal()">
+                                    <div class="task-title">Design wireframes</div>
+                                    <div class="task-meta">
+                                        <div class="task-assignee">
+                                            <div class="assignee-avatar" aria-hidden="true">SM</div>
+                                            <span>Sarah M.</span>
+                                        </div>
+                                        <span class="priority-badge priority-high">High</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <h2 class="column-title">In Progress</h2>
+                                <span class="task-count">3</span>
+                            </div>
+                            <div class="column-content">
+                                <!-- Empty for demo -->
+                            </div>
+                        </div>
+                        
+                        <div class="kanban-column">
+                            <div class="column-header">
+                                <h2 class="column-title">Done</h2>
+                                <span class="task-count">7</span>
+                            </div>
+                            <div class="column-content">
+                                <!-- Empty for demo -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="metric-card">
-                  <div class="metric-title">Bottleneck Detection</div>
-                  <div class="metric-value">In Progress</div>
-                  <div class="metric-hint">column needs attention</div>
-                  <div style="margin-top:var(--global-spacing-3);padding:var(--global-spacing-3);background:var(--amber-bg);border:1px solid rgba(201,122,26,.2);border-radius:var(--global-radius-sm);font-size:11px;color:var(--global-color-yellow-500);">
-                    <div class="badge badge-warning" style="margin-bottom:4px;">Alert</div>
-                    16h workload exceeds capacity
-                  </div>
+                <!-- ── ERROR STATE ── -->
+                <div id="error-state" class="page">
+                    <div class="ph">
+                        <div>
+                            <h1 class="ph-title">Connection Error State</h1>
+                            <div class="ph-sub">Error handling and recovery options</div>
+                        </div>
+                    </div>
+                    
+                    <div class="error-container">
+                        <div class="error-icon" aria-hidden="true">!</div>
+                        <h2 class="error-title">Connection Lost</h2>
+                        <p class="error-message">
+                            Unable to connect to the server. Please check your internet connection and try again. Your work has been saved locally and will sync when connection is restored.
+                        </p>
+                        <div class="flex-row">
+                            <button class="btn btn-primary" aria-label="Retry connection">Retry Connection</button>
+                            <button class="btn btn-secondary" aria-label="Work offline">Work Offline</button>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="metric-card">
-                  <div class="metric-title">Team Performance</div>
-                  <div class="metric-value">85%</div>
-                  <div class="metric-hint">efficiency score</div>
-                  <div style="margin-top:var(--global-spacing-3);">
-                    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
-                      <span>John Doe</span>
-                      <div style="display:flex;align-items:center;gap:4px;">
-                        <span>90%</span>
-                        <div class="badge badge-success" style="font-size:9px;padding:1px 4px;">High</div>
-                      </div>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
-                      <span>Alice Smith</span>
-                      <div style="display:flex;align-items:center;gap:4px;">
-                        <span>82%</span>
-                        <div class="badge badge-info" style="font-size:9px;padding:1px 4px;">Good</div>
-                      </div>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;font-size:11px;">
-                      <span>Eve Miller</span>
-                      <div style="display:flex;align-items:center;gap:4px;">
-                        <span>88%</span>
-                        <div class="badge badge-success" style="font-size:9px;padding:1px 4px;">High</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="metric-card">
-                  <div class="metric-title">Predictive Analytics</div>
-                  <div class="metric-value">Nov 15</div>
-                  <div class="metric-hint">estimated completion</div>
-                  <div style="margin-top:var(--global-spacing-3);padding:var(--global-spacing-3);background:var(--blue-bg);border:1px solid rgba(59,111,212,.2);border-radius:var(--global-radius-sm);font-size:11px;color:var(--global-color-blue-500);">
-                    <div class="badge badge-info" style="margin-bottom:4px;">Prediction</div>
-                    Based on current velocity
-                  </div>
-                </div>
-                
-                <div class="metric-card">
-                  <div class="metric-title">Workflow Health</div>
-                  <div class="metric-value">Good</div>
-                  <div class="metric-hint">overall status</div>
-                  <div style="margin-top:var(--global-spacing-3);">
-                    <div style="display:flex;align-items:center;gap:var(--global-spacing-2);font-size:11px;margin-bottom:4px;">
-                      <div class="status-dot status-online"></div>
-                      <span>Balanced workload</span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:var(--global-spacing-2);font-size:11px;margin-bottom:4px;">
-                      <div class="status-dot status-away"></div>
-                      <span>Monitor In Progress</span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:var(--global-spacing-2);font-size:11px;">
-                      <div class="status-dot status-online"></div>
-                      <span>Team collaboration active</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
-        </div>
-
-        <!-- 5.0 Accessible Kanban Board -->
-        <div id="accessible" class="page">
-          <div class="ph">
-            <div>
-              <h1 class="ph-title">Accessible Kanban Board</h1>
-              <div class="ph-sub">Screen reader optimized with full keyboard navigation</div>
-            </div>
-          </div>
-          
-          <!-- Keyboard shortcuts reference -->
-          <details style="margin-bottom:var(--global-spacing-4);">
-            <summary style="cursor:pointer;font-size:13px;font-weight:600;padding:var(--global-spacing-2);background:var(--glass-background-color);border-radius:var(--global-radius-sm);border:var(--glass-25-border);">Keyboard Shortcuts</summary>
-            <div style="margin-top:var(--global-spacing-3);padding:var(--global-spacing-4);background:var(--glass-background-color);border-radius:var(--global-radius-md);border:var(--glass-0-border);font-size:12px;">
-              <div style="display:grid;grid-template-columns:auto 1fr;gap:var(--global-spacing-2) var(--global-spacing-4);">
-                <kbd style="background:var(--color-text-primary);color:#fff;padding:2px 6px;border-radius:3px;font-size:10px;">Tab</kbd>
-                <span>Navigate between elements</span>
-                <kbd style="background:var(--color-text-primary);color:#fff;padding:2px 6px;border-radius:3px;font-size:10px;">Enter/Space</kbd>
-                <span>Activate focused element</span>
-                <kbd style="background:var(--color-text-primary);color:#fff;padding:2px 6px;border-radius:3px;font-size:10px;">Arrow Keys</kbd>
-                <span>Navigate within columns</span>
-                <kbd style="background:var(--color-text-primary);color:#fff;padding:2px 6px;border-radius:3px;font-size:10px;">Ctrl+M</kbd>
-                <span>Move task to next column</span>
-                <kbd style="background:var(--color-text-primary);color:#fff;padding:2px 6px;border-radius:3px;font-size:10px;">Escape</kbd>
-                <span>Close modals/return to board</span>
-              </div>
-            </div>
-          </details>
-          
-          <div class="kanban-container" role="application" aria-label="Accessible Kanban board with keyboard navigation">
-            <div class="kanban-column todo-column">
-              <div class="column-header">
-                <h2 class="column-title" id="todo-heading">To Do</h2>
-                <span class="task-count" aria-label="4 tasks in To Do column">4</span>
-              </div>
-              <div class="column-body" role="list" aria-labelledby="todo-heading">
-                <div class="task-card" role="listitem" tabindex="0" 
-                     aria-describedby="task1-details" 
-                     style="outline:3px solid var(--focus-outline-color);outline-offset:2px;">
-                  <div class="task-title">Implement user authentication</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">JD</div>
-                      <span>John Doe</span>
-                    </div>
-                    <div class="task-priority high" aria-label="High priority">High</div>
-                  </div>
-                  <div id="task1-details" class="sr-only">
-                    Task: Implement user authentication. Assigned to John Doe. High priority. In To Do column. Press Enter to open details, Ctrl+M to move to next column.
-                  </div>
-                  <div style="margin-top:var(--global-spacing-2);">
-                    <div class="badge badge-brand" style="font-size:9px;padding:1px 4px;">Currently focused</div>
-                  </div>
-                </div>
-                
-                <div class="task-card" role="listitem" tabindex="-1" aria-describedby="task2-details">
-                  <div class="task-title">Design landing page</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">AS</div>
-                      <span>Alice Smith</span>
-                    </div>
-                    <div class="task-priority medium" aria-label="Medium priority">Medium</div>
-                  </div>
-                  <div id="task2-details" class="sr-only">
-                    Task: Design landing page. Assigned to Alice Smith. Medium priority. In To Do column.
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column progress-column">
-              <div class="column-header">
-                <h2 class="column-title" id="progress-heading">In Progress</h2>
-                <span class="task-count" aria-label="2 tasks in In Progress column">2</span>
-              </div>
-              <div class="column-body" role="list" aria-labelledby="progress-heading">
-                <div class="task-card" role="listitem" tabindex="-1">
-                  <div class="task-title">Database optimization</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">EM</div>
-                      <span>Eve Miller</span>
-                    </div>
-                    <div class="task-priority high" aria-label="High priority">High</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="kanban-column done-column">
-              <div class="column-header">
-                <h2 class="column-title" id="done-heading">Done</h2>
-                <span class="task-count" aria-label="3 tasks in Done column">3</span>
-              </div>
-              <div class="column-body" role="list" aria-labelledby="done-heading">
-                <div class="task-card" role="listitem" tabindex="-1">
-                  <div class="task-title">User research analysis</div>
-                  <div class="task-meta">
-                    <div class="task-assignee">
-                      <div class="avatar" aria-hidden="true">GT</div>
-                      <span>Grace Taylor</span>
-                    </div>
-                    <div class="task-priority high" aria-label="High priority">High</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Screen reader announcements area -->
-          <div aria-live="polite" aria-atomic="true" class="sr-only" id="announcements">
-            Task focused: Implement user authentication, assigned to John Doe, high priority, in To Do column
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <!-- Task Details Modal -->
-  <div id="task-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-describedby="modal-desc">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modal-title" class="modal-title">Implement user authentication</h2>
-        <button class="close-btn" onclick="closeTaskModal()" aria-label="Close modal">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-          </svg>
-        </button>
-      </div>
-      <div id="modal-desc">
-        <div class="field">
-          <label>Status</label>
-          <select>
-            <option>To Do</option>
-            <option>In Progress</option>
-            <option>Done</option>
-          </select>
-        </div>
-        
-        <div class="field">
-          <label>Assignee</label>
-          <select>
-            <option>John Doe</option>
-            <option>Alice Smith</option>
-            <option>Bob Johnson</option>
-          </select>
-        </div>
-        
-        <div class="field">
-          <label>Priority</label>
-          <select>
-            <option>High</option>
-            <option>Medium</option>
-            <option>Low</option>
-          </select>
-        </div>
-        
-        <div class="field">
-          <label>Description</label>
-          <textarea placeholder="Enter task details..."></textarea>
-        </div>
-        
-        <div class="field">
-          <label>Activity Log</label>
-          <div style="background:var(--glass-background-color);border:var(--glass-25-border);border-radius:var(--global-radius-sm);padding:var(--global-spacing-3);font-size:11px;">
-            <div style="margin-bottom:var(--global-spacing-2);display:flex;justify-content:space-between;">
-              <span>Created by John Doe</span>
-              <span class="badge badge-info">3 days ago</span>
-            </div>
-            <div style="margin-bottom:var(--global-spacing-2);display:flex;justify-content:space-between;">
-              <span>Priority changed to High</span>
-              <span class="badge badge-warning">2 days ago</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;">
-              <span>Comment added</span>
-              <span class="badge badge-success">1 day ago</span>
-            </div>
-          </div>
-        </div>
-        
-        <div style="display:flex;gap:var(--global-spacing-3);justify-content:flex-end;margin-top:var(--global-spacing-5);">
-          <button class="btn btn-secondary" onclick="closeTaskModal()">
-            <div class="button-content">Cancel</div>
-          </button>
-          <button class="btn btn-primary">
-            <div class="button-content">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-              </svg>
-              Save Changes
-            </div>
-          </button>
-        </div>
-      </div>
+        </main>
     </div>
-  </div>
-
-  <script>
-    // Navigation functions
-    function nav(el, id) {
-      // Hide all pages
-      document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-      // Show selected page
-      document.getElementById(id).classList.add('active');
-      // Update navigation
-      document.querySelectorAll('.nav-list li').forEach(li => li.classList.remove('active'));
-      el.classList.add('active');
-    }
-
-    // Keyboard navigation for menu items (WCAG 2.2 §2.1)
-    function navKey(event, el, id) {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        nav(el, id);
-        return;
-      }
-      
-      var items = Array.from(el.closest('ul').querySelectorAll('[role="menuitem"]'));
-      var currentIndex = items.indexOf(el);
-      
-      if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        var nextIndex = Math.min(currentIndex + 1, items.length - 1);
-        items[nextIndex].focus();
-      }
-      if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        var prevIndex = Math.max(currentIndex - 1, 0);
-        items[prevIndex].focus();
-      }
-      if (event.key === 'Home') {
-        event.preventDefault();
-        items[0].focus();
-      }
-      if (event.key === 'End') {
-        event.preventDefault();
-        items[items.length - 1].focus();
-      }
-    }
-
-    // Modal functions with focus management
-    function openTaskModal(taskId) {
-      document.getElementById('task-modal').classList.add('active');
-      // Focus management for accessibility
-      document.querySelector('#task-modal .close-btn').focus();
-    }
-
-    function closeTaskModal() {
-      document.getElementById('task-modal').classList.remove('active');
-      // Return focus to the task that opened the modal
-      document.querySelector('.task-card[tabindex="0"]').focus();
-    }
-
-    // Keyboard navigation for task cards (WCAG 2.2 §2.1)
-    document.addEventListener('keydown', function(event) {
-      var focused = document.activeElement;
-      
-      if (focused.classList.contains('task-card')) {
-        var column = focused.closest('.column-body');
-        var tasks = Array.from(column.querySelectorAll('.task-card'));
-        var currentIndex = tasks.indexOf(focused);
+    
+    <!-- ── TASK DETAIL MODAL ── -->
+    <div id="task-modal" class="modal-overlay" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modal-title" class="modal-title">Design wireframes</h2>
+                <button class="close-btn" onclick="hideTaskModal()" aria-label="Close modal">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            
+            <div class="modal-content">
+                <div style="margin-bottom: var(--global-spacing-5);">
+                    <h3 style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-muted); margin-bottom: var(--global-spacing-2); text-transform: uppercase; letter-spacing: 0.05em;">Description</h3>
+                    <p style="font-size: var(--font-size-base); line-height: var(--line-height-relaxed); color: var(--color-text-primary);">Create comprehensive low-fidelity wireframes for the three-column Kanban board layout including responsive breakpoints for mobile, tablet, and desktop views. Focus on accessibility standards and user interaction patterns.</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--global-spacing-5); margin-bottom: var(--global-spacing-5);">
+                    <div>
+                        <h3 style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-muted); margin-bottom: var(--global-spacing-2); text-transform: uppercase; letter-spacing: 0.05em;">Assignee</h3>
+                        <div style="display: flex; align-items: center; gap: var(--global-spacing-3);">
+                            <div class="assignee-avatar">SM</div>
+                            <div>
+                                <div style="font-weight: var(--font-weight-semibold); color: var(--color-text-primary);">Sarah Miller</div>
+                                <div style="font-size: var(--font-size-sm); color: var(--color-text-muted);">UX Designer</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-muted); margin-bottom: var(--global-spacing-2); text-transform: uppercase; letter-spacing: 0.05em;">Priority</h3>
+                        <span class="priority-badge priority-high">High Priority</span>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: var(--global-spacing-5);">
+                    <h3 style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-muted); margin-bottom: var(--global-spacing-2); text-transform: uppercase; letter-spacing: 0.05em;">Due Date</h3>
+                    <p style="font-size: var(--font-size-base); color: var(--color-text-primary); font-weight: var(--font-weight-medium);">October 30, 2024</p>
+                </div>
+                
+                <div style="margin-bottom: var(--global-spacing-6);">
+                    <h3 style="font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--color-text-muted); margin-bottom: var(--global-spacing-3); text-transform: uppercase; letter-spacing: 0.05em;">Move Task</h3>
+                    <div class="flex-row">
+                        <button class="btn btn-secondary" aria-label="Move to In Progress">→ In Progress</button>
+                        <button class="btn btn-secondary" aria-label="Move to Done">→ Done</button>
+                    </div>
+                </div>
+                
+                <div class="flex-row">
+                    <button class="btn btn-primary" aria-label="Edit task">Edit Task</button>
+                    <button class="btn btn-secondary" onclick="hideTaskModal()" aria-label="Close modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Navigation functions
+        function nav(el, id) {
+            // Remove active from all pages
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            // Add active to selected page
+            document.getElementById(id).classList.add('active');
+            
+            // Update sidebar navigation
+            document.querySelectorAll('.nav-list li').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
+            
+            // Update tabindex for keyboard navigation
+            document.querySelectorAll('.nav-list li').forEach(n => n.setAttribute('tabindex', '-1'));
+            el.setAttribute('tabindex', '0');
+        }
         
-        if (event.key === 'ArrowDown') {
-          event.preventDefault();
-          var nextIndex = Math.min(currentIndex + 1, tasks.length - 1);
-          tasks[nextIndex].focus();
-          // Update screen reader announcement
-          updateAnnouncement(tasks[nextIndex]);
+        // Keyboard navigation for sidebar
+        function navKey(event, el, id) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                nav(el, id);
+                return;
+            }
+            
+            var items = Array.from(el.closest('ul').querySelectorAll('[role="menuitem"]'));
+            var i = items.indexOf(el);
+            
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                items[Math.min(i + 1, items.length - 1)].focus();
+            }
+            if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                items[Math.max(i - 1, 0)].focus();
+            }
+            if (event.key === 'Home') {
+                event.preventDefault();
+                items[0].focus();
+            }
+            if (event.key === 'End') {
+                event.preventDefault();
+                items[items.length - 1].focus();
+            }
         }
-        if (event.key === 'ArrowUp') {
-          event.preventDefault();
-          var prevIndex = Math.max(currentIndex - 1, 0);
-          tasks[prevIndex].focus();
-          updateAnnouncement(tasks[prevIndex]);
-        }
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          openTaskModal('task1');
-        }
-        if (event.key === 'Escape') {
-          event.preventDefault();
-          closeTaskModal();
-        }
-        // Ctrl+M to move task to next column
-        if (event.ctrlKey && event.key === 'm') {
-          event.preventDefault();
-          moveTaskToNextColumn(focused);
-        }
-      }
-    });
-
-    // Screen reader announcements
-    function updateAnnouncement(taskElement) {
-      var announcements = document.getElementById('announcements');
-      if (announcements && taskElement) {
-        var title = taskElement.querySelector('.task-title').textContent;
-        var assignee = taskElement.querySelector('.task-assignee span').textContent;
-        var priority = taskElement.querySelector('.task-priority').textContent;
-        var column = taskElement.closest('.kanban-column').querySelector('.column-title').textContent;
         
-        announcements.textContent = `Task focused: ${title}, assigned to ${assignee}, ${priority} priority, in ${column} column`;
-      }
-    }
-
-    // Move task to next column (accessibility feature)
-    function moveTaskToNextColumn(taskElement) {
-      var currentColumn = taskElement.closest('.kanban-column');
-      var allColumns = Array.from(document.querySelectorAll('.kanban-column'));
-      var currentIndex = allColumns.indexOf(currentColumn);
-      
-      if (currentIndex < allColumns.length - 1) {
-        var nextColumn = allColumns[currentIndex + 1];
-        var nextColumnBody = nextColumn.querySelector('.column-body');
-        
-        // Move the task
-        nextColumnBody.appendChild(taskElement);
-        
-        // Update task counts
-        updateTaskCounts();
-        
-        // Announce the move
-        var announcements = document.getElementById('announcements');
-        if (announcements) {
-          var title = taskElement.querySelector('.task-title').textContent;
-          var newColumn = nextColumn.querySelector('.column-title').textContent;
-          announcements.textContent = `Task moved: ${title} moved to ${newColumn} column`;
+        // Tab navigation for mobile view
+        function tabKey(event, el) {
+            var tabs = Array.from(el.closest('[role="tablist"]').querySelectorAll('[role="tab"]'));
+            var i = tabs.indexOf(el);
+            
+            if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                event.preventDefault();
+                var n = tabs[(i + 1) % tabs.length];
+                n.focus();
+                n.click();
+            }
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                var p = tabs[(i - 1 + tabs.length) % tabs.length];
+                p.focus();
+                p.click();
+            }
+            if (event.key === 'Home') {
+                event.preventDefault();
+                tabs[0].focus();
+                tabs[0].click();
+            }
+            if (event.key === 'End') {
+                event.preventDefault();
+                tabs[tabs.length - 1].focus();
+                tabs[tabs.length - 1].click();
+            }
         }
-      }
-    }
-
-    // Update task counts in column headers
-    function updateTaskCounts() {
-      document.querySelectorAll('.kanban-column').forEach(column => {
-        var taskCount = column.querySelectorAll('.task-card').length;
-        var countElement = column.querySelector('.task-count');
-        if (countElement) {
-          countElement.textContent = taskCount;
-          countElement.setAttribute('aria-label', `${taskCount} tasks`);
+        
+        // Mobile tab switching
+        function switchMobileTab(el, tabId) {
+            // Update tab states
+            var tablist = el.closest('[role="tablist"]');
+            tablist.querySelectorAll('[role="tab"]').forEach(t => {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+                t.setAttribute('tabindex', '-1');
+            });
+            
+            el.classList.add('active');
+            el.setAttribute('aria-selected', 'true');
+            el.setAttribute('tabindex', '0');
+            
+            // Show/hide tab panels
+            document.querySelectorAll('[id^="mobile-"]').forEach(p => p.style.display = 'none');
+            document.getElementById('mobile-' + tabId).style.display = 'block';
         }
-      });
-    }
-
-    // Initialize focus management
-    document.addEventListener('DOMContentLoaded', function() {
-      // Set initial focus on first task card in accessible view
-      var firstTask = document.querySelector('#accessible .task-card[tabindex="0"]');
-      if (firstTask && document.getElementById('accessible').classList.contains('active')) {
-        firstTask.focus();
-      }
-      
-      // Respect prefers-reduced-motion
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        document.documentElement.style.setProperty('--global-motion-duration-swift', '0s');
-      }
-    });
-
-    // Close modal on Escape key
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'Escape') {
-        var modal = document.querySelector('.modal.active');
-        if (modal) {
-          closeTaskModal();
+        
+        // Modal functions
+        function showTaskModal() {
+            document.getElementById('task-modal').classList.add('active');
+            document.querySelector('.close-btn').focus();
         }
-      }
-    });
-  </script>
+        
+        function hideTaskModal() {
+            document.getElementById('task-modal').classList.remove('active');
+        }
+        
+        function showTaskDetail(taskId) {
+            showTaskModal();
+        }
+        
+        // Close modal on escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideTaskModal();
+            }
+        });
+        
+        // Close modal on overlay click
+        document.getElementById('task-modal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                hideTaskModal();
+            }
+        });
+        
+        // Focus management for modal
+        document.getElementById('task-modal').addEventListener('keydown', function(event) {
+            if (event.key === 'Tab') {
+                var focusableElements = this.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                var firstElement = focusableElements[0];
+                var lastElement = focusableElements[focusableElements.length - 1];
+                
+                if (event.shiftKey) {
+                    if (document.activeElement === firstElement) {
+                        event.preventDefault();
+                        lastElement.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastElement) {
+                        event.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
