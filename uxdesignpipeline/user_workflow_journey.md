@@ -2,647 +2,662 @@
 
 ## Experience Overview
 
-The Task Creation experience encompasses all touchpoints where users need to create, configure, and manage tasks within the system. This experience is critical for productivity workflows and team collaboration.
+The Task Creation experience encompasses all touchpoints where users need to create, configure, and manage tasks within the system. This includes initial task creation, form validation, error handling, and confirmation processes.
 
-## Scenarios Identified
+---
 
-### Scenario 1: New User Creating First Task
-**Context:** Sarah, a new team member who just joined the project, needs to create her first task to contribute to the team's sprint. She's unfamiliar with the system's task creation process and needs guidance to ensure she provides all necessary information correctly.
+## Scenario 1: New User Creating Their First Task
 
-#### Workflow Variation 1A: Guided Task Creation
+**Context:** Sarah, a new project manager, has just joined the team and needs to create her first task to assign work to her team members. She's unfamiliar with the system and wants to ensure she fills out all required information correctly.
 
-**User Goal:** Successfully create a well-structured task with all required information while learning the system's task management conventions.
+### Workflow Variation 1A: Guided First-Time Task Creation
 
-**Business Goal:** Onboard new users effectively while ensuring task quality and completeness, reducing support requests and improving team productivity.
+**User Goal:** Successfully create a complete task with all necessary information while learning the system's task creation process.
+
+**Business Goal:** Onboard new users effectively, reduce form abandonment, and ensure high-quality task data from first-time users.
 
 **Screens:**
 
-1.0 Dashboard [type: primary]
+**1.0 Dashboard [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Provide users with an overview of their tasks and easy access to create new ones.
+Page Goal: Provide entry point to task creation and overview of existing tasks.
 
 Screen Description:
-1. User can view their assigned tasks in different states (To Do, In Progress, Done)
-2. User can access team tasks and project overview
-3. User can navigate to create a new task via prominent "+ Create Task" button
-4. User can view recent activity and notifications
-5. User can access quick filters and search functionality
-6. User can view task statistics and progress indicators
+1. User can view existing tasks in a list/grid format
+2. User can access task creation via prominent "+ Create Task" button
+3. User can filter and search existing tasks
+4. User can view task statistics and progress indicators
+5. User can access quick actions for recent tasks
 
 Design Problems:
 - HMW make the task creation entry point immediately discoverable for new users?
-- HMW provide context about task creation without overwhelming the dashboard?
-- HMW indicate the user's current workload before they add more tasks?
-- HMW show relevant examples or templates for first-time users?
+- HMW provide context about what tasks exist without overwhelming new users?
+- HMW communicate the value of creating well-structured tasks?
 
 Design Opportunities:
-- What if we could show onboarding tips specifically for task creation?
-- What if the system could suggest optimal task creation based on current workload?
-- What if we provided task templates based on the user's role or project type?
-- What if we could show real-time collaboration indicators for active tasks?
+- What if we showed onboarding tooltips for first-time users?
+- What if we provided task templates based on common use cases?
+- What if we showed examples of well-structured tasks?
 
-Pu.1 Task Creation Form Modal [type: modal]
+**Pu.1 Task Creation Form Modal [type: modal]**
 - HOW IT IS REACHED: Click "+ Create Task" button from Dashboard
 - NAVBAR PRESENCE: No
 
-Page Goal: Guide new users through comprehensive task creation with validation and helpful hints.
+Page Goal: Guide user through comprehensive task creation with validation and help.
 
 Screen Description:
-1. User enters task title with character count and suggestions
-2. User provides detailed task description with formatting options
-3. User selects priority level with visual indicators and explanations
-4. User assigns task to team member with role-based suggestions
-5. User sets due date with calendar picker and workload warnings
-6. User adds tags and labels for categorization
-7. User can save as draft or publish immediately
-8. User receives real-time validation feedback
-9. User can access help tooltips for each field
-10. User can preview task before submission
+1. Form displays mandatory fields: title, description, priority, assignee
+2. Progressive disclosure shows optional fields after mandatory ones are filled
+3. Real-time validation provides immediate feedback
+4. Help tooltips explain each field's purpose
+5. Field suggestions appear based on user input
+6. Save draft functionality preserves work in progress
+7. Clear visual hierarchy distinguishes required vs optional fields
 
 Design Problems:
-- HMW ensure new users understand the importance of each required field?
-- HMW prevent form abandonment due to complexity?
+- HMW prevent users from feeling overwhelmed by too many fields at once?
+- HMW ensure users understand the importance of each required field?
 - HMW provide helpful guidance without cluttering the interface?
-- HMW validate input in real-time without being intrusive?
+- HMW handle validation errors gracefully?
 
 Design Opportunities:
-- What if we could auto-suggest task details based on project context?
-- What if the form could adapt based on the user's experience level?
-- What if we provided smart defaults based on similar tasks?
-- What if we could show the impact of priority selection on team workload?
+- What if we used smart defaults based on user's role and recent tasks?
+- What if we provided field auto-completion based on team patterns?
+- What if we showed real-time preview of how the task will appear?
+- What if we offered task templates for common scenarios?
 
-#### Workflow Variation 1B: Quick Task Creation
+**Pu.2 Task Creation Success Confirmation [type: modal]**
+- HOW IT IS REACHED: Successful form submission from Pu.1
+- NAVBAR PRESENCE: No
 
-**User Goal:** Rapidly create a basic task with minimal friction while maintaining essential information quality.
+Page Goal: Confirm successful task creation and guide user to next actions.
 
-**Business Goal:** Reduce task creation time while ensuring minimum viable task information for team coordination.
+Screen Description:
+1. Success message confirms task creation
+2. Task summary shows key details
+3. Quick actions: view task, create another, share task
+4. Option to set up notifications for the task
+5. Suggested next steps based on task type
+
+Design Problems:
+- HMW celebrate the success without interrupting user flow?
+- HMW guide users to productive next actions?
+- HMW reinforce learning about task management?
+
+Design Opportunities:
+- What if we showed how this task fits into the user's overall workload?
+- What if we suggested related tasks or dependencies?
+- What if we provided tips for effective task management?
+
+### Workflow Variation 1B: Quick Task Creation
+
+**User Goal:** Create a basic task quickly with minimal friction for urgent situations.
+
+**Business Goal:** Reduce barriers to task creation while maintaining data quality standards.
 
 **Screens:**
 
-1.0 Dashboard [type: primary]
+**1.0 Dashboard [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
 
 [Same as Variation 1A]
 
-Pu.2 Quick Task Creation Drawer [type: modal]
-- HOW IT IS REACHED: Click "Quick Add" button or keyboard shortcut from Dashboard
+**Pu.3 Quick Task Creation Drawer [type: modal]**
+- HOW IT IS REACHED: Click "Quick Add" or keyboard shortcut from Dashboard
 - NAVBAR PRESENCE: No
 
-Page Goal: Enable rapid task creation with smart defaults and minimal required fields.
+Page Goal: Enable rapid task creation with minimal required information.
 
 Screen Description:
-1. User enters task title with auto-complete suggestions
-2. User selects from preset priority options with one-click selection
-3. User assigns to self or team member with recent assignee shortcuts
-4. User can optionally add description with expandable text area
-5. User can set due date with quick date options (today, tomorrow, next week)
-6. User can add to current sprint or backlog with one click
-7. User receives instant task creation confirmation
-8. User can immediately create another task or return to dashboard
+1. Streamlined form with only essential fields visible
+2. Smart defaults applied based on context
+3. One-click assignee selection from recent collaborators
+4. Preset priority options with visual indicators
+5. Auto-save functionality
+6. Option to "Add details later" for incomplete tasks
 
 Design Problems:
-- HMW balance speed with information completeness?
-- HMW ensure quick tasks don't lack critical information?
-- HMW make smart defaults truly intelligent and contextual?
-- HMW prevent duplicate or poorly defined tasks?
+- HMW balance speed with completeness of task information?
+- HMW ensure quick tasks don't become incomplete or forgotten?
+- HMW maintain consistency with full task creation flow?
 
 Design Opportunities:
-- What if we could learn from user patterns to improve quick creation?
-- What if the system could suggest when a task needs more detail?
-- What if we provided bulk task creation for similar items?
-- What if we could auto-categorize tasks based on title patterns?
+- What if we used AI to suggest task details based on title?
+- What if we automatically categorized tasks based on keywords?
+- What if we reminded users to complete task details at optimal times?
 
-### Scenario 2: Experienced User Creating Complex Task
-**Context:** Marcus, a senior project manager with extensive system experience, needs to create a complex task with multiple dependencies, custom fields, and detailed specifications for a critical project milestone.
+**NAVIGATION STRUCTURE:**
+1.0 Dashboard
 
-#### Workflow Variation 2A: Advanced Task Creation
+**USER JOURNEY FLOW:**
+Variation 1A: 1.0 Dashboard → [click + Create Task] → Pu.1 Task Creation Form Modal → [submit] → Pu.2 Success Confirmation → [close] → 1.0 Dashboard (updated)
+
+Variation 1B: 1.0 Dashboard → [click Quick Add] → Pu.3 Quick Task Creation Drawer → [submit] → 1.0 Dashboard (updated)
+
+---
+
+## Scenario 2: Experienced User Creating Complex Task
+
+**Context:** Marcus, a senior developer, needs to create a complex task with multiple dependencies, custom fields, and specific requirements. He's familiar with the system and wants to leverage advanced features efficiently.
+
+### Workflow Variation 2A: Advanced Task Creation with Dependencies
 
 **User Goal:** Create a comprehensive task with all necessary details, dependencies, and custom configurations efficiently.
 
-**Business Goal:** Enable power users to leverage advanced features while maintaining task quality and project coordination.
+**Business Goal:** Enable power users to create detailed, well-structured tasks that improve project planning and execution.
 
 **Screens:**
 
-2.0 Project Management Dashboard [type: primary]
+**2.0 Task Management Hub [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Provide project managers with comprehensive project oversight and advanced task management capabilities.
+Page Goal: Provide comprehensive task management interface for experienced users.
 
 Screen Description:
-1. User can view project timeline with task dependencies
-2. User can access advanced task creation with full feature set
-3. User can view resource allocation and capacity planning
-4. User can manage project milestones and deliverables
-5. User can access reporting and analytics tools
-6. User can configure project settings and workflows
-7. User can view team performance metrics
+1. Advanced task list with multiple view options (kanban, timeline, list)
+2. Bulk actions for multiple task management
+3. Advanced filtering and sorting capabilities
+4. Task relationship visualization
+5. Quick access to task templates and advanced creation options
+6. Integration with project planning tools
 
 Design Problems:
-- HMW provide advanced functionality without overwhelming less experienced users?
-- HMW make complex task relationships visually clear?
-- HMW ensure advanced features are discoverable when needed?
-- HMW maintain performance with complex project data?
+- HMW provide powerful features without overwhelming the interface?
+- HMW make complex task relationships easy to understand and manage?
+- HMW enable efficient bulk operations while preventing errors?
 
 Design Opportunities:
-- What if we could provide AI-powered project insights?
-- What if the system could predict potential bottlenecks?
-- What if we could automate routine project management tasks?
-- What if we provided customizable dashboard views for different roles?
+- What if we provided AI-powered task relationship suggestions?
+- What if we showed impact analysis for task changes?
+- What if we enabled collaborative task planning in real-time?
 
-Pu.3 Advanced Task Creation Form [type: modal]
-- HOW IT IS REACHED: Click "+ Advanced Task" button from Project Management Dashboard
+**Pu.4 Advanced Task Creation Modal [type: modal]**
+- HOW IT IS REACHED: Click "Advanced Create" or "+ Create" with modifier key from Task Management Hub
 - NAVBAR PRESENCE: No
 
-Page Goal: Enable comprehensive task creation with advanced features and configurations.
+Page Goal: Enable creation of complex tasks with full feature set.
 
 Screen Description:
-1. User enters task title with project-specific templates
-2. User provides detailed description with rich text formatting and file attachments
-3. User configures priority with custom priority levels and escalation rules
-4. User assigns multiple team members with role specifications
-5. User sets dependencies with visual dependency mapping
-6. User configures custom fields specific to project type
-7. User sets up approval workflows and review processes
-8. User defines acceptance criteria and success metrics
-9. User configures notifications and communication preferences
-10. User can link to external resources and documentation
-11. User can set up recurring task patterns
-12. User can configure time tracking and estimation settings
+1. Tabbed interface organizing different aspects (Details, Dependencies, Custom Fields, Notifications)
+2. Dependency mapping with visual relationship builder
+3. Custom field configuration based on task type
+4. Advanced scheduling with conflict detection
+5. Team collaboration settings and permissions
+6. Integration options with external tools
+7. Bulk assignee selection with role-based suggestions
+8. Template saving for future use
 
 Design Problems:
-- HMW organize complex form sections without overwhelming users?
+- HMW organize complex information without creating cognitive overload?
 - HMW make dependency relationships clear and manageable?
-- HMW ensure all advanced features are accessible but not mandatory?
-- HMW provide validation for complex interdependent fields?
+- HMW ensure all advanced features are discoverable but not intrusive?
+- HMW handle complex validation across multiple form sections?
 
 Design Opportunities:
-- What if we could visualize task impact on project timeline in real-time?
-- What if the system could suggest optimal resource allocation?
-- What if we provided templates based on successful similar projects?
-- What if we could automate dependency detection based on task content?
+- What if we used machine learning to suggest optimal task configurations?
+- What if we provided real-time collaboration during task creation?
+- What if we showed predictive analytics for task completion?
+- What if we enabled voice input for rapid task details entry?
 
-#### Workflow Variation 2B: Template-Based Task Creation
+### Workflow Variation 2B: Template-Based Task Creation
 
-**User Goal:** Leverage existing task templates to quickly create standardized tasks while maintaining consistency across projects.
+**User Goal:** Quickly create standardized tasks using proven templates while maintaining flexibility for customization.
 
-**Business Goal:** Improve task standardization and reduce creation time for common task types while ensuring best practices.
+**Business Goal:** Promote best practices and consistency while reducing time to create quality tasks.
 
 **Screens:**
 
-2.0 Project Management Dashboard [type: primary]
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-
+**2.0 Task Management Hub [type: primary]**
 [Same as Variation 2A]
 
-2.1 Template Library [type: primary]
-- HOW IT IS REACHED: Click "Templates" in sidebar navigation
+**2.1 Template Selection Screen [type: primary]**
+- HOW IT IS REACHED: Click "Create from Template" from Task Management Hub
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Provide access to task templates organized by category, project type, and team.
+Page Goal: Help users discover and select appropriate task templates.
 
 Screen Description:
-1. User can browse templates by category (Development, Design, Marketing, etc.)
-2. User can search templates by keywords and tags
-3. User can view template previews with field specifications
-4. User can access recently used templates
-5. User can create custom templates from existing tasks
-6. User can share templates with team members
-7. User can view template usage statistics and effectiveness
-8. User can manage template permissions and access levels
+1. Template gallery with categories and search
+2. Template preview with sample data
+3. Usage statistics and ratings for templates
+4. Personal and team template collections
+5. Template customization options
+6. Recent and recommended templates
 
 Design Problems:
-- HMW organize templates in a way that's easily discoverable?
-- HMW ensure templates remain current and relevant?
+- HMW help users find the most appropriate template quickly?
+- HMW show template value without requiring full preview?
 - HMW balance template standardization with customization needs?
-- HMW make template selection efficient for frequent users?
 
 Design Opportunities:
-- What if we could recommend templates based on project context?
-- What if templates could automatically update based on best practices?
-- What if we provided template effectiveness analytics?
-- What if we could create dynamic templates that adapt to project needs?
+- What if we used AI to recommend templates based on context?
+- What if we showed success metrics for tasks created from each template?
+- What if we enabled collaborative template creation and sharing?
 
-Pu.4 Template-Based Task Creation [type: modal]
-- HOW IT IS REACHED: Click "Use Template" button from Template Library or Dashboard
+**Pu.5 Template Customization Modal [type: modal]**
+- HOW IT IS REACHED: Select template from Template Selection Screen
 - NAVBAR PRESENCE: No
 
-Page Goal: Enable quick task creation using pre-configured templates with customization options.
+Page Goal: Allow customization of template while preserving its structure and best practices.
 
 Screen Description:
-1. User selects from available templates with preview
-2. User customizes pre-filled template fields as needed
-3. User modifies template-suggested assignees and timelines
-4. User adds project-specific information to template structure
-5. User can save modifications back to template (if permissions allow)
-6. User can create multiple tasks from template with variations
-7. User receives validation based on template requirements
-8. User can preview final task before creation
+1. Pre-filled form based on template with customizable sections
+2. Template-specific guidance and best practices
+3. Required vs optional customizations clearly marked
+4. Option to save customizations as new template
+5. Preview of final task before creation
+6. Batch creation option for multiple similar tasks
 
 Design Problems:
-- HMW make template customization intuitive and efficient?
-- HMW indicate which fields are template-suggested vs. required?
-- HMW handle template versioning and updates?
-- HMW ensure template modifications don't break required workflows?
+- HMW maintain template benefits while allowing necessary customization?
+- HMW guide users toward best practices without being restrictive?
+- HMW handle conflicts between template defaults and user preferences?
 
 Design Opportunities:
-- What if templates could learn from user modifications?
-- What if we provided smart template merging for complex projects?
-- What if templates could automatically adjust based on team capacity?
-- What if we could create collaborative template editing?
+- What if we learned from user customizations to improve templates?
+- What if we provided contextual suggestions during customization?
+- What if we enabled A/B testing of different template approaches?
 
-### Scenario 3: Mobile User Creating Urgent Task
-**Context:** Lisa, a field consultant, discovers an urgent issue while at a client site and needs to immediately create a high-priority task using her mobile device to alert her team and initiate resolution.
+**NAVIGATION STRUCTURE:**
+2.0 Task Management Hub | 2.1 Template Selection Screen
 
-#### Workflow Variation 3A: Mobile Quick Creation
+**USER JOURNEY FLOW:**
+Variation 2A: 2.0 Task Management Hub → [click Advanced Create] → Pu.4 Advanced Task Creation Modal → [submit] → 2.0 Task Management Hub (updated)
 
-**User Goal:** Rapidly create an urgent task with essential information while on mobile device with potential connectivity constraints.
+Variation 2B: 2.0 Task Management Hub → [click Create from Template] → 2.1 Template Selection Screen → [select template] → Pu.5 Template Customization Modal → [submit] → 2.0 Task Management Hub (updated)
 
-**Business Goal:** Enable immediate issue reporting and task creation from any location to maintain service quality and team responsiveness.
+---
+
+## Scenario 3: Mobile User Creating Task on the Go
+
+**Context:** Lisa, a field manager, needs to create tasks while visiting client sites using her mobile device. She has limited time and may have connectivity issues, but needs to capture important task information immediately.
+
+### Workflow Variation 3A: Offline-Capable Mobile Task Creation
+
+**User Goal:** Create tasks quickly on mobile device with offline capability and sync when connection is available.
+
+**Business Goal:** Enable productivity regardless of connectivity while ensuring data integrity and synchronization.
 
 **Screens:**
 
-3.0 Mobile Dashboard [type: primary]
-- HOW IT IS REACHED: Direct navigation via mobile app or responsive web
+**3.0 Mobile Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via mobile app launch or bottom navigation
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Provide mobile-optimized task overview and quick access to essential functions.
+Page Goal: Provide mobile-optimized task overview and quick access to creation.
 
 Screen Description:
-1. User can view condensed task list with swipe actions
-2. User can access prominent "+ Create" floating action button
-3. User can view urgent notifications and alerts
-4. User can access offline-capable quick actions
-5. User can view simplified task status indicators
-6. User can access emergency contact and escalation options
+1. Condensed task list optimized for mobile viewing
+2. Large, thumb-friendly "+ Create" floating action button
+3. Offline indicator and sync status
+4. Quick filters for urgent/today/assigned to me
+5. Voice-to-text capability for hands-free interaction
+6. Camera integration for task-related photos
 
 Design Problems:
-- HMW optimize task creation for small screens and touch interaction?
-- HMW ensure critical functions work with poor connectivity?
-- HMW make urgent task creation immediately accessible?
-- HMW provide adequate information density without overwhelming mobile users?
+- HMW optimize task information display for small screens?
+- HMW ensure offline functionality doesn't compromise user experience?
+- HMW make task creation accessible with one-handed mobile use?
+- HMW handle sync conflicts when connectivity returns?
 
 Design Opportunities:
-- What if we could use device capabilities (camera, location, voice) for task creation?
-- What if the system could detect urgency based on user behavior patterns?
-- What if we provided offline task creation with sync capabilities?
-- What if we could integrate with device notifications for task alerts?
+- What if we used location data to suggest relevant task types?
+- What if we enabled photo-to-task conversion using AI?
+- What if we provided voice-guided task creation for hands-free use?
+- What if we used predictive text based on user's task history?
 
-Pu.5 Mobile Task Creation Sheet [type: modal]
-- HOW IT IS REACHED: Tap floating "+" button from Mobile Dashboard
+**Pu.6 Mobile Task Creation Sheet [type: modal]**
+- HOW IT IS REACHED: Tap floating action button from Mobile Dashboard
 - NAVBAR PRESENCE: No
 
-Page Goal: Enable efficient task creation optimized for mobile interaction and urgent scenarios.
+Page Goal: Enable efficient task creation optimized for mobile interaction patterns.
 
 Screen Description:
-1. User enters task title with voice-to-text option
-2. User selects priority with large, touch-friendly priority buttons
-3. User assigns to team member with recent contacts and favorites
-4. User can attach photos directly from camera or gallery
-5. User can add location data automatically or manually
-6. User can record voice notes for detailed description
-7. User can set due date with quick preset options
-8. User can mark as urgent with one-tap escalation
-9. User receives offline creation confirmation with sync status
-10. User can immediately call or message assignee
+1. Bottom sheet design with swipe gestures
+2. Large touch targets for easy mobile interaction
+3. Smart keyboard types for different field inputs
+4. Voice input option for all text fields
+5. Photo attachment with camera integration
+6. Location tagging for field-based tasks
+7. Offline storage with sync indicators
+8. Quick assignee selection from contacts
 
 Design Problems:
-- HMW optimize form fields for mobile keyboard and touch input?
-- HMW handle media attachments efficiently on mobile networks?
-- HMW ensure urgent tasks get immediate attention despite mobile limitations?
-- HMW provide adequate validation without multiple confirmation steps?
+- HMW design form interactions that work well on mobile?
+- HMW handle form validation in offline scenarios?
+- HMW ensure accessibility for users with motor difficulties on mobile?
+- HMW manage limited screen real estate effectively?
 
 Design Opportunities:
-- What if we could use AI to extract task details from voice recordings?
-- What if the system could automatically categorize tasks based on location?
-- What if we provided smart suggestions based on current context?
-- What if we could integrate with other mobile productivity apps?
+- What if we used device sensors to auto-populate relevant task data?
+- What if we enabled gesture-based form navigation?
+- What if we provided contextual suggestions based on location and time?
+- What if we used machine learning to predict task priorities based on context?
 
-#### Workflow Variation 3B: Voice-Activated Task Creation
+### Workflow Variation 3B: Voice-First Mobile Task Creation
 
-**User Goal:** Create tasks hands-free using voice commands while maintaining accuracy and completeness.
+**User Goal:** Create tasks using primarily voice input while maintaining hands-free operation in field environments.
 
-**Business Goal:** Enable task creation in situations where manual input isn't possible while ensuring task quality.
+**Business Goal:** Enable task creation in situations where traditional input methods are impractical while maintaining data quality.
 
 **Screens:**
 
-3.0 Mobile Dashboard [type: primary]
-- HOW IT IS REACHED: Direct navigation via mobile app or responsive web
-- NAVBAR PRESENCE: Yes
-
+**3.0 Mobile Dashboard [type: primary]**
 [Same as Variation 3A]
 
-Pu.6 Voice Task Creation Interface [type: modal]
-- HOW IT IS REACHED: Long press floating "+" button or voice command "Create task"
+**Pu.7 Voice Task Creation Interface [type: modal]**
+- HOW IT IS REACHED: Long press floating action button or voice command from Mobile Dashboard
 - NAVBAR PRESENCE: No
 
-Page Goal: Enable comprehensive task creation through voice interaction with visual confirmation.
+Page Goal: Enable comprehensive task creation through voice interaction with visual feedback.
 
 Screen Description:
-1. User activates voice mode with visual and audio feedback
-2. User speaks task details with guided prompts
-3. User can see real-time transcription and corrections
-4. User confirms or modifies voice-interpreted information
-5. User can add additional details through follow-up voice commands
-6. User receives audio confirmation of task creation
-7. User can immediately share task via voice command
-8. User can set reminders and notifications through voice
+1. Large microphone interface with clear recording indicators
+2. Real-time transcription display with confidence indicators
+3. Voice command prompts for different task fields
+4. Visual confirmation of captured information
+5. Touch backup options for corrections
+6. Audio playback for verification
+7. Smart parsing of natural language into structured task data
 
 Design Problems:
-- HMW ensure voice recognition accuracy in various environments?
-- HMW handle voice input errors and corrections efficiently?
-- HMW provide adequate feedback without requiring visual attention?
-- HMW maintain privacy and security with voice-created tasks?
+- HMW ensure voice recognition accuracy in noisy field environments?
+- HMW provide clear feedback about what information was captured?
+- HMW handle voice input errors gracefully?
+- HMW make voice interface accessible to users with speech difficulties?
 
 Design Opportunities:
-- What if we could learn user voice patterns for better accuracy?
-- What if the system could detect emotional urgency in voice tone?
-- What if we provided multilingual voice task creation?
-- What if we could integrate with smart assistants and IoT devices?
+- What if we used AI to understand context and intent from natural speech?
+- What if we provided multilingual voice support?
+- What if we enabled voice-based task relationship creation?
+- What if we used environmental audio cues to suggest task types?
 
-### Scenario 4: Bulk Task Creation for Project Setup
-**Context:** David, a project coordinator, needs to set up a new project by creating multiple related tasks based on a project template, ensuring proper sequencing and resource allocation.
+**NAVIGATION STRUCTURE:**
+3.0 Mobile Dashboard
 
-#### Workflow Variation 4A: Batch Task Creation
+**USER JOURNEY FLOW:**
+Variation 3A: 3.0 Mobile Dashboard → [tap + Create] → Pu.6 Mobile Task Creation Sheet → [submit] → 3.0 Mobile Dashboard (updated)
 
-**User Goal:** Efficiently create multiple related tasks with proper dependencies and resource allocation for project initialization.
+Variation 3B: 3.0 Mobile Dashboard → [long press + Create] → Pu.7 Voice Task Creation Interface → [complete voice input] → 3.0 Mobile Dashboard (updated)
 
-**Business Goal:** Streamline project setup process while ensuring comprehensive task coverage and proper project structure.
+---
+
+## Scenario 4: Bulk Task Creation for Project Setup
+
+**Context:** David, a project manager, needs to create multiple related tasks when setting up a new project. He wants to create 15-20 tasks efficiently while maintaining consistency and proper relationships between them.
+
+### Workflow Variation 4A: Spreadsheet-Style Bulk Creation
+
+**User Goal:** Create multiple tasks efficiently using familiar spreadsheet-like interface while maintaining data quality.
+
+**Business Goal:** Enable efficient project setup while ensuring proper task structure and relationships.
 
 **Screens:**
 
-4.0 Project Setup Dashboard [type: primary]
-- HOW IT IS REACHED: Direct navigation via sidebar nav item or project creation workflow
+**4.0 Project Setup Hub [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item or project creation flow
 - NAVBAR PRESENCE: Yes
 
-Page Goal: Provide comprehensive project initialization tools and batch task creation capabilities.
+Page Goal: Provide comprehensive project setup tools including bulk task creation.
 
 Screen Description:
-1. User can access project templates and initialization wizards
-2. User can view project timeline and milestone planning tools
-3. User can access bulk task creation and import functions
-4. User can configure project settings and team assignments
-5. User can view resource allocation and capacity planning
-6. User can access project documentation and requirements
+1. Project overview with setup progress indicators
+2. Multiple setup options: templates, bulk creation, import
+3. Project timeline and milestone planning tools
+4. Team assignment and role management
+5. Integration setup for external tools
+6. Bulk operations dashboard
 
 Design Problems:
-- HMW make bulk task creation efficient without sacrificing individual task quality?
-- HMW ensure proper task relationships and dependencies in batch creation?
-- HMW provide adequate preview and validation for multiple tasks?
-- HMW handle errors and conflicts in bulk operations?
+- HMW organize complex project setup without overwhelming users?
+- HMW ensure all necessary setup steps are completed?
+- HMW provide flexibility while maintaining project structure?
 
 Design Opportunities:
-- What if we could automatically generate tasks based on project requirements?
-- What if the system could optimize task sequencing for efficiency?
-- What if we provided intelligent resource allocation across multiple tasks?
-- What if we could learn from successful project patterns?
+- What if we provided AI-powered project setup recommendations?
+- What if we enabled collaborative project planning in real-time?
+- What if we showed project setup best practices based on similar projects?
 
-Pu.7 Bulk Task Creation Interface [type: modal]
-- HOW IT IS REACHED: Click "Bulk Create" button from Project Setup Dashboard
-- NAVBAR PRESENCE: No
+**4.1 Bulk Task Creation Interface [type: primary]**
+- HOW IT IS REACHED: Click "Bulk Create Tasks" from Project Setup Hub
+- NAVBAR PRESENCE: Yes
 
-Page Goal: Enable efficient creation of multiple tasks with relationship management and validation.
+Page Goal: Enable efficient creation of multiple related tasks with proper structure.
 
 Screen Description:
-1. User can import tasks from CSV, Excel, or other project management tools
-2. User can create tasks using spreadsheet-like interface
-3. User can set up task dependencies and relationships visually
-4. User can apply bulk operations (assign, prioritize, schedule)
-5. User can preview task timeline and resource allocation
-6. User can validate task completeness and conflicts
-7. User can save as draft or publish entire task set
-8. User can configure notifications for bulk-created tasks
-9. User can generate project reports and summaries
+1. Spreadsheet-like grid interface for task data entry
+2. Column headers for all task fields with sorting and filtering
+3. Bulk edit capabilities for common fields
+4. Row-based validation with inline error indicators
+5. Dependency mapping tools with visual relationship builder
+6. Import/export functionality for external data
+7. Template application across multiple rows
+8. Real-time collaboration for team-based setup
 
 Design Problems:
-- HMW make bulk editing intuitive and error-resistant?
-- HMW visualize complex task relationships clearly?
-- HMW handle validation across multiple interdependent tasks?
-- HMW ensure bulk operations don't overwhelm team members?
+- HMW make bulk editing efficient while preventing errors?
+- HMW handle complex task relationships in a grid format?
+- HMW ensure data validation across multiple tasks simultaneously?
+- HMW provide adequate visual feedback for bulk operations?
 
 Design Opportunities:
-- What if we could provide AI-powered task relationship suggestions?
-- What if the system could detect and prevent common project setup errors?
-- What if we provided collaborative bulk task creation?
-- What if we could automatically generate project documentation from task sets?
+- What if we used AI to suggest task relationships based on content?
+- What if we provided smart auto-complete across all task fields?
+- What if we enabled drag-and-drop task reordering with automatic dependency updates?
+- What if we showed real-time project timeline updates as tasks are created?
 
-#### Workflow Variation 4B: Template-Driven Project Creation
+### Workflow Variation 4B: Wizard-Guided Bulk Creation
 
-**User Goal:** Use proven project templates to create comprehensive task sets with minimal manual configuration.
+**User Goal:** Create multiple tasks through guided process that ensures completeness and proper project structure.
 
-**Business Goal:** Leverage organizational knowledge and best practices to ensure consistent project setup and reduce setup time.
+**Business Goal:** Reduce setup errors and improve project success rates through structured task creation process.
 
 **Screens:**
 
-4.0 Project Setup Dashboard [type: primary]
-- HOW IT IS REACHED: Direct navigation via sidebar nav item or project creation workflow
-- NAVBAR PRESENCE: Yes
-
+**4.0 Project Setup Hub [type: primary]**
 [Same as Variation 4A]
 
-4.1 Project Template Gallery [type: primary]
-- HOW IT IS REACHED: Click "Project Templates" in sidebar navigation
-- NAVBAR PRESENCE: Yes
-
-Page Goal: Provide access to comprehensive project templates with task sets and configurations.
-
-Screen Description:
-1. User can browse project templates by industry, size, and complexity
-2. User can preview template structure with task breakdown
-3. User can view template success metrics and usage statistics
-4. User can customize templates before application
-5. User can create new templates from successful projects
-6. User can share templates across teams and departments
-7. User can access template documentation and best practices
-
-Design Problems:
-- HMW ensure project templates remain current and effective?
-- HMW make template customization straightforward for different project needs?
-- HMW provide adequate template preview without overwhelming detail?
-- HMW handle template versioning and organizational standards?
-
-Design Opportunities:
-- What if templates could automatically adapt to team size and skills?
-- What if we provided template effectiveness analytics and optimization?
-- What if templates could integrate with external project management standards?
-- What if we could create dynamic templates that evolve with organizational learning?
-
-Pu.8 Template Application Interface [type: modal]
-- HOW IT IS REACHED: Click "Apply Template" from Project Template Gallery
+**Pu.8 Bulk Creation Wizard Modal [type: modal]**
+- HOW IT IS REACHED: Click "Guided Bulk Setup" from Project Setup Hub
 - NAVBAR PRESENCE: No
 
-Page Goal: Enable template application with customization and validation for specific project needs.
+Page Goal: Guide users through structured bulk task creation process.
 
 Screen Description:
-1. User configures project-specific parameters (timeline, team, budget)
-2. User customizes template tasks for current project requirements
-3. User assigns team members to template roles and responsibilities
-4. User adjusts timeline and dependencies based on project constraints
-5. User can add or remove template tasks as needed
-6. User can preview complete project structure before creation
-7. User can configure project-specific workflows and approvals
-8. User receives validation and conflict resolution suggestions
-9. User can save customizations as new template variant
+1. Multi-step wizard with clear progress indicators
+2. Step 1: Project structure and phases definition
+3. Step 2: Task categories and types selection
+4. Step 3: Team roles and assignment patterns
+5. Step 4: Timeline and dependency configuration
+6. Step 5: Review and customization of generated tasks
+7. Smart suggestions based on project type and industry
+8. Option to save configuration as template
 
 Design Problems:
-- HMW balance template standardization with project-specific needs?
-- HMW ensure template application doesn't miss critical project requirements?
-- HMW make template customization efficient for experienced users?
-- HMW provide adequate guidance for template modification decisions?
+- HMW balance guidance with flexibility in task creation?
+- HMW ensure wizard doesn't become too lengthy or complex?
+- HMW handle different project types and methodologies?
+- HMW provide adequate preview before final creation?
 
 Design Opportunities:
-- What if templates could learn from project outcomes and adapt?
-- What if we provided intelligent template merging for complex projects?
-- What if templates could automatically adjust based on team performance data?
-- What if we could create collaborative template refinement processes?
+- What if we used machine learning to optimize task suggestions?
+- What if we provided industry-specific best practices?
+- What if we enabled wizard customization based on team preferences?
+- What if we showed success predictions for different task structures?
 
-## Navigation Structure (Primary Screens Only)
-1.0 Dashboard | 2.0 Project Management Dashboard | 2.1 Template Library | 3.0 Mobile Dashboard | 4.0 Project Setup Dashboard | 4.1 Project Template Gallery
+**NAVIGATION STRUCTURE:**
+4.0 Project Setup Hub | 4.1 Bulk Task Creation Interface
 
-## User Journey Flows
+**USER JOURNEY FLOW:**
+Variation 4A: 4.0 Project Setup Hub → [click Bulk Create Tasks] → 4.1 Bulk Task Creation Interface → [complete grid] → 4.0 Project Setup Hub (updated)
 
-### Scenario 1A: Guided Task Creation
-1.0 Dashboard → [click + Create Task] → Pu.1 Task Creation Form Modal [type: modal] → [submit] → 1.0 Dashboard (updated state)
+Variation 4B: 4.0 Project Setup Hub → [click Guided Bulk Setup] → Pu.8 Bulk Creation Wizard Modal → [complete wizard] → 4.0 Project Setup Hub (updated)
 
-### Scenario 1B: Quick Task Creation
-1.0 Dashboard → [click Quick Add or keyboard shortcut] → Pu.2 Quick Task Creation Drawer [type: modal] → [submit] → 1.0 Dashboard (updated state)
+---
 
-### Scenario 2A: Advanced Task Creation
-2.0 Project Management Dashboard → [click + Advanced Task] → Pu.3 Advanced Task Creation Form [type: modal] → [submit] → 2.0 Project Management Dashboard (updated state)
+## Error and Edge Case Scenarios
 
-### Scenario 2B: Template-Based Task Creation
-2.1 Template Library → [click Use Template] → Pu.4 Template-Based Task Creation [type: modal] → [submit] → 2.0 Project Management Dashboard (updated state)
+### Error State Screens
 
-### Scenario 3A: Mobile Quick Creation
-3.0 Mobile Dashboard → [tap floating +] → Pu.5 Mobile Task Creation Sheet [type: modal] → [submit] → 3.0 Mobile Dashboard (updated state)
+**Er.1 Form Validation Error State [type: state]**
+- HOW IT IS REACHED: Form submission with validation errors
+- NAVBAR PRESENCE: No
 
-### Scenario 3B: Voice-Activated Task Creation
-3.0 Mobile Dashboard → [long press + or voice command] → Pu.6 Voice Task Creation Interface [type: modal] → [voice confirm] → 3.0 Mobile Dashboard (updated state)
+Screen Description:
+1. Clear error messaging with specific field indicators
+2. Error summary at top of form
+3. Inline validation with helpful correction suggestions
+4. Progress preservation for valid fields
+5. Accessibility-compliant error announcements
 
-### Scenario 4A: Batch Task Creation
-4.0 Project Setup Dashboard → [click Bulk Create] → Pu.7 Bulk Task Creation Interface [type: modal] → [submit] → 4.0 Project Setup Dashboard (updated state)
+**Er.2 Network Connection Error State [type: state]**
+- HOW IT IS REACHED: Network failure during task creation
+- NAVBAR PRESENCE: No
 
-### Scenario 4B: Template-Driven Project Creation
-4.1 Project Template Gallery → [click Apply Template] → Pu.8 Template Application Interface [type: modal] → [submit] → 4.0 Project Setup Dashboard (updated state)
+Screen Description:
+1. Clear offline indicator with retry options
+2. Draft saving confirmation
+3. Estimated sync time when connection returns
+4. Option to continue working offline
+5. Queue status for pending operations
 
-## Error States
+**Er.3 Permission Denied Error State [type: state]**
+- HOW IT IS REACHED: User attempts task creation without proper permissions
+- NAVBAR PRESENCE: No
 
-Er.1 Form Validation Error State [type: state]
-- Triggered when required fields are missing or invalid
-- Shows inline error messages with correction guidance
-- Prevents form submission until resolved
-- Provides helpful suggestions for common errors
+Screen Description:
+1. Clear explanation of permission requirements
+2. Contact information for access requests
+3. Alternative actions user can take
+4. Link to help documentation
+5. Option to save as draft for later submission
 
-Er.2 Network Connection Error State [type: state]
-- Triggered when task creation fails due to connectivity issues
-- Offers offline mode with sync capabilities
-- Provides retry mechanisms with exponential backoff
-- Shows clear status of pending operations
+### Edge Cases Handled
 
-Er.3 Permission Denied Error State [type: state]
-- Triggered when user lacks permissions for specific task creation actions
-- Explains permission requirements clearly
-- Provides escalation or approval request options
-- Suggests alternative actions within user permissions
+1. **Concurrent Editing**: Multiple users editing same task template
+2. **Data Loss Prevention**: Auto-save and recovery mechanisms
+3. **Large File Attachments**: Progressive upload with size limits
+4. **Slow Network Conditions**: Optimistic UI updates with rollback
+5. **Browser Compatibility**: Graceful degradation for older browsers
+6. **Keyboard-Only Navigation**: Full accessibility without mouse
+7. **Screen Reader Support**: Comprehensive ARIA implementation
+8. **High Contrast Mode**: Alternative visual themes
+9. **Memory Constraints**: Efficient data handling for low-end devices
+10. **Time Zone Handling**: Proper scheduling across different zones
 
-Er.4 Resource Conflict Error State [type: state]
-- Triggered when task creation conflicts with existing resources or schedules
-- Shows conflict details with visual indicators
-- Provides resolution suggestions and alternatives
-- Allows conflict override with appropriate permissions
+---
+
+## Settings Integration
+
+**Settings Screen [type: settings]**
+- HOW IT IS REACHED: Click settings icon from any primary screen
+- NAVBAR PRESENCE: No
+
+Page Goal: Centralize all user preferences and system configurations.
+
+Screen Description:
+
+**Task Creation Preferences Section:**
+1. Default task priority setting
+2. Auto-assignment preferences
+3. Default notification settings for created tasks
+4. Template preferences and favorites
+5. Form field visibility customization
+
+**Accessibility Section:**
+1. Screen reader support toggle
+2. High contrast mode toggle
+3. Keyboard navigation preferences
+4. Font size adjustment
+5. Motion reduction settings
+
+**Notification Section:**
+1. Task creation confirmation preferences
+2. Assignment notification settings
+3. Deadline reminder configurations
+4. Email vs in-app notification choices
+
+**Integration Section:**
+1. External tool connections
+2. Import/export preferences
+3. API access settings
+4. Sync frequency options
+
+---
 
 ## ACCESSIBILITY NOTES
 
 **Keyboard Navigation:**
 - All primary screens support full keyboard navigation with logical tab order
-- Modal forms include focus trapping and escape key dismissal
-- Quick keyboard shortcuts available for frequent actions (Ctrl+N for new task)
-- Skip links provided for screen reader users to bypass navigation
+- Modal forms include focus trapping and escape key handling
+- Keyboard shortcuts: Ctrl+N for new task, Ctrl+S for save draft
+- Skip links provided for screen reader users
 
 **ARIA Labels and Landmarks:**
-- All form fields include descriptive labels and help text
-- Form sections use fieldset and legend elements for grouping
-- Status messages announced via aria-live regions
-- Navigation landmarks clearly defined (banner, main, complementary)
+- Form sections marked with appropriate landmarks (main, complementary, form)
+- Required fields indicated with aria-required="true"
+- Error messages associated with fields using aria-describedby
+- Live regions for dynamic content updates and validation feedback
 
 **Screen Reader Announcements:**
-- Form validation errors announced immediately upon occurrence
-- Task creation success confirmed with detailed announcement
-- Progress indicators announced during multi-step processes
-- Dynamic content changes announced appropriately
+- Form submission success/failure announced immediately
+- Field validation errors announced as they occur
+- Progress updates during multi-step processes
+- Status changes for offline/online connectivity
 
 **High Contrast Mode:**
-- Toggled via Settings screen, applies as CSS class site-wide
-- Maintains minimum 4.5:1 contrast ratio for all text
-- Focus indicators remain visible in high contrast mode
-- Color-coding supplemented with icons and patterns
+- Toggled via Settings screen, applies CSS class site-wide
+- Maintains 4.5:1 contrast ratio minimum for all text
+- Focus indicators remain visible in high contrast
+- Form field borders enhanced for better visibility
 
 **Focus Indicators:**
-- Visible focus indicators on all interactive elements
-- Focus indicators meet WCAG 2.1 AA requirements
-- Custom focus styles maintain brand consistency
-- Focus order follows logical content flow
+- 2px solid blue outline for keyboard focus
+- Focus visible on all interactive elements
+- Focus order follows logical reading sequence
+- Modal focus management prevents focus loss
 
 **Minimum Touch Targets:**
-- 44px minimum touch target size on all interactive elements
+- 44px minimum for all interactive elements
 - Adequate spacing between touch targets
-- Touch targets clearly defined with visual boundaries
-- Gesture alternatives provided for complex interactions
+- Larger targets on mobile interfaces (48px minimum)
 
-**Voice and Motor Accessibility:**
-- Voice input supported for task creation on compatible devices
-- Alternative input methods for users with motor impairments
-- Customizable interface timing and interaction delays
-- Switch navigation support for assistive devices
+---
 
 ## VIEWPORT BEHAVIOUR
 
-**1.0 Dashboard**
-- Desktop (1024px+): Three-column layout with sidebar navigation, main content area, and activity panel
-- Tablet (768px–1023px): Two-column layout with collapsible sidebar, main content adapts to available width
-- Mobile (320px–767px): Single column with hamburger menu, cards stack vertically, floating action button for task creation
+**Dashboard Screens (1.0, 3.0)**
+- Desktop (1024px+): Multi-column layout with sidebar navigation
+- Tablet (768px–1023px): Collapsible sidebar, adjusted grid spacing
+- Mobile (320px–767px): Bottom navigation, single column, floating action button
 
-**2.0 Project Management Dashboard**
-- Desktop (1024px+): Complex grid layout with timeline view, resource allocation panels, and detailed metrics
-- Tablet (768px–1023px): Simplified grid with collapsible panels, timeline becomes horizontally scrollable
-- Mobile (320px–767px): Vertical card stack with swipe navigation between sections, simplified metrics view
+**Task Management Hub (2.0)**
+- Desktop (1024px+): Full feature set with multiple view options
+- Tablet (768px–1023px): Simplified toolbar, touch-optimized controls
+- Mobile (320px–767px): Swipe gestures, condensed information display
 
-**2.1 Template Library**
-- Desktop (1024px+): Grid layout with 3-4 template cards per row, detailed preview panel
-- Tablet (768px–1023px): 2-3 template cards per row, preview panel becomes modal overlay
-- Mobile (320px–767px): Single column list with expandable template previews
+**Project Setup Hub (4.0)**
+- Desktop (1024px+): Multi-panel interface with drag-and-drop
+- Tablet (768px–1023px): Tabbed interface, touch-friendly controls
+- Mobile (320px–767px): Wizard-style step-by-step process
 
-**3.0 Mobile Dashboard**
-- Optimized specifically for mobile interaction patterns
-- Touch-friendly interface elements and gestures
-- Simplified information hierarchy for small screens
-- Offline-capable functionality with sync indicators
+**Bulk Task Creation Interface (4.1)**
+- Desktop (1024px+): Full spreadsheet-like grid with all features
+- Tablet (768px–1023px): Horizontal scrolling grid, simplified toolbar
+- Mobile (320px–767px): Card-based interface replacing grid view
 
-**4.0 Project Setup Dashboard**
-- Desktop (1024px+): Multi-panel layout with project overview, task breakdown, and resource planning
-- Tablet (768px–1023px): Tabbed interface with swipeable panels
-- Mobile (320px–767px): Accordion-style sections with progressive disclosure
+**Modal Forms (All Pu.* screens)**
+- Desktop (1024px+): Centered modal with optimal width (600-800px)
+- Tablet (768px–1023px): Full-width modal with padding
+- Mobile (320px–767px): Bottom sheet or full-screen modal
 
-**4.1 Project Template Gallery**
-- Desktop (1024px+): Grid layout with filtering sidebar and detailed template information
-- Tablet (768px–1023px): Grid with overlay filters and modal template details
-- Mobile (320px–767px): List view with expandable template information and bottom sheet filters
+**Template Selection Screen (2.1)**
+- Desktop (1024px+): Grid layout with preview panels
+- Tablet (768px–1023px): Adjusted grid with touch-optimized cards
+- Mobile (320px–767px): Single column list with expandable previews
 
-**Modal and Drawer Behavior:**
-- Desktop: Center-positioned modals with backdrop, drawers slide from right
-- Tablet: Full-width modals with close button, drawers become bottom sheets
-- Mobile: Full-screen modals with header navigation, optimized for touch interaction
-
-**Form Adaptation:**
-- Desktop: Multi-column form layouts with inline validation
-- Tablet: Single column with grouped sections and floating labels
-- Mobile: Simplified single column with large touch targets and step-by-step progression for complex forms
-
-**Navigation Adaptation:**
-- Desktop: Persistent sidebar navigation with hover states
-- Tablet: Collapsible sidebar with overlay behavior
-- Mobile: Bottom navigation bar or hamburger menu with gesture support
+These viewport adaptations ensure optimal user experience across all device types while maintaining functionality and accessibility standards.
