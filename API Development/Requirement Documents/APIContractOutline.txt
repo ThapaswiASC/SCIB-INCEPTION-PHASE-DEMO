@@ -1,651 +1,584 @@
 # API Contract Outline
-# Task Management API - Task Creation Endpoint
+## Task Management API - Task Creation Endpoint
 
-## Document Information
-- **API Version**: v1.0
-- **Date**: 2024-01-15
-- **Jira Reference**: DEMO-2350
-- **OpenAPI Specification**: 3.0.3
+### Version: 1.0
+### Base URL: https://api.taskmanagement.company.com
+### Authentication: Bearer Token Required
 
 ---
 
-## Base Configuration
+## Endpoint: Create Task
 
-### API Base Information
-- **Base URL**: `https://api.taskmanagement.company.com/v1`
-- **Protocol**: HTTPS only
-- **Content-Type**: application/json
-- **Authentication**: Bearer Token (JWT)
+### HTTP Method: POST
+### Path: /api/v1/tasks
+### Content-Type: application/json
+### Authorization: Bearer {jwt_token}
 
-### Global Headers
+---
+
+## Request Schema
+
+### Headers
 ```json
 {
-  "Authorization": "Bearer {jwt_token}",
   "Content-Type": "application/json",
-  "X-API-Version": "v1",
-  "X-Request-ID": "uuid"
+  "Authorization": "Bearer {jwt_token}",
+  "X-Request-ID": "uuid (optional, for tracing)",
+  "X-Client-Version": "string (optional, client version)"
+}
+```
+
+### Request Body
+```json
+{
+  "title": {
+    "type": "string",
+    "required": true,
+    "maxLength": 200,
+    "minLength": 1,
+    "description": "Task title",
+    "example": "Implement user authentication"
+  },
+  "description": {
+    "type": "string",
+    "required": false,
+    "maxLength": 2000,
+    "description": "Detailed task description",
+    "example": "Implement JWT-based authentication system with role-based access control"
+  },
+  "priority": {
+    "type": "string",
+    "required": true,
+    "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+    "description": "Task priority level",
+    "example": "HIGH"
+  },
+  "dueDate": {
+    "type": "string",
+    "required": true,
+    "format": "date-time",
+    "description": "Task due date (ISO 8601 format, must be future date)",
+    "example": "2024-12-31T23:59:59Z"
+  },
+  "assignedTo": {
+    "type": "string",
+    "required": false,
+    "format": "uuid",
+    "description": "UUID of the user assigned to the task",
+    "example": "550e8400-e29b-41d4-a716-446655440000"
+  },
+  "tags": {
+    "type": "array",
+    "required": false,
+    "items": {
+      "type": "string",
+      "maxLength": 50
+    },
+    "maxItems": 10,
+    "description": "Task tags for categorization",
+    "example": ["authentication", "security", "backend"]
+  },
+  "estimatedHours": {
+    "type": "number",
+    "required": false,
+    "minimum": 0.5,
+    "maximum": 1000,
+    "description": "Estimated hours to complete the task",
+    "example": 8.5
+  }
+}
+```
+
+### Request Example
+```json
+{
+  "title": "Implement user authentication",
+  "description": "Implement JWT-based authentication system with role-based access control",
+  "priority": "HIGH",
+  "dueDate": "2024-12-31T23:59:59Z",
+  "assignedTo": "550e8400-e29b-41d4-a716-446655440000",
+  "tags": ["authentication", "security", "backend"],
+  "estimatedHours": 8.5
 }
 ```
 
 ---
 
-## API Endpoints
+## Response Schemas
 
-### 1. Create Task
+### Success Response (201 Created)
 
-**Endpoint**: `POST /api/tasks`
-
-**Description**: Creates a new task with validation and business rule enforcement
-
-**Authentication**: Required (Bearer Token)
-
-**Rate Limiting**: 100 requests per minute per user
-
-#### Request Schema
+#### Headers
 ```json
 {
-  "type": "object",
-  "required": ["title", "status", "priority"],
-  "properties": {
-    "title": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 200,
-      "description": "Task title (required)",
-      "example": "Implement user authentication"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 1000,
-      "description": "Detailed task description (optional)",
-      "example": "Implement JWT-based authentication with role-based access control"
-    },
-    "status": {
-      "type": "string",
-      "enum": ["TODO", "IN_PROGRESS", "DONE", "CANCELLED"],
-      "description": "Current task status",
-      "example": "TODO"
-    },
-    "priority": {
-      "type": "string",
-      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-      "description": "Task priority level",
-      "example": "HIGH"
-    },
-    "dueDate": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Task due date (must be future date)",
-      "example": "2024-02-15T10:00:00Z"
-    },
-    "assignedTo": {
-      "type": "string",
-      "format": "uuid",
-      "description": "UUID of assigned user (optional)",
-      "example": "123e4567-e89b-12d3-a456-426614174000"
-    }
-  }
+  "Content-Type": "application/json",
+  "Location": "/api/v1/tasks/{task_id}",
+  "X-Request-ID": "uuid",
+  "X-Rate-Limit-Remaining": "99",
+  "X-Rate-Limit-Reset": "1640995200"
 }
 ```
 
-#### Success Response Schema (201 Created)
+#### Response Body
 ```json
 {
-  "type": "object",
-  "properties": {
-    "id": {
-      "type": "string",
-      "format": "uuid",
-      "description": "Unique task identifier",
-      "example": "987fcdeb-51a2-43d1-9c4e-123456789abc"
-    },
-    "title": {
-      "type": "string",
-      "description": "Task title",
-      "example": "Implement user authentication"
-    },
-    "description": {
-      "type": "string",
-      "description": "Task description",
-      "example": "Implement JWT-based authentication with role-based access control"
-    },
-    "status": {
-      "type": "string",
-      "enum": ["TODO", "IN_PROGRESS", "DONE", "CANCELLED"],
-      "example": "TODO"
-    },
-    "priority": {
-      "type": "string",
-      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-      "example": "HIGH"
-    },
-    "dueDate": {
-      "type": "string",
-      "format": "date-time",
-      "example": "2024-02-15T10:00:00Z"
-    },
-    "assignedTo": {
-      "type": "string",
-      "format": "uuid",
-      "example": "123e4567-e89b-12d3-a456-426614174000"
-    },
-    "createdAt": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Task creation timestamp",
-      "example": "2024-01-15T14:30:00Z"
-    },
-    "updatedAt": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Last update timestamp",
-      "example": "2024-01-15T14:30:00Z"
-    },
-    "createdBy": {
-      "type": "string",
-      "format": "uuid",
-      "description": "UUID of user who created the task",
-      "example": "456e7890-e12b-34d5-a678-901234567def"
-    }
-  }
-}
-```
-
-#### Error Response Schemas
-
-##### 400 Bad Request - Validation Error
-```json
-{
-  "type": "object",
-  "properties": {
-    "error": {
-      "type": "string",
-      "example": "Validation Error"
-    },
-    "message": {
-      "type": "string",
-      "example": "Request validation failed"
-    },
-    "details": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "field": {
-            "type": "string",
-            "example": "title"
-          },
-          "message": {
-            "type": "string",
-            "example": "Title is required and cannot be empty"
-          },
-          "value": {
-            "type": "string",
-            "example": ""
-          }
-        }
+  "id": {
+    "type": "string",
+    "format": "uuid",
+    "description": "Unique task identifier",
+    "example": "123e4567-e89b-12d3-a456-426614174000"
+  },
+  "title": {
+    "type": "string",
+    "description": "Task title",
+    "example": "Implement user authentication"
+  },
+  "description": {
+    "type": "string",
+    "description": "Task description",
+    "example": "Implement JWT-based authentication system with role-based access control"
+  },
+  "priority": {
+    "type": "string",
+    "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+    "description": "Task priority level",
+    "example": "HIGH"
+  },
+  "status": {
+    "type": "string",
+    "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
+    "description": "Current task status",
+    "example": "PENDING"
+  },
+  "dueDate": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Task due date",
+    "example": "2024-12-31T23:59:59Z"
+  },
+  "assignedTo": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "example": "550e8400-e29b-41d4-a716-446655440000"
+      },
+      "name": {
+        "type": "string",
+        "example": "John Doe"
+      },
+      "email": {
+        "type": "string",
+        "format": "email",
+        "example": "john.doe@company.com"
       }
     },
-    "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "example": "2024-01-15T14:30:00Z"
+    "description": "Assigned user details"
+  },
+  "createdBy": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid",
+        "example": "660e8400-e29b-41d4-a716-446655440001"
+      },
+      "name": {
+        "type": "string",
+        "example": "Jane Smith"
+      },
+      "email": {
+        "type": "string",
+        "format": "email",
+        "example": "jane.smith@company.com"
+      }
     },
-    "path": {
-      "type": "string",
-      "example": "/api/tasks"
+    "description": "Task creator details"
+  },
+  "tags": {
+    "type": "array",
+    "items": {
+      "type": "string"
     },
-    "requestId": {
-      "type": "string",
-      "format": "uuid",
-      "example": "req-123e4567-e89b-12d3-a456-426614174000"
-    }
+    "description": "Task tags",
+    "example": ["authentication", "security", "backend"]
+  },
+  "estimatedHours": {
+    "type": "number",
+    "description": "Estimated hours to complete",
+    "example": 8.5
+  },
+  "createdAt": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Task creation timestamp",
+    "example": "2024-01-15T10:30:00Z"
+  },
+  "updatedAt": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Last update timestamp",
+    "example": "2024-01-15T10:30:00Z"
+  },
+  "version": {
+    "type": "integer",
+    "description": "Entity version for optimistic locking",
+    "example": 1
   }
 }
 ```
 
-##### 401 Unauthorized
+#### Success Response Example
 ```json
 {
-  "type": "object",
-  "properties": {
-    "error": {
-      "type": "string",
-      "example": "Unauthorized"
-    },
-    "message": {
-      "type": "string",
-      "example": "Invalid or missing authentication token"
-    },
-    "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "example": "2024-01-15T14:30:00Z"
-    },
-    "path": {
-      "type": "string",
-      "example": "/api/tasks"
-    },
-    "requestId": {
-      "type": "string",
-      "format": "uuid",
-      "example": "req-123e4567-e89b-12d3-a456-426614174000"
-    }
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "title": "Implement user authentication",
+  "description": "Implement JWT-based authentication system with role-based access control",
+  "priority": "HIGH",
+  "status": "PENDING",
+  "dueDate": "2024-12-31T23:59:59Z",
+  "assignedTo": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "John Doe",
+    "email": "john.doe@company.com"
+  },
+  "createdBy": {
+    "id": "660e8400-e29b-41d4-a716-446655440001",
+    "name": "Jane Smith",
+    "email": "jane.smith@company.com"
+  },
+  "tags": ["authentication", "security", "backend"],
+  "estimatedHours": 8.5,
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z",
+  "version": 1
+}
+```
+
+---
+
+## Error Handling
+
+### Error Response Format
+```json
+{
+  "error": {
+    "code": "string",
+    "message": "string",
+    "details": "array or object (optional)",
+    "timestamp": "string (ISO 8601)",
+    "requestId": "string (UUID)",
+    "path": "string",
+    "method": "string"
   }
 }
 ```
 
-##### 403 Forbidden
+### 400 Bad Request - Validation Error
+
+#### Response Body
 ```json
 {
-  "type": "object",
-  "properties": {
-    "error": {
-      "type": "string",
-      "example": "Forbidden"
-    },
-    "message": {
-      "type": "string",
-      "example": "Insufficient permissions to create tasks"
-    },
-    "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "example": "2024-01-15T14:30:00Z"
-    },
-    "path": {
-      "type": "string",
-      "example": "/api/tasks"
-    },
-    "requestId": {
-      "type": "string",
-      "format": "uuid",
-      "example": "req-123e4567-e89b-12d3-a456-426614174000"
-    }
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request validation failed",
+    "details": [
+      {
+        "field": "title",
+        "message": "Title is required and cannot be empty",
+        "rejectedValue": "",
+        "constraint": "IsNotEmpty"
+      },
+      {
+        "field": "dueDate",
+        "message": "Due date must be in the future",
+        "rejectedValue": "2023-01-01T00:00:00Z",
+        "constraint": "FutureDate"
+      },
+      {
+        "field": "priority",
+        "message": "Priority must be one of: LOW, MEDIUM, HIGH, CRITICAL",
+        "rejectedValue": "INVALID",
+        "constraint": "IsEnum"
+      }
+    ],
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req-123e4567-e89b-12d3-a456-426614174000",
+    "path": "/api/v1/tasks",
+    "method": "POST"
   }
 }
 ```
 
-##### 422 Unprocessable Entity - Business Rule Violation
+### 401 Unauthorized - Authentication Error
+
+#### Response Body
 ```json
 {
-  "type": "object",
-  "properties": {
-    "error": {
-      "type": "string",
-      "example": "Business Rule Violation"
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication required",
+    "details": {
+      "reason": "Missing or invalid authorization token",
+      "suggestion": "Please provide a valid Bearer token in the Authorization header"
     },
-    "message": {
-      "type": "string",
-      "example": "Due date cannot be in the past"
-    },
-    "code": {
-      "type": "string",
-      "example": "INVALID_DUE_DATE"
-    },
-    "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "example": "2024-01-15T14:30:00Z"
-    },
-    "path": {
-      "type": "string",
-      "example": "/api/tasks"
-    },
-    "requestId": {
-      "type": "string",
-      "format": "uuid",
-      "example": "req-123e4567-e89b-12d3-a456-426614174000"
-    }
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req-123e4567-e89b-12d3-a456-426614174000",
+    "path": "/api/v1/tasks",
+    "method": "POST"
   }
 }
 ```
 
-##### 429 Too Many Requests
+### 403 Forbidden - Authorization Error
+
+#### Response Body
 ```json
 {
-  "type": "object",
-  "properties": {
-    "error": {
-      "type": "string",
-      "example": "Rate Limit Exceeded"
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Insufficient permissions",
+    "details": {
+      "reason": "User does not have permission to create tasks",
+      "requiredPermission": "tasks:create",
+      "userRole": "readonly"
     },
-    "message": {
-      "type": "string",
-      "example": "Too many requests. Please try again later."
-    },
-    "retryAfter": {
-      "type": "integer",
-      "description": "Seconds to wait before retrying",
-      "example": 60
-    },
-    "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "example": "2024-01-15T14:30:00Z"
-    },
-    "path": {
-      "type": "string",
-      "example": "/api/tasks"
-    },
-    "requestId": {
-      "type": "string",
-      "format": "uuid",
-      "example": "req-123e4567-e89b-12d3-a456-426614174000"
-    }
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req-123e4567-e89b-12d3-a456-426614174000",
+    "path": "/api/v1/tasks",
+    "method": "POST"
   }
 }
 ```
 
-##### 500 Internal Server Error
+### 404 Not Found - Resource Not Found
+
+#### Response Body
 ```json
 {
-  "type": "object",
-  "properties": {
-    "error": {
-      "type": "string",
-      "example": "Internal Server Error"
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "Assigned user not found",
+    "details": {
+      "reason": "User with ID 550e8400-e29b-41d4-a716-446655440000 does not exist",
+      "resourceType": "User",
+      "resourceId": "550e8400-e29b-41d4-a716-446655440000"
     },
-    "message": {
-      "type": "string",
-      "example": "An unexpected error occurred. Please try again later."
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req-123e4567-e89b-12d3-a456-426614174000",
+    "path": "/api/v1/tasks",
+    "method": "POST"
+  }
+}
+```
+
+### 409 Conflict - Business Rule Violation
+
+#### Response Body
+```json
+{
+  "error": {
+    "code": "BUSINESS_RULE_VIOLATION",
+    "message": "Task title must be unique per user",
+    "details": {
+      "reason": "A task with the same title already exists for this user",
+      "conflictingResource": {
+        "id": "existing-task-id",
+        "title": "Implement user authentication"
+      },
+      "suggestion": "Please use a different title or update the existing task"
     },
-    "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "example": "2024-01-15T14:30:00Z"
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req-123e4567-e89b-12d3-a456-426614174000",
+    "path": "/api/v1/tasks",
+    "method": "POST"
+  }
+}
+```
+
+### 429 Too Many Requests - Rate Limit Exceeded
+
+#### Headers
+```json
+{
+  "X-Rate-Limit-Limit": "100",
+  "X-Rate-Limit-Remaining": "0",
+  "X-Rate-Limit-Reset": "1640995200",
+  "Retry-After": "60"
+}
+```
+
+#### Response Body
+```json
+{
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Too many requests",
+    "details": {
+      "reason": "Rate limit of 100 requests per minute exceeded",
+      "limit": 100,
+      "window": "1 minute",
+      "retryAfter": 60
     },
-    "path": {
-      "type": "string",
-      "example": "/api/tasks"
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req-123e4567-e89b-12d3-a456-426614174000",
+    "path": "/api/v1/tasks",
+    "method": "POST"
+  }
+}
+```
+
+### 500 Internal Server Error - System Error
+
+#### Response Body
+```json
+{
+  "error": {
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "An unexpected error occurred",
+    "details": {
+      "reason": "Database connection failed",
+      "suggestion": "Please try again later or contact support if the problem persists",
+      "supportContact": "support@company.com"
     },
-    "requestId": {
-      "type": "string",
-      "format": "uuid",
-      "example": "req-123e4567-e89b-12d3-a456-426614174000"
-    }
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req-123e4567-e89b-12d3-a456-426614174000",
+    "path": "/api/v1/tasks",
+    "method": "POST"
+  }
+}
+```
+
+### 503 Service Unavailable - Service Temporarily Unavailable
+
+#### Headers
+```json
+{
+  "Retry-After": "300"
+}
+```
+
+#### Response Body
+```json
+{
+  "error": {
+    "code": "SERVICE_UNAVAILABLE",
+    "message": "Service temporarily unavailable",
+    "details": {
+      "reason": "System maintenance in progress",
+      "estimatedRecoveryTime": "2024-01-15T11:00:00Z",
+      "retryAfter": 300
+    },
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req-123e4567-e89b-12d3-a456-426614174000",
+    "path": "/api/v1/tasks",
+    "method": "POST"
   }
 }
 ```
 
 ---
 
-## Validation Rules
+## Additional Endpoints (Future Implementation)
 
-### Field-Level Validation
+### GET /api/v1/tasks
+- **Purpose**: Retrieve list of tasks with filtering and pagination
+- **Authentication**: Required
+- **Parameters**: page, limit, status, priority, assignedTo, createdBy, dueDate
 
-#### Title Field
-- **Required**: Yes
-- **Type**: String
-- **Min Length**: 1 character
-- **Max Length**: 200 characters
-- **Pattern**: No leading/trailing whitespace
-- **Sanitization**: HTML encoding, script tag removal
+### GET /api/v1/tasks/{id}
+- **Purpose**: Retrieve specific task by ID
+- **Authentication**: Required
+- **Parameters**: id (path parameter)
 
-#### Description Field
-- **Required**: No
-- **Type**: String
-- **Max Length**: 1000 characters
-- **Sanitization**: HTML encoding, script tag removal
+### PUT /api/v1/tasks/{id}
+- **Purpose**: Update existing task
+- **Authentication**: Required
+- **Parameters**: id (path parameter)
 
-#### Status Field
-- **Required**: Yes
-- **Type**: Enum
-- **Valid Values**: TODO, IN_PROGRESS, DONE, CANCELLED
-- **Case Sensitivity**: Exact match required
+### DELETE /api/v1/tasks/{id}
+- **Purpose**: Delete task (soft delete)
+- **Authentication**: Required
+- **Parameters**: id (path parameter)
 
-#### Priority Field
-- **Required**: Yes
-- **Type**: Enum
-- **Valid Values**: LOW, MEDIUM, HIGH, CRITICAL
-- **Case Sensitivity**: Exact match required
-
-#### Due Date Field
-- **Required**: No
-- **Type**: ISO 8601 date-time string
-- **Format**: YYYY-MM-DDTHH:mm:ssZ
-- **Business Rule**: Must be future date (after current timestamp)
-- **Timezone**: UTC required
-
-#### Assigned To Field
-- **Required**: No
-- **Type**: UUID v4
-- **Format**: 8-4-4-4-12 hexadecimal digits
-- **Business Rule**: Must reference existing active user
-
-### Business Rule Validation
-
-1. **Future Due Date**: Due date must be at least 1 minute in the future
-2. **User Existence**: AssignedTo user must exist and be active
-3. **Permission Check**: Creating user must have 'task:create' permission
-4. **Duplicate Prevention**: Title uniqueness within user's active tasks
-5. **Workload Limits**: User cannot have more than 50 active assigned tasks
+### PATCH /api/v1/tasks/{id}/status
+- **Purpose**: Update task status only
+- **Authentication**: Required
+- **Parameters**: id (path parameter)
 
 ---
 
 ## Security Considerations
 
 ### Authentication
-- **Method**: JWT Bearer Token
-- **Token Location**: Authorization header
-- **Token Format**: `Bearer {jwt_token}`
-- **Token Expiry**: Validated on each request
-- **Refresh Mechanism**: Client responsible for token refresh
+- JWT Bearer token required for all endpoints
+- Token expiration: 1 hour
+- Refresh token mechanism available
 
 ### Authorization
-- **Model**: Role-Based Access Control (RBAC)
-- **Required Permission**: `task:create`
-- **User Context**: Extracted from JWT token
-- **Audit Trail**: All operations logged with user context
-
-### Input Security
-- **XSS Prevention**: HTML encoding of all string inputs
-- **SQL Injection**: Parameterized queries only
-- **CSRF Protection**: Not applicable for API endpoints
-- **Input Sanitization**: Removal of potentially malicious content
+- Role-based access control (RBAC)
+- Resource-level permissions
+- Users can only access tasks they created or are assigned to
 
 ### Rate Limiting
-- **Limit**: 100 requests per minute per authenticated user
-- **Algorithm**: Sliding window
-- **Headers**: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
-- **Exceeded Response**: 429 Too Many Requests
+- 100 requests per minute per user
+- 1000 requests per minute per API key
+- Burst allowance: 10 requests
 
----
+### Input Validation
+- All input fields validated at multiple layers
+- SQL injection prevention
+- XSS protection
+- CSRF protection for web clients
 
-## Request/Response Examples
-
-### Successful Task Creation
-
-#### Request
-```http
-POST /api/tasks HTTP/1.1
-Host: api.taskmanagement.company.com
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-Content-Type: application/json
-X-API-Version: v1
-X-Request-ID: req-123e4567-e89b-12d3-a456-426614174000
-
-{
-  "title": "Implement user authentication",
-  "description": "Implement JWT-based authentication with role-based access control",
-  "status": "TODO",
-  "priority": "HIGH",
-  "dueDate": "2024-02-15T10:00:00Z",
-  "assignedTo": "123e4567-e89b-12d3-a456-426614174000"
-}
-```
-
-#### Response
-```http
-HTTP/1.1 201 Created
-Content-Type: application/json
-X-Request-ID: req-123e4567-e89b-12d3-a456-426614174000
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 99
-X-RateLimit-Reset: 1705329000
-
-{
-  "id": "987fcdeb-51a2-43d1-9c4e-123456789abc",
-  "title": "Implement user authentication",
-  "description": "Implement JWT-based authentication with role-based access control",
-  "status": "TODO",
-  "priority": "HIGH",
-  "dueDate": "2024-02-15T10:00:00Z",
-  "assignedTo": "123e4567-e89b-12d3-a456-426614174000",
-  "createdAt": "2024-01-15T14:30:00Z",
-  "updatedAt": "2024-01-15T14:30:00Z",
-  "createdBy": "456e7890-e12b-34d5-a678-901234567def"
-}
-```
-
-### Validation Error Example
-
-#### Request
-```http
-POST /api/tasks HTTP/1.1
-Host: api.taskmanagement.company.com
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-Content-Type: application/json
-
-{
-  "title": "",
-  "status": "INVALID_STATUS",
-  "priority": "HIGH",
-  "dueDate": "2023-01-01T10:00:00Z"
-}
-```
-
-#### Response
-```http
-HTTP/1.1 400 Bad Request
-Content-Type: application/json
-X-Request-ID: req-123e4567-e89b-12d3-a456-426614174000
-
-{
-  "error": "Validation Error",
-  "message": "Request validation failed",
-  "details": [
-    {
-      "field": "title",
-      "message": "Title is required and cannot be empty",
-      "value": ""
-    },
-    {
-      "field": "status",
-      "message": "Status must be one of: TODO, IN_PROGRESS, DONE, CANCELLED",
-      "value": "INVALID_STATUS"
-    },
-    {
-      "field": "dueDate",
-      "message": "Due date must be in the future",
-      "value": "2023-01-01T10:00:00Z"
-    }
-  ],
-  "timestamp": "2024-01-15T14:30:00Z",
-  "path": "/api/tasks",
-  "requestId": "req-123e4567-e89b-12d3-a456-426614174000"
-}
-```
-
----
-
-## OpenAPI Integration
-
-### Swagger Decorators
-```typescript
-@ApiTags('Tasks')
-@Controller('api/tasks')
-export class TaskController {
-  
-  @Post()
-  @ApiOperation({ 
-    summary: 'Create a new task',
-    description: 'Creates a new task with validation and business rule enforcement'
-  })
-  @ApiResponse({ 
-    status: 201, 
-    description: 'Task created successfully',
-    type: TaskResponseDto
-  })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Validation error',
-    type: ValidationErrorDto
-  })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized - Invalid or missing token'
-  })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Insufficient permissions'
-  })
-  @ApiResponse({ 
-    status: 422, 
-    description: 'Business rule violation'
-  })
-  @ApiResponse({ 
-    status: 429, 
-    description: 'Rate limit exceeded'
-  })
-  @ApiResponse({ 
-    status: 500, 
-    description: 'Internal server error'
-  })
-  @ApiBearerAuth()
-  async createTask(@Body() createTaskDto: CreateTaskDto): Promise<TaskResponseDto> {
-    // Implementation
-  }
-}
-```
-
----
-
-## Monitoring and Observability
-
-### Metrics Collection
-- **Request Count**: Total API calls
-- **Response Time**: P50, P95, P99 percentiles
-- **Error Rate**: 4xx and 5xx response percentages
-- **Throughput**: Requests per second
-- **Active Connections**: Current connection count
-
-### Health Check Endpoint
-```http
-GET /health HTTP/1.1
-Host: api.taskmanagement.company.com
-
-Response:
-{
-  "status": "healthy",
-  "timestamp": "2024-01-15T14:30:00Z",
-  "version": "1.0.0",
-  "dependencies": {
-    "database": "healthy",
-    "auth_service": "healthy",
-    "audit_service": "healthy"
-  }
-}
-```
+### Data Protection
+- TLS 1.3 for data in transit
+- AES-256 encryption for data at rest
+- PII data masking in logs
+- GDPR compliance for EU users
 
 ---
 
 ## Versioning Strategy
 
-### API Versioning
-- **Method**: URL path versioning (/v1/, /v2/)
-- **Header Support**: X-API-Version header as alternative
-- **Backward Compatibility**: Minimum 12 months support for previous versions
-- **Deprecation Notice**: 90 days advance notice via API headers
+### Current Version: v1
+- URI versioning: /api/v1/tasks
+- Backward compatibility maintained
+- Deprecation notice: 6 months before removal
 
-### Schema Evolution
-- **Additive Changes**: New optional fields allowed
-- **Breaking Changes**: Require new API version
-- **Field Deprecation**: Marked in OpenAPI spec with deprecation notice
+### Version Migration
+- Automatic version detection
+- Migration guides provided
+- Parallel version support during transition
 
 ---
 
-**Document Status**: Draft
-**Review Required**: Yes
-**API Contract Version**: 1.0
-**Last Updated**: 2024-01-15
+## Monitoring and Observability
+
+### Metrics
+- Request count and response times
+- Error rates by status code
+- Authentication success/failure rates
+- Business metrics (tasks created per day)
+
+### Logging
+- Structured JSON logs
+- Correlation IDs for request tracing
+- Security event logging
+- Performance metrics logging
+
+### Health Checks
+- GET /health - Basic health check
+- GET /health/detailed - Detailed system status
+- Database connectivity check
+- External service dependency checks
+
+---
+
+**Document Control**
+- **Version**: 1.0
+- **Last Updated**: 2024
+- **API Version**: v1
+- **OpenAPI Specification**: Available at /api/v1/docs
+- **Postman Collection**: Available in project repository
