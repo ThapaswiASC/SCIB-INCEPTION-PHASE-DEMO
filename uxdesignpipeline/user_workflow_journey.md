@@ -2,450 +2,396 @@
 
 ## Experience Overview
 
-The Kanban board experience enables users to visualize, organize, and manage their work through a three-column layout system. This experience encompasses task management, workflow visualization, team collaboration, and progress tracking across different devices and accessibility needs.
+Project managers, team leads, and team members experience task management through a visual Kanban board system. This experience encompasses task organization, progress tracking, workflow management, and team collaboration.
 
-## Scenario 1: Task Management and Organization
+## Scenarios
 
-### Context
-Sarah, a project manager, needs to organize her team's sprint tasks and track their progress efficiently. She wants to quickly move tasks between different stages of completion and get a clear overview of the team's workload distribution.
+### Scenario 1: Task Management and Organization
 
-### Workflow Variation 1A: Desktop Task Management Flow
+**Context:** Sarah, a project manager, needs to organize her team's sprint tasks and track their progress throughout the development cycle. She wants to quickly visualize what work is pending, in progress, and completed to make informed decisions about resource allocation and timeline adjustments.
 
-**User Goal:** Efficiently organize and track task progress across different workflow stages
-**Business Goal:** Increase team productivity and provide clear visibility into project status
+#### Workflow Variation 1A: Initial Board Setup and Task Organization
 
-#### Screens:
+**User Goal:** Efficiently organize and categorize tasks across the three-column Kanban board to establish clear workflow visibility.
 
-**1.0 Kanban Board Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
+**Business Goal:** Increase team productivity and project transparency by providing an intuitive visual task management system that reduces time spent on status updates.
+
+**Screens:**
+
+1.0 Kanban Board Dashboard [type: primary]
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "Board"
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive overview of all tasks across workflow stages
+- Page Goal: Provide comprehensive overview of all tasks across the three workflow stages
 - Screen Description:
-  1. User can view three distinct columns: 'To Do', 'In Progress', 'Done'
-  2. User can see task cards distributed across columns with key information
-  3. User can drag and drop tasks between columns
-  4. User can filter tasks by assignee, priority, or due date
-  5. User can access quick actions for each task card
-  6. User can view column metrics (task count, completion percentage)
+  1. User can view three distinct columns: 'To Do', 'In Progress', and 'Done'
+  2. User can see task cards distributed across columns based on their current status
+  3. User can drag and drop tasks between columns to update their status
+  4. User can view task details including title, assignee, and priority indicators
+  5. User can access quick actions for each task (edit, delete, assign)
+  6. User can filter tasks by assignee, priority, or labels
+  7. User can add new tasks directly to any column
 - Design Problems:
-  - HMW help users quickly identify high-priority tasks across all columns?
-  - HMW prevent users from losing track of tasks when the board becomes crowded?
-  - HMW make drag-and-drop interactions intuitive for first-time users?
-  - HMW provide clear visual feedback during task transitions?
+  - HMW ensure users can quickly distinguish between the three workflow stages?
+  - HMW make drag-and-drop interactions intuitive for users unfamiliar with Kanban?
+  - HMW prevent accidental task movements while maintaining fluid interactions?
+  - HMW display task information effectively without cluttering the interface?
 - Design Opportunities:
-  - What if the system could automatically highlight overdue tasks?
-  - What if users could customize column names based on their workflow?
-  - What if the board could suggest optimal task distribution?
-  - What if we could provide real-time collaboration indicators?
+  - What if the system could auto-suggest optimal task distribution based on team capacity?
+  - What if column headers showed real-time progress metrics and completion rates?
+  - What if the board could highlight bottlenecks or overloaded columns?
+  - What if users could customize column names and add additional workflow stages?
 
-**1.0-D Task Detail View [type: detail]**
-- HOW IT IS REACHED: Clicking on a task card from the Kanban board
+Pu.1 Add New Task Modal [type: modal]
+- HOW IT IS REACHED: Clicking "+ Add Task" button in any column header
 - NAVBAR PRESENCE: No
-- Page Goal: Allow detailed task management and information editing
-- Screen Description:
-  1. User can view complete task information including description, assignee, due date
-  2. User can edit task properties and save changes
-  3. User can add comments and attachments
-  4. User can view task history and activity log
-  5. User can change task status and move to different columns
-  6. User can navigate back to the board view
-- Design Problems:
-  - HMW ensure users don't lose context when viewing task details?
-  - HMW make task editing efficient without overwhelming the interface?
-  - HMW provide clear navigation back to the board view?
-- Design Opportunities:
-  - What if the detail view could show related tasks or dependencies?
-  - What if users could preview task details without leaving the board?
-  - What if the system could suggest similar tasks or templates?
-
-**Pu.1 Create New Task Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "+ Add Task" button on any column
-- NAVBAR PRESENCE: No
-- Page Goal: Enable quick task creation with essential information
+- Page Goal: Enable quick task creation with essential details
 - Screen Description:
   1. User can enter task title and description
-  2. User can assign task to team members
+  2. User can assign the task to team members
   3. User can set priority level and due date
-  4. User can select initial column placement
-  5. User can add tags or labels
-  6. User can save task and return to board view
+  4. User can add labels or tags for categorization
+  5. User can select which column to place the new task
+  6. User can save or cancel the task creation
 - Design Problems:
-  - HMW minimize the steps required to create a new task?
-  - HMW ensure users provide essential information without making the form overwhelming?
+  - HMW streamline task creation without overwhelming users with too many fields?
+  - HMW ensure required information is captured while maintaining speed of entry?
   - HMW make the modal accessible and keyboard-navigable?
 - Design Opportunities:
-  - What if the system could auto-suggest task details based on similar tasks?
-  - What if users could create multiple tasks at once?
-  - What if the modal could remember user preferences for faster creation?
+  - What if the system could suggest assignees based on workload and expertise?
+  - What if task templates could speed up creation for common task types?
+  - What if the modal could auto-populate fields based on similar existing tasks?
 
-#### Navigation Structure:
-1.0 Kanban Board Dashboard
-
-#### User Journey Flow:
-1.0 Kanban Board Dashboard → [click task card] → 1.0-D Task Detail View → [click back] → 1.0 Kanban Board Dashboard
-1.0 Kanban Board Dashboard → [click + Add Task] → Pu.1 Create New Task Modal → [submit] → 1.0 Kanban Board Dashboard (updated)
-
-### Workflow Variation 1B: Mobile Task Management Flow
-
-**User Goal:** Manage tasks effectively on mobile devices with touch-friendly interactions
-**Business Goal:** Ensure productivity continuity across all device types
-
-#### Screens:
-
-**1.0 Mobile Kanban Board [type: primary]**
-- HOW IT IS REACHED: Direct navigation via mobile app or responsive web
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide touch-optimized task management experience
+1.0-D Task Detail View [type: detail]
+- HOW IT IS REACHED: Clicking on any task card in the Kanban board
+- NAVBAR PRESENCE: No
+- Page Goal: Provide comprehensive task information and enable detailed task management
 - Screen Description:
-  1. User can swipe horizontally between columns or view in stacked layout
-  2. User can tap and hold to drag tasks between columns
-  3. User can use column tabs for quick navigation
-  4. User can access condensed task information with expand options
-  5. User can use floating action button for quick task creation
-  6. User can access filter and search through mobile-optimized interface
+  1. User can view complete task details including description, comments, and attachments
+  2. User can edit task properties (title, description, assignee, priority, due date)
+  3. User can add comments and collaborate with team members
+  4. User can view task history and status change log
+  5. User can attach files or link related resources
+  6. User can move task to different columns from this view
+  7. User can delete or archive the task
 - Design Problems:
-  - HMW make drag-and-drop work effectively on touch devices?
-  - HMW display adequate information in limited screen space?
-  - HMW ensure touch targets meet accessibility requirements?
-  - HMW provide clear visual feedback for touch interactions?
+  - HMW organize extensive task information without overwhelming the user?
+  - HMW make task editing intuitive while preventing accidental changes?
+  - HMW ensure smooth navigation back to the board view?
 - Design Opportunities:
-  - What if users could use swipe gestures to move tasks between columns?
-  - What if the mobile view could prioritize most important tasks?
-  - What if we could provide voice input for task creation?
-  - What if the system could adapt to user's mobile usage patterns?
+  - What if the detail view could show related tasks and dependencies?
+  - What if users could see real-time collaboration indicators?
+  - What if the system could suggest next actions based on task status?
 
-#### Navigation Structure:
-1.0 Mobile Kanban Board
+#### Workflow Variation 1B: Bulk Task Management and Status Updates
 
-#### User Journey Flow:
-1.0 Mobile Kanban Board → [tap task] → 1.0-D Task Detail View → [swipe back] → 1.0 Mobile Kanban Board
-1.0 Mobile Kanban Board → [tap FAB] → Pu.1 Quick Task Creation → [submit] → 1.0 Mobile Kanban Board (updated)
+**User Goal:** Efficiently manage multiple tasks simultaneously and perform bulk status updates to maintain accurate project progress.
 
-## Scenario 2: Team Collaboration and Progress Tracking
+**Business Goal:** Reduce administrative overhead and improve data accuracy by enabling efficient bulk operations on task management.
 
-### Context
-Mike, a team lead, needs to monitor his team's progress, identify bottlenecks, and facilitate collaboration. He wants to see who is working on what, where tasks might be stuck, and how to optimize the team's workflow.
+**Screens:**
 
-### Workflow Variation 2A: Team Overview and Analytics Flow
-
-**User Goal:** Monitor team performance and identify workflow optimization opportunities
-**Business Goal:** Improve team efficiency and project delivery timelines
-
-#### Screens:
-
-**2.0 Team Progress Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
+1.1 Kanban Board with Bulk Selection [type: primary]
+- HOW IT IS REACHED: Activating bulk selection mode via checkbox or keyboard shortcut
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive team performance and progress insights
+- Page Goal: Enable selection and management of multiple tasks simultaneously
 - Screen Description:
-  1. User can view team member workload distribution across columns
-  2. User can see task completion rates and velocity metrics
-  3. User can identify bottlenecks and overloaded team members
-  4. User can view time-based progress charts and trends
-  5. User can access team member profiles and current assignments
-  6. User can export progress reports and analytics
+  1. User can select multiple tasks across different columns using checkboxes
+  2. User can see bulk action toolbar with options for selected tasks
+  3. User can move multiple selected tasks to a different column at once
+  4. User can assign multiple tasks to the same person
+  5. User can update priority or labels for multiple tasks
+  6. User can delete multiple tasks after confirmation
+  7. User can export selected tasks or generate reports
 - Design Problems:
-  - HMW present complex analytics in an easily digestible format?
-  - HMW help team leads quickly identify actionable insights?
-  - HMW balance detailed metrics with high-level overview?
-  - HMW make the dashboard useful for different management styles?
+  - HMW make bulk selection obvious and easy to activate/deactivate?
+  - HMW prevent users from accidentally performing bulk actions?
+  - HMW maintain visual clarity when multiple items are selected?
+- Design Opportunities:
+  - What if the system could suggest logical groupings for bulk operations?
+  - What if users could save bulk selection patterns for repeated use?
+  - What if the interface showed the impact of bulk changes before applying them?
+
+Pu.2 Bulk Actions Confirmation Modal [type: modal]
+- HOW IT IS REACHED: Clicking any bulk action button (move, assign, delete, etc.)
+- NAVBAR PRESENCE: No
+- Page Goal: Confirm bulk operations and prevent accidental mass changes
+- Screen Description:
+  1. User can review the list of selected tasks and proposed changes
+  2. User can see a summary of what will be modified
+  3. User can remove specific tasks from the bulk operation
+  4. User can confirm or cancel the bulk action
+  5. User can see warnings for potentially problematic changes
+- Design Problems:
+  - HMW clearly communicate the scope and impact of bulk changes?
+  - HMW allow users to review and modify their selection before confirming?
+  - HMW handle errors or conflicts in bulk operations gracefully?
+- Design Opportunities:
+  - What if the confirmation showed before/after states for better clarity?
+  - What if users could undo bulk operations immediately after execution?
+  - What if the system could detect and warn about potential conflicts?
+
+**Navigation Structure:** 1.0 Kanban Board Dashboard
+
+**User Journey Flow:**
+- Variation 1A: 1.0 Kanban Board Dashboard → [click + Add Task] → Pu.1 Add New Task Modal → [submit] → 1.0 Kanban Board Dashboard (updated) → [click task card] → 1.0-D Task Detail View → [back] → 1.0 Kanban Board Dashboard
+- Variation 1B: 1.0 Kanban Board Dashboard → [activate bulk mode] → 1.1 Kanban Board with Bulk Selection → [select tasks + bulk action] → Pu.2 Bulk Actions Confirmation Modal → [confirm] → 1.0 Kanban Board Dashboard (updated)
+
+### Scenario 2: Progress Tracking and Team Collaboration
+
+**Context:** Mike, a team lead, needs to monitor his team's progress on current sprint tasks and identify potential bottlenecks or blockers. He wants to ensure work is flowing smoothly through the pipeline and team members have appropriate workloads.
+
+#### Workflow Variation 2A: Real-time Progress Monitoring
+
+**User Goal:** Monitor team progress in real-time and identify workflow bottlenecks to ensure project deadlines are met.
+
+**Business Goal:** Improve project delivery predictability and team efficiency by providing clear visibility into work progress and potential issues.
+
+**Screens:**
+
+2.0 Progress Analytics Dashboard [type: primary]
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "Analytics"
+- NAVBAR PRESENCE: Yes
+- Page Goal: Provide comprehensive progress insights and team performance metrics
+- Screen Description:
+  1. User can view progress charts showing task flow through the three columns over time
+  2. User can see team member workload distribution and capacity utilization
+  3. User can identify bottlenecks by viewing tasks stuck in specific columns
+  4. User can access burndown charts and velocity metrics
+  5. User can filter analytics by time period, team member, or project
+  6. User can export reports and share insights with stakeholders
+  7. User can set up alerts for potential issues or milestone achievements
+- Design Problems:
+  - HMW present complex analytics data in an easily digestible format?
+  - HMW help users identify actionable insights from the progress data?
+  - HMW ensure the analytics remain relevant and timely?
 - Design Opportunities:
   - What if the system could predict potential delays based on current progress?
-  - What if we could provide automated suggestions for workload balancing?
-  - What if the dashboard could integrate with other project management tools?
-  - What if we could provide personalized insights for each team lead?
+  - What if analytics could suggest optimal task redistribution?
+  - What if the dashboard could automatically highlight areas needing attention?
 
-**2.0-D Team Member Detail [type: detail]**
-- HOW IT IS REACHED: Clicking on a team member card or name from Team Progress Dashboard
+2.0-D Team Member Performance Detail [type: detail]
+- HOW IT IS REACHED: Clicking on any team member's name or performance metric
 - NAVBAR PRESENCE: No
-- Page Goal: Provide detailed view of individual team member's work and performance
+- Page Goal: Provide detailed insights into individual team member performance and workload
 - Screen Description:
-  1. User can view all tasks assigned to specific team member
-  2. User can see individual performance metrics and completion history
-  3. User can reassign tasks or adjust workload
-  4. User can view team member's availability and capacity
-  5. User can access communication history and notes
-  6. User can set goals and track individual progress
+  1. User can view individual team member's task completion rates and patterns
+  2. User can see current workload and upcoming deadlines for the team member
+  3. User can review task history and performance trends over time
+  4. User can identify areas where the team member might need support
+  5. User can access communication tools to discuss performance or offer help
+  6. User can reassign tasks or adjust workload based on insights
 - Design Problems:
-  - HMW present individual performance data without creating surveillance concerns?
-  - HMW help team leads make fair workload distribution decisions?
-  - HMW provide actionable insights for individual development?
+  - HMW present performance data constructively without creating pressure?
+  - HMW ensure privacy and appropriate access to individual performance metrics?
+  - HMW make the data actionable for team leads and managers?
 - Design Opportunities:
-  - What if the system could suggest skill development opportunities?
-  - What if we could provide peer comparison insights?
-  - What if the detail view could show collaboration patterns?
+  - What if the system could suggest professional development opportunities?
+  - What if performance insights could inform better task assignment?
+  - What if the interface could facilitate constructive performance conversations?
 
-#### Navigation Structure:
-1.0 Kanban Board Dashboard | 2.0 Team Progress Dashboard
+#### Workflow Variation 2B: Collaborative Issue Resolution
 
-#### User Journey Flow:
-2.0 Team Progress Dashboard → [click team member] → 2.0-D Team Member Detail → [click back] → 2.0 Team Progress Dashboard
-2.0 Team Progress Dashboard → [click export] → Pu.2 Report Generation Modal → [generate] → 2.0 Team Progress Dashboard
+**User Goal:** Identify and resolve workflow issues collaboratively with team members to maintain project momentum.
 
-### Workflow Variation 2B: Real-time Collaboration Flow
+**Business Goal:** Minimize project delays and improve team communication by facilitating quick identification and resolution of blockers.
 
-**User Goal:** Facilitate seamless real-time collaboration and communication
-**Business Goal:** Reduce communication overhead and improve team coordination
+**Screens:**
 
-#### Screens:
-
-**3.0 Collaborative Board View [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item or collaboration invite
+2.1 Issue Tracking Board [type: primary]
+- HOW IT IS REACHED: Switching view mode on Kanban board or via "Issues" navigation
 - NAVBAR PRESENCE: Yes
-- Page Goal: Enable real-time collaborative task management with live updates
+- Page Goal: Highlight tasks with issues, blockers, or delays requiring attention
 - Screen Description:
-  1. User can see live cursors and actions of other team members
-  2. User can view real-time task updates and movements
-  3. User can access integrated chat and commenting system
-  4. User can see who is currently viewing or editing tasks
-  5. User can receive notifications for relevant changes
-  6. User can collaborate on task planning and estimation
+  1. User can view tasks flagged with issues or blockers across all columns
+  2. User can see escalation levels and urgency indicators for each issue
+  3. User can assign issue resolution owners and set resolution deadlines
+  4. User can add comments and collaborate on issue resolution
+  5. User can track issue resolution progress and history
+  6. User can create new issues or convert tasks to issues
+  7. User can filter issues by type, severity, or assignee
 - Design Problems:
-  - HMW prevent conflicts when multiple users edit simultaneously?
-  - HMW provide clear indication of other users' actions without distraction?
-  - HMW ensure real-time updates don't disrupt user's current work?
-  - HMW handle connectivity issues gracefully?
+  - HMW make critical issues immediately visible without cluttering the interface?
+  - HMW facilitate effective collaboration on issue resolution?
+  - HMW ensure issues don't get overlooked or forgotten?
 - Design Opportunities:
-  - What if users could see predictive text suggestions from team members?
-  - What if the system could facilitate virtual standup meetings?
-  - What if we could provide conflict resolution suggestions?
-  - What if the board could adapt based on team collaboration patterns?
+  - What if the system could automatically detect potential issues based on task patterns?
+  - What if issue resolution could be gamified to encourage quick resolution?
+  - What if the interface could suggest similar past issues and their solutions?
 
-**Pu.3 Team Communication Panel [type: modal]**
-- HOW IT IS REACHED: Clicking communication/chat button on collaborative board
+Pu.3 Issue Creation and Assignment Modal [type: modal]
+- HOW IT IS REACHED: Clicking "Report Issue" button on any task or "+ New Issue" button
 - NAVBAR PRESENCE: No
-- Page Goal: Provide contextual communication without leaving the board
+- Page Goal: Enable quick issue reporting and assignment for efficient resolution
 - Screen Description:
-  1. User can send messages related to specific tasks or general discussion
-  2. User can mention team members and create notifications
-  3. User can share files and links relevant to current work
-  4. User can view message history and search conversations
-  5. User can set communication preferences and notifications
-  6. User can initiate video calls or screen sharing sessions
+  1. User can describe the issue and select its type (blocker, bug, dependency, etc.)
+  2. User can set issue priority and expected resolution timeline
+  3. User can assign the issue to appropriate team members
+  4. User can link the issue to related tasks or other issues
+  5. User can add supporting documentation or screenshots
+  6. User can set up notifications for issue updates
 - Design Problems:
-  - HMW keep communication contextual to current work?
-  - HMW prevent communication from overwhelming the main interface?
-  - HMW ensure important messages don't get lost?
+  - HMW encourage thorough issue reporting without making it burdensome?
+  - HMW ensure issues are assigned to the right people quickly?
+  - HMW prevent duplicate or unnecessary issue creation?
 - Design Opportunities:
-  - What if the system could summarize long conversation threads?
-  - What if we could provide smart suggestions for common responses?
-  - What if communication could be automatically linked to relevant tasks?
+  - What if the system could suggest issue assignees based on expertise?
+  - What if issue templates could speed up common issue reporting?
+  - What if the modal could auto-link related tasks and dependencies?
 
-#### Navigation Structure:
-1.0 Kanban Board Dashboard | 2.0 Team Progress Dashboard | 3.0 Collaborative Board View
+**Navigation Structure:** 1.0 Kanban Board Dashboard | 2.0 Progress Analytics Dashboard | 2.1 Issue Tracking Board
 
-#### User Journey Flow:
-3.0 Collaborative Board View → [click chat] → Pu.3 Team Communication Panel → [send message] → 3.0 Collaborative Board View (updated)
-3.0 Collaborative Board View → [see live update] → [react to change] → 3.0 Collaborative Board View (continued collaboration)
+**User Journey Flow:**
+- Variation 2A: 2.0 Progress Analytics Dashboard → [click team member] → 2.0-D Team Member Performance Detail → [back] → 2.0 Progress Analytics Dashboard
+- Variation 2B: 2.1 Issue Tracking Board → [click + New Issue] → Pu.3 Issue Creation Modal → [submit] → 2.1 Issue Tracking Board (updated)
 
-## Scenario 3: Accessibility and Inclusive Design
+### Scenario 3: Board Customization and Settings Management
 
-### Context
-Alex, a developer with visual impairment, uses screen reader technology and keyboard navigation to manage tasks. They need full access to all Kanban board functionality through assistive technologies and alternative interaction methods.
+**Context:** Jennifer, a project manager, needs to customize the Kanban board to match her team's specific workflow and configure accessibility settings to ensure all team members can effectively use the system.
 
-### Workflow Variation 3A: Screen Reader Navigation Flow
+#### Workflow Variation 3A: Board Layout Customization
 
-**User Goal:** Access all Kanban board functionality through screen reader and keyboard navigation
-**Business Goal:** Ensure inclusive design that complies with accessibility standards and serves all users
+**User Goal:** Customize the Kanban board layout and workflow stages to match team-specific processes and preferences.
 
-#### Screens:
+**Business Goal:** Increase user adoption and satisfaction by providing flexible customization options that adapt to different team workflows.
 
-**4.0 Accessible Kanban Interface [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item with screen reader support
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide fully accessible task management experience
-- Screen Description:
-  1. User can navigate between columns using keyboard shortcuts and tab order
-  2. User can hear clear announcements for task status and column changes
-  3. User can access all task actions through keyboard commands
-  4. User can receive audio feedback for drag-and-drop operations
-  5. User can use skip links to navigate efficiently between sections
-  6. User can access alternative text descriptions for all visual elements
-- Design Problems:
-  - HMW provide clear mental model of board layout for non-visual users?
-  - HMW make drag-and-drop operations accessible without mouse?
-  - HMW ensure screen reader announcements are informative but not overwhelming?
-  - HMW provide efficient navigation for users with motor disabilities?
-- Design Opportunities:
-  - What if the system could provide audio cues for different task priorities?
-  - What if we could offer customizable keyboard shortcuts?
-  - What if the interface could adapt to different assistive technologies?
-  - What if we could provide voice control integration?
+**Screens:**
 
-**4.0 Settings - Accessibility Preferences [type: settings]**
-- HOW IT IS REACHED: Clicking settings icon or using keyboard shortcut
+3.0 Board Settings [type: settings]
+- HOW IT IS REACHED: Clicking settings icon in board header or via main settings menu
 - NAVBAR PRESENCE: No
-- Page Goal: Allow users to customize accessibility features and preferences
-- Screen Description:
-  1. User can toggle high contrast mode on/off
-  2. User can adjust screen reader verbosity levels
-  3. User can customize keyboard shortcuts and navigation preferences
-  4. User can set motion and animation preferences
-  5. User can configure notification and alert preferences
-  6. User can save and sync accessibility settings across devices
-- Design Problems:
-  - HMW make accessibility settings discoverable and easy to configure?
-  - HMW ensure settings persist across sessions and devices?
-  - HMW provide clear explanations for each accessibility option?
-- Design Opportunities:
-  - What if the system could auto-detect user's assistive technology?
-  - What if we could provide guided setup for accessibility features?
-  - What if settings could be shared with team members for consistent experience?
-
-#### Navigation Structure:
-1.0 Kanban Board Dashboard | 2.0 Team Progress Dashboard | 3.0 Collaborative Board View | 4.0 Accessible Kanban Interface
-
-#### User Journey Flow:
-4.0 Accessible Kanban Interface → [keyboard shortcut] → [move task] → 4.0 Accessible Kanban Interface (updated with audio confirmation)
-4.0 Accessible Kanban Interface → [settings shortcut] → 4.0 Settings - Accessibility Preferences → [save changes] → 4.0 Accessible Kanban Interface (updated preferences)
-
-## Scenario 4: Advanced Workflow Customization
-
-### Context
-Jenna, a process improvement specialist, needs to customize the Kanban board to match her organization's specific workflow requirements. She wants to modify column structures, add custom fields, and create workflow rules that align with company processes.
-
-### Workflow Variation 4A: Workflow Configuration Flow
-
-**User Goal:** Customize Kanban board structure and rules to match organizational workflow
-**Business Goal:** Provide flexible solution that adapts to different organizational needs and processes
-
-#### Screens:
-
-**5.0 Board Configuration Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item (admin access)
-- NAVBAR PRESENCE: Yes
 - Page Goal: Provide comprehensive board customization and configuration options
 - Screen Description:
-  1. User can modify column names, order, and workflow rules
-  2. User can add custom fields and task properties
-  3. User can set up automation rules and triggers
-  4. User can configure user permissions and access levels
-  5. User can create templates for different project types
-  6. User can preview changes before applying to live board
+  1. User can customize column names and add additional workflow stages
+  2. User can configure column colors and visual styling
+  3. User can set up automated rules for task movement and assignments
+  4. User can configure card display options (fields shown, card size, etc.)
+  5. User can set up board-level permissions and access controls
+  6. User can configure notification preferences for board activities
+  7. User can manage board templates and save custom configurations
+  8. User can toggle accessibility features (high contrast, screen reader optimization)
+  9. User can adjust responsive behavior preferences
+  10. User can configure keyboard shortcuts and navigation preferences
 - Design Problems:
-  - HMW make complex configuration options accessible to non-technical users?
-  - HMW prevent configuration changes from disrupting ongoing work?
-  - HMW provide clear preview of how changes will affect user experience?
-  - HMW ensure configuration changes don't break accessibility features?
+  - HMW organize extensive customization options without overwhelming users?
+  - HMW ensure customizations don't break core functionality?
+  - HMW make settings discoverable and easy to modify?
 - Design Opportunities:
-  - What if the system could suggest optimal configurations based on team size?
-  - What if we could provide configuration templates for common industries?
-  - What if changes could be tested in a sandbox environment?
-  - What if the system could learn from usage patterns to suggest improvements?
+  - What if the system could suggest optimal configurations based on team size and project type?
+  - What if users could preview customizations before applying them?
+  - What if popular customization patterns could be shared across teams?
 
-**Pu.4 Column Configuration Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Configure Columns" button from Board Configuration Dashboard
+#### Workflow Variation 3B: Accessibility Configuration
+
+**User Goal:** Configure accessibility settings to ensure the Kanban board is usable by all team members regardless of their abilities or assistive technology needs.
+
+**Business Goal:** Ensure compliance with accessibility standards and create an inclusive work environment that maximizes team participation.
+
+**Screens:**
+
+3.1 Accessibility Settings [type: settings]
+- HOW IT IS REACHED: Accessing accessibility section within main settings or via accessibility menu
 - NAVBAR PRESENCE: No
-- Page Goal: Enable detailed column setup and workflow rule definition
+- Page Goal: Provide comprehensive accessibility configuration options
 - Screen Description:
-  1. User can add, remove, or reorder columns
-  2. User can set column limits and work-in-progress rules
-  3. User can define automatic task movement triggers
-  4. User can customize column appearance and labels
-  5. User can set up column-specific permissions
-  6. User can test column configuration with sample data
+  1. User can enable high contrast mode for better visual distinction
+  2. User can configure screen reader announcements and ARIA label preferences
+  3. User can adjust keyboard navigation settings and shortcuts
+  4. User can set focus indicator styles and behavior
+  5. User can configure motion and animation preferences
+  6. User can adjust text size and spacing options
+  7. User can enable alternative interaction methods for drag-and-drop
+  8. User can configure color-blind friendly color schemes
+  9. User can set up voice control compatibility options
+  10. User can test accessibility features with preview mode
 - Design Problems:
-  - HMW help users understand the impact of column changes on existing tasks?
-  - HMW make workflow rules intuitive for business users?
-  - HMW provide adequate testing capabilities before going live?
+  - HMW ensure accessibility settings are easily discoverable?
+  - HMW provide effective testing and preview of accessibility features?
+  - HMW maintain functionality while accommodating diverse accessibility needs?
 - Design Opportunities:
-  - What if the system could visualize workflow efficiency with different configurations?
-  - What if we could provide real-time validation of configuration rules?
-  - What if users could import configurations from other successful boards?
+  - What if the system could automatically detect user needs and suggest appropriate settings?
+  - What if accessibility configurations could be shared across similar users?
+  - What if the interface could provide real-time accessibility compliance feedback?
 
-#### Navigation Structure:
-1.0 Kanban Board Dashboard | 2.0 Team Progress Dashboard | 3.0 Collaborative Board View | 4.0 Accessible Kanban Interface | 5.0 Board Configuration Dashboard
+**Navigation Structure:** 1.0 Kanban Board Dashboard | 2.0 Progress Analytics Dashboard | 2.1 Issue Tracking Board
 
-#### User Journey Flow:
-5.0 Board Configuration Dashboard → [click Configure Columns] → Pu.4 Column Configuration Modal → [save changes] → 5.0 Board Configuration Dashboard (updated)
-5.0 Board Configuration Dashboard → [preview changes] → [apply to live board] → 1.0 Kanban Board Dashboard (updated configuration)
+**User Journey Flow:**
+- Variation 3A: 1.0 Kanban Board Dashboard → [click settings icon] → 3.0 Board Settings → [configure options] → [save] → 1.0 Kanban Board Dashboard (updated)
+- Variation 3B: 3.0 Board Settings → [navigate to accessibility section] → 3.1 Accessibility Settings → [configure options] → [save] → 3.0 Board Settings
 
 ## Error States and Edge Cases
 
-**Er.1 Network Connection Error [type: state]**
-- Condition of any screen when network connectivity is lost
-- User sees clear indication of offline status
-- User can continue viewing cached data
-- User receives notification when connection is restored
-- Pending changes are synchronized automatically
+Er.1 Empty Board State [type: state]
+- Condition of 1.0 Kanban Board Dashboard when no tasks exist
+- Shows onboarding guidance and quick task creation options
+- Provides sample data or templates to help users get started
 
-**Er.2 Empty Board State [type: state]**
-- Condition of Kanban board when no tasks exist
-- User sees helpful onboarding guidance
-- User can access quick task creation options
-- User can import tasks from templates or other sources
-- User sees examples of effective board usage
+Er.2 Network Connection Error [type: state]
+- Condition affecting any screen when network connectivity is lost
+- Shows offline indicator and cached data when available
+- Provides retry options and explains limited functionality
 
-**Er.3 Permission Denied State [type: state]**
-- Condition when user lacks sufficient permissions
-- User sees clear explanation of required permissions
-- User can request access from administrators
-- User can view read-only version if applicable
-- User receives guidance on alternative actions
+Er.3 Task Load Failure [type: state]
+- Condition of 1.0 Kanban Board Dashboard when tasks fail to load
+- Shows error message with troubleshooting steps
+- Provides refresh options and alternative access methods
 
-## ACCESSIBILITY NOTES
+Er.4 Drag and Drop Failure [type: state]
+- Condition during task movement when operation fails
+- Shows error notification and reverts task to original position
+- Provides alternative methods to update task status
+
+## Accessibility Notes
 
 **Keyboard Navigation:**
-- All primary screens support full keyboard navigation with logical tab order
-- Arrow keys navigate between columns and tasks within the Kanban board
-- Enter key activates primary actions, Space key selects items
-- Escape key closes modals and returns to previous context
-- Custom keyboard shortcuts available for power users (J/K for task navigation, N for new task)
+- All primary screens (1.0, 2.0, 2.1) support full keyboard navigation with logical tab order
+- Arrow keys navigate between tasks within columns
+- Enter key opens task details, Space key selects tasks for bulk operations
+- Escape key closes modals and returns focus to triggering element
 
 **ARIA Labels and Landmarks:**
-- Main navigation marked with role="navigation" and aria-label="Main menu"
-- Kanban columns marked with role="region" and descriptive aria-labels
-- Task cards include aria-describedby for status and assignee information
+- Each column has role="region" with aria-label indicating column name and task count
+- Task cards have role="button" with descriptive aria-labels including title, assignee, and status
+- Drag and drop operations announce source and destination locations
 - Live regions announce task movements and status changes
-- Form controls include proper labels and error associations
 
 **Screen Reader Announcements:**
-- Task movements announced as "Task [title] moved from [source] to [destination]"
-- Column changes announced with task count updates
-- Real-time collaboration updates announced in live region
-- Form validation errors announced immediately upon occurrence
-- Loading states announced with progress information
+- Task creation announces "Task added to [column name]"
+- Task movements announce "[Task title] moved from [source] to [destination]"
+- Bulk operations announce number of tasks affected and action performed
+- Error states provide clear, actionable error descriptions
 
-**High Contrast Mode:**
+**High Contrast:**
 - Toggled via Settings screen, applies as CSS class site-wide
-- Maintains minimum 4.5:1 contrast ratio for all text
+- Ensures 4.5:1 contrast ratio for all text and interactive elements
 - Uses distinct patterns and shapes in addition to color coding
-- Ensures focus indicators remain visible in high contrast
 
 **Focus Indicators:**
 - 2px solid blue outline for keyboard focus with 2px offset
-- Focus indicators visible on all interactive elements
-- Focus trap implemented in modals and drawers
-- Skip links provided for efficient navigation
+- Focus indicators remain visible during drag operations
+- Focus trapping within modals and complex interactions
 
 **Minimum Touch Targets:**
-- All interactive elements minimum 44px touch target
-- Adequate spacing between adjacent touch targets
+- 44px minimum for all interactive elements including task cards and buttons
+- Adequate spacing between adjacent interactive elements
 - Drag handles sized appropriately for touch interaction
-- Mobile-specific touch gestures documented and implemented
 
-## VIEWPORT BEHAVIOUR
+## Viewport Behavior
 
 **Desktop (1024px+):**
-- Three-column layout displayed horizontally with equal width distribution
-- Full sidebar navigation visible with expanded labels
-- Drag-and-drop interactions using mouse cursor
-- Hover states provide additional context and actions
-- Multi-select capabilities with Ctrl/Cmd+click
+- Three columns displayed side-by-side with equal width distribution
+- Full navigation sidebar visible with expanded labels
+- Drag and drop operations work across full horizontal space
+- Task cards show complete information without truncation
 
 **Tablet (768px–1023px):**
-- Three-column layout maintained with adjusted spacing
-- Sidebar navigation collapses to icons with tooltips
-- Touch-optimized drag-and-drop with visual feedback
-- Swipe gestures enabled for column navigation
-- Task cards sized for comfortable touch interaction
+- Three columns maintained but with reduced padding and margins
+- Navigation collapses to icons with tooltips
+- Task cards may show abbreviated information with expand options
+- Drag and drop remains functional with touch-optimized targets
 
 **Mobile (320px–767px):**
-- Single-column view with horizontal swipe between columns
-- Tab-based navigation between To Do, In Progress, Done
-- Floating action button for quick task creation
-- Pull-to-refresh functionality for data updates
-- Condensed task card layout with expandable details
-- Bottom navigation bar for primary actions
-
-These viewport adaptations ensure consistent functionality across all device types while optimizing for each platform's interaction patterns and constraints.
+- Columns stack vertically or use horizontal scrolling tabs
+- Navigation becomes hamburger menu with full-screen overlay
+- Task cards optimized for single-column layout
+- Drag and drop replaced with tap-to-move interface with column selection
+- Bulk operations accessed through long-press or dedicated mode toggle
