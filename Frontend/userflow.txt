@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board User Flow Diagram</title>
+    <title>Task Creation User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true });
@@ -31,105 +31,164 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin: 20px 0;
         }
-        .description {
+        .flow-description {
             background: white;
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .description h2 {
-            color: #333;
+        .flow-description h2 {
+            color: #2563eb;
             margin-top: 0;
         }
-        .description p {
-            color: #666;
-            line-height: 1.6;
+        .flow-description ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .flow-description li {
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board Task Creation User Flow</h1>
+        <h1>Task Creation User Flow Diagram</h1>
         
-        <div class="description">
-            <h2>User Flow Overview</h2>
-            <p>This diagram illustrates the complete user journey for creating tasks in the Kanban board application. The flow covers navigation, form interaction, validation, submission, and error handling scenarios.</p>
+        <div class="flow-description">
+            <h2>User Journey Overview</h2>
+            <p>This diagram illustrates the complete user flow for creating tasks in the TaskFlow application, including form validation, API interactions, and error handling scenarios.</p>
+            
+            <h3>Key User Actions:</h3>
+            <ul>
+                <li><strong>Modal Interaction:</strong> Opening and closing the task creation modal</li>
+                <li><strong>Form Input:</strong> Filling title, description, priority, assignee, column, and due date</li>
+                <li><strong>Validation:</strong> Real-time form validation with character counters</li>
+                <li><strong>Submission:</strong> Creating tasks via API with loading states</li>
+                <li><strong>Error Handling:</strong> Managing validation errors and API failures</li>
+            </ul>
         </div>
 
         <div class="mermaid">
-            flowchart TD
-                Start[User Opens Kanban Board]
-                Start --> LoadApp[Application Loads]
-                LoadApp --> ViewDashboard[View Dashboard with Sidebar and Kanban Columns]
-                
-                ViewDashboard --> ClickAddTask[Click Add Task Button]
-                ClickAddTask --> OpenModal[Task Creation Modal Opens]
-                OpenModal --> InitializeForm[Initialize Empty Task Form]
-                
-                InitializeForm --> FillTitle[Fill Task Title Field]
-                FillTitle --> TitleValidation{Title Valid?}
-                TitleValidation -->|No| ShowTitleError[Show Title Error Message]
-                ShowTitleError --> FillTitle
-                TitleValidation -->|Yes| UpdateTitleCounter[Update Character Counter]
-                
-                UpdateTitleCounter --> FillDescription[Fill Description Field]
-                FillDescription --> UpdateDescCounter[Update Description Counter]
-                UpdateDescCounter --> SelectPriority[Select Task Priority]
-                
-                SelectPriority --> PriorityValidation{Priority Selected?}
-                PriorityValidation -->|No| ShowPriorityError[Show Priority Required Error]
-                ShowPriorityError --> SelectPriority
-                PriorityValidation -->|Yes| SelectDueDate[Select Due Date]
-                
-                SelectDueDate --> DateValidation{Date Valid and Future?}
-                DateValidation -->|No| ShowDateError[Show Date Error Message]
-                ShowDateError --> SelectDueDate
-                DateValidation -->|Yes| FormComplete[All Fields Completed]
-                
-                FormComplete --> ClickSubmit[Click Submit Button]
-                ClickSubmit --> FormValidation{Form Valid?}
-                FormValidation -->|No| ShowFormErrors[Show Form Validation Errors]
-                ShowFormErrors --> FillTitle
-                
-                FormValidation -->|Yes| ShowLoading[Show Loading Spinner]
-                ShowLoading --> CallAPI[Call POST /tasks API]
-                
-                CallAPI --> APIResponse{API Response}
-                APIResponse -->|Success| TaskCreated[Task Successfully Created]
-                APIResponse -->|Error| ShowAPIError[Show API Error Message]
-                
-                ShowAPIError --> RetryOption{User Chooses Retry?}
-                RetryOption -->|Yes| CallAPI
-                RetryOption -->|No| StayInModal[Stay in Modal for Correction]
-                StayInModal --> FillTitle
-                
-                TaskCreated --> CloseModal[Close Task Creation Modal]
-                CloseModal --> RefreshBoard[Refresh Kanban Board]
-                RefreshBoard --> ShowNewTask[Display New Task in Appropriate Column]
-                ShowNewTask --> ResetForm[Reset Form for Next Use]
-                ResetForm --> ViewDashboard
-                
-                ViewDashboard --> ClickCancel[Click Cancel Button]
-                ClickCancel --> ConfirmCancel{Unsaved Changes?}
-                ConfirmCancel -->|Yes| ShowCancelWarning[Show Unsaved Changes Warning]
-                ShowCancelWarning --> UserConfirm{User Confirms Cancel?}
-                UserConfirm -->|No| InitializeForm
-                UserConfirm -->|Yes| DiscardChanges[Discard Changes]
-                ConfirmCancel -->|No| DiscardChanges
-                DiscardChanges --> CloseModal
-                
-                ViewDashboard --> NavigateAway[Navigate to Other Sections]
-                NavigateAway --> SidebarNavigation[Use Sidebar Navigation]
-                SidebarNavigation --> ViewDashboard
+flowchart TD
+    Start[User Opens Dashboard]
+    Start --> ClickAddTask[Click Add Task Button]
+    ClickAddTask --> OpenModal[Task Creation Modal Opens]
+    OpenModal --> InitializeForm[Initialize Empty Form]
+    
+    InitializeForm --> FillTitle[Fill Task Title]
+    FillTitle --> ValidateTitle{Title Valid?}
+    ValidateTitle -->|Yes| ShowTitleValid[Show Character Count]
+    ValidateTitle -->|No| ShowTitleError[Show Title Error]
+    ShowTitleError --> FillTitle
+    
+    ShowTitleValid --> FillDescription[Fill Description]
+    FillDescription --> ValidateDescription{Description Valid?}
+    ValidateDescription -->|Yes| ShowDescValid[Show Character Count]
+    ValidateDescription -->|No| ShowDescError[Show Description Error]
+    ShowDescError --> FillDescription
+    
+    ShowDescValid --> SelectPriority[Select Priority]
+    SelectPriority --> ValidatePriority{Priority Selected?}
+    ValidatePriority -->|Yes| SelectAssignee[Select Assignee]
+    ValidatePriority -->|No| ShowPriorityError[Show Priority Required Error]
+    ShowPriorityError --> SelectPriority
+    
+    SelectAssignee --> SelectColumn[Select Column]
+    SelectColumn --> SelectDueDate[Select Due Date]
+    SelectDueDate --> ValidateDueDate{Due Date Valid?}
+    ValidateDueDate -->|Yes| FormComplete[Form Complete]
+    ValidateDueDate -->|No| ShowDateError[Show Date Error]
+    ShowDateError --> SelectDueDate
+    
+    FormComplete --> ClickSubmit[Click Create Task Button]
+    ClickSubmit --> ShowLoading[Show Loading Spinner]
+    ShowLoading --> CallAPI[Call POST /api/v1/tasks]
+    
+    CallAPI --> APIResponse{API Response}
+    APIResponse -->|Success 201| TaskCreated[Task Created Successfully]
+    APIResponse -->|Validation Error 400| ShowFieldErrors[Show Field Validation Errors]
+    APIResponse -->|Server Error 500| ShowServerError[Show Server Error Message]
+    APIResponse -->|Network Error| ShowNetworkError[Show Network Error]
+    
+    TaskCreated --> ShowSuccessMessage[Show Success Message]
+    ShowSuccessMessage --> ResetForm[Reset Form Fields]
+    ResetForm --> CloseModal[Close Modal]
+    CloseModal --> RefreshTaskList[Refresh Task List]
+    RefreshTaskList --> End[Return to Dashboard]
+    
+    ShowFieldErrors --> HighlightErrors[Highlight Invalid Fields]
+    HighlightErrors --> KeepModalOpen[Keep Modal Open]
+    KeepModalOpen --> FillTitle
+    
+    ShowServerError --> ShowRetryOption[Show Retry Button]
+    ShowRetryOption --> RetrySubmit{User Clicks Retry?}
+    RetrySubmit -->|Yes| CallAPI
+    RetrySubmit -->|No| KeepModalOpen
+    
+    ShowNetworkError --> ShowRetryOption
+    
+    OpenModal --> ClickCancel[Click Cancel Button]
+    FillTitle --> ClickCancel
+    FillDescription --> ClickCancel
+    SelectPriority --> ClickCancel
+    SelectAssignee --> ClickCancel
+    SelectColumn --> ClickCancel
+    SelectDueDate --> ClickCancel
+    FormComplete --> ClickCancel
+    
+    ClickCancel --> ConfirmClose{Form Has Changes?}
+    ConfirmClose -->|Yes| ShowCloseConfirm[Show Close Confirmation]
+    ConfirmClose -->|No| CloseModal
+    
+    ShowCloseConfirm --> UserConfirms{User Confirms Close?}
+    UserConfirms -->|Yes| DiscardChanges[Discard Changes]
+    UserConfirms -->|No| KeepModalOpen
+    DiscardChanges --> CloseModal
+    
+    OpenModal --> ClickCloseX[Click X Button]
+    ClickCloseX --> ConfirmClose
+    
+    OpenModal --> PressEscape[Press Escape Key]
+    PressEscape --> ConfirmClose
         </div>
         
-        <div class="description">
-            <h2>Key User Interactions</h2>
-            <p><strong>Primary Flow:</strong> User opens app → Views kanban board → Clicks add task → Fills form → Submits → Task created</p>
-            <p><strong>Validation Flow:</strong> Real-time validation on each field with character counters and error messages</p>
-            <p><strong>Error Handling:</strong> API errors, validation errors, and network issues are handled gracefully</p>
-            <p><strong>Navigation:</strong> Users can navigate between sections using the sidebar menu</p>
+        <div class="flow-description">
+            <h2>Flow Components Breakdown</h2>
+            
+            <h3>Modal Management:</h3>
+            <ul>
+                <li><strong>TaskCreationModalComponent:</strong> Manages modal state and overlay</li>
+                <li><strong>ModalHeaderComponent:</strong> Handles title display and close actions</li>
+                <li><strong>ModalFooterComponent:</strong> Manages Cancel and Create Task buttons</li>
+            </ul>
+            
+            <h3>Form Components:</h3>
+            <ul>
+                <li><strong>TaskFormComponent:</strong> Reactive form management and validation</li>
+                <li><strong>TaskTitleInputComponent:</strong> Title input with 255 character limit</li>
+                <li><strong>TaskDescriptionComponent:</strong> Description textarea with 2000 character limit</li>
+                <li><strong>TaskPrioritySelectComponent:</strong> Priority dropdown (LOW, MEDIUM, HIGH, CRITICAL)</li>
+                <li><strong>TaskAssigneeSelectComponent:</strong> User selection dropdown</li>
+                <li><strong>TaskColumnSelectComponent:</strong> Column/status selection</li>
+                <li><strong>TaskDueDateComponent:</strong> Date picker with future date validation</li>
+            </ul>
+            
+            <h3>API Integration:</h3>
+            <ul>
+                <li><strong>Endpoint:</strong> POST /api/v1/tasks</li>
+                <li><strong>Authentication:</strong> JWT Bearer token required</li>
+                <li><strong>Validation:</strong> Server-side validation with detailed error responses</li>
+                <li><strong>Rate Limiting:</strong> 100 requests per minute</li>
+            </ul>
+            
+            <h3>Error Scenarios:</h3>
+            <ul>
+                <li><strong>Validation Errors:</strong> Field-specific inline error messages</li>
+                <li><strong>API Failures:</strong> Server error handling with retry options</li>
+                <li><strong>Network Issues:</strong> Connection error messages with retry functionality</li>
+                <li><strong>Form State:</strong> Unsaved changes confirmation before closing</li>
+            </ul>
         </div>
     </div>
 </body>
