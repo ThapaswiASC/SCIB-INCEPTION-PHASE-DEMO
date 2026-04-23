@@ -6,7 +6,7 @@ Project managers, team leads, and team members experience task management throug
 
 ## Scenarios
 
-### Scenario 1: Task Management and Organization
+### Scenario 1: Task Management and Organization 
 
 **Context:** Sarah, a project manager, needs to organize her team's sprint tasks and track their progress throughout the development cycle. She wants to quickly visualize what work is pending, in progress, and completed to make informed decisions about resource allocation and timeline adjustments.
 
