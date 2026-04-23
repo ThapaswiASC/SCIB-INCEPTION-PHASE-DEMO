@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Creation User Flow Diagram</title>
+    <title>Task Management Dashboard - User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true });
@@ -38,8 +38,8 @@
             margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .flow-description h2 {
-            color: #2563eb;
+        .flow-description h3 {
+            color: #2c3e50;
             margin-top: 0;
         }
         .flow-description ul {
@@ -48,146 +48,184 @@
         }
         .flow-description li {
             margin: 5px 0;
+            color: #555;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Task Creation User Flow Diagram</h1>
+        <h1>Task Management Dashboard - User Flow Diagram</h1>
         
         <div class="flow-description">
-            <h2>User Journey Overview</h2>
-            <p>This diagram illustrates the complete user flow for creating tasks in the TaskFlow application, including form validation, API interactions, and error handling scenarios.</p>
+            <h3>User Flow Overview</h3>
+            <p>This diagram illustrates the complete user journey through the Task Management Dashboard, focusing on the task creation process and system navigation.</p>
             
-            <h3>Key User Actions:</h3>
+            <h4>Key User Interactions:</h4>
             <ul>
-                <li><strong>Modal Interaction:</strong> Opening and closing the task creation modal</li>
-                <li><strong>Form Input:</strong> Filling title, description, priority, assignee, column, and due date</li>
-                <li><strong>Validation:</strong> Real-time form validation with character counters</li>
-                <li><strong>Submission:</strong> Creating tasks via API with loading states</li>
-                <li><strong>Error Handling:</strong> Managing validation errors and API failures</li>
+                <li><strong>Dashboard Access:</strong> User enters the system and views the main dashboard</li>
+                <li><strong>Navigation:</strong> User can navigate between Board, Analytics, and Issues sections</li>
+                <li><strong>Task Creation:</strong> User initiates task creation from any kanban column</li>
+                <li><strong>Form Completion:</strong> User fills out task details with real-time validation</li>
+                <li><strong>Submission:</strong> User submits the form with proper error handling and success feedback</li>
+                <li><strong>Task Management:</strong> User can view and manage created tasks in the kanban board</li>
             </ul>
         </div>
 
         <div class="mermaid">
 flowchart TD
     Start[User Opens Dashboard]
-    Start --> ClickAddTask[Click Add Task Button]
-    ClickAddTask --> OpenModal[Task Creation Modal Opens]
-    OpenModal --> InitializeForm[Initialize Empty Form]
+    Start --> LoadDashboard[Load Main Dashboard]
+    LoadDashboard --> ViewBoard[View Kanban Board]
     
-    InitializeForm --> FillTitle[Fill Task Title]
-    FillTitle --> ValidateTitle{Title Valid?}
-    ValidateTitle -->|Yes| ShowTitleValid[Show Character Count]
-    ValidateTitle -->|No| ShowTitleError[Show Title Error]
+    ViewBoard --> NavBoard[Navigate to Board]
+    ViewBoard --> NavAnalytics[Navigate to Analytics]
+    ViewBoard --> NavIssues[Navigate to Issues]
+    ViewBoard --> CreateTask[Click Add Task Button]
+    
+    NavBoard --> ViewColumns[View Kanban Columns]
+    NavAnalytics --> ViewAnalytics[View Analytics Dashboard]
+    NavIssues --> ViewIssues[View Issues Tracker]
+    
+    ViewColumns --> CreateTask
+    ViewAnalytics --> CreateTask
+    ViewIssues --> CreateTask
+    
+    CreateTask --> OpenModal[Open Task Creation Modal]
+    OpenModal --> InitForm[Initialize Empty Form]
+    
+    InitForm --> FillTitle[Enter Task Title]
+    FillTitle --> ValidateTitle[Validate Title]
+    ValidateTitle --> TitleValid{Title Valid?}
+    TitleValid -->|No| ShowTitleError[Show Title Error]
     ShowTitleError --> FillTitle
+    TitleValid -->|Yes| UpdateTitleCounter[Update Character Counter]
     
-    ShowTitleValid --> FillDescription[Fill Description]
-    FillDescription --> ValidateDescription{Description Valid?}
-    ValidateDescription -->|Yes| ShowDescValid[Show Character Count]
-    ValidateDescription -->|No| ShowDescError[Show Description Error]
-    ShowDescError --> FillDescription
+    UpdateTitleCounter --> FillDescription[Enter Description]
+    FillDescription --> ValidateDescription[Validate Description]
+    ValidateDescription --> UpdateDescCounter[Update Character Counter]
     
-    ShowDescValid --> SelectPriority[Select Priority]
-    SelectPriority --> ValidatePriority{Priority Selected?}
-    ValidatePriority -->|Yes| SelectAssignee[Select Assignee]
-    ValidatePriority -->|No| ShowPriorityError[Show Priority Required Error]
+    UpdateDescCounter --> SelectPriority[Select Priority]
+    SelectPriority --> ValidatePriority[Validate Priority]
+    ValidatePriority --> PriorityValid{Priority Valid?}
+    PriorityValid -->|No| ShowPriorityError[Show Priority Error]
     ShowPriorityError --> SelectPriority
+    PriorityValid -->|Yes| SelectAssignee[Select Assignee]
     
-    SelectAssignee --> SelectColumn[Select Column]
-    SelectColumn --> SelectDueDate[Select Due Date]
-    SelectDueDate --> ValidateDueDate{Due Date Valid?}
-    ValidateDueDate -->|Yes| FormComplete[Form Complete]
-    ValidateDueDate -->|No| ShowDateError[Show Date Error]
+    SelectAssignee --> LoadUsers[Load Available Users]
+    LoadUsers --> ChooseAssignee[Choose User or Leave Unassigned]
+    
+    ChooseAssignee --> SelectDueDate[Select Due Date]
+    SelectDueDate --> ValidateDate[Validate Future Date]
+    ValidateDate --> DateValid{Date Valid?}
+    DateValid -->|No| ShowDateError[Show Date Error]
     ShowDateError --> SelectDueDate
+    DateValid -->|Yes| FormComplete[Form Complete]
     
-    FormComplete --> ClickSubmit[Click Create Task Button]
-    ClickSubmit --> ShowLoading[Show Loading Spinner]
-    ShowLoading --> CallAPI[Call POST /api/v1/tasks]
+    FormComplete --> SubmitForm[Click Create Task]
+    SubmitForm --> ValidateForm[Validate All Fields]
+    ValidateForm --> AllValid{All Fields Valid?}
+    AllValid -->|No| ShowFormErrors[Show Form Errors]
+    ShowFormErrors --> FillTitle
+    AllValid -->|Yes| ShowLoading[Show Loading Spinner]
     
+    ShowLoading --> CallAPI[Call Create Task API]
     CallAPI --> APIResponse{API Response}
-    APIResponse -->|Success 201| TaskCreated[Task Created Successfully]
-    APIResponse -->|Validation Error 400| ShowFieldErrors[Show Field Validation Errors]
-    APIResponse -->|Server Error 500| ShowServerError[Show Server Error Message]
-    APIResponse -->|Network Error| ShowNetworkError[Show Network Error]
+    APIResponse -->|Success| ShowSuccess[Show Success Message]
+    APIResponse -->|Error| ShowAPIError[Show API Error]
     
-    TaskCreated --> ShowSuccessMessage[Show Success Message]
-    ShowSuccessMessage --> ResetForm[Reset Form Fields]
-    ResetForm --> CloseModal[Close Modal]
-    CloseModal --> RefreshTaskList[Refresh Task List]
-    RefreshTaskList --> End[Return to Dashboard]
+    ShowSuccess --> CloseModal[Close Modal]
+    ShowAPIError --> RetryOption[Show Retry Option]
+    RetryOption --> SubmitForm
     
-    ShowFieldErrors --> HighlightErrors[Highlight Invalid Fields]
-    HighlightErrors --> KeepModalOpen[Keep Modal Open]
-    KeepModalOpen --> FillTitle
+    CloseModal --> RefreshBoard[Refresh Kanban Board]
+    RefreshBoard --> ViewNewTask[View Created Task]
+    ViewNewTask --> ViewBoard
     
-    ShowServerError --> ShowRetryOption[Show Retry Button]
-    ShowRetryOption --> RetrySubmit{User Clicks Retry?}
-    RetrySubmit -->|Yes| CallAPI
-    RetrySubmit -->|No| KeepModalOpen
+    ViewNewTask --> EditTask[Edit Task]
+    ViewNewTask --> MoveTask[Move Task Between Columns]
+    ViewNewTask --> DeleteTask[Delete Task]
     
-    ShowNetworkError --> ShowRetryOption
+    EditTask --> OpenModal
+    MoveTask --> UpdateTaskStatus[Update Task Status]
+    DeleteTask --> ConfirmDelete[Confirm Deletion]
     
-    OpenModal --> ClickCancel[Click Cancel Button]
-    FillTitle --> ClickCancel
-    FillDescription --> ClickCancel
-    SelectPriority --> ClickCancel
-    SelectAssignee --> ClickCancel
-    SelectColumn --> ClickCancel
-    SelectDueDate --> ClickCancel
-    FormComplete --> ClickCancel
-    
-    ClickCancel --> ConfirmClose{Form Has Changes?}
-    ConfirmClose -->|Yes| ShowCloseConfirm[Show Close Confirmation]
-    ConfirmClose -->|No| CloseModal
-    
-    ShowCloseConfirm --> UserConfirms{User Confirms Close?}
-    UserConfirms -->|Yes| DiscardChanges[Discard Changes]
-    UserConfirms -->|No| KeepModalOpen
-    DiscardChanges --> CloseModal
-    
-    OpenModal --> ClickCloseX[Click X Button]
-    ClickCloseX --> ConfirmClose
-    
-    OpenModal --> PressEscape[Press Escape Key]
-    PressEscape --> ConfirmClose
+    UpdateTaskStatus --> RefreshBoard
+    ConfirmDelete --> RemoveTask[Remove Task from Board]
+    RemoveTask --> RefreshBoard
         </div>
         
         <div class="flow-description">
-            <h2>Flow Components Breakdown</h2>
+            <h3>Flow Sections Explained</h3>
             
-            <h3>Modal Management:</h3>
+            <h4>1. Dashboard Navigation (Start → ViewBoard)</h4>
             <ul>
-                <li><strong>TaskCreationModalComponent:</strong> Manages modal state and overlay</li>
-                <li><strong>ModalHeaderComponent:</strong> Handles title display and close actions</li>
-                <li><strong>ModalFooterComponent:</strong> Manages Cancel and Create Task buttons</li>
+                <li>User accesses the main dashboard</li>
+                <li>System loads the kanban board with three columns: To Do, In Progress, Done</li>
+                <li>User can navigate between Board, Analytics, and Issues sections</li>
             </ul>
             
-            <h3>Form Components:</h3>
+            <h4>2. Task Creation Initiation (CreateTask → InitForm)</h4>
             <ul>
-                <li><strong>TaskFormComponent:</strong> Reactive form management and validation</li>
-                <li><strong>TaskTitleInputComponent:</strong> Title input with 255 character limit</li>
-                <li><strong>TaskDescriptionComponent:</strong> Description textarea with 2000 character limit</li>
-                <li><strong>TaskPrioritySelectComponent:</strong> Priority dropdown (LOW, MEDIUM, HIGH, CRITICAL)</li>
-                <li><strong>TaskAssigneeSelectComponent:</strong> User selection dropdown</li>
-                <li><strong>TaskColumnSelectComponent:</strong> Column/status selection</li>
-                <li><strong>TaskDueDateComponent:</strong> Date picker with future date validation</li>
+                <li>User clicks Add Task button from any kanban column</li>
+                <li>Task creation modal opens with empty form</li>
+                <li>Form initializes with all required fields</li>
             </ul>
             
-            <h3>API Integration:</h3>
+            <h4>3. Form Field Completion (FillTitle → FormComplete)</h4>
             <ul>
-                <li><strong>Endpoint:</strong> POST /api/v1/tasks</li>
-                <li><strong>Authentication:</strong> JWT Bearer token required</li>
-                <li><strong>Validation:</strong> Server-side validation with detailed error responses</li>
-                <li><strong>Rate Limiting:</strong> 100 requests per minute</li>
+                <li>Title input with real-time validation and character counter (max 255 chars)</li>
+                <li>Description textarea with character counter (max 2000 chars)</li>
+                <li>Priority selection from dropdown (LOW, MEDIUM, HIGH, CRITICAL)</li>
+                <li>Assignee selection from user list or leave unassigned</li>
+                <li>Due date picker with future date validation</li>
             </ul>
             
-            <h3>Error Scenarios:</h3>
+            <h4>4. Form Submission (SubmitForm → CloseModal)</h4>
             <ul>
-                <li><strong>Validation Errors:</strong> Field-specific inline error messages</li>
-                <li><strong>API Failures:</strong> Server error handling with retry options</li>
-                <li><strong>Network Issues:</strong> Connection error messages with retry functionality</li>
-                <li><strong>Form State:</strong> Unsaved changes confirmation before closing</li>
+                <li>Client-side validation of all fields</li>
+                <li>Loading spinner during API call</li>
+                <li>API call to POST /api/v1/tasks</li>
+                <li>Success message and modal closure on success</li>
+                <li>Error handling with retry option on failure</li>
+            </ul>
+            
+            <h4>5. Task Management (ViewNewTask → RefreshBoard)</h4>
+            <ul>
+                <li>Created task appears in appropriate kanban column</li>
+                <li>User can edit, move, or delete tasks</li>
+                <li>Board refreshes to show updated task states</li>
+                <li>Continuous workflow for task management</li>
+            </ul>
+        </div>
+        
+        <div class="flow-description">
+            <h3>Technical Implementation Notes</h3>
+            
+            <h4>Components Involved:</h4>
+            <ul>
+                <li><strong>TaskCreationComponent:</strong> Main modal container with state management</li>
+                <li><strong>TaskFormComponent:</strong> Reactive form with validation logic</li>
+                <li><strong>TaskTitleInput:</strong> Title field with AavaTextboxComponent</li>
+                <li><strong>TaskDescriptionInput:</strong> Description field with AavaTextareaComponent</li>
+                <li><strong>TaskPrioritySelect:</strong> Custom dropdown for priority selection</li>
+                <li><strong>TaskAssigneeSelect:</strong> User selection dropdown</li>
+                <li><strong>TaskDueDatePicker:</strong> Date picker with AavaCalendarComponent</li>
+            </ul>
+            
+            <h4>API Integration:</h4>
+            <ul>
+                <li><strong>POST /api/v1/tasks:</strong> Create new task with form data</li>
+                <li><strong>GET /api/v1/users:</strong> Load available users for assignment</li>
+                <li><strong>Error Handling:</strong> Standardized error responses with user feedback</li>
+            </ul>
+            
+            <h4>Validation Rules:</h4>
+            <ul>
+                <li><strong>Title:</strong> Required, maximum 255 characters</li>
+                <li><strong>Description:</strong> Optional, maximum 2000 characters</li>
+                <li><strong>Priority:</strong> Required, must be valid enum value</li>
+                <li><strong>Due Date:</strong> Required, must be future date</li>
+                <li><strong>Assignee:</strong> Optional, must be valid user ID if selected</li>
             </ul>
         </div>
     </div>
