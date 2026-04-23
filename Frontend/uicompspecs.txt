@@ -2,867 +2,861 @@
 
 ### 1. INPUT REFERENCE (FROM AGENT-1)
 
-**Page Name:** Task Creation Modal
+**Page Name:** Task Management Dashboard with Task Creation Modal
 
-**Mapped Layout:** Modal-based task creation interface with form fields and validation
+**Mapped Layout:** Flex-based layout with glass morphism effects
 
 **Components from A1:**
-- TaskCreationModalComponent
-- TaskFormComponent
-- TaskTitleInputComponent (Textbox)
-- TaskDescriptionComponent (Textarea)
-- TaskAssigneeSelectComponent (Dropdown)
-- TaskPrioritySelectComponent (Dropdown)
-- TaskColumnSelectComponent (Dropdown)
-- TaskDueDateComponent (Date Input)
-- ModalHeaderComponent
-- ModalFooterComponent
-- FormValidationComponent
-- LoadingStateComponent
+- TaskCreationComponent (Main Form Component)
+- TaskFormComponent (Form Logic)
+- TaskModalComponent (Modal Container)
+- TaskTitleInput (AavaTextboxComponent)
+- TaskDescriptionInput (AavaTextareaComponent)
+- TaskPrioritySelect (Custom Select)
+- TaskAssigneeSelect (Custom Select)
+- TaskDueDatePicker (AavaCalendarComponent)
+- TaskFormActions (AavaButton components)
+- SharedComponents (LoadingSpinner, ErrorMessage, SuccessMessage, CharacterCounter)
 
 ### 2. GLOBAL ARCHITECTURE SUMMARY
 
-**Layout Type:** Grid / Flex / Mixed
+**Layout Type:** Flex-based layout with glass morphism effects
 
 **Main Sections:**
-- Header (Brand, Search, User Profile)
-- Sidebar (Workspace Navigation)
-- Main Content (Modal Overlay System)
-- Modals (Task Creation Modal)
+- Header (Brand logo, navigation, search, user avatar)
+- Sidebar (Workspace navigation - Board, Analytics, Issues)
+- Main Content (Kanban board with three columns)
+- Modals (Task creation, bulk actions, issue reporting)
 
-**Component Strategy:**
+**Component Strategy:** Hybrid approach using library components and custom implementations
 
 **Reused Components:**
-- Button Component (Primary, Secondary variants)
-- Popup Component (Modal functionality)
-- Textbox Component (Title input with validation)
-- Textarea Component (Description field)
+- AavaButton (Primary, Secondary, Ghost variants)
+- AavaTextboxComponent (Title input)
+- AavaTextareaComponent (Description field)
+- AavaCalendarComponent (Due date picker)
+- AavaFileUploadComponent (Future attachments)
 
 **New Components (if any):**
-- TaskCreationModalComponent
-- TaskFormComponent
-- TaskAssigneeSelectComponent
-- TaskPrioritySelectComponent
-- TaskColumnSelectComponent
-- TaskDueDateComponent
-- FormValidationComponent
+- Custom Select/Dropdown component (Priority, Assignee selection)
+- Modal container component
+- Card component for tasks
+- Badge component for priority/status
+- Avatar component for users
+- Character counter component
 
 ### 3. FOLDER STRUCTURE
 
 ```
 src/
- ├── pages/
- │    └── task-management/
- │         ├── task-management.component.ts
- │
- ├── components/
- │    ├── layout/
- │    │    ├── modal-header/
- │    │    ├── modal-footer/
- │    │    └── loading-spinner/
- │    ├── feature/
- │    │    ├── task-creation-modal/
- │    │    ├── task-form/
- │    │    ├── task-title-input/
- │    │    ├── task-description/
- │    │    ├── task-assignee-select/
- │    │    ├── task-priority-select/
- │    │    ├── task-column-select/
- │    │    └── task-due-date/
- │    ├── shared/
- │    │    ├── button/
- │    │    ├── textbox/
- │    │    ├── textarea/
- │    │    ├── dropdown/
- │    │    ├── modal/
- │    │    └── form-validation/
+ ├── app/
+ │    ├── components/
+ │    │   ├── task-creation/
+ │    │   │   ├── task-creation.component.ts
+ │    │   │   ├── task-creation.component.html
+ │    │   │   ├── task-creation.component.scss
+ │    │   │   └── task-creation.component.spec.ts
+ │    │   ├── task-form/
+ │    │   │   ├── task-form.component.ts
+ │    │   │   ├── task-form.component.html
+ │    │   │   ├── task-form.component.scss
+ │    │   │   └── task-form.component.spec.ts
+ │    │   ├── shared/
+ │    │   │   ├── task-modal/
+ │    │   │   ├── loading-spinner/
+ │    │   │   ├── error-message/
+ │    │   │   ├── success-message/
+ │    │   │   ├── character-counter/
+ │    │   │   └── custom-select/
+ │    │   └── ui/
+ │    │       ├── buttons/ (AavaButton wrapper)
+ │    │       ├── inputs/ (AavaTextbox wrapper)
+ │    │       ├── textarea/ (AavaTextarea wrapper)
+ │    │       └── datepicker/ (AavaCalendar wrapper)
+ │    ├── services/
+ │    │   ├── task.service.ts
+ │    │   ├── user.service.ts
+ │    │   └── api.service.ts
+ │    ├── models/
+ │    │   ├── task.model.ts
+ │    │   ├── user.model.ts
+ │    │   └── api-response.model.ts
+ │    └── validators/
+ │        ├── future-date.validator.ts
+ │        └── custom-validators.ts
 ```
 
 ### 4. COMPONENT IMPLEMENTATION
 
-#### 4.1 TaskCreationModalComponent
+#### 4.1 TaskCreationComponent
 
-**Component Type:** Feature
+**Component Type:** Page
 
-**Mapped From A1:** TaskCreationModalComponent
+**Mapped From A1:** TaskCreationComponent (Main Form Component)
 
-**Purpose:** Main container for task creation functionality with modal overlay
+**Purpose:** Main container for task creation form with modal functionality and state management
 
-**Parent:** App/TaskManagementComponent
+**Parent:** App Component / Kanban Board Component
 
 **Children:**
-- ModalHeaderComponent
+- TaskModalComponent
 - TaskFormComponent
-- ModalFooterComponent
-- LoadingStateComponent
+- LoadingSpinner
+- ErrorMessage
+- SuccessMessage
 
 **Dependencies:**
 - TaskService
-- ValidationService
-- ModalService
+- UserService
+- Angular Reactive Forms
+- AavaButton components
 
 **Library Components Used:**
-- Popup Component → Modal container functionality
+- TaskModalComponent → Custom Modal Container
+- TaskFormComponent → Custom Form Logic Component
 
 **TypeScript Specification**
 
 **Inputs:**
-- isOpen: boolean
-- onClose: () => void
-- initialData?: TaskFormData
+- isOpen: boolean (modal visibility state)
+- columnId: string (target kanban column)
 
 **Outputs:**
-- onTaskCreated: EventEmitter<Task> (payload: created task)
-- onModalClose: EventEmitter<void>
+- onTaskCreated: EventEmitter<TaskResponse> (task creation success)
+- onCancel: EventEmitter<void> (modal cancellation)
+- onClose: EventEmitter<void> (modal close)
 
 **State:**
-- formData: TaskFormData
-- isLoading: boolean
-- errors: ValidationErrors
-- showConfirmClose: boolean
+- formData: TaskFormData (current form state)
+- isLoading: boolean (API call state)
+- errors: ValidationErrors (form validation errors)
+- showSuccessMessage: boolean (success feedback state)
 
 **Methods:**
-- openModal() → void
-- closeModal() → void
-- handleFormSubmit(data: TaskFormData) → Promise<void>
-- handleValidationErrors(errors: ValidationErrors) → void
+- openModal() → void (show modal)
+- closeModal() → void (hide modal)
+- handleFormSubmit(formData: TaskFormData) → Promise<void> (process form submission)
+- handleError(error: ApiError) → void (error handling)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
-<div class="modal-overlay" *ngIf="isOpen">
-  <div class="modal-container">
-    <modal-header 
-      [title]="'Create New Task'"
-      (onClose)="closeModal()">
-    </modal-header>
+<div class="task-creation-container" *ngIf="isOpen">
+  <task-modal-component 
+    [isOpen]="isOpen"
+    [title]="'Create New Task'"
+    (onClose)="closeModal()">
     
-    <div class="modal-body">
-      <task-form
-        [initialData]="initialData"
-        [isLoading]="isLoading"
-        [errors]="errors"
+    <div class="modal-content">
+      <task-form-component
+        [initialData]="formData"
+        [isSubmitting]="isLoading"
         (onSubmit)="handleFormSubmit($event)"
-        (onValidationChange)="handleValidationErrors($event)">
-      </task-form>
+        (onCancel)="closeModal()">
+      </task-form-component>
+      
+      <loading-spinner *ngIf="isLoading"></loading-spinner>
+      
+      <error-message 
+        *ngIf="errors.general"
+        [message]="errors.general">
+      </error-message>
+      
+      <success-message 
+        *ngIf="showSuccessMessage"
+        [message]="'Task created successfully!'">
+      </success-message>
     </div>
-    
-    <modal-footer
-      [isLoading]="isLoading"
-      (onCancel)="closeModal()"
-      (onSubmit)="handleFormSubmit()">
-    </modal-footer>
-    
-    <loading-spinner *ngIf="isLoading"></loading-spinner>
-  </div>
+  </task-modal-component>
 </div>
 ```
 
 **CSS SPECIFICATION**
 
 **Layout:**
-- position: fixed; z-index: 1000; (modal overlay)
-- display: flex; justify-content: center; align-items: center;
-- backdrop-filter: blur(4px);
+- display: flex
+- position: fixed (modal overlay)
+- z-index: 1000
 
 **Spacing:**
-- padding: 2rem;
-- gap: 1.5rem;
+- padding: 24px
+- gap: 16px
 
 **Component Styles:**
-- .modal-overlay: full viewport coverage
-- .modal-container: max-width 600px, border-radius 8px
-- .modal-body: padding 1.5rem, overflow-y auto
+- .task-creation-container (modal overlay)
+- .modal-content (form container)
+- Glass morphism effects with backdrop-filter
 
 **Responsive:**
-- @media (max-width: 768px): full-width modal, reduced padding
+- Mobile: full-width modal
+- Tablet: 80% width
+- Desktop: 600px max-width
 
 **API INTEGRATION**
 
 - handleFormSubmit() → POST /api/v1/tasks → Create new task
-- TaskService.createTask(formData) → Returns created task or validation errors
+- TaskService.createTask() → API call with loading state management
 
 **ERROR HANDLING**
 
-- API failure → show error snackbar with retry option
-- Validation error → display inline field errors
-- Network timeout → show connection error message
+- API failure → show error message with retry option
+- Validation error → pass to form component for field-level display
+- Network error → show generic error message
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Click "Create Task" → open modal → initialize form
+- Click "Add Task" button → open modal → initialize empty form
 - Fill form fields → real-time validation → character counters update
-- Submit form → validate → API call → success/error handling
+- Click "Create Task" → validate → show loading → API call → success/error handling
 
 #### 4.2 TaskFormComponent
 
 **Component Type:** Feature
 
-**Mapped From A1:** TaskFormComponent
+**Mapped From A1:** TaskFormComponent (Form Logic)
 
-**Purpose:** Reactive form management with validation for task creation
+**Purpose:** Reactive form implementation with validation and real-time feedback
 
-**Parent:** TaskCreationModalComponent
+**Parent:** TaskCreationComponent
 
 **Children:**
-- TaskTitleInputComponent
-- TaskDescriptionComponent
-- TaskAssigneeSelectComponent
-- TaskPrioritySelectComponent
-- TaskColumnSelectComponent
-- TaskDueDateComponent
-- FormValidationComponent
+- TaskTitleInput
+- TaskDescriptionInput
+- TaskPrioritySelect
+- TaskAssigneeSelect
+- TaskDueDatePicker
+- TaskFormActions
 
 **Dependencies:**
+- Angular Reactive Forms
+- Custom Validators
 - FormBuilder
-- Validators
-- ValidationService
 
 **Library Components Used:**
-- FormGroup → Angular reactive forms
+- FormBuilder → Angular Reactive Forms
+- Validators → Angular + Custom Validators
 
 **TypeScript Specification**
 
 **Inputs:**
-- initialData?: TaskFormData
-- isLoading: boolean
-- errors: ValidationErrors
+- initialData: TaskData (pre-filled form data)
+- isSubmitting: boolean (submission state)
 
 **Outputs:**
-- onSubmit: EventEmitter<TaskFormData> (payload: form data)
-- onValidationChange: EventEmitter<ValidationErrors>
-- onFormChange: EventEmitter<Partial<TaskFormData>>
+- onSubmit: EventEmitter<TaskFormData> (form submission)
+- onFormChange: EventEmitter<TaskFormData> (form state changes)
+- onValidationChange: EventEmitter<ValidationState> (validation updates)
+- onCancel: EventEmitter<void> (form cancellation)
 
 **State:**
-- formGroup: FormGroup
-- validationErrors: ValidationErrors
-- isDirty: boolean
-- characterCounts: { title: number, description: number }
+- formGroup: FormGroup (reactive form instance)
+- validationErrors: ValidationErrors (field validation errors)
+- isDirty: boolean (form modification state)
+- isValid: boolean (overall form validity)
 
 **Methods:**
-- initializeForm() → void
-- validateForm() → ValidationErrors
-- resetForm() → void
-- handleFieldChange(field: string, value: any) → void
+- initializeForm() → void (setup form controls)
+- validateForm() → ValidationErrors (validate all fields)
+- submitForm() → void (handle form submission)
+- resetForm() → void (clear form data)
+- updateCharacterCount(field: string, count: number) → void (character counter updates)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
-<form [formGroup]="formGroup" (ngSubmit)="onSubmit.emit(formGroup.value)">
-  <div class="form-grid">
+<form [formGroup]="formGroup" (ngSubmit)="submitForm()" class="task-form">
+  <div class="form-fields">
     <task-title-input
       formControlName="title"
       [maxLength]="255"
       [required]="true"
-      [characterCount]="characterCounts.title"
-      [error]="validationErrors.title">
+      [errors]="validationErrors.title">
     </task-title-input>
     
-    <task-description
+    <task-description-input
       formControlName="description"
       [maxLength]="2000"
-      [characterCount]="characterCounts.description"
-      [error]="validationErrors.description">
-    </task-description>
+      [rows]="4"
+      [errors]="validationErrors.description">
+    </task-description-input>
     
-    <div class="settings-grid">
-      <task-assignee-select
-        formControlName="assignedTo"
-        [options]="assigneeOptions"
-        [error]="validationErrors.assignedTo">
-      </task-assignee-select>
-      
-      <task-priority-select
-        formControlName="priority"
-        [required]="true"
-        [options]="priorityOptions"
-        [error]="validationErrors.priority">
-      </task-priority-select>
-      
-      <task-column-select
-        formControlName="columnId"
-        [options]="columnOptions"
-        [error]="validationErrors.columnId">
-      </task-column-select>
-      
-      <task-due-date
-        formControlName="dueDate"
-        [required]="true"
-        [minDate]="tomorrow"
-        [error]="validationErrors.dueDate">
-      </task-due-date>
-    </div>
+    <task-priority-select
+      formControlName="priority"
+      [options]="priorityOptions"
+      [required]="true"
+      [errors]="validationErrors.priority">
+    </task-priority-select>
+    
+    <task-assignee-select
+      formControlName="assignedTo"
+      [users]="availableUsers"
+      [allowUnassigned]="true"
+      [errors]="validationErrors.assignedTo">
+    </task-assignee-select>
+    
+    <task-due-date-picker
+      formControlName="dueDate"
+      [minDate]="tomorrow"
+      [required]="true"
+      [errors]="validationErrors.dueDate">
+    </task-due-date-picker>
   </div>
+  
+  <task-form-actions
+    [isValid]="isValid"
+    [isSubmitting]="isSubmitting"
+    [isDirty]="isDirty"
+    (onSubmit)="submitForm()"
+    (onCancel)="onCancel.emit()">
+  </task-form-actions>
 </form>
 ```
 
 **CSS SPECIFICATION**
 
 **Layout:**
-- display: grid; grid-template-columns: 1fr;
-- gap: 1.5rem;
+- display: flex
+- flex-direction: column
+- gap: 20px
 
 **Spacing:**
-- padding: 0;
-- margin-bottom: 1rem;
+- padding: 24px
+- margin-bottom: 16px (between fields)
 
 **Component Styles:**
-- .form-grid: grid layout for form fields
-- .settings-grid: 2x2 grid for settings fields
+- .task-form (main container)
+- .form-fields (field container)
+- .form-actions (button container)
 
 **Responsive:**
-- @media (max-width: 768px): single column layout
+- Mobile: single column layout
+- Desktop: optimized field spacing
 
 **API INTEGRATION**
 
-- Form validation → Maps to CreateTaskRequest schema
-- Field validation → Real-time API-compatible validation
+- Form validation → prepare CreateTaskRequest model
+- Data transformation → UI form data to API format
 
 **ERROR HANDLING**
 
-- Field validation errors → inline error messages
-- Form submission errors → field-specific error highlighting
+- Field validation → inline error messages
+- Form submission errors → highlight invalid fields
+- Required field validation → prevent submission
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Field input → real-time validation → character count update
-- Form change → validation check → error display
+- Field input → real-time validation → update error state
+- Form submission → validate all fields → emit form data
+- Cancel action → confirm unsaved changes → reset form
 
-#### 4.3 TaskTitleInputComponent
+#### 4.3 TaskTitleInput
 
-**Component Type:** Feature
+**Component Type:** Shared
 
-**Mapped From A1:** TaskTitleInputComponent (Textbox)
+**Mapped From A1:** TaskTitleInput (AavaTextboxComponent)
 
-**Purpose:** Task title input with validation and character counter
+**Purpose:** Title input with validation and character counter
 
 **Parent:** TaskFormComponent
 
-**Children:** None
+**Children:**
+- AavaTextboxComponent
+- CharacterCounter
+- ErrorMessage
 
 **Dependencies:**
-- ValidationService
+- AavaTextboxComponent
+- Angular Forms
 
 **Library Components Used:**
-- Textbox Component → Base input functionality
+- AavaTextboxComponent → UI Library Text Input
 
 **TypeScript Specification**
 
 **Inputs:**
-- value: string
-- required: boolean
-- maxLength: number (255)
-- characterCount: number
-- error: string
-- placeholder: string
+- value: string (current input value)
+- maxLength: number (255 characters)
+- required: boolean (true)
+- errors: string[] (validation error messages)
 
 **Outputs:**
-- onValueChange: EventEmitter<string> (payload: input value)
-- onBlur: EventEmitter<void>
-- onFocus: EventEmitter<void>
+- onChange: EventEmitter<string> (value changes)
+- onBlur: EventEmitter<void> (focus lost)
+- onValidationChange: EventEmitter<ValidationState> (validation updates)
 
 **State:**
-- inputValue: string
-- isValid: boolean
-- isFocused: boolean
-- showCharacterCount: boolean
+- characterCount: number (current character count)
+- isValid: boolean (validation state)
+- isFocused: boolean (focus state)
 
 **Methods:**
-- handleInputChange(value: string) → void
-- validateInput() → boolean
-- focusInput() → void
+- updateCharacterCount(value: string) → void (count characters)
+- validateInput(value: string) → ValidationResult (validate input)
+- handleInputChange(value: string) → void (process input changes)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
 <div class="title-input-container">
-  <label class="input-label" for="task-title">Task Title *</label>
-  <textbox
+  <label for="task-title" class="input-label">Task Title *</label>
+  
+  <aava-textbox-component
     id="task-title"
-    [value]="inputValue"
-    [placeholder]="'Enter task title'"
+    [value]="value"
     [maxLength]="maxLength"
+    [placeholder]="'Enter task title...'"
     [required]="required"
-    [error]="error"
+    [hasError]="!isValid"
     (valueChange)="handleInputChange($event)"
-    (blur)="onBlur.emit()"
-    (focus)="onFocus.emit()">
-  </textbox>
-  <div class="character-counter" [class.error]="characterCount > maxLength">
-    {{characterCount}}/{{maxLength}}
+    (blur)="onBlur.emit()">
+  </aava-textbox-component>
+  
+  <div class="input-footer">
+    <character-counter
+      [current]="characterCount"
+      [max]="maxLength"
+      [showWarning]="characterCount > maxLength * 0.9">
+    </character-counter>
+    
+    <error-message
+      *ngIf="errors?.length"
+      [messages]="errors">
+    </error-message>
   </div>
-  <div class="error-message" *ngIf="error">{{error}}</div>
 </div>
 ```
 
 **CSS SPECIFICATION**
 
 **Layout:**
-- display: flex; flex-direction: column;
-- gap: 0.5rem;
+- display: flex
+- flex-direction: column
+- gap: 8px
 
 **Spacing:**
-- margin-bottom: 1rem;
+- margin-bottom: 16px
+- padding: 0
 
 **Component Styles:**
-- .title-input-container: full width
-- .character-counter: text-align right, font-size small
-- .error-message: color error, font-size small
+- .title-input-container (wrapper)
+- .input-label (label styling)
+- .input-footer (counter and error container)
 
 **Responsive:**
-- Full width on all screen sizes
+- Full width on all breakpoints
 
 **API INTEGRATION**
 
-- None (form control)
+- None (form control only)
 
 **ERROR HANDLING**
 
 - Required validation → "Title is required"
 - Max length validation → "Title cannot exceed 255 characters"
+- Real-time validation feedback
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Type in field → character count update → validation check
+- Type in field → update character count → validate → emit changes
+- Exceed max length → show warning → prevent further input
+- Leave field empty → show required error
 
-#### 4.4 TaskDescriptionComponent
+#### 4.4 TaskDescriptionInput
 
-**Component Type:** Feature
+**Component Type:** Shared
 
-**Mapped From A1:** TaskDescriptionComponent (Textarea)
+**Mapped From A1:** TaskDescriptionInput (AavaTextareaComponent)
 
 **Purpose:** Multi-line description input with character counter
 
 **Parent:** TaskFormComponent
 
-**Children:** None
+**Children:**
+- AavaTextareaComponent
+- CharacterCounter
+- ErrorMessage
 
 **Dependencies:**
-- ValidationService
+- AavaTextareaComponent
+- Angular Forms
 
 **Library Components Used:**
-- Textarea Component → Multi-line input functionality
+- AavaTextareaComponent → UI Library Textarea
 
 **TypeScript Specification**
 
 **Inputs:**
-- value: string
-- maxLength: number (2000)
-- characterCount: number
-- error: string
-- placeholder: string
-- rows: number
+- value: string (current textarea value)
+- maxLength: number (2000 characters)
+- rows: number (4 rows)
+- errors: string[] (validation error messages)
 
 **Outputs:**
-- onTextChange: EventEmitter<string> (payload: textarea value)
-- onBlur: EventEmitter<void>
+- onChange: EventEmitter<string> (value changes)
+- onBlur: EventEmitter<void> (focus lost)
 
 **State:**
-- textValue: string
-- isFocused: boolean
-- showCharacterCount: boolean
+- characterCount: number (current character count)
+- isValid: boolean (validation state)
 
 **Methods:**
-- handleTextChange(value: string) → void
-- autoResize() → void
+- updateCharacterCount(value: string) → void (count characters)
+- handleInputChange(value: string) → void (process input changes)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
-<div class="description-container">
-  <label class="input-label" for="task-description">Description</label>
-  <textarea
+<div class="description-input-container">
+  <label for="task-description" class="input-label">Description</label>
+  
+  <aava-textarea-component
     id="task-description"
-    [value]="textValue"
-    [placeholder]="'Enter task description'"
+    [value]="value"
     [maxLength]="maxLength"
-    [rows]="4"
-    [error]="error"
-    (textChange)="handleTextChange($event)"
+    [rows]="rows"
+    [placeholder]="'Describe the task in detail...'"
+    [hasError]="!isValid"
+    (valueChange)="handleInputChange($event)"
     (blur)="onBlur.emit()">
-  </textarea>
-  <div class="character-counter" [class.error]="characterCount > maxLength">
-    {{characterCount}}/{{maxLength}}
+  </aava-textarea-component>
+  
+  <div class="input-footer">
+    <character-counter
+      [current]="characterCount"
+      [max]="maxLength"
+      [showWarning]="characterCount > maxLength * 0.9">
+    </character-counter>
+    
+    <error-message
+      *ngIf="errors?.length"
+      [messages]="errors">
+    </error-message>
   </div>
-  <div class="error-message" *ngIf="error">{{error}}</div>
 </div>
 ```
 
 **CSS SPECIFICATION**
 
 **Layout:**
-- display: flex; flex-direction: column;
-- gap: 0.5rem;
+- display: flex
+- flex-direction: column
+- gap: 8px
 
 **Spacing:**
-- margin-bottom: 1rem;
+- margin-bottom: 16px
+- min-height: 120px (4 rows)
 
 **Component Styles:**
-- .description-container: full width
-- textarea: resize vertical, min-height 100px
-- .character-counter: text-align right
+- .description-input-container (wrapper)
+- .input-label (label styling)
+- .input-footer (counter and error container)
 
 **Responsive:**
-- Full width, adjustable height
+- Full width on all breakpoints
+- Adjustable height based on content
 
 **API INTEGRATION**
 
-- None (form control)
+- None (form control only)
 
 **ERROR HANDLING**
 
 - Max length validation → "Description cannot exceed 2000 characters"
+- Real-time character counting
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Type in textarea → character count update → auto-resize
+- Type in textarea → update character count → validate → emit changes
+- Exceed max length → show warning → prevent further input
 
-#### 4.5 TaskPrioritySelectComponent
+#### 4.5 TaskPrioritySelect
 
-**Component Type:** Feature
+**Component Type:** Shared
 
-**Mapped From A1:** TaskPrioritySelectComponent
+**Mapped From A1:** TaskPrioritySelect (Custom Select)
 
 **Purpose:** Priority selection dropdown with enum validation
 
 **Parent:** TaskFormComponent
 
-**Children:** None
+**Children:**
+- Custom Select Component
+- ErrorMessage
 
 **Dependencies:**
-- ValidationService
+- Custom Select Component
+- Priority Enum
 
 **Library Components Used:**
-- Dropdown Component → Selection functionality
+- Custom Select Component → Internal Dropdown Implementation
 
 **TypeScript Specification**
 
 **Inputs:**
-- value: string
-- options: PriorityOption[]
-- required: boolean
-- error: string
-- disabled: boolean
+- value: Priority (selected priority)
+- options: PriorityOption[] (available priorities)
+- required: boolean (true)
+- errors: string[] (validation error messages)
 
 **Outputs:**
-- onSelectionChange: EventEmitter<string> (payload: selected priority)
-- onDropdownToggle: EventEmitter<boolean>
+- onSelectionChange: EventEmitter<Priority> (selection changes)
 
 **State:**
-- selectedPriority: string
-- isOpen: boolean
-- filteredOptions: PriorityOption[]
+- selectedValue: Priority (current selection)
+- isOpen: boolean (dropdown state)
+- isValid: boolean (validation state)
 
 **Methods:**
-- selectOption(priority: string) → void
-- toggleDropdown() → void
-- closeDropdown() → void
+- toggleDropdown() → void (open/close dropdown)
+- selectOption(priority: Priority) → void (handle selection)
+- validateSelection() → ValidationResult (validate selection)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
 <div class="priority-select-container">
-  <label class="input-label" for="task-priority">Priority *</label>
-  <dropdown
-    id="task-priority"
-    [value]="selectedPriority"
-    [options]="options"
-    [placeholder]="'Select priority'"
-    [required]="required"
-    [error]="error"
-    [disabled]="disabled"
-    (selectionChange)="selectOption($event)"
-    (toggle)="onDropdownToggle.emit($event)">
-    <option *ngFor="let option of options" [value]="option.value">
-      <span class="priority-icon" [class]="'priority-' + option.value.toLowerCase()"></span>
-      {{option.label}}
-    </option>
-  </dropdown>
-  <div class="error-message" *ngIf="error">{{error}}</div>
+  <label for="task-priority" class="input-label">Priority *</label>
+  
+  <div class="custom-select" [class.open]="isOpen">
+    <button 
+      type="button"
+      class="select-trigger"
+      [class.has-error]="!isValid"
+      (click)="toggleDropdown()">
+      <span class="selected-value">
+        <span class="priority-badge" [class]="selectedValue?.toLowerCase()">
+          {{ selectedValue || 'Select Priority' }}
+        </span>
+      </span>
+      <span class="dropdown-arrow">▼</span>
+    </button>
+    
+    <div class="select-options" *ngIf="isOpen">
+      <div 
+        *ngFor="let option of options"
+        class="select-option"
+        [class.selected]="option.value === selectedValue"
+        (click)="selectOption(option.value)">
+        <span class="priority-badge" [class]="option.value.toLowerCase()">
+          {{ option.label }}
+        </span>
+      </div>
+    </div>
+  </div>
+  
+  <error-message
+    *ngIf="errors?.length"
+    [messages]="errors">
+  </error-message>
 </div>
 ```
 
 **CSS SPECIFICATION**
 
 **Layout:**
-- display: flex; flex-direction: column;
-- gap: 0.5rem;
+- display: flex
+- flex-direction: column
+- position: relative (for dropdown)
 
 **Spacing:**
-- margin-bottom: 1rem;
+- margin-bottom: 16px
+- padding: 12px (select trigger)
 
 **Component Styles:**
-- .priority-select-container: full width
-- .priority-icon: colored indicator for priority levels
-- .priority-critical: red, .priority-high: orange, etc.
+- .priority-select-container (wrapper)
+- .custom-select (dropdown container)
+- .select-trigger (clickable area)
+- .select-options (dropdown menu)
+- .priority-badge (priority indicators)
 
 **Responsive:**
-- Full width dropdown
+- Full width on all breakpoints
+- Dropdown adjusts to content
 
 **API INTEGRATION**
 
-- Static options: ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+- None (form control only)
+- Maps to priority field in CreateTaskRequest
 
 **ERROR HANDLING**
 
 - Required validation → "Priority is required"
-- Invalid enum → "Please select a valid priority"
+- Invalid enum validation → "Please select a valid priority"
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Click dropdown → show options → select priority → validate
+- Click dropdown → open options → select priority → close dropdown → emit change
+- Keyboard navigation → arrow keys → enter to select
 
-#### 4.6 ModalHeaderComponent
+#### 4.6 TaskDueDatePicker
 
-**Component Type:** Layout
+**Component Type:** Shared
 
-**Mapped From A1:** ModalHeaderComponent
+**Mapped From A1:** TaskDueDatePicker (AavaCalendarComponent)
 
-**Purpose:** Modal title and close functionality
+**Purpose:** Date selection with future date validation
 
-**Parent:** TaskCreationModalComponent
+**Parent:** TaskFormComponent
 
-**Children:** None
+**Children:**
+- AavaCalendarComponent
+- ErrorMessage
 
-**Dependencies:** None
+**Dependencies:**
+- AavaCalendarComponent
+- Date Validators
 
 **Library Components Used:**
-- Button Component → Close button functionality
+- AavaCalendarComponent → UI Library Date Picker
 
 **TypeScript Specification**
 
 **Inputs:**
-- title: string
-- showCloseButton: boolean
+- value: Date (selected date)
+- minDate: Date (tomorrow's date)
+- required: boolean (true)
+- errors: string[] (validation error messages)
 
 **Outputs:**
-- onClose: EventEmitter<void>
+- onDateChange: EventEmitter<Date> (date selection changes)
 
-**State:** None
+**State:**
+- selectedDate: Date (current selection)
+- isValid: boolean (validation state)
+- isOpen: boolean (calendar visibility)
 
 **Methods:**
-- handleCloseClick() → void
+- validateDate(date: Date) → ValidationResult (validate date selection)
+- handleDateChange(date: Date) → void (process date changes)
+- formatDateForAPI(date: Date) → string (convert to ISO 8601)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
-<div class="modal-header">
-  <h2 class="modal-title">{{title}}</h2>
-  <button
-    *ngIf="showCloseButton"
-    class="close-button"
-    type="button"
-    (click)="handleCloseClick()"
-    aria-label="Close modal">
-    <span class="close-icon">×</span>
-  </button>
+<div class="due-date-picker-container">
+  <label for="task-due-date" class="input-label">Due Date *</label>
+  
+  <aava-calendar-component
+    id="task-due-date"
+    [selectedDate]="selectedDate"
+    [minDate]="minDate"
+    [maxDate]="null"
+    [placeholder]="'Select due date'"
+    [required]="required"
+    [hasError]="!isValid"
+    (dateChange)="handleDateChange($event)">
+  </aava-calendar-component>
+  
+  <error-message
+    *ngIf="errors?.length"
+    [messages]="errors">
+  </error-message>
 </div>
 ```
 
 **CSS SPECIFICATION**
 
 **Layout:**
-- display: flex; justify-content: space-between; align-items: center;
+- display: flex
+- flex-direction: column
+- gap: 8px
 
 **Spacing:**
-- padding: 1.5rem 1.5rem 0;
-- border-bottom: 1px solid #e5e7eb;
+- margin-bottom: 16px
+- padding: 0
 
 **Component Styles:**
-- .modal-title: font-size 1.5rem, font-weight 600
-- .close-button: border none, background transparent
-- .close-icon: font-size 1.5rem, color gray
+- .due-date-picker-container (wrapper)
+- .input-label (label styling)
+- Calendar component inherits from AavaCalendarComponent
 
 **Responsive:**
-- Full width header
+- Full width on mobile
+- Fixed width on desktop
 
 **API INTEGRATION**
 
-- None
+- formatDateForAPI() → converts Date to ISO 8601 string for API
+- Maps to dueDate field in CreateTaskRequest
 
 **ERROR HANDLING**
 
-- None
+- Required validation → "Due date is required"
+- Future date validation → "Due date must be in the future"
+- Invalid date validation → "Please select a valid date"
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Click close button → emit close event → parent handles modal close
-
-#### 4.7 ModalFooterComponent
-
-**Component Type:** Layout
-
-**Mapped From A1:** ModalFooterComponent
-
-**Purpose:** Action buttons (Cancel, Create) with loading states
-
-**Parent:** TaskCreationModalComponent
-
-**Children:** None
-
-**Dependencies:** None
-
-**Library Components Used:**
-- Button Component → Primary and secondary button variants
-
-**TypeScript Specification**
-
-**Inputs:**
-- isLoading: boolean
-- submitDisabled: boolean
-- submitText: string
-- cancelText: string
-
-**Outputs:**
-- onCancel: EventEmitter<void>
-- onSubmit: EventEmitter<void>
-
-**State:** None
-
-**Methods:**
-- handleCancelClick() → void
-- handleSubmitClick() → void
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<div class="modal-footer">
-  <button
-    type="button"
-    class="cancel-button"
-    [disabled]="isLoading"
-    (click)="handleCancelClick()">
-    {{cancelText || 'Cancel'}}
-  </button>
-  <button
-    type="submit"
-    class="submit-button primary"
-    [disabled]="submitDisabled || isLoading"
-    (click)="handleSubmitClick()">
-    <span *ngIf="isLoading" class="loading-spinner"></span>
-    {{submitText || 'Create Task'}}
-  </button>
-</div>
-```
-
-**CSS SPECIFICATION**
-
-**Layout:**
-- display: flex; justify-content: flex-end; gap: 1rem;
-
-**Spacing:**
-- padding: 1.5rem;
-- border-top: 1px solid #e5e7eb;
-
-**Component Styles:**
-- .modal-footer: background light gray
-- .cancel-button: secondary button styling
-- .submit-button: primary button styling
-- .loading-spinner: inline spinner animation
-
-**Responsive:**
-- Stack buttons on mobile
-
-**API INTEGRATION**
-
-- None (delegates to parent)
-
-**ERROR HANDLING**
-
-- None
-
-**INTERACTION FLOW**
-
-**User Action → UI → API**
-- Click Cancel → emit cancel event → parent closes modal
-- Click Submit → emit submit event → parent handles form submission
+- Click date picker → open calendar → select date → validate → emit change
+- Type date → validate format → validate future date → emit change
 
 ### 5. COMPONENT MAPPING SUMMARY
 
 | A1 Component | Final Component | Type |
 |--------------|----------------|---------|
-| TaskCreationModalComponent | TaskCreationModalComponent | Feature |
+| TaskCreationComponent | TaskCreationComponent | Page |
 | TaskFormComponent | TaskFormComponent | Feature |
-| TaskTitleInputComponent | TaskTitleInputComponent | Feature |
-| TaskDescriptionComponent | TaskDescriptionComponent | Feature |
-| TaskAssigneeSelectComponent | TaskAssigneeSelectComponent | Feature |
-| TaskPrioritySelectComponent | TaskPrioritySelectComponent | Feature |
-| TaskColumnSelectComponent | TaskColumnSelectComponent | Feature |
-| TaskDueDateComponent | TaskDueDateComponent | Feature |
-| ModalHeaderComponent | ModalHeaderComponent | Layout |
-| ModalFooterComponent | ModalFooterComponent | Layout |
-| FormValidationComponent | FormValidationComponent | Shared |
-| LoadingStateComponent | LoadingStateComponent | Shared |
+| TaskTitleInput | TaskTitleInput | Shared |
+| TaskDescriptionInput | TaskDescriptionInput | Shared |
+| TaskPrioritySelect | TaskPrioritySelect | Shared |
+| TaskAssigneeSelect | TaskAssigneeSelect | Shared |
+| TaskDueDatePicker | TaskDueDatePicker | Shared |
+| TaskModalComponent | TaskModalComponent | Layout |
+| LoadingSpinner | LoadingSpinner | Shared |
+| ErrorMessage | ErrorMessage | Shared |
+| SuccessMessage | SuccessMessage | Shared |
+| CharacterCounter | CharacterCounter | Shared |
 
 ### 6. DATA FLOW (FROM AGENT-1)
 
 **Parent → Child:**
-- App → TaskCreationModalComponent (isOpen, onClose)
-- TaskCreationModalComponent → ModalHeaderComponent (title, onClose)
-- TaskCreationModalComponent → TaskFormComponent (initialData, isLoading, errors)
-- TaskCreationModalComponent → ModalFooterComponent (isLoading, actions)
-- TaskFormComponent → TaskTitleInputComponent (value, validation, characterCount)
-- TaskFormComponent → TaskDescriptionComponent (value, validation, characterCount)
-- TaskFormComponent → TaskPrioritySelectComponent (value, options, validation)
-- TaskFormComponent → TaskAssigneeSelectComponent (value, options, validation)
-- TaskFormComponent → TaskColumnSelectComponent (value, options, validation)
-- TaskFormComponent → TaskDueDateComponent (value, validation, constraints)
+- App → TaskCreationComponent (isOpen: boolean, columnId: string)
+- TaskCreationComponent → TaskModalComponent (isOpen: boolean, title: string)
+- TaskCreationComponent → TaskFormComponent (initialData: TaskData, isSubmitting: boolean)
+- TaskFormComponent → TaskTitleInput (value: string, maxLength: number, required: boolean, errors: string[])
+- TaskFormComponent → TaskDescriptionInput (value: string, maxLength: number, rows: number, errors: string[])
+- TaskFormComponent → TaskPrioritySelect (value: Priority, options: PriorityOption[], required: boolean, errors: string[])
+- TaskFormComponent → TaskAssigneeSelect (value: string, users: User[], allowUnassigned: boolean, errors: string[])
+- TaskFormComponent → TaskDueDatePicker (value: Date, minDate: Date, required: boolean, errors: string[])
 
 ### 7. API USAGE SUMMARY
 
 **Component → API:**
-- TaskCreationModalComponent → POST /api/v1/tasks (task creation)
-- TaskFormComponent → Validates against CreateTaskRequest schema
-- Form validation → Real-time API-compatible validation
-- Error handling → Maps API errors to UI error messages
+- TaskCreationComponent → POST /api/v1/tasks (Create new task)
+- TaskFormComponent → CreateTaskRequest model validation and preparation
+- TaskAssigneeSelect → GET /api/v1/users (Load available users - if implemented)
+- Error handling → Standard Error Object with code, message, trace_id
 
-**API Field Mapping:**
-- title (UI) → title (API): string, required, maxLength 255
-- description (UI) → description (API): string, maxLength 2000
-- priority (UI) → priority (API): enum ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
-- dueDate (UI) → dueDate (API): ISO 8601 date-time, future date required
-- assignedTo (UI) → assignedTo (API): UUID format
-- columnId (UI) → columnId (API): UUID format
+**API Data Transformations:**
+- TaskTitleInput → title field (string, maxLength 200)
+- TaskDescriptionInput → description field (string, maxLength 2000)
+- TaskPrioritySelect → priority field (enum: LOW, MEDIUM, HIGH, CRITICAL)
+- TaskDueDatePicker → dueDate field (ISO 8601 string)
+- TaskAssigneeSelect → assignedTo field (UUID string)
 
 ### 8. NOTES & CONSTRAINTS
 
 **HTML Structure Compliance:**
-- HTML must follow A1 structure strictly
-- Modal overlay system as specified in architecture
-- Form grid layout for settings section
-- Character counters for title and description fields
+- HTML must follow A1 structure strictly with modal overlay and form hierarchy
+- Component nesting must match the defined parent-child relationships
+- Form structure must support Angular reactive forms implementation
 
 **Component Reusability:**
-- Do NOT create new components unnecessarily
-- Prefer reusable library components (Button, Textbox, Textarea, Popup)
-- Extend library components rather than rebuilding
+- Do NOT create new components unnecessarily - prefer AavaButton, AavaTextboxComponent, AavaTextareaComponent, AavaCalendarComponent from library
+- Custom components only for Select/Dropdown, Modal, and utility components not available in library
+- All form inputs must be reusable across different forms
 
-**Code Standards:**
-- HTML must be pseudo-code ONLY (NOT real framework code)
-- CSS should include only key classes and layout rules
-- TypeScript interfaces must align with API schemas
-- Follow Angular reactive forms patterns
-
-**Performance Considerations:**
-- Implement OnPush change detection for modal components
-- Lazy load user/assignee data for dropdowns
-- Debounce form validation for better UX
-- Cache validation results to avoid repeated API calls
-
-**Accessibility:**
-- All form fields must have proper labels
-- Modal must trap focus and handle escape key
-- Error messages must be announced to screen readers
-- Keyboard navigation support for all interactive elements
-
-**Error Handling:**
-- API failures → show user-friendly error messages
-- Validation errors → inline field-specific feedback
-- Network issues → retry mechanisms with user notification
-- Form state preservation during error scenarios
+**Implementation Guidelines:**
+- HTML should be written as structured pseudo-code (not full Angular framework code)
+- CSS should include only key classes and layout rules, not full stylesheets
+- TypeScript specifications must include proper typing for all props, state, and methods
+- API integration must follow OpenAPI specification guidelines with standardized error handling
+- Form validation must provide real-time feedback with character counters and inline error messages
+- Loading states must be implemented for all API calls with appropriate user feedback
+- Accessibility requirements must be met with proper ARIA labels and keyboard navigation support
