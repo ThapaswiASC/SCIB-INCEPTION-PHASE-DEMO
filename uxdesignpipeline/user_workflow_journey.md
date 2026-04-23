@@ -130,7 +130,7 @@ Pu.2 Bulk Actions Confirmation Modal [type: modal]
   - What if users could undo bulk operations immediately after execution?
   - What if the system could detect and warn about potential conflicts?
 
-**Navigation Structure:** 1.0 Kanban Board Dashboard
+**Navigation Structure:** 1.0 Kanban Board Dashboard 
 
 **User Journey Flow:**
 - Variation 1A: 1.0 Kanban Board Dashboard → [click + Add Task] → Pu.1 Add New Task Modal → [submit] → 1.0 Kanban Board Dashboard (updated) → [click task card] → 1.0-D Task Detail View → [back] → 1.0 Kanban Board Dashboard
