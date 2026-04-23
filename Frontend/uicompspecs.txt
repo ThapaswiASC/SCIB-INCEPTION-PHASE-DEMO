@@ -1,862 +1,629 @@
 ## UI COMPONENT SPECIFICATIONS
 
-### 1. INPUT REFERENCE (FROM AGENT-1)
+1. INPUT REFERENCE (FROM AGENT-1)
 
-**Page Name:** Task Management Dashboard with Task Creation Modal
+Page Name: TaskFlow Kanban Board Application
+Mapped Layout: Flexbox with CSS Grid for board columns
+Components from A1:
+- AppComponent
+- SidebarComponent (AavaSidebarComponent)
+- HeaderComponent
+- MainContentComponent
+- KanbanBoardComponent
+- TaskCreationComponent (JIRA Requirement)
+- TaskCardComponent
+- KanbanColumnComponent
+- AnalyticsComponent
+- IssuesComponent
 
-**Mapped Layout:** Flex-based layout with glass morphism effects
+2. GLOBAL ARCHITECTURE SUMMARY
 
-**Components from A1:**
-- TaskCreationComponent (Main Form Component)
-- TaskFormComponent (Form Logic)
-- TaskModalComponent (Modal Container)
-- TaskTitleInput (AavaTextboxComponent)
-- TaskDescriptionInput (AavaTextareaComponent)
-- TaskPrioritySelect (Custom Select)
-- TaskAssigneeSelect (Custom Select)
-- TaskDueDatePicker (AavaCalendarComponent)
-- TaskFormActions (AavaButton components)
-- SharedComponents (LoadingSpinner, ErrorMessage, SuccessMessage, CharacterCounter)
+Layout Type: Flexbox with CSS Grid for board columns
+Main Sections:
+- Header (Brand, Search, User Controls)
+- Sidebar (Navigation Menu, Brand, Footer)
+- Main Content (Kanban Board, Analytics, Issues)
+- Modals (Task Creation, Bulk Actions, Issue Reporting)
 
-### 2. GLOBAL ARCHITECTURE SUMMARY
+Component Strategy: Hybrid approach using library components where available
+Reused Components:
+- AavaButtonComponent (Primary, secondary, ghost variants)
+- AavaSearchBarComponent (Header search functionality)
+- AavaBreadcrumbsComponent (Navigation paths)
+- AavaSidebarComponent (Main navigation)
 
-**Layout Type:** Flex-based layout with glass morphism effects
+New Components:
+- TaskCreationComponent (JIRA requirement)
+- TaskCardComponent
+- KanbanColumnComponent
+- ModalComponent
+- BadgeComponent
+- AvatarComponent
+- ToggleComponent
 
-**Main Sections:**
-- Header (Brand logo, navigation, search, user avatar)
-- Sidebar (Workspace navigation - Board, Analytics, Issues)
-- Main Content (Kanban board with three columns)
-- Modals (Task creation, bulk actions, issue reporting)
+3. FOLDER STRUCTURE
 
-**Component Strategy:** Hybrid approach using library components and custom implementations
-
-**Reused Components:**
-- AavaButton (Primary, Secondary, Ghost variants)
-- AavaTextboxComponent (Title input)
-- AavaTextareaComponent (Description field)
-- AavaCalendarComponent (Due date picker)
-- AavaFileUploadComponent (Future attachments)
-
-**New Components (if any):**
-- Custom Select/Dropdown component (Priority, Assignee selection)
-- Modal container component
-- Card component for tasks
-- Badge component for priority/status
-- Avatar component for users
-- Character counter component
-
-### 3. FOLDER STRUCTURE
-
-```
 src/
- ├── app/
- │    ├── components/
+ ├── pages/
+ │    └── kanban/
+ │         ├── kanban.component.ts
+ │         ├── kanban.component.html
+ │         └── kanban.component.scss
+ │    └── analytics/
+ │         ├── analytics.component.ts
+ │    └── issues/
+ │         ├── issues.component.ts
+ │
+ ├── components/
+ │    ├── layout/
+ │    │   ├── header/
+ │    │   ├── sidebar/
+ │    │   └── main-content/
+ │    ├── feature/
  │    │   ├── task-creation/
- │    │   │   ├── task-creation.component.ts
- │    │   │   ├── task-creation.component.html
- │    │   │   ├── task-creation.component.scss
- │    │   │   └── task-creation.component.spec.ts
- │    │   ├── task-form/
- │    │   │   ├── task-form.component.ts
- │    │   │   ├── task-form.component.html
- │    │   │   ├── task-form.component.scss
- │    │   │   └── task-form.component.spec.ts
- │    │   ├── shared/
- │    │   │   ├── task-modal/
- │    │   │   ├── loading-spinner/
- │    │   │   ├── error-message/
- │    │   │   ├── success-message/
- │    │   │   ├── character-counter/
- │    │   │   └── custom-select/
- │    │   └── ui/
- │    │       ├── buttons/ (AavaButton wrapper)
- │    │       ├── inputs/ (AavaTextbox wrapper)
- │    │       ├── textarea/ (AavaTextarea wrapper)
- │    │       └── datepicker/ (AavaCalendar wrapper)
- │    ├── services/
- │    │   ├── task.service.ts
- │    │   ├── user.service.ts
- │    │   └── api.service.ts
- │    ├── models/
- │    │   ├── task.model.ts
- │    │   ├── user.model.ts
- │    │   └── api-response.model.ts
- │    └── validators/
- │        ├── future-date.validator.ts
- │        └── custom-validators.ts
-```
+ │    │   ├── kanban-board/
+ │    │   ├── kanban-column/
+ │    │   ├── task-card/
+ │    │   ├── analytics/
+ │    │   └── issues/
+ │    ├── shared/
+ │    │   ├── modal/
+ │    │   ├── badge/
+ │    │   ├── avatar/
+ │    │   └── toggle/
+ │    └── ui/
+ │        └── @aava/play-core/
+ ├── services/
+ │    ├── task.service.ts
+ │    ├── user.service.ts
+ │    └── api.service.ts
+ ├── models/
+ │    ├── task.model.ts
+ │    ├── user.model.ts
+ │    └── api-response.model.ts
 
-### 4. COMPONENT IMPLEMENTATION
+4. COMPONENT IMPLEMENTATION
 
-#### 4.1 TaskCreationComponent
+### 4.1 TaskCreationComponent
 
-**Component Type:** Page
+Component Type: Feature
+Mapped From A1: TaskCreationComponent (JIRA Requirement)
+Purpose: Create new tasks with reactive form validation and API integration
+Parent: MainContentComponent
+Children:
+- AavaButtonComponent (Submit, Cancel)
+- FormControl elements
+- ValidationMessage components
 
-**Mapped From A1:** TaskCreationComponent (Main Form Component)
-
-**Purpose:** Main container for task creation form with modal functionality and state management
-
-**Parent:** App Component / Kanban Board Component
-
-**Children:**
-- TaskModalComponent
-- TaskFormComponent
-- LoadingSpinner
-- ErrorMessage
-- SuccessMessage
-
-**Dependencies:**
+Dependencies:
+- @angular/forms (FormBuilder, Validators)
 - TaskService
-- UserService
-- Angular Reactive Forms
-- AavaButton components
+- @aava/play-core (AavaButtonComponent)
 
-**Library Components Used:**
-- TaskModalComponent → Custom Modal Container
-- TaskFormComponent → Custom Form Logic Component
+Library Components Used:
+- AavaButtonComponent → Submit and Cancel actions
 
-**TypeScript Specification**
+TypeScript Specification
 
-**Inputs:**
-- isOpen: boolean (modal visibility state)
-- columnId: string (target kanban column)
+Inputs:
+- initialColumn: string (default column for new task)
+- isVisible: boolean (modal visibility state)
 
-**Outputs:**
-- onTaskCreated: EventEmitter<TaskResponse> (task creation success)
-- onCancel: EventEmitter<void> (modal cancellation)
-- onClose: EventEmitter<void> (modal close)
+Outputs:
+- taskCreated: EventEmitter<Task> (emits created task)
+- modalClosed: EventEmitter<void> (emits when modal closes)
 
-**State:**
-- formData: TaskFormData (current form state)
-- isLoading: boolean (API call state)
-- errors: ValidationErrors (form validation errors)
-- showSuccessMessage: boolean (success feedback state)
+State:
+- taskForm: FormGroup (reactive form instance)
+- isLoading: boolean (API call loading state)
+- validationErrors: ValidationErrors (form validation errors)
+- characterCounts: object (real-time character counters)
 
-**Methods:**
-- openModal() → void (show modal)
-- closeModal() → void (hide modal)
-- handleFormSubmit(formData: TaskFormData) → Promise<void> (process form submission)
-- handleError(error: ApiError) → void (error handling)
+Methods:
+- createTask() → Submits form and calls TaskService
+- resetForm() → Clears form after successful submission
+- validateField(fieldName: string) → Real-time field validation
+- updateCharacterCount(field: string, value: string) → Updates character counters
 
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
+HTML STRUCTURE (PSEUDO CODE ONLY)
 
-```html
-<div class="task-creation-container" *ngIf="isOpen">
-  <task-modal-component 
-    [isOpen]="isOpen"
-    [title]="'Create New Task'"
-    (onClose)="closeModal()">
-    
+<div class="task-creation-modal" *ngIf="isVisible">
+  <div class="modal-overlay">
     <div class="modal-content">
-      <task-form-component
-        [initialData]="formData"
-        [isSubmitting]="isLoading"
-        (onSubmit)="handleFormSubmit($event)"
-        (onCancel)="closeModal()">
-      </task-form-component>
+      <div class="modal-header">
+        <h2>Create New Task</h2>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </div>
       
-      <loading-spinner *ngIf="isLoading"></loading-spinner>
-      
-      <error-message 
-        *ngIf="errors.general"
-        [message]="errors.general">
-      </error-message>
-      
-      <success-message 
-        *ngIf="showSuccessMessage"
-        [message]="'Task created successfully!'">
-      </success-message>
+      <form [formGroup]="taskForm" (ngSubmit)="createTask()">
+        <div class="form-group">
+          <label>Title *</label>
+          <input formControlName="title" maxlength="255">
+          <div class="character-counter">{{characterCounts.title}}/255</div>
+          <div class="validation-error" *ngIf="taskForm.get('title')?.errors">
+            Title is required
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Description</label>
+          <textarea formControlName="description" maxlength="2000"></textarea>
+          <div class="character-counter">{{characterCounts.description}}/2000</div>
+        </div>
+        
+        <div class="form-group">
+          <label>Priority *</label>
+          <select formControlName="priority">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label>Due Date *</label>
+          <input type="date" formControlName="dueDate">
+        </div>
+        
+        <div class="form-actions">
+          <aava-button type="secondary" (click)="closeModal()">Cancel</aava-button>
+          <aava-button type="primary" [loading]="isLoading" [disabled]="taskForm.invalid">
+            Create Task
+          </aava-button>
+        </div>
+      </form>
     </div>
-  </task-modal-component>
+  </div>
 </div>
-```
 
-**CSS SPECIFICATION**
+CSS SPECIFICATION
 
-**Layout:**
-- display: flex
+Layout:
 - position: fixed (modal overlay)
-- z-index: 1000
+- display: flex, justify-content: center, align-items: center
+- z-index: 1000 (modal layer)
 
-**Spacing:**
-- padding: 24px
-- gap: 16px
+Spacing:
+- padding: 24px (modal content)
+- gap: 16px (form groups)
+- margin-bottom: 16px (form elements)
 
-**Component Styles:**
-- .task-creation-container (modal overlay)
-- .modal-content (form container)
-- Glass morphism effects with backdrop-filter
+Component Styles:
+- .task-creation-modal (full viewport overlay)
+- .modal-content (centered dialog box)
+- .form-group (field containers)
+- .character-counter (right-aligned counters)
+- .validation-error (error message styling)
 
-**Responsive:**
-- Mobile: full-width modal
-- Tablet: 80% width
-- Desktop: 600px max-width
+Responsive:
+- Mobile: full-width modal with reduced padding
+- Tablet: max-width 600px
+- Desktop: max-width 800px
 
-**API INTEGRATION**
+API INTEGRATION
 
-- handleFormSubmit() → POST /api/v1/tasks → Create new task
-- TaskService.createTask() → API call with loading state management
+- createTask() → POST /api/v1/tasks → Create new task with form data
+- validateTask() → Client-side validation matching API requirements
 
-**ERROR HANDLING**
+ERROR HANDLING
 
-- API failure → show error message with retry option
-- Validation error → pass to form component for field-level display
-- Network error → show generic error message
+- API failure → Show error snackbar with retry option
+- Validation error → Inline field-level error messages
+- Network timeout → Show connection error message
+- Form submission → Disable submit button during loading
 
-**INTERACTION FLOW**
+INTERACTION FLOW
 
-**User Action → UI → API**
-- Click "Add Task" button → open modal → initialize empty form
-- Fill form fields → real-time validation → character counters update
-- Click "Create Task" → validate → show loading → API call → success/error handling
+User Action → UI → API
 
-#### 4.2 TaskFormComponent
+- Click Add Task button → Open TaskCreationComponent modal → Initialize empty form
+- Fill form fields → Real-time validation → Update character counters
+- Submit form → Validate all fields → Call POST /api/v1/tasks → Show loading state
+- API success → Emit taskCreated event → Close modal → Reset form
+- API error → Show error message → Keep modal open for retry
 
-**Component Type:** Feature
+### 4.2 KanbanBoardComponent
 
-**Mapped From A1:** TaskFormComponent (Form Logic)
+Component Type: Feature
+Mapped From A1: KanbanBoardComponent
+Purpose: Display and manage tasks in a three-column Kanban layout
+Parent: MainContentComponent
+Children:
+- KanbanColumnComponent (3 instances)
+- TaskCreationComponent
+- EmptyStateComponent
 
-**Purpose:** Reactive form implementation with validation and real-time feedback
+Dependencies:
+- TaskService
+- DragDropModule (Angular CDK)
 
-**Parent:** TaskCreationComponent
+Library Components Used:
+- AavaButtonComponent → Add task actions
 
-**Children:**
-- TaskTitleInput
-- TaskDescriptionInput
-- TaskPrioritySelect
-- TaskAssigneeSelect
-- TaskDueDatePicker
-- TaskFormActions
+TypeScript Specification
 
-**Dependencies:**
-- Angular Reactive Forms
-- Custom Validators
-- FormBuilder
+Inputs:
+- tasks: Task[] (all tasks data)
+- boardConfig: BoardConfig (column configuration)
 
-**Library Components Used:**
-- FormBuilder → Angular Reactive Forms
-- Validators → Angular + Custom Validators
+Outputs:
+- taskMoved: EventEmitter<TaskMoveEvent> (task status changes)
+- taskSelected: EventEmitter<Task> (task selection)
 
-**TypeScript Specification**
+State:
+- todoTasks: Task[] (filtered tasks)
+- inProgressTasks: Task[] (filtered tasks)
+- doneTasks: Task[] (filtered tasks)
+- isLoading: boolean (data loading state)
+- selectedTask: Task | null (currently selected task)
 
-**Inputs:**
-- initialData: TaskData (pre-filled form data)
-- isSubmitting: boolean (submission state)
+Methods:
+- loadTasks() → Fetches tasks from API
+- moveTask(task: Task, newStatus: string) → Updates task status
+- filterTasksByStatus(status: string) → Filters tasks for columns
+- openTaskCreation(columnType: string) → Opens creation modal
 
-**Outputs:**
-- onSubmit: EventEmitter<TaskFormData> (form submission)
-- onFormChange: EventEmitter<TaskFormData> (form state changes)
-- onValidationChange: EventEmitter<ValidationState> (validation updates)
-- onCancel: EventEmitter<void> (form cancellation)
+HTML STRUCTURE (PSEUDO CODE ONLY)
 
-**State:**
-- formGroup: FormGroup (reactive form instance)
-- validationErrors: ValidationErrors (field validation errors)
-- isDirty: boolean (form modification state)
-- isValid: boolean (overall form validity)
-
-**Methods:**
-- initializeForm() → void (setup form controls)
-- validateForm() → ValidationErrors (validate all fields)
-- submitForm() → void (handle form submission)
-- resetForm() → void (clear form data)
-- updateCharacterCount(field: string, count: number) → void (character counter updates)
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<form [formGroup]="formGroup" (ngSubmit)="submitForm()" class="task-form">
-  <div class="form-fields">
-    <task-title-input
-      formControlName="title"
-      [maxLength]="255"
-      [required]="true"
-      [errors]="validationErrors.title">
-    </task-title-input>
-    
-    <task-description-input
-      formControlName="description"
-      [maxLength]="2000"
-      [rows]="4"
-      [errors]="validationErrors.description">
-    </task-description-input>
-    
-    <task-priority-select
-      formControlName="priority"
-      [options]="priorityOptions"
-      [required]="true"
-      [errors]="validationErrors.priority">
-    </task-priority-select>
-    
-    <task-assignee-select
-      formControlName="assignedTo"
-      [users]="availableUsers"
-      [allowUnassigned]="true"
-      [errors]="validationErrors.assignedTo">
-    </task-assignee-select>
-    
-    <task-due-date-picker
-      formControlName="dueDate"
-      [minDate]="tomorrow"
-      [required]="true"
-      [errors]="validationErrors.dueDate">
-    </task-due-date-picker>
+<div class="kanban-board">
+  <div class="board-header">
+    <h1>Task Board</h1>
+    <aava-button type="primary" (click)="openTaskCreation('TODO')">
+      Add Task
+    </aava-button>
   </div>
   
-  <task-form-actions
-    [isValid]="isValid"
-    [isSubmitting]="isSubmitting"
-    [isDirty]="isDirty"
-    (onSubmit)="submitForm()"
-    (onCancel)="onCancel.emit()">
-  </task-form-actions>
-</form>
-```
-
-**CSS SPECIFICATION**
-
-**Layout:**
-- display: flex
-- flex-direction: column
-- gap: 20px
-
-**Spacing:**
-- padding: 24px
-- margin-bottom: 16px (between fields)
-
-**Component Styles:**
-- .task-form (main container)
-- .form-fields (field container)
-- .form-actions (button container)
-
-**Responsive:**
-- Mobile: single column layout
-- Desktop: optimized field spacing
-
-**API INTEGRATION**
-
-- Form validation → prepare CreateTaskRequest model
-- Data transformation → UI form data to API format
-
-**ERROR HANDLING**
-
-- Field validation → inline error messages
-- Form submission errors → highlight invalid fields
-- Required field validation → prevent submission
-
-**INTERACTION FLOW**
-
-**User Action → UI → API**
-- Field input → real-time validation → update error state
-- Form submission → validate all fields → emit form data
-- Cancel action → confirm unsaved changes → reset form
-
-#### 4.3 TaskTitleInput
-
-**Component Type:** Shared
-
-**Mapped From A1:** TaskTitleInput (AavaTextboxComponent)
-
-**Purpose:** Title input with validation and character counter
-
-**Parent:** TaskFormComponent
-
-**Children:**
-- AavaTextboxComponent
-- CharacterCounter
-- ErrorMessage
-
-**Dependencies:**
-- AavaTextboxComponent
-- Angular Forms
-
-**Library Components Used:**
-- AavaTextboxComponent → UI Library Text Input
-
-**TypeScript Specification**
-
-**Inputs:**
-- value: string (current input value)
-- maxLength: number (255 characters)
-- required: boolean (true)
-- errors: string[] (validation error messages)
-
-**Outputs:**
-- onChange: EventEmitter<string> (value changes)
-- onBlur: EventEmitter<void> (focus lost)
-- onValidationChange: EventEmitter<ValidationState> (validation updates)
-
-**State:**
-- characterCount: number (current character count)
-- isValid: boolean (validation state)
-- isFocused: boolean (focus state)
-
-**Methods:**
-- updateCharacterCount(value: string) → void (count characters)
-- validateInput(value: string) → ValidationResult (validate input)
-- handleInputChange(value: string) → void (process input changes)
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<div class="title-input-container">
-  <label for="task-title" class="input-label">Task Title *</label>
-  
-  <aava-textbox-component
-    id="task-title"
-    [value]="value"
-    [maxLength]="maxLength"
-    [placeholder]="'Enter task title...'"
-    [required]="required"
-    [hasError]="!isValid"
-    (valueChange)="handleInputChange($event)"
-    (blur)="onBlur.emit()">
-  </aava-textbox-component>
-  
-  <div class="input-footer">
-    <character-counter
-      [current]="characterCount"
-      [max]="maxLength"
-      [showWarning]="characterCount > maxLength * 0.9">
-    </character-counter>
+  <div class="board-columns">
+    <kanban-column 
+      title="To Do" 
+      [tasks]="todoTasks" 
+      columnType="TODO"
+      (taskMoved)="moveTask($event)"
+      (addTaskClicked)="openTaskCreation($event)">
+    </kanban-column>
     
-    <error-message
-      *ngIf="errors?.length"
-      [messages]="errors">
-    </error-message>
+    <kanban-column 
+      title="In Progress" 
+      [tasks]="inProgressTasks" 
+      columnType="IN_PROGRESS"
+      (taskMoved)="moveTask($event)">
+    </kanban-column>
+    
+    <kanban-column 
+      title="Done" 
+      [tasks]="doneTasks" 
+      columnType="COMPLETED"
+      (taskMoved)="moveTask($event)">
+    </kanban-column>
   </div>
+  
+  <task-creation 
+    [isVisible]="showTaskCreation"
+    [initialColumn]="selectedColumn"
+    (taskCreated)="onTaskCreated($event)"
+    (modalClosed)="closeTaskCreation()">
+  </task-creation>
 </div>
-```
 
-**CSS SPECIFICATION**
+CSS SPECIFICATION
 
-**Layout:**
-- display: flex
-- flex-direction: column
-- gap: 8px
+Layout:
+- display: grid
+- grid-template-columns: 1fr 1fr 1fr (three equal columns)
+- gap: 24px (column spacing)
 
-**Spacing:**
-- margin-bottom: 16px
-- padding: 0
+Spacing:
+- padding: 24px (board container)
+- margin-bottom: 16px (board header)
 
-**Component Styles:**
-- .title-input-container (wrapper)
-- .input-label (label styling)
-- .input-footer (counter and error container)
+Component Styles:
+- .kanban-board (main container)
+- .board-header (title and actions)
+- .board-columns (grid layout)
 
-**Responsive:**
-- Full width on all breakpoints
+Responsive:
+- Mobile: single column stack
+- Tablet: two columns
+- Desktop: three columns
 
-**API INTEGRATION**
+API INTEGRATION
 
-- None (form control only)
+- loadTasks() → GET /api/v1/tasks → Fetch all tasks for board display
+- moveTask() → PUT /api/v1/tasks/{id} → Update task status
 
-**ERROR HANDLING**
+ERROR HANDLING
 
-- Required validation → "Title is required"
-- Max length validation → "Title cannot exceed 255 characters"
-- Real-time validation feedback
+- API failure → Show error banner with retry option
+- Task move failure → Revert UI change and show error
+- Loading error → Show empty state with reload button
 
-**INTERACTION FLOW**
+INTERACTION FLOW
 
-**User Action → UI → API**
-- Type in field → update character count → validate → emit changes
-- Exceed max length → show warning → prevent further input
-- Leave field empty → show required error
+User Action → UI → API
 
-#### 4.4 TaskDescriptionInput
+- Load board → Call GET /api/v1/tasks → Distribute tasks to columns
+- Drag task between columns → Update UI optimistically → Call PUT /api/v1/tasks/{id}
+- Click Add Task → Open TaskCreationComponent → Pass column context
 
-**Component Type:** Shared
+### 4.3 TaskCardComponent
 
-**Mapped From A1:** TaskDescriptionInput (AavaTextareaComponent)
+Component Type: Feature
+Mapped From A1: TaskCardComponent
+Purpose: Display individual task information with interaction capabilities
+Parent: KanbanColumnComponent
+Children:
+- BadgeComponent (priority indicator)
+- AvatarComponent (assignee)
 
-**Purpose:** Multi-line description input with character counter
+Dependencies:
+- Task model
+- DatePipe
 
-**Parent:** TaskFormComponent
+Library Components Used:
+- Custom BadgeComponent → Priority display
+- Custom AvatarComponent → Assignee display
 
-**Children:**
-- AavaTextareaComponent
-- CharacterCounter
-- ErrorMessage
+TypeScript Specification
 
-**Dependencies:**
-- AavaTextareaComponent
-- Angular Forms
+Inputs:
+- task: Task (task data object)
+- showPriority: boolean (display priority badge)
+- showAssignee: boolean (display assignee avatar)
+- isSelected: boolean (selection state)
 
-**Library Components Used:**
-- AavaTextareaComponent → UI Library Textarea
+Outputs:
+- taskClicked: EventEmitter<Task> (task selection)
+- taskSelected: EventEmitter<Task> (task detail view)
 
-**TypeScript Specification**
+State:
+- isHovered: boolean (hover state)
+- priorityColor: string (computed priority color)
 
-**Inputs:**
-- value: string (current textarea value)
-- maxLength: number (2000 characters)
-- rows: number (4 rows)
-- errors: string[] (validation error messages)
+Methods:
+- onClick() → Emits task selection event
+- getPriorityColor(priority: string) → Returns color for priority
+- formatDueDate(date: Date) → Formats due date display
 
-**Outputs:**
-- onChange: EventEmitter<string> (value changes)
-- onBlur: EventEmitter<void> (focus lost)
+HTML STRUCTURE (PSEUDO CODE ONLY)
 
-**State:**
-- characterCount: number (current character count)
-- isValid: boolean (validation state)
-
-**Methods:**
-- updateCharacterCount(value: string) → void (count characters)
-- handleInputChange(value: string) → void (process input changes)
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<div class="description-input-container">
-  <label for="task-description" class="input-label">Description</label>
+<div class="task-card" 
+     [class.selected]="isSelected"
+     [class.hovered]="isHovered"
+     (click)="onClick()"
+     (mouseenter)="isHovered = true"
+     (mouseleave)="isHovered = false">
   
-  <aava-textarea-component
-    id="task-description"
-    [value]="value"
-    [maxLength]="maxLength"
-    [rows]="rows"
-    [placeholder]="'Describe the task in detail...'"
-    [hasError]="!isValid"
-    (valueChange)="handleInputChange($event)"
-    (blur)="onBlur.emit()">
-  </aava-textarea-component>
-  
-  <div class="input-footer">
-    <character-counter
-      [current]="characterCount"
-      [max]="maxLength"
-      [showWarning]="characterCount > maxLength * 0.9">
-    </character-counter>
-    
-    <error-message
-      *ngIf="errors?.length"
-      [messages]="errors">
-    </error-message>
+  <div class="task-header">
+    <div class="task-title">{{task.title}}</div>
+    <badge-component 
+      *ngIf="showPriority"
+      [type]="task.priority.toLowerCase()"
+      [text]="task.priority">
+    </badge-component>
   </div>
-</div>
-```
-
-**CSS SPECIFICATION**
-
-**Layout:**
-- display: flex
-- flex-direction: column
-- gap: 8px
-
-**Spacing:**
-- margin-bottom: 16px
-- min-height: 120px (4 rows)
-
-**Component Styles:**
-- .description-input-container (wrapper)
-- .input-label (label styling)
-- .input-footer (counter and error container)
-
-**Responsive:**
-- Full width on all breakpoints
-- Adjustable height based on content
-
-**API INTEGRATION**
-
-- None (form control only)
-
-**ERROR HANDLING**
-
-- Max length validation → "Description cannot exceed 2000 characters"
-- Real-time character counting
-
-**INTERACTION FLOW**
-
-**User Action → UI → API**
-- Type in textarea → update character count → validate → emit changes
-- Exceed max length → show warning → prevent further input
-
-#### 4.5 TaskPrioritySelect
-
-**Component Type:** Shared
-
-**Mapped From A1:** TaskPrioritySelect (Custom Select)
-
-**Purpose:** Priority selection dropdown with enum validation
-
-**Parent:** TaskFormComponent
-
-**Children:**
-- Custom Select Component
-- ErrorMessage
-
-**Dependencies:**
-- Custom Select Component
-- Priority Enum
-
-**Library Components Used:**
-- Custom Select Component → Internal Dropdown Implementation
-
-**TypeScript Specification**
-
-**Inputs:**
-- value: Priority (selected priority)
-- options: PriorityOption[] (available priorities)
-- required: boolean (true)
-- errors: string[] (validation error messages)
-
-**Outputs:**
-- onSelectionChange: EventEmitter<Priority> (selection changes)
-
-**State:**
-- selectedValue: Priority (current selection)
-- isOpen: boolean (dropdown state)
-- isValid: boolean (validation state)
-
-**Methods:**
-- toggleDropdown() → void (open/close dropdown)
-- selectOption(priority: Priority) → void (handle selection)
-- validateSelection() → ValidationResult (validate selection)
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<div class="priority-select-container">
-  <label for="task-priority" class="input-label">Priority *</label>
   
-  <div class="custom-select" [class.open]="isOpen">
-    <button 
-      type="button"
-      class="select-trigger"
-      [class.has-error]="!isValid"
-      (click)="toggleDropdown()">
-      <span class="selected-value">
-        <span class="priority-badge" [class]="selectedValue?.toLowerCase()">
-          {{ selectedValue || 'Select Priority' }}
-        </span>
+  <div class="task-description" *ngIf="task.description">
+    {{task.description | slice:0:100}}{{task.description.length > 100 ? '...' : ''}}
+  </div>
+  
+  <div class="task-footer">
+    <div class="task-meta">
+      <span class="due-date" *ngIf="task.dueDate">
+        Due: {{task.dueDate | date:'MMM dd'}}
       </span>
-      <span class="dropdown-arrow">▼</span>
+    </div>
+    
+    <avatar-component 
+      *ngIf="showAssignee && task.assignee"
+      [user]="task.assignee"
+      size="small">
+    </avatar-component>
+  </div>
+</div>
+
+CSS SPECIFICATION
+
+Layout:
+- display: flex, flex-direction: column
+- border-radius: 8px
+- box-shadow: 0 2px 4px rgba(0,0,0,0.1)
+
+Spacing:
+- padding: 16px
+- gap: 12px (internal elements)
+- margin-bottom: 12px
+
+Component Styles:
+- .task-card (main container with hover effects)
+- .task-header (title and priority layout)
+- .task-footer (meta info and assignee)
+- .selected (selection highlight)
+
+Responsive:
+- Consistent across all breakpoints
+- Touch-friendly sizing on mobile
+
+API INTEGRATION
+
+- onClick() → Potential GET /api/v1/tasks/{id} → Fetch detailed task info
+
+ERROR HANDLING
+
+- Missing task data → Show placeholder content
+- Image loading error → Show default avatar
+
+INTERACTION FLOW
+
+User Action → UI → API
+
+- Click task card → Emit taskClicked event → Parent handles detail view
+- Hover card → Show hover state → No API call
+
+### 4.4 HeaderComponent
+
+Component Type: Layout
+Mapped From A1: HeaderComponent
+Purpose: Top navigation with search functionality and user controls
+Parent: AppComponent
+Children:
+- AavaSearchBarComponent
+- UserControlsComponent
+- AvatarComponent
+
+Dependencies:
+- UserService
+- SearchService
+
+Library Components Used:
+- AavaSearchBarComponent → Search functionality
+
+TypeScript Specification
+
+Inputs:
+- user: UserProfile (current user data)
+- searchConfig: SearchConfig (search configuration)
+
+Outputs:
+- searchPerformed: EventEmitter<string> (search query)
+- settingsOpened: EventEmitter<void> (settings modal)
+- notificationClicked: EventEmitter<void> (notifications)
+
+State:
+- searchQuery: string (current search term)
+- notificationCount: number (unread notifications)
+- isSearchFocused: boolean (search input focus)
+
+Methods:
+- onSearch(query: string) → Emits search event
+- openSettings() → Opens settings modal
+- openNotifications() → Opens notification panel
+
+HTML STRUCTURE (PSEUDO CODE ONLY)
+
+<header class="app-header">
+  <div class="header-left">
+    <div class="brand-section">
+      <img src="/assets/logo.svg" alt="TaskFlow" class="logo">
+      <span class="brand-name">TaskFlow</span>
+    </div>
+  </div>
+  
+  <div class="header-center">
+    <aava-search-bar
+      [placeholder]="'Search tasks...'"
+      [value]="searchQuery"
+      (searchChanged)="onSearch($event)"
+      (focusChanged)="isSearchFocused = $event">
+    </aava-search-bar>
+  </div>
+  
+  <div class="header-right">
+    <button class="notification-btn" (click)="openNotifications()">
+      <icon name="bell"></icon>
+      <span class="notification-badge" *ngIf="notificationCount > 0">
+        {{notificationCount}}
+      </span>
     </button>
     
-    <div class="select-options" *ngIf="isOpen">
-      <div 
-        *ngFor="let option of options"
-        class="select-option"
-        [class.selected]="option.value === selectedValue"
-        (click)="selectOption(option.value)">
-        <span class="priority-badge" [class]="option.value.toLowerCase()">
-          {{ option.label }}
-        </span>
-      </div>
-    </div>
+    <button class="settings-btn" (click)="openSettings()">
+      <icon name="settings"></icon>
+    </button>
+    
+    <avatar-component
+      [user]="user"
+      size="medium"
+      (click)="openUserMenu()">
+    </avatar-component>
   </div>
-  
-  <error-message
-    *ngIf="errors?.length"
-    [messages]="errors">
-  </error-message>
-</div>
-```
+</header>
 
-**CSS SPECIFICATION**
+CSS SPECIFICATION
 
-**Layout:**
-- display: flex
-- flex-direction: column
-- position: relative (for dropdown)
+Layout:
+- display: flex, justify-content: space-between
+- align-items: center
+- height: 64px
 
-**Spacing:**
-- margin-bottom: 16px
-- padding: 12px (select trigger)
+Spacing:
+- padding: 0 24px
+- gap: 16px (header sections)
 
-**Component Styles:**
-- .priority-select-container (wrapper)
-- .custom-select (dropdown container)
-- .select-trigger (clickable area)
-- .select-options (dropdown menu)
-- .priority-badge (priority indicators)
+Component Styles:
+- .app-header (main container with border-bottom)
+- .header-left, .header-center, .header-right (flex sections)
+- .brand-section (logo and name)
+- .notification-badge (count indicator)
 
-**Responsive:**
-- Full width on all breakpoints
-- Dropdown adjusts to content
+Responsive:
+- Mobile: hide brand text, smaller search bar
+- Tablet: show abbreviated brand
+- Desktop: full layout
 
-**API INTEGRATION**
+API INTEGRATION
 
-- None (form control only)
-- Maps to priority field in CreateTaskRequest
+- onSearch() → GET /api/v1/search → Search functionality
+- loadNotifications() → GET /api/v1/notifications → Notification count
 
-**ERROR HANDLING**
+ERROR HANDLING
 
-- Required validation → "Priority is required"
-- Invalid enum validation → "Please select a valid priority"
+- Search API failure → Show Search unavailable message
+- User data loading error → Show default avatar
 
-**INTERACTION FLOW**
+INTERACTION FLOW
 
-**User Action → UI → API**
-- Click dropdown → open options → select priority → close dropdown → emit change
-- Keyboard navigation → arrow keys → enter to select
+User Action → UI → API
 
-#### 4.6 TaskDueDatePicker
+- Type in search → Debounce input → Call search API → Update results
+- Click notifications → Open notification panel → Mark as read
+- Click settings → Open settings modal → No API call
 
-**Component Type:** Shared
-
-**Mapped From A1:** TaskDueDatePicker (AavaCalendarComponent)
-
-**Purpose:** Date selection with future date validation
-
-**Parent:** TaskFormComponent
-
-**Children:**
-- AavaCalendarComponent
-- ErrorMessage
-
-**Dependencies:**
-- AavaCalendarComponent
-- Date Validators
-
-**Library Components Used:**
-- AavaCalendarComponent → UI Library Date Picker
-
-**TypeScript Specification**
-
-**Inputs:**
-- value: Date (selected date)
-- minDate: Date (tomorrow's date)
-- required: boolean (true)
-- errors: string[] (validation error messages)
-
-**Outputs:**
-- onDateChange: EventEmitter<Date> (date selection changes)
-
-**State:**
-- selectedDate: Date (current selection)
-- isValid: boolean (validation state)
-- isOpen: boolean (calendar visibility)
-
-**Methods:**
-- validateDate(date: Date) → ValidationResult (validate date selection)
-- handleDateChange(date: Date) → void (process date changes)
-- formatDateForAPI(date: Date) → string (convert to ISO 8601)
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<div class="due-date-picker-container">
-  <label for="task-due-date" class="input-label">Due Date *</label>
-  
-  <aava-calendar-component
-    id="task-due-date"
-    [selectedDate]="selectedDate"
-    [minDate]="minDate"
-    [maxDate]="null"
-    [placeholder]="'Select due date'"
-    [required]="required"
-    [hasError]="!isValid"
-    (dateChange)="handleDateChange($event)">
-  </aava-calendar-component>
-  
-  <error-message
-    *ngIf="errors?.length"
-    [messages]="errors">
-  </error-message>
-</div>
-```
-
-**CSS SPECIFICATION**
-
-**Layout:**
-- display: flex
-- flex-direction: column
-- gap: 8px
-
-**Spacing:**
-- margin-bottom: 16px
-- padding: 0
-
-**Component Styles:**
-- .due-date-picker-container (wrapper)
-- .input-label (label styling)
-- Calendar component inherits from AavaCalendarComponent
-
-**Responsive:**
-- Full width on mobile
-- Fixed width on desktop
-
-**API INTEGRATION**
-
-- formatDateForAPI() → converts Date to ISO 8601 string for API
-- Maps to dueDate field in CreateTaskRequest
-
-**ERROR HANDLING**
-
-- Required validation → "Due date is required"
-- Future date validation → "Due date must be in the future"
-- Invalid date validation → "Please select a valid date"
-
-**INTERACTION FLOW**
-
-**User Action → UI → API**
-- Click date picker → open calendar → select date → validate → emit change
-- Type date → validate format → validate future date → emit change
-
-### 5. COMPONENT MAPPING SUMMARY
+5. COMPONENT MAPPING SUMMARY
 
 | A1 Component | Final Component | Type |
 |--------------|----------------|---------|
-| TaskCreationComponent | TaskCreationComponent | Page |
-| TaskFormComponent | TaskFormComponent | Feature |
-| TaskTitleInput | TaskTitleInput | Shared |
-| TaskDescriptionInput | TaskDescriptionInput | Shared |
-| TaskPrioritySelect | TaskPrioritySelect | Shared |
-| TaskAssigneeSelect | TaskAssigneeSelect | Shared |
-| TaskDueDatePicker | TaskDueDatePicker | Shared |
-| TaskModalComponent | TaskModalComponent | Layout |
-| LoadingSpinner | LoadingSpinner | Shared |
-| ErrorMessage | ErrorMessage | Shared |
-| SuccessMessage | SuccessMessage | Shared |
-| CharacterCounter | CharacterCounter | Shared |
+| AppComponent | AppComponent | Page |
+| SidebarComponent | AavaSidebarComponent | Layout |
+| HeaderComponent | HeaderComponent | Layout |
+| MainContentComponent | MainContentComponent | Layout |
+| KanbanBoardComponent | KanbanBoardComponent | Feature |
+| TaskCreationComponent | TaskCreationComponent | Feature |
+| TaskCardComponent | TaskCardComponent | Feature |
+| KanbanColumnComponent | KanbanColumnComponent | Feature |
+| AnalyticsComponent | AnalyticsComponent | Feature |
+| IssuesComponent | IssuesComponent | Feature |
 
-### 6. DATA FLOW (FROM AGENT-1)
+6. DATA FLOW (FROM AGENT-1)
 
-**Parent → Child:**
-- App → TaskCreationComponent (isOpen: boolean, columnId: string)
-- TaskCreationComponent → TaskModalComponent (isOpen: boolean, title: string)
-- TaskCreationComponent → TaskFormComponent (initialData: TaskData, isSubmitting: boolean)
-- TaskFormComponent → TaskTitleInput (value: string, maxLength: number, required: boolean, errors: string[])
-- TaskFormComponent → TaskDescriptionInput (value: string, maxLength: number, rows: number, errors: string[])
-- TaskFormComponent → TaskPrioritySelect (value: Priority, options: PriorityOption[], required: boolean, errors: string[])
-- TaskFormComponent → TaskAssigneeSelect (value: string, users: User[], allowUnassigned: boolean, errors: string[])
-- TaskFormComponent → TaskDueDatePicker (value: Date, minDate: Date, required: boolean, errors: string[])
+Parent → Child:
+AppComponent → HeaderComponent (user profile, search config)
+AppComponent → AavaSidebarComponent (navigation items, user profile)
+MainContentComponent → KanbanBoardComponent (tasks data, board config)
+KanbanBoardComponent → KanbanColumnComponent (filtered tasks, column config)
+KanbanColumnComponent → TaskCardComponent (individual task data, display options)
+TaskCreationComponent → AavaButtonComponent (form actions, loading states)
 
-### 7. API USAGE SUMMARY
+7. API USAGE SUMMARY
 
-**Component → API:**
-- TaskCreationComponent → POST /api/v1/tasks (Create new task)
-- TaskFormComponent → CreateTaskRequest model validation and preparation
-- TaskAssigneeSelect → GET /api/v1/users (Load available users - if implemented)
-- Error handling → Standard Error Object with code, message, trace_id
+Component → API:
+- TaskCreationComponent → POST /api/v1/tasks (create new task)
+- KanbanBoardComponent → GET /api/v1/tasks (fetch all tasks)
+- KanbanBoardComponent → PUT /api/v1/tasks/{id} (update task status)
+- HeaderComponent → GET /api/v1/search (search functionality)
+- AppComponent → GET /health (system health check)
 
-**API Data Transformations:**
-- TaskTitleInput → title field (string, maxLength 200)
-- TaskDescriptionInput → description field (string, maxLength 2000)
-- TaskPrioritySelect → priority field (enum: LOW, MEDIUM, HIGH, CRITICAL)
-- TaskDueDatePicker → dueDate field (ISO 8601 string)
-- TaskAssigneeSelect → assignedTo field (UUID string)
+8. NOTES & CONSTRAINTS
 
-### 8. NOTES & CONSTRAINTS
-
-**HTML Structure Compliance:**
-- HTML must follow A1 structure strictly with modal overlay and form hierarchy
-- Component nesting must match the defined parent-child relationships
-- Form structure must support Angular reactive forms implementation
-
-**Component Reusability:**
-- Do NOT create new components unnecessarily - prefer AavaButton, AavaTextboxComponent, AavaTextareaComponent, AavaCalendarComponent from library
-- Custom components only for Select/Dropdown, Modal, and utility components not available in library
-- All form inputs must be reusable across different forms
-
-**Implementation Guidelines:**
-- HTML should be written as structured pseudo-code (not full Angular framework code)
-- CSS should include only key classes and layout rules, not full stylesheets
-- TypeScript specifications must include proper typing for all props, state, and methods
-- API integration must follow OpenAPI specification guidelines with standardized error handling
-- Form validation must provide real-time feedback with character counters and inline error messages
-- Loading states must be implemented for all API calls with appropriate user feedback
-- Accessibility requirements must be met with proper ARIA labels and keyboard navigation support
+- HTML must follow A1 structure strictly - three-column Kanban layout with modal overlays
+- Do NOT create new components unnecessarily - reuse AavaButtonComponent, AavaSearchBarComponent, AavaSidebarComponent from library
+- Prefer reusable library components from @aava/play-core where available
+- HTML must be pseudo-code ONLY (NOT real Angular framework code)
+- TaskCreationComponent MUST include character counters for title (255) and description (2000) as per JIRA requirements
+- Real-time validation feedback required for all form fields
+- Form must reset after successful task creation
+- Loading states required during all API calls
+- Error handling must include user-friendly messages and retry options
+- Responsive design required for mobile, tablet, and desktop breakpoints
+- Accessibility considerations for keyboard navigation and screen readers
+- API integration must handle authentication via JWT Bearer tokens
+- All API calls must include proper error handling and loading states
