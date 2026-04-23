@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Management Dashboard - User Flow Diagram</title>
+    <title>TaskFlow User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true });
@@ -29,203 +29,198 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin: 20px 0;
+            margin-bottom: 20px;
         }
-        .flow-description {
+        .description {
             background: white;
             padding: 20px;
             border-radius: 8px;
-            margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .flow-description h3 {
-            color: #2c3e50;
+        .description h2 {
+            color: #333;
             margin-top: 0;
         }
-        .flow-description ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        .flow-description li {
-            margin: 5px 0;
-            color: #555;
+        .description ul {
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Task Management Dashboard - User Flow Diagram</h1>
+        <h1>TaskFlow Kanban Board - User Flow Diagram</h1>
         
-        <div class="flow-description">
-            <h3>User Flow Overview</h3>
-            <p>This diagram illustrates the complete user journey through the Task Management Dashboard, focusing on the task creation process and system navigation.</p>
-            
-            <h4>Key User Interactions:</h4>
-            <ul>
-                <li><strong>Dashboard Access:</strong> User enters the system and views the main dashboard</li>
-                <li><strong>Navigation:</strong> User can navigate between Board, Analytics, and Issues sections</li>
-                <li><strong>Task Creation:</strong> User initiates task creation from any kanban column</li>
-                <li><strong>Form Completion:</strong> User fills out task details with real-time validation</li>
-                <li><strong>Submission:</strong> User submits the form with proper error handling and success feedback</li>
-                <li><strong>Task Management:</strong> User can view and manage created tasks in the kanban board</li>
-            </ul>
-        </div>
-
         <div class="mermaid">
-flowchart TD
-    Start[User Opens Dashboard]
-    Start --> LoadDashboard[Load Main Dashboard]
-    LoadDashboard --> ViewBoard[View Kanban Board]
-    
-    ViewBoard --> NavBoard[Navigate to Board]
-    ViewBoard --> NavAnalytics[Navigate to Analytics]
-    ViewBoard --> NavIssues[Navigate to Issues]
-    ViewBoard --> CreateTask[Click Add Task Button]
-    
-    NavBoard --> ViewColumns[View Kanban Columns]
-    NavAnalytics --> ViewAnalytics[View Analytics Dashboard]
-    NavIssues --> ViewIssues[View Issues Tracker]
-    
-    ViewColumns --> CreateTask
-    ViewAnalytics --> CreateTask
-    ViewIssues --> CreateTask
-    
-    CreateTask --> OpenModal[Open Task Creation Modal]
-    OpenModal --> InitForm[Initialize Empty Form]
-    
-    InitForm --> FillTitle[Enter Task Title]
-    FillTitle --> ValidateTitle[Validate Title]
-    ValidateTitle --> TitleValid{Title Valid?}
-    TitleValid -->|No| ShowTitleError[Show Title Error]
-    ShowTitleError --> FillTitle
-    TitleValid -->|Yes| UpdateTitleCounter[Update Character Counter]
-    
-    UpdateTitleCounter --> FillDescription[Enter Description]
-    FillDescription --> ValidateDescription[Validate Description]
-    ValidateDescription --> UpdateDescCounter[Update Character Counter]
-    
-    UpdateDescCounter --> SelectPriority[Select Priority]
-    SelectPriority --> ValidatePriority[Validate Priority]
-    ValidatePriority --> PriorityValid{Priority Valid?}
-    PriorityValid -->|No| ShowPriorityError[Show Priority Error]
-    ShowPriorityError --> SelectPriority
-    PriorityValid -->|Yes| SelectAssignee[Select Assignee]
-    
-    SelectAssignee --> LoadUsers[Load Available Users]
-    LoadUsers --> ChooseAssignee[Choose User or Leave Unassigned]
-    
-    ChooseAssignee --> SelectDueDate[Select Due Date]
-    SelectDueDate --> ValidateDate[Validate Future Date]
-    ValidateDate --> DateValid{Date Valid?}
-    DateValid -->|No| ShowDateError[Show Date Error]
-    ShowDateError --> SelectDueDate
-    DateValid -->|Yes| FormComplete[Form Complete]
-    
-    FormComplete --> SubmitForm[Click Create Task]
-    SubmitForm --> ValidateForm[Validate All Fields]
-    ValidateForm --> AllValid{All Fields Valid?}
-    AllValid -->|No| ShowFormErrors[Show Form Errors]
-    ShowFormErrors --> FillTitle
-    AllValid -->|Yes| ShowLoading[Show Loading Spinner]
-    
-    ShowLoading --> CallAPI[Call Create Task API]
-    CallAPI --> APIResponse{API Response}
-    APIResponse -->|Success| ShowSuccess[Show Success Message]
-    APIResponse -->|Error| ShowAPIError[Show API Error]
-    
-    ShowSuccess --> CloseModal[Close Modal]
-    ShowAPIError --> RetryOption[Show Retry Option]
-    RetryOption --> SubmitForm
-    
-    CloseModal --> RefreshBoard[Refresh Kanban Board]
-    RefreshBoard --> ViewNewTask[View Created Task]
-    ViewNewTask --> ViewBoard
-    
-    ViewNewTask --> EditTask[Edit Task]
-    ViewNewTask --> MoveTask[Move Task Between Columns]
-    ViewNewTask --> DeleteTask[Delete Task]
-    
-    EditTask --> OpenModal
-    MoveTask --> UpdateTaskStatus[Update Task Status]
-    DeleteTask --> ConfirmDelete[Confirm Deletion]
-    
-    UpdateTaskStatus --> RefreshBoard
-    ConfirmDelete --> RemoveTask[Remove Task from Board]
-    RemoveTask --> RefreshBoard
+            flowchart TD
+                Start[User Opens TaskFlow Application]
+                Start --> LoadApp
+                LoadApp[Application Loads]
+                LoadApp --> CheckAuth
+                CheckAuth{User Authenticated?}
+                CheckAuth -->|No| Login[Login Page]
+                CheckAuth -->|Yes| Dashboard
+                Login --> AuthSuccess
+                AuthSuccess[Authentication Success]
+                AuthSuccess --> Dashboard
+                
+                Dashboard[Dashboard Loads]
+                Dashboard --> LoadHeader
+                LoadHeader[Load Header Component]
+                LoadHeader --> LoadSidebar
+                LoadSidebar[Load Sidebar Navigation]
+                LoadSidebar --> LoadKanban
+                LoadKanban[Load Kanban Board]
+                LoadKanban --> FetchTasks
+                FetchTasks[Fetch Tasks from API]
+                FetchTasks --> DisplayBoard
+                DisplayBoard[Display Three Column Board]
+                
+                DisplayBoard --> UserActions
+                UserActions{User Action}
+                
+                UserActions -->|Click Add Task| OpenTaskModal
+                UserActions -->|Search Tasks| SearchFlow
+                UserActions -->|Click Task Card| ViewTask
+                UserActions -->|Drag Task| MoveTask
+                UserActions -->|Click Analytics| Analytics
+                UserActions -->|Click Issues| Issues
+                UserActions -->|Click Settings| Settings
+                
+                OpenTaskModal[Open Task Creation Modal]
+                OpenTaskModal --> FillForm
+                FillForm[Fill Task Form]
+                FillForm --> ValidateForm
+                ValidateForm{Form Valid?}
+                ValidateForm -->|No| ShowErrors
+                ShowErrors[Show Validation Errors]
+                ShowErrors --> FillForm
+                ValidateForm -->|Yes| SubmitTask
+                SubmitTask[Submit Task to API]
+                SubmitTask --> TaskCreated
+                TaskCreated{Task Created Successfully?}
+                TaskCreated -->|No| ShowError
+                ShowError[Show Error Message]
+                ShowError --> FillForm
+                TaskCreated -->|Yes| CloseModal
+                CloseModal[Close Modal and Refresh Board]
+                CloseModal --> DisplayBoard
+                
+                SearchFlow[User Types in Search]
+                SearchFlow --> SearchAPI
+                SearchAPI[Call Search API]
+                SearchAPI --> FilterResults
+                FilterResults[Filter and Highlight Results]
+                FilterResults --> DisplayBoard
+                
+                ViewTask[View Task Details]
+                ViewTask --> TaskModal
+                TaskModal[Show Task Detail Modal]
+                TaskModal --> EditTask
+                EditTask{Edit Task?}
+                EditTask -->|Yes| UpdateTask
+                EditTask -->|No| CloseTaskModal
+                UpdateTask[Update Task via API]
+                UpdateTask --> CloseTaskModal
+                CloseTaskModal[Close Task Modal]
+                CloseTaskModal --> DisplayBoard
+                
+                MoveTask[Drag Task Between Columns]
+                MoveTask --> UpdateStatus
+                UpdateStatus[Update Task Status]
+                UpdateStatus --> StatusAPI
+                StatusAPI[Call Update API]
+                StatusAPI --> RefreshBoard
+                RefreshBoard[Refresh Board Display]
+                RefreshBoard --> DisplayBoard
+                
+                Analytics[Navigate to Analytics]
+                Analytics --> LoadAnalytics
+                LoadAnalytics[Load Analytics Component]
+                LoadAnalytics --> FetchStats
+                FetchStats[Fetch Statistics Data]
+                FetchStats --> DisplayCharts
+                DisplayCharts[Display Performance Charts]
+                DisplayCharts --> AnalyticsActions
+                AnalyticsActions{Analytics Action}
+                AnalyticsActions -->|Back to Board| DisplayBoard
+                AnalyticsActions -->|Export Data| ExportData
+                ExportData[Export Analytics Data]
+                ExportData --> DisplayCharts
+                
+                Issues[Navigate to Issues]
+                Issues --> LoadIssues
+                LoadIssues[Load Issues Component]
+                LoadIssues --> FetchIssues
+                FetchIssues[Fetch Issues Data]
+                FetchIssues --> DisplayIssues
+                DisplayIssues[Display Issue List]
+                DisplayIssues --> IssueActions
+                IssueActions{Issue Action}
+                IssueActions -->|Create Issue| CreateIssue
+                IssueActions -->|View Issue| ViewIssue
+                IssueActions -->|Back to Board| DisplayBoard
+                CreateIssue[Create New Issue]
+                CreateIssue --> IssueForm
+                IssueForm[Fill Issue Report Form]
+                IssueForm --> SubmitIssue
+                SubmitIssue[Submit Issue]
+                SubmitIssue --> DisplayIssues
+                ViewIssue[View Issue Details]
+                ViewIssue --> DisplayIssues
+                
+                Settings[Open Settings]
+                Settings --> LoadSettings
+                LoadSettings[Load Settings Modal]
+                LoadSettings --> SettingsOptions
+                SettingsOptions{Settings Option}
+                SettingsOptions -->|Board Config| BoardSettings
+                SettingsOptions -->|User Profile| ProfileSettings
+                SettingsOptions -->|Accessibility| AccessibilitySettings
+                SettingsOptions -->|Close| DisplayBoard
+                BoardSettings[Configure Board Settings]
+                BoardSettings --> SaveBoardConfig
+                SaveBoardConfig[Save Configuration]
+                SaveBoardConfig --> DisplayBoard
+                ProfileSettings[Update User Profile]
+                ProfileSettings --> SaveProfile
+                SaveProfile[Save Profile Changes]
+                SaveProfile --> DisplayBoard
+                AccessibilitySettings[Accessibility Options]
+                AccessibilitySettings --> SaveAccessibility
+                SaveAccessibility[Save Accessibility Settings]
+                SaveAccessibility --> DisplayBoard
         </div>
         
-        <div class="flow-description">
-            <h3>Flow Sections Explained</h3>
+        <div class="description">
+            <h2>User Flow Description</h2>
+            <p>This diagram illustrates the complete user journey through the TaskFlow Kanban Board application, showing all major interaction paths and system responses.</p>
             
-            <h4>1. Dashboard Navigation (Start → ViewBoard)</h4>
+            <h3>Key User Flows:</h3>
             <ul>
-                <li>User accesses the main dashboard</li>
-                <li>System loads the kanban board with three columns: To Do, In Progress, Done</li>
-                <li>User can navigate between Board, Analytics, and Issues sections</li>
+                <li><strong>Application Startup:</strong> User authentication and initial dashboard load</li>
+                <li><strong>Task Management:</strong> Creating, viewing, editing, and moving tasks between columns</li>
+                <li><strong>Navigation:</strong> Moving between Board, Analytics, and Issues sections</li>
+                <li><strong>Search Functionality:</strong> Real-time task search and filtering</li>
+                <li><strong>Settings Management:</strong> Board configuration, user profile, and accessibility options</li>
+                <li><strong>Issue Reporting:</strong> Creating and managing system issues</li>
             </ul>
             
-            <h4>2. Task Creation Initiation (CreateTask → InitForm)</h4>
+            <h3>Technical Components:</h3>
             <ul>
-                <li>User clicks Add Task button from any kanban column</li>
-                <li>Task creation modal opens with empty form</li>
-                <li>Form initializes with all required fields</li>
+                <li><strong>Authentication Flow:</strong> JWT-based user authentication</li>
+                <li><strong>API Integration:</strong> RESTful API calls for all data operations</li>
+                <li><strong>Real-time Updates:</strong> Optimistic UI updates with API synchronization</li>
+                <li><strong>Form Validation:</strong> Client-side validation with server-side verification</li>
+                <li><strong>Error Handling:</strong> Comprehensive error states with user feedback</li>
             </ul>
             
-            <h4>3. Form Field Completion (FillTitle → FormComplete)</h4>
+            <h3>User Experience Features:</h3>
             <ul>
-                <li>Title input with real-time validation and character counter (max 255 chars)</li>
-                <li>Description textarea with character counter (max 2000 chars)</li>
-                <li>Priority selection from dropdown (LOW, MEDIUM, HIGH, CRITICAL)</li>
-                <li>Assignee selection from user list or leave unassigned</li>
-                <li>Due date picker with future date validation</li>
-            </ul>
-            
-            <h4>4. Form Submission (SubmitForm → CloseModal)</h4>
-            <ul>
-                <li>Client-side validation of all fields</li>
-                <li>Loading spinner during API call</li>
-                <li>API call to POST /api/v1/tasks</li>
-                <li>Success message and modal closure on success</li>
-                <li>Error handling with retry option on failure</li>
-            </ul>
-            
-            <h4>5. Task Management (ViewNewTask → RefreshBoard)</h4>
-            <ul>
-                <li>Created task appears in appropriate kanban column</li>
-                <li>User can edit, move, or delete tasks</li>
-                <li>Board refreshes to show updated task states</li>
-                <li>Continuous workflow for task management</li>
-            </ul>
-        </div>
-        
-        <div class="flow-description">
-            <h3>Technical Implementation Notes</h3>
-            
-            <h4>Components Involved:</h4>
-            <ul>
-                <li><strong>TaskCreationComponent:</strong> Main modal container with state management</li>
-                <li><strong>TaskFormComponent:</strong> Reactive form with validation logic</li>
-                <li><strong>TaskTitleInput:</strong> Title field with AavaTextboxComponent</li>
-                <li><strong>TaskDescriptionInput:</strong> Description field with AavaTextareaComponent</li>
-                <li><strong>TaskPrioritySelect:</strong> Custom dropdown for priority selection</li>
-                <li><strong>TaskAssigneeSelect:</strong> User selection dropdown</li>
-                <li><strong>TaskDueDatePicker:</strong> Date picker with AavaCalendarComponent</li>
-            </ul>
-            
-            <h4>API Integration:</h4>
-            <ul>
-                <li><strong>POST /api/v1/tasks:</strong> Create new task with form data</li>
-                <li><strong>GET /api/v1/users:</strong> Load available users for assignment</li>
-                <li><strong>Error Handling:</strong> Standardized error responses with user feedback</li>
-            </ul>
-            
-            <h4>Validation Rules:</h4>
-            <ul>
-                <li><strong>Title:</strong> Required, maximum 255 characters</li>
-                <li><strong>Description:</strong> Optional, maximum 2000 characters</li>
-                <li><strong>Priority:</strong> Required, must be valid enum value</li>
-                <li><strong>Due Date:</strong> Required, must be future date</li>
-                <li><strong>Assignee:</strong> Optional, must be valid user ID if selected</li>
+                <li><strong>Responsive Design:</strong> Optimized for mobile, tablet, and desktop</li>
+                <li><strong>Accessibility:</strong> Keyboard navigation and screen reader support</li>
+                <li><strong>Loading States:</strong> Visual feedback during API operations</li>
+                <li><strong>Character Counters:</strong> Real-time validation feedback in forms</li>
+                <li><strong>Drag and Drop:</strong> Intuitive task movement between columns</li>
             </ul>
         </div>
     </div>
