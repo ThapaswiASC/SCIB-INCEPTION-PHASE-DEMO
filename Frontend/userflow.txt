@@ -3,17 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanban Board User Flow Diagram</title>
+    <title>TaskFlow - User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ 
-            startOnLoad: true,
-            theme: 'default',
-            flowchart: {
-                useMaxWidth: true,
-                htmlLabels: true
-            }
-        });
+        mermaid.initialize({ startOnLoad: true });
     </script>
     <style>
         body {
@@ -25,169 +18,178 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         h1 {
-            color: #333;
             text-align: center;
+            color: #333;
             margin-bottom: 30px;
-            font-size: 2.5em;
         }
         .mermaid {
             background: white;
             padding: 20px;
             border-radius: 8px;
-            border: 1px solid #e1e5e9;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
         }
         .description {
-            margin-top: 30px;
+            background: white;
             padding: 20px;
-            background: #f8f9fa;
             border-radius: 8px;
-            border-left: 4px solid #007bff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
-        .description h3 {
-            color: #495057;
+        .description h2 {
+            color: #333;
             margin-top: 0;
         }
         .description p {
-            color: #6c757d;
+            color: #666;
             line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Kanban Board User Flow Diagram</h1>
+        <h1>TaskFlow Kanban Board - User Flow Diagram</h1>
         
+        <div class="description">
+            <h2>Application Overview</h2>
+            <p>This diagram illustrates the complete user journey through the TaskFlow Kanban board application, showing how users interact with the three-column layout, navigation system, task management features, and various application modules including settings, analytics, and reports.</p>
+        </div>
+
         <div class="mermaid">
             flowchart TD
-                Start[User Opens Application]
-                Start --> Login[User Authentication]
-                Login --> Dashboard[Dashboard Landing]
+                Start[User Opens TaskFlow Application]
+                Start --> LoadDashboard[Load Kanban Dashboard]
+                LoadDashboard --> ViewBoard[View Three Column Board]
                 
-                Dashboard --> ViewKanban[View Kanban Board]
-                Dashboard --> ViewTeam[View Team Progress]
-                Dashboard --> ViewConfig[View Configuration]
-                Dashboard --> ViewCollaborative[View Collaborative Board]
-                Dashboard --> ViewAccessible[View Accessible Interface]
+                ViewBoard --> TodoColumn[To Do Column]
+                ViewBoard --> InProgressColumn[In Progress Column]
+                ViewBoard --> DoneColumn[Done Column]
                 
-                ViewKanban --> SearchTasks[Search Tasks]
-                ViewKanban --> CreateTask[Click Add Task Button]
-                ViewKanban --> ViewTaskDetail[Click Task Card]
-                ViewKanban --> MoveTask[Drag Task Between Columns]
-                ViewKanban --> ExportReport[Export Report]
+                TodoColumn --> ViewTasks[View Task Cards]
+                InProgressColumn --> ViewTasks
+                DoneColumn --> ViewTasks
                 
-                CreateTask --> TaskModal[Open Create Task Modal]
-                TaskModal --> FillForm[Fill Task Form]
-                FillForm --> ValidateForm[Validate Form Data]
-                ValidateForm --> SubmitTask[Submit New Task]
-                ValidateForm --> ShowErrors[Show Validation Errors]
-                ShowErrors --> FillForm
-                SubmitTask --> APICall[POST API Call]
-                APICall --> Success[Task Created Successfully]
-                APICall --> APIError[API Error]
-                Success --> UpdateBoard[Update Kanban Board]
-                APIError --> ShowAPIError[Show Error Message]
-                ShowAPIError --> TaskModal
-                UpdateBoard --> ViewKanban
+                ViewTasks --> TaskActions{Task Actions}
+                TaskActions --> CreateTask[Click Add Task Button]
+                TaskActions --> EditTask[Click Edit Task]
+                TaskActions --> DragTask[Drag Task Between Columns]
+                TaskActions --> ViewTaskDetails[Click Task Card]
                 
-                ViewTaskDetail --> TaskDetailModal[Open Task Detail Modal]
-                TaskDetailModal --> EditTask[Edit Task]
-                TaskDetailModal --> DeleteTask[Delete Task]
-                TaskDetailModal --> CloseDetail[Close Detail]
-                EditTask --> UpdateTask[Update Task Data]
-                DeleteTask --> ConfirmDelete[Confirm Deletion]
-                CloseDetail --> ViewKanban
-                UpdateTask --> ViewKanban
-                ConfirmDelete --> ViewKanban
+                CreateTask --> OpenCreateModal[Open Create Task Modal]
+                OpenCreateModal --> FillTaskForm[Fill Task Form]
+                FillTaskForm --> SubmitTask[Submit New Task]
+                SubmitTask --> APICreateTask[POST /api/v1/tasks]
+                APICreateTask --> RefreshBoard[Refresh Kanban Board]
+                RefreshBoard --> ViewBoard
                 
-                MoveTask --> DragStart[Start Drag Operation]
-                DragStart --> DropZone[Drop in New Column]
-                DropZone --> UpdateAPI[Update Task Status]
-                UpdateAPI --> RefreshBoard[Refresh Board State]
-                RefreshBoard --> ViewKanban
+                EditTask --> OpenEditModal[Open Edit Task Modal]
+                OpenEditModal --> UpdateTaskForm[Update Task Details]
+                UpdateTaskForm --> SaveChanges[Save Task Changes]
+                SaveChanges --> RefreshBoard
+                
+                DragTask --> DropTask[Drop Task in New Column]
+                DropTask --> UpdateTaskStatus[Update Task Status]
+                UpdateTaskStatus --> RefreshBoard
+                
+                ViewTaskDetails --> TaskDetailModal[Open Task Detail Modal]
+                TaskDetailModal --> TaskActions
+                
+                Start --> SidebarNav[Sidebar Navigation]
+                SidebarNav --> NavBoard[Board]
+                SidebarNav --> NavSettings[Settings]
+                SidebarNav --> NavAnalytics[Analytics]
+                SidebarNav --> NavReports[Reports]
+                
+                NavBoard --> ViewBoard
+                
+                NavSettings --> SettingsPage[Settings Page]
+                SettingsPage --> DisplaySettings[Display Settings]
+                SettingsPage --> AccessibilitySettings[Accessibility Settings]
+                SettingsPage --> NotificationSettings[Notification Settings]
+                SettingsPage --> AccountSettings[Account Settings]
+                
+                DisplaySettings --> SaveSettings[Save Display Preferences]
+                AccessibilitySettings --> SaveSettings
+                NotificationSettings --> SaveSettings
+                AccountSettings --> SaveSettings
+                SaveSettings --> SettingsPage
+                
+                NavAnalytics --> AnalyticsPage[Analytics Dashboard]
+                AnalyticsPage --> ViewStats[View Statistics Cards]
+                AnalyticsPage --> ViewCharts[View Performance Charts]
+                AnalyticsPage --> ActivityFeed[View Activity Feed]
+                
+                ViewStats --> AnalyticsPage
+                ViewCharts --> AnalyticsPage
+                ActivityFeed --> AnalyticsPage
+                
+                NavReports --> ReportsPage[Reports Generator]
+                ReportsPage --> ConfigureReport[Configure Report Parameters]
+                ConfigureReport --> GenerateReport[Generate Report]
+                GenerateReport --> PreviewReport[Preview Report]
+                PreviewReport --> DownloadReport[Download Report]
+                PreviewReport --> ReportsPage
+                DownloadReport --> ReportsPage
+                
+                Start --> HeaderActions[Header Actions]
+                HeaderActions --> SearchTasks[Search Tasks]
+                HeaderActions --> Notifications[View Notifications]
+                HeaderActions --> UserProfile[User Profile Menu]
                 
                 SearchTasks --> FilterResults[Filter Task Results]
-                FilterResults --> DisplayFiltered[Display Filtered Tasks]
-                DisplayFiltered --> ViewKanban
+                FilterResults --> ViewBoard
                 
-                ViewTeam --> TeamDashboard[Team Progress Dashboard]
-                TeamDashboard --> ViewMember[View Team Member]
-                TeamDashboard --> TeamStats[View Team Statistics]
-                ViewMember --> MemberDetail[Member Detail Modal]
-                MemberDetail --> ViewTeam
-                TeamStats --> ViewTeam
+                Notifications --> NotificationList[View Notification List]
+                NotificationList --> MarkAsRead[Mark Notifications Read]
+                MarkAsRead --> HeaderActions
                 
-                ViewConfig --> BoardConfig[Board Configuration]
-                ViewConfig --> ColumnConfig[Column Configuration]
-                ViewConfig --> AccessibilityConfig[Accessibility Settings]
-                BoardConfig --> SaveConfig[Save Configuration]
-                ColumnConfig --> ColumnModal[Column Config Modal]
-                ColumnModal --> SaveColumnConfig[Save Column Settings]
-                AccessibilityConfig --> SaveAccessibility[Save Accessibility Settings]
-                SaveConfig --> ViewConfig
-                SaveColumnConfig --> ViewConfig
-                SaveAccessibility --> ViewConfig
+                UserProfile --> ProfileSettings[Profile Settings]
+                UserProfile --> Logout[Logout]
+                ProfileSettings --> SaveProfile[Save Profile Changes]
+                SaveProfile --> UserProfile
+                Logout --> LoginPage[Return to Login]
                 
-                ViewCollaborative --> CollabBoard[Collaborative Board View]
-                CollabBoard --> RealTimeUpdates[Real-time Updates]
-                CollabBoard --> TeamChat[Team Communication]
-                RealTimeUpdates --> CollabBoard
-                TeamChat --> ChatPanel[Open Chat Panel]
-                ChatPanel --> SendMessage[Send Message]
-                SendMessage --> CollabBoard
+                ViewBoard --> BulkActions[Bulk Task Actions]
+                BulkActions --> SelectMultipleTasks[Select Multiple Tasks]
+                SelectMultipleTasks --> BulkEdit[Bulk Edit Tasks]
+                SelectMultipleTasks --> BulkDelete[Bulk Delete Tasks]
+                SelectMultipleTasks --> BulkMove[Bulk Move Tasks]
                 
-                ViewAccessible --> AccessibleKanban[Accessible Kanban Interface]
-                AccessibleKanban --> KeyboardNav[Keyboard Navigation]
-                AccessibleKanban --> ScreenReader[Screen Reader Support]
-                AccessibleKanban --> HighContrast[High Contrast Mode]
-                KeyboardNav --> AccessibleKanban
-                ScreenReader --> AccessibleKanban
-                HighContrast --> AccessibleKanban
+                BulkEdit --> OpenBulkModal[Open Bulk Edit Modal]
+                OpenBulkModal --> ApplyBulkChanges[Apply Changes to Selected Tasks]
+                ApplyBulkChanges --> RefreshBoard
                 
-                Dashboard --> HeaderActions[Header Actions]
-                HeaderActions --> Notifications[View Notifications]
-                HeaderActions --> UserSettings[User Settings]
-                HeaderActions --> UserProfile[User Profile]
-                Notifications --> NotificationPanel[Notification Panel]
-                UserSettings --> SettingsModal[Settings Modal]
-                UserProfile --> ProfileModal[Profile Modal]
-                NotificationPanel --> Dashboard
-                SettingsModal --> Dashboard
-                ProfileModal --> Dashboard
+                BulkDelete --> ConfirmDelete[Confirm Bulk Delete]
+                ConfirmDelete --> DeleteTasks[Delete Selected Tasks]
+                DeleteTasks --> RefreshBoard
                 
-                Dashboard --> SidebarNav[Sidebar Navigation]
-                SidebarNav --> SelectBoard[Select Board Type]
-                SelectBoard --> ViewKanban
-                SelectBoard --> ViewTeam
-                SelectBoard --> ViewCollaborative
-                SelectBoard --> ViewAccessible
-                SelectBoard --> ViewConfig
+                BulkMove --> SelectTargetColumn[Select Target Column]
+                SelectTargetColumn --> MoveTasks[Move Selected Tasks]
+                MoveTasks --> RefreshBoard
+                
+                ViewBoard --> TeamChat[Team Communication]
+                TeamChat --> OpenChatModal[Open Team Chat Modal]
+                OpenChatModal --> SendMessage[Send Team Message]
+                SendMessage --> UpdateChat[Update Chat Feed]
+                UpdateChat --> TeamChat
+                
+                APICreateTask --> ErrorHandling{API Error}
+                ErrorHandling --> ShowError[Display Error Message]
+                ErrorHandling --> RetryAction[Retry Action]
+                ShowError --> TaskActions
+                RetryAction --> APICreateTask
         </div>
         
         <div class="description">
-            <h3>User Flow Description</h3>
-            <p>
-                This diagram represents the complete user journey through the Kanban Board application. 
-                The flow starts with user authentication and progresses through various dashboard views 
-                including the main Kanban board, team progress tracking, collaborative features, 
-                accessibility options, and configuration settings.
-            </p>
-            <p>
-                Key interaction patterns include task creation with form validation and API integration, 
-                drag-and-drop task management between columns, real-time collaborative features, 
-                comprehensive search and filtering capabilities, and extensive accessibility support 
-                for inclusive user experience.
-            </p>
-            <p>
-                The application supports multiple board views, team collaboration tools, and 
-                configuration options while maintaining enterprise-grade security, compliance, 
-                and performance standards throughout all user interactions.
-            </p>
+            <h2>Key User Flows Explained</h2>
+            <p><strong>Primary Flow:</strong> Users start by viewing the three-column Kanban board (To Do, In Progress, Done) and can interact with task cards through drag-and-drop, creation, editing, and detailed viewing.</p>
+            <p><strong>Navigation Flow:</strong> The sidebar provides access to different application modules including Board, Settings, Analytics, and Reports, each with their own sub-flows.</p>
+            <p><strong>Task Management Flow:</strong> Users can create new tasks through modals, edit existing tasks, move tasks between columns via drag-and-drop, and perform bulk operations on multiple tasks.</p>
+            <p><strong>Settings Flow:</strong> Users can customize display preferences, accessibility options, notifications, and account settings with persistent storage.</p>
+            <p><strong>Analytics Flow:</strong> Users can view performance statistics, charts, and activity feeds to track productivity and team performance.</p>
+            <p><strong>Reports Flow:</strong> Users can configure, generate, preview, and download custom reports based on task data and team metrics.</p>
         </div>
     </div>
 </body>
