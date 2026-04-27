@@ -6,7 +6,7 @@ Story Description:
 Create Angular component for Kanban board container with three-column layout. Implementation details include creating Angular component at src/app/features/kanban/components/kanban-board/kanban-board.component.ts with @Component decorator and selector 'app-kanban-board'. Define template in kanban-board.component.html with three column containers using CSS Grid layout (grid-template-columns: repeat(3, 1fr)). Create component SCSS file with responsive breakpoints: desktop (>1024px), tablet (768px-1024px), mobile (<768px). Implement OnInit lifecycle hook to initialize column data structure: columns = [{id: 'todo', title: 'To Do', cards: []}, {id: 'inprogress', title: 'In Progress', cards: []}, {id: 'done', title: 'Done', cards: []}]. Add ARIA attributes: role='region', aria-label='Kanban Board', and aria-labelledby for each column header. Implement error handling with *ngIf directive to display error message when column configuration fails. Use Angular Material or custom CSS for styling. Add responsive meta tags and viewport configuration.
 
 Acceptance Criteria:
-- KanbanBoard Component created with proper Angular structure and decorators
+- KanbanBoardComponent created with proper Angular structure and decorators
 - Template renders three distinct column containers with proper semantic HTML
 - CSS Grid layout implemented with responsive breakpoints for desktop, tablet, and mobile
 - ARIA attributes added for accessibility compliance
@@ -17,7 +17,7 @@ UI Tasks:
 - Create Angular component structure
 - Implement three-column layout with CSS Grid
 - Add responsive breakpoints
-- Implement ARIA accessibility attributes
+- Implement ARIA accessibility features
 - Add error handling with conditional rendering
 - Ensure proper semantic HTML structure
 
@@ -37,16 +37,17 @@ Sidebar / Navigation:
 Main Container:
 - Page header with title, subtitle, and action buttons
 - Kanban board with three columns (To Do, In Progress, Done)
-- Task cards within each column
-- Add task buttons for each column
-- Modal overlays for task creation and configuration
+- Each column contains:
+  - Column header with title and task count
+  - Task list with individual task cards
+  - Add task button at bottom
 
 Sections:
-- Cards: Task cards with title, metadata, badges, collaboration indicators
-- Forms: Task creation form with input fields, selectors, textarea
-- Lists: Navigation list, task list within columns
-- Buttons: Primary, secondary, ghost, danger variants
-- Modals: Task creation, team communication, column configuration
+- Task cards with title, metadata (priority badges, due dates, assignees)
+- Collaboration indicators showing active users
+- Modal overlays for task creation and team communication
+- Detail views for task and team member information
+- Settings screens with accessibility preferences
 
 3. LAYOUT STRUCTURE (MANDATORY)
 
@@ -63,35 +64,41 @@ Page Layout Hierarchy:
 │       └── Content Pages
 │           ├── Kanban Board Page
 │           │   ├── Page Header
-│           │   └── Kanban Columns Container
+│           │   └── Kanban Board Container
 │           │       ├── To Do Column
 │           │       ├── In Progress Column
 │           │       └── Done Column
 │           ├── Team Progress Page
-│           └── Modal Overlays
+│           └── Settings Pages
 
 Layout Type:
-- CSS Grid for kanban columns (grid-template-columns: repeat(3, 1fr))
-- Flexbox for overall app layout and component internal layouts
-- Mixed approach with responsive breakpoints
+- CSS Grid for main layout and kanban columns
+- Flexbox for component internal layouts
+- Mixed approach for responsive design
 
 4. REUSABLE COMPONENTS IDENTIFIED
 
 From Library (uicomplibraryplay):
-- Button (Primary, Secondary, Ghost, Danger variants)
-- Card (Glass morphism styling with backdrop blur)
-- Modal (Overlay with backdrop blur and proper ARIA)
+- Button (Primary, Secondary, Ghost variants)
+- Card (Glass morphism styling)
+- Modal (Overlay with backdrop)
 - Badge (Status indicators with color variants)
-- Avatar (Circular user avatars with initials)
-- Input (Form inputs with validation styling)
-- Toggle (Switch components with animations)
-- Navigation (Menu items with active states)
-- Search (Input with icon and focus states)
-- Divider (Section separators)
-- Icon (Various UI icons)
-- Chip (User avatar chips)
-- List (Structured list items)
-- Header (Page headers with actions)
+- Avatar (Circular user representation)
+- Input (Form fields with validation)
+- Toggle (Switch component)
+- Navigation (Menu items with states)
+- Search (Input with icon)
+- Header (Top navigation bar)
+- Sidebar (Navigation panel)
+- Grid (Layout system)
+- Typography (Text styling)
+- Icon (Symbol representations)
+- Dropdown (Select component)
+- Textarea (Multi-line input)
+- Chip (Tag-like component)
+- Progress (Loading indicators)
+- Tooltip (Contextual information)
+- Divider (Section separator)
 
 5. UI COMPONENT ARCHITECTURE
 
@@ -108,20 +115,20 @@ From Library (uicomplibraryplay):
 ├── TaskFeature
 │   ├── TaskDetailComponent
 │   ├── TaskFormComponent
-│   └── TaskModalComponent
+│   └── TaskListComponent
 ├── TeamFeature
 │   ├── TeamDashboardComponent
 │   ├── TeamMemberCardComponent
 │   └── TeamMemberDetailComponent
-└── SharedComponents
-    ├── ButtonComponent
-    ├── CardComponent
-    ├── ModalComponent
-    ├── BadgeComponent
-    ├── AvatarComponent
-    ├── InputComponent
-    ├── SearchComponent
-    └── NavigationComponent
+├── SharedComponents
+│   ├── ButtonComponent
+│   ├── CardComponent
+│   ├── ModalComponent
+│   ├── BadgeComponent
+│   ├── AvatarComponent
+│   ├── InputComponent
+│   ├── SearchComponent
+│   └── NavigationComponent
 
 6. COMPONENT DEFINITIONS
 
@@ -135,11 +142,11 @@ Props:
 State:
 - selectedTask: Task | null
 - draggedTask: Task | null
-- columnConfig: ColumnConfig
+- columnConfiguration: ColumnConfig
 Events:
+- onTaskMove: (taskId: string, newColumnId: string) => void
 - onTaskCreate: (task: CreateTaskRequest) => void
-- onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
-- onTaskMove: (taskId: string, targetColumn: string) => void
+- onTaskSelect: (taskId: string) => void
 API Binding:
 - GET /api/v1/tasks for initial data load
 - POST /api/v1/tasks for task creation
@@ -154,13 +161,13 @@ State:
 - isDropTarget: boolean
 - taskCount: number
 Events:
-- onTaskDrop: (task: Task) => void
+- onTaskDrop: (taskId: string) => void
 - onAddTask: () => void
 API Binding:
 - None (receives data from parent)
 
 TaskCardComponent:
-Purpose: Individual task display with metadata and actions
+Purpose: Individual task display with metadata
 Props:
 - task: Task
 - draggable: boolean
@@ -170,32 +177,15 @@ State:
 - isDragging: boolean
 Events:
 - onTaskClick: (taskId: string) => void
-- onTaskEdit: (taskId: string) => void
-- onDragStart: (task: Task) => void
+- onTaskDragStart: (taskId: string) => void
+- onTaskDragEnd: () => void
 API Binding:
 - None (receives data from parent)
-
-TaskModalComponent:
-Purpose: Modal for creating and editing tasks
-Props:
-- isOpen: boolean
-- task: Task | null
-- mode: 'create' | 'edit'
-State:
-- formData: CreateTaskRequest
-- validationErrors: ValidationError[]
-- isSubmitting: boolean
-Events:
-- onSubmit: (taskData: CreateTaskRequest) => void
-- onCancel: () => void
-API Binding:
-- POST /api/v1/tasks for task creation
-- PUT /api/v1/tasks/:id for task updates
 
 HeaderComponent:
 Purpose: Top navigation with search and user actions
 Props:
-- user: UserSummary
+- user: User
 - notifications: Notification[]
 State:
 - searchQuery: string
@@ -208,7 +198,7 @@ API Binding:
 - GET /api/v1/notifications
 
 SidebarComponent:
-Purpose: Left navigation with menu items
+Purpose: Left navigation panel with menu items
 Props:
 - activeRoute: string
 - menuItems: MenuItem[]
@@ -220,233 +210,282 @@ Events:
 API Binding:
 - None (static navigation)
 
+TaskDetailComponent:
+Purpose: Detailed task view with edit capabilities
+Props:
+- taskId: string
+- editable: boolean
+State:
+- task: Task | null
+- loading: boolean
+- editing: boolean
+- formData: TaskFormData
+Events:
+- onSave: (task: Task) => void
+- onCancel: () => void
+- onDelete: (taskId: string) => void
+API Binding:
+- GET /api/v1/tasks/{id}
+- PUT /api/v1/tasks/{id}
+- DELETE /api/v1/tasks/{id}
+
+ModalComponent:
+Purpose: Reusable modal overlay for forms and dialogs
+Props:
+- isOpen: boolean
+- title: string
+- size: 'small' | 'medium' | 'large'
+State:
+- None
+Events:
+- onClose: () => void
+- onConfirm: () => void
+API Binding:
+- None (content-agnostic)
+
 7. DATA FLOW / PROPS
 
 Parent → Child Mapping:
-AppComponent → SidebarComponent (menuItems, activeRoute)
-AppComponent → HeaderComponent (user, notifications)
-AppComponent → MainContentComponent (currentPage)
-MainContentComponent → KanbanBoardComponent (tasks, columns, loading)
-KanbanBoardComponent → KanbanColumnComponent (column, tasks)
-KanbanColumnComponent → TaskCardComponent (task, draggable)
-KanbanBoardComponent → TaskModalComponent (isOpen, task, mode)
+AppComponent → LayoutComponents (user, theme, config)
+KanbanBoardComponent → KanbanColumnComponent (column, tasks, allowDrop)
+KanbanColumnComponent → TaskCardComponent (task, draggable, selected)
+HeaderComponent → SearchComponent (query, placeholder)
+SidebarComponent → NavigationComponent (items, activeRoute)
+TaskDetailComponent → TaskFormComponent (task, editable)
+ModalComponent → Content Components (data, actions)
 
 8. API SUMMARY
 
 Available APIs:
 - POST /api/v1/tasks → Create new task
 - GET /health → Basic health check
-- GET /health/detailed → Detailed health with dependencies
+- GET /health/detailed → Detailed system health
 
 API Capabilities:
 - Task creation with comprehensive validation
 - JWT-based authentication with Bearer tokens
 - Rate limiting (100 requests per minute)
-- Comprehensive error handling with detailed error responses
-- GDPR, SOX, and ISO 27001 compliance
-- Real-time monitoring and audit logging
+- Comprehensive error handling with detailed responses
+- Request tracing with X-Request-ID headers
+- Multi-environment support (dev, staging, production)
 
 9. API TO UI MAPPING
 
 Component → API:
-- TaskModalComponent → POST /api/v1/tasks (task creation)
-- KanbanBoardComponent → GET /api/v1/tasks (initial data load - assumed)
-- HeaderComponent → GET /api/v1/notifications (notifications - assumed)
-- AppComponent → GET /health (health monitoring)
+- KanbanBoardComponent → POST /api/v1/tasks (task creation)
+- TaskFormComponent → POST /api/v1/tasks (form submission)
+- HeaderComponent → GET /health (system status)
+- AppComponent → GET /health/detailed (startup health check)
 
 API Request/Response Mapping:
-- CreateTaskRequest maps to TaskModalComponent form data
-- TaskResponse maps to Task interface in components
-- ErrorResponse maps to error handling in all components
-- UserSummary maps to user display in HeaderComponent
+- CreateTaskRequest maps to TaskFormData interface
+- TaskResponse maps to Task domain model
+- ErrorResponse maps to ErrorState interface
+- UserSummary maps to User interface
 
 10. API COMPATIBILITY
 
 Compatible:
-- Task creation API fully supports UI task creation form
-- Comprehensive validation aligns with form validation needs
-- Error handling structure supports UI error display
-- Authentication mechanism supports protected routes
+- Task creation API supports all UI form fields
+- Error handling provides detailed validation feedback
+- Authentication flow matches UI requirements
+- Health checks support system monitoring needs
 
 Missing:
-- GET /api/v1/tasks endpoint for fetching existing tasks
-- PUT /api/v1/tasks/:id endpoint for task updates
-- DELETE /api/v1/tasks/:id endpoint for task deletion
-- GET /api/v1/users endpoint for user assignment dropdown
-- GET /api/v1/notifications endpoint for notification display
-- WebSocket endpoints for real-time collaboration features
+- GET /api/v1/tasks (retrieve tasks for board display)
+- PUT /api/v1/tasks/{id} (update existing tasks)
+- DELETE /api/v1/tasks/{id} (delete tasks)
+- GET /api/v1/tasks/{id} (get single task details)
+- GET /api/v1/users (user management)
+- WebSocket endpoints for real-time collaboration
 
 Transformations:
-- API priority enum (LOW, MEDIUM, HIGH, CRITICAL) needs mapping to UI badge variants
-- API status enum (PENDING, IN_PROGRESS, COMPLETED, CANCELLED) needs mapping to column assignments
-- Date formats need conversion between ISO 8601 and display formats
-- Error response structure needs mapping to form validation display
+- Priority enum mapping: UI uses HIGH/MEDIUM/LOW, API uses HIGH/MEDIUM/LOW/CRITICAL
+- Date format conversion: UI displays relative dates, API uses ISO 8601
+- Status mapping: UI uses column-based status, API uses PENDING/IN_PROGRESS/COMPLETED/CANCELLED
 
 11. JIRA vs HTML VALIDATION
 
 Matching Elements:
 - Three-column kanban layout (To Do, In Progress, Done)
 - Task cards with title and metadata
-- Add task functionality with modal
-- Responsive design implementation
-- ARIA attributes for accessibility
-- Error handling with conditional rendering
+- Column headers with task counts
+- Add task functionality
+- Responsive grid layout
+- ARIA accessibility attributes
+- Error state handling
 
 Missing Elements:
-- Angular-specific implementation (HTML shows vanilla JS)
+- Angular-specific implementation (HTML shows static version)
 - OnInit lifecycle hook implementation
 - Angular Material integration
 - TypeScript interfaces and models
 - Angular routing and services
 
 Extra Elements:
-- Team progress dashboard (not in Jira requirements)
-- Collaborative features with real-time indicators
-- Settings and configuration panels
-- Multiple page navigation
-- Advanced accessibility features beyond requirements
+- Team progress dashboard (not in Jira scope)
+- Settings and accessibility features (beyond basic requirement)
+- Modal dialogs and detail views (enhancement)
+- Real-time collaboration features (future enhancement)
 
 12. FOLDER STRUCTURE (MANDATORY)
 
 src/
 ├── app/
-│   ├── features/
-│   │   ├── kanban/
-│   │   │   ├── components/
-│   │   │   │   ├── kanban-board/
-│   │   │   │   │   ├── kanban-board.component.ts
-│   │   │   │   │   ├── kanban-board.component.html
-│   │   │   │   │   ├── kanban-board.component.scss
-│   │   │   │   │   └── kanban-board.component.spec.ts
-│   │   │   │   ├── kanban-column/
-│   │   │   │   └── task-card/
-│   │   │   ├── services/
-│   │   │   │   └── kanban.service.ts
-│   │   │   └── models/
-│   │   │       ├── task.model.ts
-│   │   │       └── column.model.ts
-│   │   ├── tasks/
-│   │   │   ├── components/
-│   │   │   │   ├── task-modal/
-│   │   │   │   ├── task-form/
-│   │   │   │   └── task-detail/
-│   │   │   └── services/
-│   │   │       └── task.service.ts
-│   │   └── team/
-│   │       ├── components/
-│   │       │   ├── team-dashboard/
-│   │       │   └── team-member-card/
-│   │       └── services/
-│   │           └── team.service.ts
+│   ├── core/
+│   │   ├── services/
+│   │   │   ├── task.service.ts
+│   │   │   ├── auth.service.ts
+│   │   │   └── health.service.ts
+│   │   ├── models/
+│   │   │   ├── task.model.ts
+│   │   │   ├── user.model.ts
+│   │   │   └── api.model.ts
+│   │   └── guards/
+│   │       └── auth.guard.ts
 │   ├── shared/
 │   │   ├── components/
 │   │   │   ├── button/
+│   │   │   │   ├── button.component.ts
+│   │   │   │   ├── button.component.html
+│   │   │   │   └── button.component.scss
 │   │   │   ├── card/
 │   │   │   ├── modal/
 │   │   │   ├── badge/
 │   │   │   ├── avatar/
 │   │   │   ├── input/
 │   │   │   └── search/
-│   │   ├── services/
-│   │   │   ├── api.service.ts
-│   │   │   └── auth.service.ts
-│   │   └── models/
-│   │       ├── user.model.ts
-│   │       └── api-response.model.ts
+│   │   ├── pipes/
+│   │   └── directives/
 │   ├── layout/
-│   │   ├── components/
-│   │   │   ├── header/
-│   │   │   ├── sidebar/
-│   │   │   └── main-content/
-│   │   └── layout.module.ts
-│   ├── core/
-│   │   ├── guards/
-│   │   ├── interceptors/
-│   │   └── services/
-│   └── app.component.ts
-└── assets/
-    ├── styles/
-    │   ├── variables.scss
-    │   ├── mixins.scss
-    │   └── themes.scss
-    └── icons/
+│   │   ├── header/
+│   │   │   ├── header.component.ts
+│   │   │   ├── header.component.html
+│   │   │   └── header.component.scss
+│   │   ├── sidebar/
+│   │   │   ├── sidebar.component.ts
+│   │   │   ├── sidebar.component.html
+│   │   │   └── sidebar.component.scss
+│   │   └── main-content/
+│   ├── features/
+│   │   ├── kanban/
+│   │   │   ├── components/
+│   │   │   │   ├── kanban-board/
+│   │   │   │   │   ├── kanban-board.component.ts
+│   │   │   │   │   ├── kanban-board.component.html
+│   │   │   │   │   └── kanban-board.component.scss
+│   │   │   │   ├── kanban-column/
+│   │   │   │   ├── task-card/
+│   │   │   │   └── add-task-button/
+│   │   │   ├── services/
+│   │   │   │   └── kanban.service.ts
+│   │   │   └── models/
+│   │   │       └── kanban.model.ts
+│   │   ├── tasks/
+│   │   │   ├── components/
+│   │   │   │   ├── task-detail/
+│   │   │   │   ├── task-form/
+│   │   │   │   └── task-list/
+│   │   │   └── services/
+│   │   └── team/
+│   │       ├── components/
+│   │       │   ├── team-dashboard/
+│   │       │   ├── team-member-card/
+│   │       │   └── team-member-detail/
+│   │       └── services/
+│   ├── pages/
+│   │   ├── kanban-page/
+│   │   ├── team-page/
+│   │   └── settings-page/
+│   ├── app-routing.module.ts
+│   ├── app.component.ts
+│   ├── app.component.html
+│   ├── app.component.scss
+│   └── app.module.ts
+├── assets/
+│   ├── styles/
+│   │   ├── variables.scss
+│   │   ├── mixins.scss
+│   │   └── themes.scss
+│   └── icons/
+├── environments/
+│   ├── environment.ts
+│   └── environment.prod.ts
+└── styles.scss
 
 13. INTERACTION FLOWS
 
-User Action → UI → API:
-- Click "Add Task" button
-  → Open TaskModalComponent
-  → Fill form and submit
+User Action → UI → API
+- Click "Add Task"
+  → Open TaskFormModal
+  → Fill form data
+  → Submit form
   → Call POST /api/v1/tasks
-  → Update kanban board with new task
+  → Update kanban board state
+  → Close modal
 
 - Drag task between columns
-  → Update TaskCardComponent position
-  → Call PUT /api/v1/tasks/:id (assumed)
+  → Update task status in UI
+  → Call PUT /api/v1/tasks/{id} (when available)
   → Update column task counts
+  → Show success/error feedback
 
 - Click task card
-  → Navigate to TaskDetailComponent
-  → Load task details
-  → Display edit form
+  → Navigate to task detail view
+  → Call GET /api/v1/tasks/{id} (when available)
+  → Display task information
+  → Allow editing if permissions allow
 
-- Search for tasks
-  → Update HeaderComponent search state
+- Search tasks
+  → Update search query state
   → Filter displayed tasks
-  → Call GET /api/v1/tasks with query (assumed)
+  → Call GET /api/v1/tasks?search=query (when available)
+  → Update board with filtered results
 
-- User authentication
-  → Redirect to login if token missing
-  → Include Bearer token in API requests
-  → Handle 401/403 responses
+- System startup
+  → Call GET /health/detailed
+  → Initialize authentication
+  → Load initial task data
+  → Render kanban board
 
 14. GAPS & RECOMMENDATIONS
 
 Missing UI:
-- Task assignment dropdown (needs user API)
-- Task status update controls
-- Bulk task operations
-- Task filtering and sorting controls
+- Drag and drop functionality for task movement
 - Real-time collaboration indicators
-- Notification management panel
+- Advanced filtering and sorting options
+- Bulk task operations
+- Task assignment workflow
+- Time tracking components
+- File attachment support
+- Comment system UI
 
 Improvements:
-- Implement drag-and-drop functionality for task movement
-- Add keyboard navigation for accessibility
-- Implement optimistic updates for better UX
-- Add task search and filtering capabilities
-- Implement real-time updates with WebSocket
-- Add task priority visualization
-- Implement task due date warnings
-- Add task assignment workflow
+- Implement virtual scrolling for large task lists
+- Add keyboard navigation support
+- Enhance accessibility with screen reader support
+- Add offline capability with service workers
+- Implement progressive web app features
+- Add dark mode theme support
+- Optimize for mobile touch interactions
+- Add animation and micro-interactions
 
 Performance:
-- Implement virtual scrolling for large task lists
-- Add lazy loading for task details
-- Implement caching strategy for API responses
-- Add debouncing for search functionality
-- Optimize re-rendering with OnPush change detection
-- Implement service worker for offline functionality
+- Implement lazy loading for task details
+- Add caching strategy for API responses
+- Optimize bundle size with tree shaking
+- Implement change detection optimization
+- Add performance monitoring
+- Use OnPush change detection strategy
+- Implement virtual scrolling for large datasets
+- Add image optimization for avatars and attachments
 
-API Gaps:
-- Need GET /api/v1/tasks endpoint for data fetching
-- Need PUT/PATCH endpoints for task updates
-- Need DELETE endpoint for task removal
-- Need user management endpoints for assignment
-- Need WebSocket endpoints for real-time features
-- Need bulk operation endpoints
-- Need search and filtering endpoints
-
-Security:
-- Implement proper JWT token refresh mechanism
-- Add CSRF protection for state-changing operations
-- Implement proper error boundary handling
-- Add input sanitization for XSS prevention
-- Implement proper RBAC checks in UI
-
-Accessibility:
-- Ensure all interactive elements are keyboard accessible
-- Implement proper focus management
-- Add screen reader announcements for dynamic content
-- Ensure color contrast meets WCAG standards
-- Implement proper ARIA live regions for updates
+API Enhancements Needed:
+- Complete CRUD operations for tasks
+- User management endpoints
+- Real-time WebSocket connections
+- File upload/download endpoints
+- Advanced search and filtering
+- Bulk operations support
+- Audit trail endpoints
+- Notification management APIs
