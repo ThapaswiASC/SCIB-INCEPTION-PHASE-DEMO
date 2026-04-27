@@ -3,203 +3,199 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Management User Flow Diagram</title>
+    <title>Kanban Board User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true });
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
     </script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 40px;
-            background: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        h1 {
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
             text-align: center;
-            color: #333;
-            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+        .diagram-container {
+            padding: 40px;
+            background: #f8f9fa;
         }
         .mermaid {
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin: 0 auto;
         }
-        .description {
+        .legend {
+            margin-top: 30px;
+            padding: 20px;
             background: white;
-            padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .description h2 {
-            color: #333;
+        .legend h3 {
             margin-top: 0;
+            color: #2c3e50;
         }
-        .description p {
-            color: #666;
-            line-height: 1.6;
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
         }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .primary { background: #3498db; }
+        .secondary { background: #2ecc71; }
+        .warning { background: #f39c12; }
+        .danger { background: #e74c3c; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Task Management Application - User Flow Diagram</h1>
-        
-        <div class="description">
-            <h2>Application Overview</h2>
-            <p>This diagram represents the user interaction flows for a comprehensive task management application featuring a Kanban board interface, task creation capabilities, team collaboration tools, and search functionality. The application follows modern UX patterns with glassmorphism design elements and reactive form validation.</p>
+        <div class="header">
+            <h1>Kanban Board User Flow Diagram</h1>
+            <p>Interactive user journey visualization for the Kanban board application</p>
         </div>
-
-        <div class="mermaid">
+        
+        <div class="diagram-container">
+            <div class="mermaid">
 flowchart TD
     Start[User Opens Application]
-    Start --> Login{Authentication Required}
-    Login -->|Yes| AuthForm[Login Form]
-    Login -->|No| Dashboard[Main Dashboard]
-    AuthForm --> Dashboard
+    Start --> Auth{Authentication Required}
+    Auth -->|Yes| Login[Login Screen]
+    Auth -->|No| Dashboard
+    Login --> ValidateAuth{Valid Credentials}
+    ValidateAuth -->|Yes| Dashboard[Kanban Dashboard]
+    ValidateAuth -->|No| LoginError[Show Login Error]
+    LoginError --> Login
     
-    Dashboard --> Header[Header Section]
-    Dashboard --> Sidebar[Navigation Sidebar]
-    Dashboard --> MainContent[Main Content Area]
+    Dashboard --> ViewBoard[View Kanban Board]
+    Dashboard --> TeamDash[Team Dashboard]
+    Dashboard --> Settings[Settings]
     
-    Header --> Search[Search Tasks]
-    Header --> Notifications[View Notifications]
-    Header --> Settings[User Settings]
-    Header --> UserProfile[User Profile]
+    ViewBoard --> SearchTasks[Search Tasks]
+    ViewBoard --> CreateTask[Click Add Task]
+    ViewBoard --> SelectTask[Click Task Card]
+    ViewBoard --> DragTask[Drag Task Between Columns]
     
-    Search --> SearchResults[Display Search Results]
-    SearchResults --> TaskView[View Task Details]
+    SearchTasks --> FilterResults[Display Filtered Tasks]
+    FilterResults --> SelectTask
     
-    Sidebar --> BoardsNav[Navigate to Boards]
-    Sidebar --> TeamProgress[Navigate to Team Progress]
-    Sidebar --> CollapseToggle[Toggle Sidebar]
+    CreateTask --> TaskModal[Open Create Task Modal]
+    TaskModal --> FillForm[Fill Task Details]
+    FillForm --> ValidateForm{Form Valid}
+    ValidateForm -->|Yes| SubmitTask[Submit New Task]
+    ValidateForm -->|No| ShowErrors[Show Validation Errors]
+    ShowErrors --> FillForm
+    SubmitTask --> RefreshBoard[Refresh Board View]
+    RefreshBoard --> ViewBoard
     
-    BoardsNav --> KanbanBoard[Kanban Board View]
-    TeamProgress --> TeamDashboard[Team Progress Dashboard]
+    SelectTask --> TaskDetail[Open Task Detail View]
+    TaskDetail --> EditTask[Edit Task]
+    TaskDetail --> AddComment[Add Comment]
+    TaskDetail --> DeleteTask[Delete Task]
+    TaskDetail --> CloseDetail[Close Detail View]
     
-    MainContent --> KanbanBoard
-    KanbanBoard --> TodoColumn[To Do Column]
-    KanbanBoard --> InProgressColumn[In Progress Column]
-    KanbanBoard --> DoneColumn[Done Column]
+    EditTask --> UpdateForm[Update Task Form]
+    UpdateForm --> SaveChanges[Save Changes]
+    SaveChanges --> TaskDetail
     
-    TodoColumn --> ViewTasks[View Tasks in Column]
-    InProgressColumn --> ViewTasks
-    DoneColumn --> ViewTasks
+    AddComment --> CommentForm[Enter Comment]
+    CommentForm --> PostComment[Post Comment]
+    PostComment --> TaskDetail
     
-    ViewTasks --> TaskCard[Individual Task Card]
-    TaskCard --> TaskDetails[View Task Details]
-    TaskCard --> DragTask[Drag Task to Another Column]
+    DeleteTask --> ConfirmDelete{Confirm Deletion}
+    ConfirmDelete -->|Yes| RemoveTask[Remove Task]
+    ConfirmDelete -->|No| TaskDetail
+    RemoveTask --> RefreshBoard
     
-    DragTask --> UpdateStatus[Update Task Status]
-    UpdateStatus --> RefreshBoard[Refresh Kanban Board]
-    RefreshBoard --> KanbanBoard
+    CloseDetail --> ViewBoard
     
-    TodoColumn --> AddTaskBtn[Click Add Task Button]
-    InProgressColumn --> AddTaskBtn
-    DoneColumn --> AddTaskBtn
+    DragTask --> DropZone[Drop in New Column]
+    DropZone --> UpdateStatus[Update Task Status]
+    UpdateStatus --> RefreshBoard
     
-    AddTaskBtn --> TaskCreationModal[Open Task Creation Modal]
-    TaskCreationModal --> TaskForm[Task Creation Form]
+    TeamDash --> ViewMembers[View Team Members]
+    TeamDash --> TeamComm[Team Communication]
+    ViewMembers --> MemberDetail[Member Detail View]
+    MemberDetail --> TeamDash
+    TeamComm --> CommModal[Open Communication Modal]
+    CommModal --> SendMessage[Send Team Message]
+    SendMessage --> TeamDash
     
-    TaskForm --> TitleField[Enter Task Title]
-    TaskForm --> DescriptionField[Enter Description]
-    TaskForm --> PriorityField[Select Priority]
-    TaskForm --> DueDateField[Set Due Date]
-    TaskForm --> AssigneeField[Select Assignee]
-    TaskForm --> TagsField[Add Tags]
+    Settings --> AccessSettings[Accessibility Settings]
+    Settings --> BoardConfig[Board Configuration]
+    Settings --> UserPrefs[User Preferences]
+    AccessSettings --> SaveSettings[Save Settings]
+    BoardConfig --> ColumnConfig[Configure Columns]
+    UserPrefs --> UpdatePrefs[Update Preferences]
+    SaveSettings --> Settings
+    ColumnConfig --> Settings
+    UpdatePrefs --> Settings
     
-    TitleField --> FormValidation[Real-time Validation]
-    DescriptionField --> FormValidation
-    PriorityField --> FormValidation
-    DueDateField --> FormValidation
-    AssigneeField --> FormValidation
+    ViewBoard --> Notifications[Check Notifications]
+    Notifications --> NotifDetail[View Notification Details]
+    NotifDetail --> ViewBoard
     
-    FormValidation --> CharacterCount[Update Character Counters]
-    FormValidation --> ValidationErrors[Display Validation Errors]
-    FormValidation --> EnableSubmit{Form Valid}
-    
-    EnableSubmit -->|Yes| SubmitTask[Submit Task]
-    EnableSubmit -->|No| TaskForm
-    
-    SubmitTask --> LoadingState[Show Loading Spinner]
-    LoadingState --> APICall[Call Task Creation API]
-    
-    APICall --> APISuccess{API Response}
-    APISuccess -->|Success 201| SuccessMessage[Show Success Message]
-    APISuccess -->|Error 400| ValidationError[Show Validation Errors]
-    APISuccess -->|Error 401| AuthError[Authentication Error]
-    APISuccess -->|Error 403| PermissionError[Permission Denied]
-    APISuccess -->|Error 500| ServerError[Server Error Message]
-    
-    SuccessMessage --> ResetForm[Reset Form]
-    ResetForm --> CloseModal[Close Modal]
-    CloseModal --> RefreshBoard
-    
-    ValidationError --> TaskForm
-    AuthError --> Login
-    PermissionError --> Dashboard
-    ServerError --> RetryOption[Show Retry Option]
-    RetryOption --> SubmitTask
-    
-    TaskDetails --> EditTask[Edit Task]
-    TaskDetails --> DeleteTask[Delete Task]
-    TaskDetails --> CommentTask[Add Comment]
-    TaskDetails --> AssignTask[Reassign Task]
-    
-    EditTask --> TaskForm
-    DeleteTask --> ConfirmDelete[Confirm Deletion]
-    ConfirmDelete --> RefreshBoard
-    
-    CommentTask --> CommentForm[Comment Form]
-    CommentForm --> SaveComment[Save Comment]
-    SaveComment --> TaskDetails
-    
-    AssignTask --> UserSelection[Select User]
-    UserSelection --> UpdateAssignment[Update Assignment]
-    UpdateAssignment --> TaskDetails
-    
-    TeamDashboard --> ProgressCharts[View Progress Charts]
-    TeamDashboard --> TeamMetrics[View Team Metrics]
-    TeamDashboard --> TeamCommunication[Team Communication]
-    
-    TeamCommunication --> ChatModal[Open Chat Modal]
-    ChatModal --> SendMessage[Send Message]
-    SendMessage --> UpdateChat[Update Chat]
-    UpdateChat --> TeamCommunication
-    
-    Notifications --> NotificationList[View Notification List]
-    NotificationList --> MarkRead[Mark as Read]
-    NotificationList --> NotificationAction[Take Action]
-    
-    Settings --> UserPreferences[Update Preferences]
-    Settings --> ThemeSettings[Change Theme]
-    Settings --> NotificationSettings[Notification Settings]
-    
-    UserProfile --> ProfileInfo[View Profile Info]
-    UserProfile --> EditProfile[Edit Profile]
-    EditProfile --> SaveProfile[Save Profile Changes]
-    SaveProfile --> UserProfile
-        </div>
-        
-        <div class="description">
-            <h2>Key User Flows Represented</h2>
-            <p><strong>Primary Flows:</strong></p>
-            <ul>
-                <li><strong>Task Creation Flow:</strong> From clicking "Add Task" through form validation to successful task creation</li>
-                <li><strong>Kanban Management:</strong> Viewing, organizing, and moving tasks between columns</li>
-                <li><strong>Search & Discovery:</strong> Finding tasks through search functionality</li>
-                <li><strong>Team Collaboration:</strong> Communication, assignment, and progress tracking</li>
-                <li><strong>User Management:</strong> Authentication, profile management, and settings</li>
-            </ul>
-            <p><strong>Error Handling:</strong> Comprehensive error flows for API failures, validation errors, and authentication issues</p>
-            <p><strong>Real-time Features:</strong> Form validation, character counting, and collaborative updates</p>
+    Dashboard --> Logout[Logout]
+    Logout --> Start
+            </div>
+            
+            <div class="legend">
+                <h3>Flow Legend</h3>
+                <div class="legend-item">
+                    <div class="legend-color primary"></div>
+                    <span>Primary User Actions (Navigation, Core Features)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color secondary"></div>
+                    <span>Task Management Operations (Create, Edit, Move)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color warning"></div>
+                    <span>Form Validation and Error Handling</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color danger"></div>
+                    <span>Authentication and Security Flows</span>
+                </div>
+            </div>
         </div>
     </div>
 </body>
