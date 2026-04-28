@@ -1,97 +1,48 @@
-# API Contract Outline
-## Task Management API - Task Creation Endpoint
+# API Contract Outline - Task Management API
 
-### Document Information
-- **API Version**: v1
-- **Date**: 2024
-- **Jira Reference**: DEMO-2350
-- **OpenAPI Specification**: 3.0.3
+## Version: 1.0
+## Base URL: /api
+## Authentication: Bearer Token Required
+## Content-Type: application/json
 
 ---
 
-## Base Configuration
+## Endpoint: /tasks
 
-### Base URL
-```
-https://api.taskmanagement.company.com/v1
-```
-
-### Authentication
-- **Type**: Bearer Token (JWT)
-- **Header**: `Authorization: Bearer <token>`
-- **Required**: Yes for all endpoints
-
-### Content Type
-- **Request**: `application/json`
-- **Response**: `application/json`
-
----
-
-## Endpoints
-
-### 1. Create Task
-
-**Endpoint**: `POST /api/tasks`
-
-**Description**: Creates a new task with validation and business logic enforcement
-
-**Authentication**: Required (Bearer Token)
-
-**Rate Limiting**: 100 requests per minute per user
+### Method: POST
+**Description**: Create a new task
 
 #### Request Schema
 ```json
 {
-  "type": "object",
-  "required": ["title", "status"],
-  "properties": {
-    "title": {
-      "type": "string",
-      "maxLength": 255,
-      "minLength": 1,
-      "description": "Task title (required)",
-      "example": "Complete API documentation"
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 2000,
-      "description": "Detailed task description (optional)",
-      "example": "Write comprehensive API documentation including examples and error codes"
-    },
-    "status": {
-      "type": "string",
-      "enum": ["TODO", "IN_PROGRESS", "DONE"],
-      "description": "Current task status",
-      "example": "TODO"
-    },
-    "due_date": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Task due date (ISO 8601 format, must be future date)",
-      "example": "2024-12-31T23:59:59Z"
-    },
-    "assigned_to": {
-      "type": "string",
-      "format": "uuid",
-      "description": "UUID of assigned user (optional)",
-      "example": "550e8400-e29b-41d4-a716-446655440000"
-    },
-    "priority": {
-      "type": "string",
-      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-      "description": "Task priority level",
-      "example": "MEDIUM"
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "maxLength": 50
-      },
-      "maxItems": 10,
-      "description": "Task tags for categorization",
-      "example": ["documentation", "api", "urgent"]
-    }
+  "title": {
+    "type": "string",
+    "required": true,
+    "maxLength": 255,
+    "description": "Task title",
+    "example": "Complete project documentation"
+  },
+  "description": {
+    "type": "string",
+    "required": false,
+    "maxLength": 1000,
+    "description": "Detailed task description",
+    "example": "Write comprehensive documentation for the new API endpoints"
+  },
+  "status": {
+    "type": "string",
+    "enum": ["TODO", "IN_PROGRESS", "DONE"],
+    "required": false,
+    "default": "TODO",
+    "description": "Current task status",
+    "example": "TODO"
+  },
+  "due_date": {
+    "type": "string",
+    "format": "date-time",
+    "required": false,
+    "description": "Task due date (must be in the future)",
+    "example": "2024-12-31T23:59:59Z"
   }
 }
 ```
@@ -99,74 +50,51 @@ https://api.taskmanagement.company.com/v1
 #### Response Schema (201 Created)
 ```json
 {
-  "type": "object",
-  "properties": {
-    "id": {
-      "type": "string",
-      "format": "uuid",
-      "description": "Unique task identifier",
-      "example": "123e4567-e89b-12d3-a456-426614174000"
-    },
-    "title": {
-      "type": "string",
-      "description": "Task title",
-      "example": "Complete API documentation"
-    },
-    "description": {
-      "type": "string",
-      "description": "Task description",
-      "example": "Write comprehensive API documentation including examples and error codes"
-    },
-    "status": {
-      "type": "string",
-      "enum": ["TODO", "IN_PROGRESS", "DONE"],
-      "description": "Current task status",
-      "example": "TODO"
-    },
-    "due_date": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Task due date",
-      "example": "2024-12-31T23:59:59Z"
-    },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Task creation timestamp",
-      "example": "2024-01-15T10:30:00Z"
-    },
-    "updated_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Last update timestamp",
-      "example": "2024-01-15T10:30:00Z"
-    },
-    "created_by": {
-      "type": "string",
-      "format": "uuid",
-      "description": "UUID of user who created the task",
-      "example": "550e8400-e29b-41d4-a716-446655440000"
-    },
-    "assigned_to": {
-      "type": "string",
-      "format": "uuid",
-      "description": "UUID of assigned user",
-      "example": "550e8400-e29b-41d4-a716-446655440000"
-    },
-    "priority": {
-      "type": "string",
-      "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-      "description": "Task priority level",
-      "example": "MEDIUM"
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Task tags",
-      "example": ["documentation", "api", "urgent"]
-    }
+  "id": {
+    "type": "string",
+    "format": "uuid",
+    "description": "Unique task identifier",
+    "example": "123e4567-e89b-12d3-a456-426614174000"
+  },
+  "title": {
+    "type": "string",
+    "description": "Task title",
+    "example": "Complete project documentation"
+  },
+  "description": {
+    "type": "string",
+    "description": "Task description",
+    "example": "Write comprehensive documentation for the new API endpoints"
+  },
+  "status": {
+    "type": "string",
+    "enum": ["TODO", "IN_PROGRESS", "DONE"],
+    "description": "Current task status",
+    "example": "TODO"
+  },
+  "due_date": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Task due date",
+    "example": "2024-12-31T23:59:59Z"
+  },
+  "created_at": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Task creation timestamp",
+    "example": "2024-01-01T10:00:00Z"
+  },
+  "updated_at": {
+    "type": "string",
+    "format": "date-time",
+    "description": "Last update timestamp",
+    "example": "2024-01-01T10:00:00Z"
+  },
+  "created_by": {
+    "type": "string",
+    "format": "uuid",
+    "description": "User ID who created the task",
+    "example": "987fcdeb-51a2-43d1-9f12-345678901234"
   }
 }
 ```
@@ -176,210 +104,122 @@ https://api.taskmanagement.company.com/v1
 ##### 400 Bad Request - Validation Errors
 ```json
 {
-  "type": "object",
-  "properties": {
-    "error": {
-      "type": "string",
-      "example": "Validation Error"
-    },
-    "message": {
-      "type": "string",
-      "example": "Request validation failed"
-    },
-    "statusCode": {
-      "type": "integer",
-      "example": 400
-    },
-    "timestamp": {
-      "type": "string",
-      "format": "date-time",
-      "example": "2024-01-15T10:30:00Z"
-    },
-    "path": {
-      "type": "string",
-      "example": "/api/tasks"
-    },
-    "details": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "field": {
-            "type": "string",
-            "example": "title"
-          },
-          "message": {
-            "type": "string",
-            "example": "title should not be empty"
-          },
-          "value": {
-            "type": "string",
-            "example": ""
-          }
-        }
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Request validation failed",
+    "details": [
+      {
+        "field": "title",
+        "message": "Title is required and cannot be empty",
+        "code": "REQUIRED_FIELD"
+      },
+      {
+        "field": "title",
+        "message": "Title must not exceed 255 characters",
+        "code": "MAX_LENGTH_EXCEEDED"
+      },
+      {
+        "field": "due_date",
+        "message": "Due date cannot be in the past",
+        "code": "INVALID_DATE"
+      },
+      {
+        "field": "status",
+        "message": "Status must be one of: TODO, IN_PROGRESS, DONE",
+        "code": "INVALID_ENUM_VALUE"
       }
-    }
+    ],
+    "timestamp": "2024-01-01T10:00:00Z",
+    "path": "/api/tasks",
+    "method": "POST"
   }
 }
 ```
 
-##### 401 Unauthorized
+##### 401 Unauthorized - Authentication Required
 ```json
 {
-  "error": "Unauthorized",
-  "message": "Invalid or missing authentication token",
-  "statusCode": 401,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "path": "/api/tasks"
-}
-```
-
-##### 403 Forbidden
-```json
-{
-  "error": "Forbidden",
-  "message": "Insufficient permissions to create tasks",
-  "statusCode": 403,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "path": "/api/tasks"
-}
-```
-
-##### 409 Conflict
-```json
-{
-  "error": "Conflict",
-  "message": "Task with similar title already exists for this user",
-  "statusCode": 409,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "path": "/api/tasks",
-  "conflictingResource": {
-    "id": "existing-task-uuid",
-    "title": "Conflicting task title"
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Authentication required. Please provide a valid Bearer token.",
+    "timestamp": "2024-01-01T10:00:00Z",
+    "path": "/api/tasks",
+    "method": "POST"
   }
 }
 ```
 
-##### 422 Unprocessable Entity - Business Logic Errors
+##### 403 Forbidden - Insufficient Permissions
 ```json
 {
-  "error": "Unprocessable Entity",
-  "message": "Business rule validation failed",
-  "statusCode": 422,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "path": "/api/tasks",
-  "businessRuleViolations": [
-    {
-      "rule": "DUE_DATE_FUTURE",
-      "message": "Due date must be in the future",
-      "field": "due_date",
-      "value": "2023-12-31T23:59:59Z"
-    }
-  ]
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Insufficient permissions to create tasks",
+    "timestamp": "2024-01-01T10:00:00Z",
+    "path": "/api/tasks",
+    "method": "POST"
+  }
 }
 ```
 
-##### 429 Too Many Requests
+##### 409 Conflict - Business Rule Violation
 ```json
 {
-  "error": "Too Many Requests",
-  "message": "Rate limit exceeded. Maximum 100 requests per minute.",
-  "statusCode": 429,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "path": "/api/tasks",
-  "retryAfter": 60
+  "error": {
+    "code": "BUSINESS_RULE_VIOLATION",
+    "message": "Task creation violates business rules",
+    "details": [
+      {
+        "rule": "DUPLICATE_TASK",
+        "message": "A task with the same title already exists for this user"
+      }
+    ],
+    "timestamp": "2024-01-01T10:00:00Z",
+    "path": "/api/tasks",
+    "method": "POST"
+  }
 }
 ```
 
-##### 500 Internal Server Error
+##### 429 Too Many Requests - Rate Limiting
 ```json
 {
-  "error": "Internal Server Error",
-  "message": "An unexpected error occurred",
-  "statusCode": 500,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "path": "/api/tasks",
-  "correlationId": "abc123-def456-ghi789"
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Too many requests. Please try again later.",
+    "retry_after": 60,
+    "timestamp": "2024-01-01T10:00:00Z",
+    "path": "/api/tasks",
+    "method": "POST"
+  }
 }
 ```
 
----
-
-## Request/Response Examples
-
-### Successful Task Creation
-
-**Request**:
-```bash
-curl -X POST https://api.taskmanagement.company.com/v1/api/tasks \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Complete API documentation",
-    "description": "Write comprehensive API documentation including examples and error codes",
-    "status": "TODO",
-    "due_date": "2024-12-31T23:59:59Z",
-    "priority": "MEDIUM",
-    "tags": ["documentation", "api"]
-  }'
-```
-
-**Response (201 Created)**:
+##### 500 Internal Server Error - System Error
 ```json
 {
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "title": "Complete API documentation",
-  "description": "Write comprehensive API documentation including examples and error codes",
-  "status": "TODO",
-  "due_date": "2024-12-31T23:59:59Z",
-  "created_at": "2024-01-15T10:30:00Z",
-  "updated_at": "2024-01-15T10:30:00Z",
-  "created_by": "550e8400-e29b-41d4-a716-446655440000",
-  "assigned_to": null,
-  "priority": "MEDIUM",
-  "tags": ["documentation", "api"]
+  "error": {
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "An unexpected error occurred. Please try again later.",
+    "correlation_id": "abc123-def456-ghi789",
+    "timestamp": "2024-01-01T10:00:00Z",
+    "path": "/api/tasks",
+    "method": "POST"
+  }
 }
 ```
 
-### Validation Error Example
-
-**Request**:
-```bash
-curl -X POST https://api.taskmanagement.company.com/v1/api/tasks \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "",
-    "status": "INVALID_STATUS",
-    "due_date": "2023-01-01T00:00:00Z"
-  }'
-```
-
-**Response (400 Bad Request)**:
+##### 503 Service Unavailable - System Maintenance
 ```json
 {
-  "error": "Validation Error",
-  "message": "Request validation failed",
-  "statusCode": 400,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "path": "/api/tasks",
-  "details": [
-    {
-      "field": "title",
-      "message": "title should not be empty",
-      "value": ""
-    },
-    {
-      "field": "status",
-      "message": "status must be one of: TODO, IN_PROGRESS, DONE",
-      "value": "INVALID_STATUS"
-    },
-    {
-      "field": "due_date",
-      "message": "due_date must be a future date",
-      "value": "2023-01-01T00:00:00Z"
-    }
-  ]
+  "error": {
+    "code": "SERVICE_UNAVAILABLE",
+    "message": "Service temporarily unavailable due to maintenance.",
+    "retry_after": 3600,
+    "timestamp": "2024-01-01T10:00:00Z",
+    "path": "/api/tasks",
+    "method": "POST"
+  }
 }
 ```
 
@@ -387,79 +227,95 @@ curl -X POST https://api.taskmanagement.company.com/v1/api/tasks \
 
 ## Additional Endpoints (Future Implementation)
 
-### 2. Get Task by ID
-**Endpoint**: `GET /api/tasks/{id}`
-**Description**: Retrieve a specific task by its UUID
+### Method: GET /tasks/{id}
+**Description**: Retrieve a specific task by ID
 **Response**: 200 OK with task data, 404 Not Found if task doesn't exist
 
-### 3. Update Task
-**Endpoint**: `PUT /api/tasks/{id}`
-**Description**: Update an existing task
-**Response**: 200 OK with updated task data, 404 Not Found, 400 Bad Request
-
-### 4. Delete Task
-**Endpoint**: `DELETE /api/tasks/{id}`
-**Description**: Soft delete a task
-**Response**: 204 No Content, 404 Not Found
-
-### 5. List Tasks
-**Endpoint**: `GET /api/tasks`
-**Description**: Retrieve paginated list of tasks with filtering
-**Query Parameters**: page, limit, status, assigned_to, due_date_from, due_date_to
+### Method: GET /tasks
+**Description**: List tasks with pagination and filtering
+**Query Parameters**: page, limit, status, created_by, due_date_from, due_date_to
 **Response**: 200 OK with paginated task list
 
----
+### Method: PUT /tasks/{id}
+**Description**: Update an existing task
+**Request**: Similar to POST but with optional fields
+**Response**: 200 OK with updated task data, 404 Not Found, 409 Conflict
 
-## Security Considerations
-
-### Input Validation
-- All input fields are validated using class-validator decorators
-- SQL injection prevention through parameterized queries
-- XSS prevention through input sanitization
-- Maximum payload size: 1MB
-
-### Authentication & Authorization
-- JWT token required for all endpoints
-- Token expiration: 1 hour
-- Refresh token mechanism available
-- Role-based access control (RBAC)
-
-### Rate Limiting
-- 100 requests per minute per authenticated user
-- 10 requests per minute for unauthenticated requests
-- Sliding window algorithm
-
-### Data Privacy
-- Personal data encryption at rest
-- GDPR compliance for EU users
-- Audit logging for all operations
-- Data retention policies enforced
+### Method: DELETE /tasks/{id}
+**Description**: Delete a task (soft delete)
+**Response**: 204 No Content, 404 Not Found
 
 ---
 
-## Monitoring & Observability
+## Authentication & Authorization
 
-### Metrics
-- Request count and response times
-- Error rates by status code
-- Business metrics (tasks created per day)
-- System metrics (CPU, memory, database connections)
+### Bearer Token Format
+```
+Authorization: Bearer <JWT_TOKEN>
+```
 
-### Logging
-- Structured logging with correlation IDs
-- Request/response logging (excluding sensitive data)
-- Error logging with stack traces
-- Audit logging for compliance
+### Required Claims in JWT
+- sub: User ID (UUID)
+- roles: Array of user roles ["admin", "user", "readonly"]
+- exp: Token expiration timestamp
+- iat: Token issued at timestamp
 
-### Health Checks
-- `/health` endpoint for basic health check
-- `/health/ready` endpoint for readiness probe
-- `/health/live` endpoint for liveness probe
-- Database connectivity check
+### Role Permissions
+- **admin**: Full CRUD access to all tasks
+- **user**: CRUD access to own tasks only
+- **readonly**: Read access to own tasks only
 
 ---
 
-**Document Status**: Draft
-**OpenAPI Specification**: Available at `/api/docs`
-**Postman Collection**: Available upon request
-**Contract Testing**: Automated via Pact framework
+## Rate Limiting
+
+### Limits by Role
+- **admin**: 1000 requests per hour
+- **user**: 500 requests per hour
+- **readonly**: 200 requests per hour
+
+### Headers in Response
+```
+X-RateLimit-Limit: 500
+X-RateLimit-Remaining: 499
+X-RateLimit-Reset: 1640995200
+```
+
+---
+
+## Versioning Strategy
+
+### URL Versioning
+- Current: /api/v1/tasks
+- Future: /api/v2/tasks
+
+### Backward Compatibility
+- Maintain v1 for 12 months after v2 release
+- Deprecation warnings in response headers
+- Migration guide provided in documentation
+
+---
+
+## OpenAPI Specification
+
+### Swagger Documentation
+- Available at: /api/docs
+- Interactive API explorer
+- Schema validation
+- Code generation support
+
+### Specification Features
+- Complete request/response schemas
+- Error response documentation
+- Authentication requirements
+- Example requests and responses
+- Parameter descriptions and constraints
+
+---
+
+**Document Control**
+- Version: 1.0
+- Last Updated: 2024
+- Next Review: Monthly
+- Approved By: API Architecture Team
+- Distribution: Development Teams, QA Teams, Integration Partners
