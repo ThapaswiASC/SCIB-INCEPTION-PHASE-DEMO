@@ -2,86 +2,66 @@ openapi: 3.0.3
 info:
   title: Task Management API
   description: |
-    Enterprise Task Management API for creating, managing, and tracking tasks within the enterprise ecosystem.
+    Enterprise Task Management API for creating, managing, and tracking tasks.
     
-    This API supports mobile applications, internal services, and third-party integrations with comprehensive
-    security, compliance, and auditability features.
+    This API provides comprehensive task management capabilities with enterprise-grade
+    security, validation, and compliance features.
     
-    ## Key Features
-    - JWT-based authentication and RBAC authorization
-    - Comprehensive input validation and error handling
-    - GDPR, SOX, and ISO 27001 compliance
-    - Real-time monitoring and audit logging
-    - High availability and disaster recovery
+    **Key Features:**
+    - JWT-based authentication
+    - Comprehensive input validation
+    - Business rule enforcement
+    - Audit logging
+    - Rate limiting
+    - GDPR compliance
     
-    ## Architecture
-    - Built on Node.js/TypeScript with NestJS framework
-    - PostgreSQL database with Redis caching
-    - Kubernetes deployment with auto-scaling
-    - Multi-region deployment for disaster recovery
-    
-    ## Performance Targets
-    - Response time: < 200ms (95th percentile)
-    - Throughput: 1000+ requests per second
-    - Availability: 99.9% uptime
-    - Error rate: < 0.1%
-  version: '1.0.0'
+    **ADR Reference:** DEMO-2350
+  version: 1.0.0
   contact:
-    name: Task Management Team
-    email: task-api-support@company.com
-    url: https://docs.company.com/task-api
+    name: API Support Team
+    email: api-support@company.com
   license:
     name: Proprietary
-    url: https://company.com/licenses/api
-  termsOfService: https://company.com/terms/api
+    url: https://company.com/license
+  termsOfService: https://company.com/terms
 
 servers:
-  - url: https://api.taskmanagement.company.com
+  - url: https://api.taskmanagement.company.com/v1
     description: Production server
-  - url: https://staging-api.taskmanagement.company.com
+  - url: https://staging-api.taskmanagement.company.com/v1
     description: Staging server
-  - url: https://dev-api.taskmanagement.company.com
+  - url: https://dev-api.taskmanagement.company.com/v1
     description: Development server
 
 security:
   - BearerAuth: []
 
 paths:
-  /api/v1/tasks:
+  /api/tasks:
     post:
       summary: Create a new task
       description: |
-        Creates a new task in the system with comprehensive validation and business rule enforcement.
+        Creates a new task with comprehensive validation and business logic enforcement.
         
-        ## Business Rules
+        **Business Rules:**
+        - Title is mandatory and cannot exceed 255 characters
         - Due date must be in the future
-        - Title must be unique per user
-        - Assigned user must exist and be active
-        - User must have 'tasks:create' permission
+        - Status must be valid enum value
+        - All inputs are validated and sanitized
         
-        ## Audit Trail
-        All task creation operations are logged for compliance and audit purposes.
+        **Security:**
+        - Requires valid JWT authentication token
+        - Rate limited to 100 requests per minute per user
+        - Input validation prevents SQL injection and XSS
+        
+        **Compliance:**
+        - All operations are audit logged
+        - GDPR compliant data handling
       operationId: createTask
       tags:
         - Tasks
       security:
         - BearerAuth: []
-      parameters:
-        - name: X-Request-ID
-          in: header
-          description: Unique request identifier for tracing
-          required: false
-          schema:
-            type: string
-            format: uuid
-          example: "req-123e4567-e89b-12d3-a456-426614174000"
-        - name: X-Client-Version
-          in: header
-          description: Client application version
-          required: false
-          schema:
-            type: string
-          example: "mobile-app-v2.1.0"
       requestBody:
         required: true
         content:
@@ -92,29 +72,27 @@ paths:
               basic_task:
                 summary: Basic task creation
                 value:
-                  title: "Implement user authentication"
-                  description: "Implement JWT-based authentication system with role-based access control"
-                  priority: "HIGH"
-                  dueDate: "2024-12-31T23:59:59Z"
+                  title: "Complete API documentation"
+                  status: "TODO"
+              detailed_task:
+                summary: Detailed task with all fields
+                value:
+                  title: "Complete API documentation"
+                  description: "Write comprehensive API documentation including examples and error codes"
+                  status: "TODO"
+                  due_date: "2024-12-31T23:59:59Z"
+                  priority: "MEDIUM"
+                  tags: ["documentation", "api", "urgent"]
               assigned_task:
                 summary: Task with assignment
                 value:
-                  title: "Code review for payment module"
-                  description: "Review payment processing implementation for security and performance"
-                  priority: "MEDIUM"
-                  dueDate: "2024-02-15T17:00:00Z"
-                  assignedTo: "550e8400-e29b-41d4-a716-446655440000"
-                  tags: ["code-review", "payment", "security"]
-                  estimatedHours: 4.0
-              critical_task:
-                summary: Critical priority task
-                value:
-                  title: "Fix production database connection issue"
-                  description: "Urgent fix required for database connection pool exhaustion in production"
-                  priority: "CRITICAL"
-                  dueDate: "2024-01-16T12:00:00Z"
-                  tags: ["production", "database", "urgent"]
-                  estimatedHours: 2.0
+                  title: "Review code changes"
+                  description: "Review and approve the latest code changes in the repository"
+                  status: "TODO"
+                  due_date: "2024-02-15T17:00:00Z"
+                  assigned_to: "550e8400-e29b-41d4-a716-446655440000"
+                  priority: "HIGH"
+                  tags: ["review", "code"]
       responses:
         '201':
           description: Task created successfully
@@ -124,22 +102,18 @@ paths:
               schema:
                 type: string
                 format: uri
-              example: "/api/v1/tasks/123e4567-e89b-12d3-a456-426614174000"
-            X-Request-ID:
-              description: Request identifier for tracing
-              schema:
-                type: string
-                format: uuid
-            X-Rate-Limit-Remaining:
-              description: Number of requests remaining in current window
+              example: "/api/tasks/123e4567-e89b-12d3-a456-426614174000"
+            X-RateLimit-Remaining:
+              description: Number of requests remaining in the current window
               schema:
                 type: integer
               example: 99
-            X-Rate-Limit-Reset:
-              description: Unix timestamp when rate limit resets
+            X-Correlation-ID:
+              description: Unique request correlation ID for tracing
               schema:
-                type: integer
-              example: 1640995200
+                type: string
+                format: uuid
+              example: "abc123-def456-ghi789"
           content:
             application/json:
               schema:
@@ -149,74 +123,53 @@ paths:
                   summary: Successfully created task
                   value:
                     id: "123e4567-e89b-12d3-a456-426614174000"
-                    title: "Implement user authentication"
-                    description: "Implement JWT-based authentication system with role-based access control"
-                    priority: "HIGH"
-                    status: "PENDING"
-                    dueDate: "2024-12-31T23:59:59Z"
-                    assignedTo:
-                      id: "550e8400-e29b-41d4-a716-446655440000"
-                      name: "John Doe"
-                      email: "john.doe@company.com"
-                    createdBy:
-                      id: "660e8400-e29b-41d4-a716-446655440001"
-                      name: "Jane Smith"
-                      email: "jane.smith@company.com"
-                    tags: ["authentication", "security", "backend"]
-                    estimatedHours: 8.5
-                    createdAt: "2024-01-15T10:30:00Z"
-                    updatedAt: "2024-01-15T10:30:00Z"
-                    version: 1
+                    title: "Complete API documentation"
+                    description: "Write comprehensive API documentation including examples and error codes"
+                    status: "TODO"
+                    due_date: "2024-12-31T23:59:59Z"
+                    created_at: "2024-01-15T10:30:00Z"
+                    updated_at: "2024-01-15T10:30:00Z"
+                    created_by: "550e8400-e29b-41d4-a716-446655440000"
+                    assigned_to: null
+                    priority: "MEDIUM"
+                    tags: ["documentation", "api"]
         '400':
           description: Bad Request - Validation errors
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ValidationErrorResponse'
               examples:
-                validation_error:
+                validation_errors:
                   summary: Multiple validation errors
                   value:
-                    error:
-                      code: "VALIDATION_ERROR"
-                      message: "Request validation failed"
-                      details:
-                        - field: "title"
-                          message: "Title is required and cannot be empty"
-                          rejectedValue: ""
-                          constraint: "IsNotEmpty"
-                        - field: "dueDate"
-                          message: "Due date must be in the future"
-                          rejectedValue: "2023-01-01T00:00:00Z"
-                          constraint: "FutureDate"
-                        - field: "priority"
-                          message: "Priority must be one of: LOW, MEDIUM, HIGH, CRITICAL"
-                          rejectedValue: "INVALID"
-                          constraint: "IsEnum"
-                      timestamp: "2024-01-15T10:30:00Z"
-                      requestId: "req-123e4567-e89b-12d3-a456-426614174000"
-                      path: "/api/v1/tasks"
-                      method: "POST"
+                    error: "Validation Error"
+                    message: "Request validation failed"
+                    statusCode: 400
+                    timestamp: "2024-01-15T10:30:00Z"
+                    path: "/api/tasks"
+                    details:
+                      - field: "title"
+                        message: "title should not be empty"
+                        value: ""
+                      - field: "status"
+                        message: "status must be one of: TODO, IN_PROGRESS, DONE"
+                        value: "INVALID_STATUS"
         '401':
-          description: Unauthorized - Authentication required
+          description: Unauthorized - Invalid or missing authentication token
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                missing_token:
-                  summary: Missing authentication token
+                unauthorized:
+                  summary: Missing or invalid token
                   value:
-                    error:
-                      code: "UNAUTHORIZED"
-                      message: "Authentication required"
-                      details:
-                        reason: "Missing or invalid authorization token"
-                        suggestion: "Please provide a valid Bearer token in the Authorization header"
-                      timestamp: "2024-01-15T10:30:00Z"
-                      requestId: "req-123e4567-e89b-12d3-a456-426614174000"
-                      path: "/api/v1/tasks"
-                      method: "POST"
+                    error: "Unauthorized"
+                    message: "Invalid or missing authentication token"
+                    statusCode: 401
+                    timestamp: "2024-01-15T10:30:00Z"
+                    path: "/api/tasks"
         '403':
           description: Forbidden - Insufficient permissions
           content:
@@ -224,167 +177,118 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               examples:
-                insufficient_permissions:
-                  summary: User lacks required permissions
+                forbidden:
+                  summary: Insufficient permissions
                   value:
-                    error:
-                      code: "FORBIDDEN"
-                      message: "Insufficient permissions"
-                      details:
-                        reason: "User does not have permission to create tasks"
-                        requiredPermission: "tasks:create"
-                        userRole: "readonly"
-                      timestamp: "2024-01-15T10:30:00Z"
-                      requestId: "req-123e4567-e89b-12d3-a456-426614174000"
-                      path: "/api/v1/tasks"
-                      method: "POST"
-        '404':
-          description: Not Found - Referenced resource not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                user_not_found:
-                  summary: Assigned user not found
-                  value:
-                    error:
-                      code: "RESOURCE_NOT_FOUND"
-                      message: "Assigned user not found"
-                      details:
-                        reason: "User with ID 550e8400-e29b-41d4-a716-446655440000 does not exist"
-                        resourceType: "User"
-                        resourceId: "550e8400-e29b-41d4-a716-446655440000"
-                      timestamp: "2024-01-15T10:30:00Z"
-                      requestId: "req-123e4567-e89b-12d3-a456-426614174000"
-                      path: "/api/v1/tasks"
-                      method: "POST"
+                    error: "Forbidden"
+                    message: "Insufficient permissions to create tasks"
+                    statusCode: 403
+                    timestamp: "2024-01-15T10:30:00Z"
+                    path: "/api/tasks"
         '409':
-          description: Conflict - Business rule violation
+          description: Conflict - Task with similar title already exists
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ConflictErrorResponse'
               examples:
-                duplicate_title:
-                  summary: Duplicate task title for user
+                conflict:
+                  summary: Duplicate task title
                   value:
-                    error:
-                      code: "BUSINESS_RULE_VIOLATION"
-                      message: "Task title must be unique per user"
-                      details:
-                        reason: "A task with the same title already exists for this user"
-                        conflictingResource:
-                          id: "existing-task-id"
-                          title: "Implement user authentication"
-                        suggestion: "Please use a different title or update the existing task"
-                      timestamp: "2024-01-15T10:30:00Z"
-                      requestId: "req-123e4567-e89b-12d3-a456-426614174000"
-                      path: "/api/v1/tasks"
-                      method: "POST"
+                    error: "Conflict"
+                    message: "Task with similar title already exists for this user"
+                    statusCode: 409
+                    timestamp: "2024-01-15T10:30:00Z"
+                    path: "/api/tasks"
+                    conflictingResource:
+                      id: "existing-task-uuid"
+                      title: "Conflicting task title"
+        '422':
+          description: Unprocessable Entity - Business logic validation errors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessRuleErrorResponse'
+              examples:
+                business_rule_violation:
+                  summary: Due date in the past
+                  value:
+                    error: "Unprocessable Entity"
+                    message: "Business rule validation failed"
+                    statusCode: 422
+                    timestamp: "2024-01-15T10:30:00Z"
+                    path: "/api/tasks"
+                    businessRuleViolations:
+                      - rule: "DUE_DATE_FUTURE"
+                        message: "Due date must be in the future"
+                        field: "due_date"
+                        value: "2023-12-31T23:59:59Z"
         '429':
           description: Too Many Requests - Rate limit exceeded
           headers:
-            X-Rate-Limit-Limit:
+            Retry-After:
+              description: Number of seconds to wait before retrying
+              schema:
+                type: integer
+              example: 60
+            X-RateLimit-Limit:
               description: Request limit per window
               schema:
                 type: integer
               example: 100
-            X-Rate-Limit-Remaining:
+            X-RateLimit-Remaining:
               description: Requests remaining in current window
               schema:
                 type: integer
               example: 0
-            X-Rate-Limit-Reset:
-              description: Unix timestamp when rate limit resets
+            X-RateLimit-Reset:
+              description: Time when the rate limit resets
               schema:
                 type: integer
-              example: 1640995200
-            Retry-After:
-              description: Seconds to wait before retrying
-              schema:
-                type: integer
-              example: 60
+                format: int64
+              example: 1642248660
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/RateLimitErrorResponse'
               examples:
                 rate_limit_exceeded:
                   summary: Rate limit exceeded
                   value:
-                    error:
-                      code: "RATE_LIMIT_EXCEEDED"
-                      message: "Too many requests"
-                      details:
-                        reason: "Rate limit of 100 requests per minute exceeded"
-                        limit: 100
-                        window: "1 minute"
-                        retryAfter: 60
-                      timestamp: "2024-01-15T10:30:00Z"
-                      requestId: "req-123e4567-e89b-12d3-a456-426614174000"
-                      path: "/api/v1/tasks"
-                      method: "POST"
+                    error: "Too Many Requests"
+                    message: "Rate limit exceeded. Maximum 100 requests per minute."
+                    statusCode: 429
+                    timestamp: "2024-01-15T10:30:00Z"
+                    path: "/api/tasks"
+                    retryAfter: 60
         '500':
-          description: Internal Server Error - Unexpected system error
+          description: Internal Server Error - Unexpected server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/InternalErrorResponse'
               examples:
-                system_error:
-                  summary: Database connection failure
+                internal_error:
+                  summary: Unexpected server error
                   value:
-                    error:
-                      code: "INTERNAL_SERVER_ERROR"
-                      message: "An unexpected error occurred"
-                      details:
-                        reason: "Database connection failed"
-                        suggestion: "Please try again later or contact support if the problem persists"
-                        supportContact: "support@company.com"
-                      timestamp: "2024-01-15T10:30:00Z"
-                      requestId: "req-123e4567-e89b-12d3-a456-426614174000"
-                      path: "/api/v1/tasks"
-                      method: "POST"
-        '503':
-          description: Service Unavailable - Service temporarily unavailable
-          headers:
-            Retry-After:
-              description: Seconds to wait before retrying
-              schema:
-                type: integer
-              example: 300
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                maintenance:
-                  summary: System maintenance in progress
-                  value:
-                    error:
-                      code: "SERVICE_UNAVAILABLE"
-                      message: "Service temporarily unavailable"
-                      details:
-                        reason: "System maintenance in progress"
-                        estimatedRecoveryTime: "2024-01-15T11:00:00Z"
-                        retryAfter: 300
-                      timestamp: "2024-01-15T10:30:00Z"
-                      requestId: "req-123e4567-e89b-12d3-a456-426614174000"
-                      path: "/api/v1/tasks"
-                      method: "POST"
+                    error: "Internal Server Error"
+                    message: "An unexpected error occurred"
+                    statusCode: 500
+                    timestamp: "2024-01-15T10:30:00Z"
+                    path: "/api/tasks"
+                    correlationId: "abc123-def456-ghi789"
 
   /health:
     get:
-      summary: Basic health check
-      description: Returns basic system health status
-      operationId: getHealth
+      summary: Health check endpoint
+      description: Basic health check to verify API availability
+      operationId: healthCheck
       tags:
         - Health
       security: []
       responses:
         '200':
-          description: System is healthy
+          description: API is healthy
           content:
             application/json:
               schema:
@@ -392,29 +296,26 @@ paths:
                 properties:
                   status:
                     type: string
-                    enum: ["UP", "DOWN"]
+                    example: "healthy"
                   timestamp:
                     type: string
                     format: date-time
+                    example: "2024-01-15T10:30:00Z"
                   version:
                     type: string
-                example:
-                  status: "UP"
-                  timestamp: "2024-01-15T10:30:00Z"
-                  version: "1.0.0"
+                    example: "1.0.0"
 
-  /health/detailed:
+  /health/ready:
     get:
-      summary: Detailed health check
-      description: Returns detailed system health including dependencies
-      operationId: getDetailedHealth
+      summary: Readiness probe endpoint
+      description: Kubernetes readiness probe to check if the service is ready to accept traffic
+      operationId: readinessCheck
       tags:
         - Health
-      security:
-        - BearerAuth: []
+      security: []
       responses:
         '200':
-          description: Detailed system health information
+          description: Service is ready
           content:
             application/json:
               schema:
@@ -422,21 +323,55 @@ paths:
                 properties:
                   status:
                     type: string
-                    enum: ["UP", "DOWN", "DEGRADED"]
-                  timestamp:
-                    type: string
-                    format: date-time
-                  version:
-                    type: string
-                  dependencies:
+                    example: "ready"
+                  checks:
                     type: object
                     properties:
                       database:
-                        $ref: '#/components/schemas/HealthStatus'
-                      redis:
-                        $ref: '#/components/schemas/HealthStatus'
-                      authService:
-                        $ref: '#/components/schemas/HealthStatus'
+                        type: string
+                        example: "connected"
+                      authentication:
+                        type: string
+                        example: "available"
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "not_ready"
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        example: "disconnected"
+
+  /health/live:
+    get:
+      summary: Liveness probe endpoint
+      description: Kubernetes liveness probe to check if the service is alive
+      operationId: livenessCheck
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "alive"
+                  uptime:
+                    type: number
+                    example: 3600.5
 
 components:
   securitySchemes:
@@ -445,65 +380,68 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: |
-        JWT Bearer token authentication. Token should be obtained from the authentication service.
+        JWT Bearer token authentication. 
         
-        Example: `Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+        **Token Requirements:**
+        - Valid JWT token issued by the authentication service
+        - Token expiration: 1 hour maximum
+        - Include in Authorization header as: `Bearer <token>`
         
-        Token expiration: 1 hour
-        Refresh token mechanism available
+        **Security Features:**
+        - Token validation on every request
+        - Role-based access control (RBAC)
+        - Automatic token refresh mechanism available
 
   schemas:
     CreateTaskRequest:
       type: object
       required:
         - title
-        - priority
-        - dueDate
+        - status
       properties:
         title:
           type: string
           minLength: 1
-          maxLength: 200
-          description: Task title (must be unique per user)
-          example: "Implement user authentication"
-          pattern: '^[\s\S]*\S[\s\S]*$'  # Must contain at least one non-whitespace character
+          maxLength: 255
+          description: Task title (required)
+          example: "Complete API documentation"
+          pattern: "^[\s\S]*\S[\s\S]*$"
         description:
           type: string
           maxLength: 2000
-          description: Detailed task description
-          example: "Implement JWT-based authentication system with role-based access control"
-        priority:
+          description: Detailed task description (optional)
+          example: "Write comprehensive API documentation including examples and error codes"
+        status:
           type: string
-          enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
-          description: Task priority level
-          example: "HIGH"
-        dueDate:
+          enum: ["TODO", "IN_PROGRESS", "DONE"]
+          description: Current task status
+          example: "TODO"
+        due_date:
           type: string
           format: date-time
           description: Task due date (ISO 8601 format, must be future date)
           example: "2024-12-31T23:59:59Z"
-        assignedTo:
+        assigned_to:
           type: string
           format: uuid
-          description: UUID of the user assigned to the task
+          description: UUID of assigned user (optional)
           example: "550e8400-e29b-41d4-a716-446655440000"
+        priority:
+          type: string
+          enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+          description: Task priority level
+          example: "MEDIUM"
+          default: "MEDIUM"
         tags:
           type: array
           items:
             type: string
             maxLength: 50
-            pattern: '^[a-zA-Z0-9][a-zA-Z0-9-_]*$'  # Alphanumeric, hyphens, underscores
+            pattern: "^[a-zA-Z0-9_-]+$"
           maxItems: 10
           uniqueItems: true
           description: Task tags for categorization
-          example: ["authentication", "security", "backend"]
-        estimatedHours:
-          type: number
-          minimum: 0.5
-          maximum: 1000
-          multipleOf: 0.5
-          description: Estimated hours to complete the task
-          example: 8.5
+          example: ["documentation", "api", "urgent"]
       additionalProperties: false
 
     TaskResponse:
@@ -511,13 +449,10 @@ components:
       required:
         - id
         - title
-        - priority
         - status
-        - dueDate
-        - createdBy
-        - createdAt
-        - updatedAt
-        - version
+        - created_at
+        - updated_at
+        - created_by
       properties:
         id:
           type: string
@@ -528,247 +463,375 @@ components:
         title:
           type: string
           description: Task title
-          example: "Implement user authentication"
+          example: "Complete API documentation"
         description:
           type: string
           nullable: true
           description: Task description
-          example: "Implement JWT-based authentication system with role-based access control"
-        priority:
-          type: string
-          enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
-          description: Task priority level
-          example: "HIGH"
+          example: "Write comprehensive API documentation including examples and error codes"
         status:
           type: string
-          enum: ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"]
+          enum: ["TODO", "IN_PROGRESS", "DONE"]
           description: Current task status
-          example: "PENDING"
-          readOnly: true
-        dueDate:
+          example: "TODO"
+        due_date:
           type: string
           format: date-time
+          nullable: true
           description: Task due date
           example: "2024-12-31T23:59:59Z"
-        assignedTo:
-          $ref: '#/components/schemas/UserSummary'
-          nullable: true
-          description: Assigned user details
-        createdBy:
-          $ref: '#/components/schemas/UserSummary'
-          description: Task creator details
-        tags:
-          type: array
-          items:
-            type: string
-          description: Task tags
-          example: ["authentication", "security", "backend"]
-        estimatedHours:
-          type: number
-          nullable: true
-          description: Estimated hours to complete
-          example: 8.5
-        createdAt:
+        created_at:
           type: string
           format: date-time
           description: Task creation timestamp
           example: "2024-01-15T10:30:00Z"
           readOnly: true
-        updatedAt:
+        updated_at:
           type: string
           format: date-time
           description: Last update timestamp
           example: "2024-01-15T10:30:00Z"
           readOnly: true
-        version:
-          type: integer
-          minimum: 1
-          description: Entity version for optimistic locking
-          example: 1
-          readOnly: true
-      additionalProperties: false
-
-    UserSummary:
-      type: object
-      required:
-        - id
-        - name
-        - email
-      properties:
-        id:
+        created_by:
           type: string
           format: uuid
-          description: User unique identifier
+          description: UUID of user who created the task
           example: "550e8400-e29b-41d4-a716-446655440000"
-        name:
+          readOnly: true
+        assigned_to:
           type: string
-          description: User display name
-          example: "John Doe"
-        email:
+          format: uuid
+          nullable: true
+          description: UUID of assigned user
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        priority:
           type: string
-          format: email
-          description: User email address
-          example: "john.doe@company.com"
+          enum: ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+          description: Task priority level
+          example: "MEDIUM"
+        tags:
+          type: array
+          items:
+            type: string
+          description: Task tags
+          example: ["documentation", "api", "urgent"]
       additionalProperties: false
 
     ErrorResponse:
       type: object
       required:
         - error
+        - message
+        - statusCode
+        - timestamp
+        - path
       properties:
         error:
-          type: object
-          required:
-            - code
-            - message
-            - timestamp
-            - requestId
-            - path
-            - method
-          properties:
-            code:
-              type: string
-              description: Error code for programmatic handling
-              enum:
-                - "VALIDATION_ERROR"
-                - "UNAUTHORIZED"
-                - "FORBIDDEN"
-                - "RESOURCE_NOT_FOUND"
-                - "BUSINESS_RULE_VIOLATION"
-                - "RATE_LIMIT_EXCEEDED"
-                - "INTERNAL_SERVER_ERROR"
-                - "SERVICE_UNAVAILABLE"
-              example: "VALIDATION_ERROR"
-            message:
-              type: string
-              description: Human-readable error message
-              example: "Request validation failed"
-            details:
-              oneOf:
-                - type: array
-                  items:
-                    $ref: '#/components/schemas/ValidationError'
-                - type: object
-                  additionalProperties: true
-              description: Additional error details (format varies by error type)
-            timestamp:
-              type: string
-              format: date-time
-              description: Error occurrence timestamp
-              example: "2024-01-15T10:30:00Z"
-            requestId:
-              type: string
-              format: uuid
-              description: Request identifier for tracing
-              example: "req-123e4567-e89b-12d3-a456-426614174000"
-            path:
-              type: string
-              description: Request path where error occurred
-              example: "/api/v1/tasks"
-            method:
-              type: string
-              description: HTTP method of the failed request
-              example: "POST"
-          additionalProperties: false
-      additionalProperties: false
-
-    ValidationError:
-      type: object
-      required:
-        - field
-        - message
-        - constraint
-      properties:
-        field:
           type: string
-          description: Field name that failed validation
-          example: "dueDate"
+          description: Error type
+          example: "Unauthorized"
         message:
           type: string
-          description: Validation error message
-          example: "Due date must be in the future"
-        rejectedValue:
-          description: Value that was rejected (can be any type)
-          example: "2023-01-01T00:00:00Z"
-        constraint:
-          type: string
-          description: Validation constraint that was violated
-          example: "FutureDate"
-      additionalProperties: false
-
-    HealthStatus:
-      type: object
-      required:
-        - status
-        - responseTime
-      properties:
-        status:
-          type: string
-          enum: ["UP", "DOWN", "DEGRADED"]
-          description: Component health status
-        responseTime:
-          type: number
-          description: Response time in milliseconds
-          example: 25.5
-        lastChecked:
+          description: Human-readable error message
+          example: "Invalid or missing authentication token"
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 401
+        timestamp:
           type: string
           format: date-time
-          description: Last health check timestamp
-        error:
+          description: Error occurrence timestamp
+          example: "2024-01-15T10:30:00Z"
+        path:
           type: string
-          description: Error message if component is down
+          description: Request path that caused the error
+          example: "/api/tasks"
       additionalProperties: false
+
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            details:
+              type: array
+              items:
+                type: object
+                required:
+                  - field
+                  - message
+                properties:
+                  field:
+                    type: string
+                    description: Field that failed validation
+                    example: "title"
+                  message:
+                    type: string
+                    description: Validation error message
+                    example: "title should not be empty"
+                  value:
+                    description: Invalid value that was provided
+                    example: ""
+              description: Detailed validation errors
+
+    ConflictErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            conflictingResource:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  description: ID of the conflicting resource
+                  example: "existing-task-uuid"
+                title:
+                  type: string
+                  description: Title of the conflicting resource
+                  example: "Conflicting task title"
+              description: Information about the conflicting resource
+
+    BusinessRuleErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            businessRuleViolations:
+              type: array
+              items:
+                type: object
+                required:
+                  - rule
+                  - message
+                  - field
+                properties:
+                  rule:
+                    type: string
+                    description: Business rule that was violated
+                    example: "DUE_DATE_FUTURE"
+                  message:
+                    type: string
+                    description: Business rule violation message
+                    example: "Due date must be in the future"
+                  field:
+                    type: string
+                    description: Field that violated the business rule
+                    example: "due_date"
+                  value:
+                    description: Value that violated the business rule
+                    example: "2023-12-31T23:59:59Z"
+              description: Business rule violations
+
+    RateLimitErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            retryAfter:
+              type: integer
+              description: Number of seconds to wait before retrying
+              example: 60
+
+    InternalErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            correlationId:
+              type: string
+              description: Unique correlation ID for error tracking
+              example: "abc123-def456-ghi789"
+
+  parameters:
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      description: Unique request correlation ID for distributed tracing
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: "abc123-def456-ghi789"
+
+    RequestId:
+      name: X-Request-ID
+      in: header
+      description: Unique request identifier
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: "def456-ghi789-jkl012"
+
+  responses:
+    UnauthorizedError:
+      description: Authentication token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ForbiddenError:
+      description: Insufficient permissions to perform the operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+
+    RateLimitError:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          description: Number of seconds to wait before retrying
+          schema:
+            type: integer
+        X-RateLimit-Limit:
+          description: Request limit per window
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          description: Requests remaining in current window
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RateLimitErrorResponse'
+
+    InternalServerError:
+      description: Unexpected server error occurred
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InternalErrorResponse'
+
+  examples:
+    BasicTaskCreation:
+      summary: Basic task creation example
+      description: Minimal required fields for task creation
+      value:
+        title: "Complete project documentation"
+        status: "TODO"
+
+    DetailedTaskCreation:
+      summary: Detailed task creation example
+      description: Task creation with all optional fields
+      value:
+        title: "Implement user authentication"
+        description: "Implement JWT-based authentication system with role-based access control"
+        status: "TODO"
+        due_date: "2024-03-15T17:00:00Z"
+        assigned_to: "550e8400-e29b-41d4-a716-446655440000"
+        priority: "HIGH"
+        tags: ["authentication", "security", "backend"]
+
+    HighPriorityTask:
+      summary: High priority task example
+      description: Critical task with urgent priority
+      value:
+        title: "Fix security vulnerability"
+        description: "Address critical security vulnerability in authentication module"
+        status: "TODO"
+        due_date: "2024-01-20T12:00:00Z"
+        priority: "CRITICAL"
+        tags: ["security", "urgent", "bug"]
 
 tags:
   - name: Tasks
-    description: Task management operations
-    externalDocs:
-      description: Task Management Documentation
-      url: https://docs.company.com/task-api/tasks
+    description: |
+      Task management operations
+      
+      **Features:**
+      - Create tasks with comprehensive validation
+      - Business rule enforcement
+      - Audit logging for compliance
+      - Rate limiting for security
+      
+      **Security:**
+      - JWT authentication required
+      - Role-based access control
+      - Input validation and sanitization
   - name: Health
-    description: System health monitoring
-    externalDocs:
-      description: Health Check Documentation
-      url: https://docs.company.com/task-api/health
+    description: |
+      Health check and monitoring endpoints
+      
+      **Features:**
+      - Basic health check
+      - Kubernetes readiness probe
+      - Kubernetes liveness probe
+      - Dependency health monitoring
 
 externalDocs:
-  description: Complete API Documentation
-  url: https://docs.company.com/task-api
+  description: |
+    Additional documentation and resources
+    
+    **Architecture Documentation:**
+    - High-Level Design Document
+    - API Contract Outline
+    - Non-Functional Requirements
+    
+    **ADR Reference:** DEMO-2350
+  url: https://docs.company.com/task-management-api
 
 # OpenAPI Extensions for Enterprise Features
-x-enterprise-features:
-  compliance:
-    gdpr: true
-    sox: true
-    iso27001: true
-  monitoring:
-    metrics: true
-    tracing: true
-    logging: true
-  security:
-    rbac: true
-    rateLimit: true
-    inputValidation: true
-  performance:
-    caching: true
-    connectionPooling: true
-    autoScaling: true
-
 x-api-governance:
   version: "1.0"
-  lifecycle: "active"
-  deprecationDate: null
-  supportLevel: "full"
-  sla:
-    responseTime: "200ms"
-    availability: "99.9%"
-    throughput: "1000 rps"
+  compliance:
+    - GDPR
+    - ISO27001
+    - SOC2
+  security-requirements:
+    - JWT authentication
+    - Rate limiting
+    - Input validation
+    - Audit logging
+  performance-requirements:
+    response-time: "200ms (95th percentile)"
+    throughput: "1000 RPS"
+    availability: "99.99%"
 
-x-implementation-details:
-  framework: "NestJS"
-  language: "TypeScript"
-  database: "PostgreSQL"
-  cache: "Redis"
-  deployment: "Kubernetes"
-  monitoring: "Prometheus + Grafana"
-  logging: "ELK Stack"
+x-adr-reference:
+  id: "DEMO-2350"
+  title: "Task Management API - Task Creation Endpoint"
+  status: "Implemented"
+  components:
+    - TaskController
+    - CreateTaskDto
+    - TaskService
+    - Task Repository
+
+x-traceability:
+  requirements:
+    - "REQ-TASK-001: Task creation functionality"
+    - "REQ-VAL-001: Input validation requirements"
+    - "REQ-SEC-001: Authentication requirements"
+    - "REQ-AUD-001: Audit logging requirements"
+  test-cases:
+    - "TC001_CreateTaskSuccess"
+    - "TC002_ValidationErrors"
+    - "TC003_BusinessRules"
+    - "TC004_ErrorResponses"
+
+x-monitoring:
+  metrics:
+    - "task_creation_requests_total"
+    - "task_creation_duration_seconds"
+    - "task_creation_errors_total"
+  alerts:
+    - "High error rate (>1%)"
+    - "High response time (>500ms)"
+    - "Rate limit violations"
+  dashboards:
+    - "Task Management API Overview"
+    - "Task Creation Performance"
+    - "Security Metrics"
