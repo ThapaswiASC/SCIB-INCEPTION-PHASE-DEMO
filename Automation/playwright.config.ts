@@ -1,9 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright Configuration
- * Enterprise-grade configuration supporting multi-browser testing,
- * parallel execution, and CI/CD integration
+ * Playwright Configuration for SCIB Task Management System
+ * Supports multi-browser testing, parallel execution, and CI/CD integration
  */
 export default defineConfig({
   testDir: './src/tests',
@@ -28,24 +27,15 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { 
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1920, height: 1080 }
-      },
+      use: { ...devices['Desktop Chrome'] },
     },
     {
       name: 'firefox',
-      use: { 
-        ...devices['Desktop Firefox'],
-        viewport: { width: 1920, height: 1080 }
-      },
+      use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
-      use: { 
-        ...devices['Desktop Safari'],
-        viewport: { width: 1920, height: 1080 }
-      },
+      use: { ...devices['Desktop Safari'] },
     },
     {
       name: 'mobile-chrome',
@@ -57,10 +47,9 @@ export default defineConfig({
     },
   ],
 
-  webServer: process.env.CI ? undefined : {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+  webServer: {
+    command: 'npm run start:test',
+    port: 3000,
     reuseExistingServer: !process.env.CI,
-    timeout: 120000,
   },
 });

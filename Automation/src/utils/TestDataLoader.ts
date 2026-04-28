@@ -1,22 +1,22 @@
-import * as taskData from '../test-data/task-creation-data.json';
+import * as taskData from '../test-data/task-data.json';
 import * as validationMessages from '../test-data/validation-messages.json';
 
 /**
  * Utility class for loading and managing test data
- * Provides environment-specific data loading and validation
+ * Supports environment-specific configurations
  */
 export class TestDataLoader {
   private static instance: TestDataLoader;
   private environment: string;
 
   private constructor() {
-    this.environment = process.env.TEST_ENV || 'development';
+    this.environment = process.env.TEST_ENV || 'dev';
   }
 
   /**
-   * Get singleton instance of TestDataLoader
+   * Get singleton instance
    */
-  static getInstance(): TestDataLoader {
+  public static getInstance(): TestDataLoader {
     if (!TestDataLoader.instance) {
       TestDataLoader.instance = new TestDataLoader();
     }
@@ -24,116 +24,124 @@ export class TestDataLoader {
   }
 
   /**
-   * Get valid task data for successful creation scenarios
+   * Get valid task data
    */
-  getValidTaskData(): any {
-    return taskData.validTaskData;
+  getValidTaskData(): typeof taskData.validTask {
+    return taskData.validTask;
   }
 
   /**
-   * Get invalid data sets for negative testing
+   * Get alternate valid task data
    */
-  getInvalidData(): any {
-    return taskData.invalidData;
+  getValidTaskDataAlternate(): typeof taskData.validTaskAlternate {
+    return taskData.validTaskAlternate;
   }
 
   /**
-   * Get edge case data for boundary testing
+   * Get special character task data
    */
-  getEdgeCaseData(): any {
-    return taskData.edgeCaseData;
+  getSpecialCharacterTaskData(): typeof taskData.specialCharacterTask {
+    return taskData.specialCharacterTask;
   }
 
   /**
-   * Get test data for specific scenario by test key
+   * Get long description task data
    */
-  getScenarioData(testKey: string): any {
-    return taskData.testScenarios[testKey as keyof typeof taskData.testScenarios];
+  getLongDescriptionTaskData(): typeof taskData.longDescriptionTask {
+    return taskData.longDescriptionTask;
   }
 
   /**
-   * Get expected validation error messages
+   * Get invalid assignee task data
    */
-  getValidationMessages(): any {
-    return validationMessages.errorMessages;
+  getInvalidAssigneeTaskData(): typeof taskData.invalidAssigneeTask {
+    return taskData.invalidAssigneeTask;
   }
 
   /**
-   * Get expected success messages
+   * Get valid priorities
    */
-  getSuccessMessages(): any {
-    return validationMessages.successMessages;
+  getValidPriorities(): string[] {
+    return taskData.priorities.valid;
   }
 
   /**
-   * Get info messages
+   * Get invalid priorities
    */
-  getInfoMessages(): any {
-    return validationMessages.infoMessages;
+  getInvalidPriorities(): string[] {
+    return taskData.priorities.invalid;
   }
 
   /**
-   * Get environment-specific base URL
+   * Get valid assignees
    */
-  getBaseUrl(): string {
-    const urls = {
-      development: 'https://dev-scib-task-management.com',
-      staging: 'https://staging-scib-task-management.com',
-      production: 'https://scib-task-management.com'
+  getValidAssignees(): string[] {
+    return taskData.assignees.valid;
+  }
+
+  /**
+   * Get invalid assignees
+   */
+  getInvalidAssignees(): string[] {
+    return taskData.assignees.invalid;
+  }
+
+  /**
+   * Get error message by key
+   */
+  getErrorMessage(key: keyof typeof validationMessages.errorMessages): string {
+    return validationMessages.errorMessages[key];
+  }
+
+  /**
+   * Get success message by key
+   */
+  getSuccessMessage(key: keyof typeof validationMessages.successMessages): string {
+    return validationMessages.successMessages[key];
+  }
+
+  /**
+   * Get character limit by field
+   */
+  getCharacterLimit(field: keyof typeof validationMessages.characterLimits): number {
+    return validationMessages.characterLimits[field];
+  }
+
+  /**
+   * Get validation rule by key
+   */
+  getValidationRule(key: keyof typeof validationMessages.validationRules): any {
+    return validationMessages.validationRules[key];
+  }
+
+  /**
+   * Generate task data with custom values
+   */
+  generateTaskData(overrides: Partial<typeof taskData.validTask>): typeof taskData.validTask {
+    return {
+      ...taskData.validTask,
+      ...overrides
+    };
+  }
+
+  /**
+   * Generate long text of specified length
+   */
+  generateLongText(length: number, baseText: string = "Sample text "): string {
+    return baseText.repeat(Math.ceil(length / baseText.length)).substring(0, length);
+  }
+
+  /**
+   * Get environment-specific configuration
+   */
+  getEnvironmentConfig(): { baseUrl: string; timeout: number } {
+    const configs = {
+      dev: { baseUrl: 'http://localhost:3000', timeout: 30000 },
+      test: { baseUrl: 'http://test.scib.com', timeout: 60000 },
+      staging: { baseUrl: 'http://staging.scib.com', timeout: 60000 },
+      prod: { baseUrl: 'http://prod.scib.com', timeout: 90000 }
     };
     
-    return urls[this.environment as keyof typeof urls] || urls.development;
-  }
-
-  /**
-   * Get environment-specific timeout values
-   */
-  getTimeouts(): { navigation: number; action: number; assertion: number } {
-    const timeouts = {
-      development: { navigation: 60000, action: 30000, assertion: 10000 },
-      staging: { navigation: 45000, action: 20000, assertion: 8000 },
-      production: { navigation: 30000, action: 15000, assertion: 5000 }
-    };
-    
-    return timeouts[this.environment as keyof typeof timeouts] || timeouts.development;
-  }
-
-  /**
-   * Generate test data with dynamic values
-   */
-  generateDynamicTaskData(overrides: Partial<any> = {}): any {
-    const timestamp = Date.now();
-    const defaultData = {
-      title: `SCIB-${timestamp}: Dynamic Test Task`,
-      description: `Automated test task created at ${new Date().toISOString()}`,
-      priority: 'Medium',
-      assignee: `test.user.${timestamp}@scib.com`
-    };
-    
-    return { ...defaultData, ...overrides };
-  }
-
-  /**
-   * Validate test data structure
-   */
-  validateTestData(data: any): boolean {
-    const requiredFields = ['title', 'description', 'priority', 'assignee'];
-    return requiredFields.every(field => data.hasOwnProperty(field));
-  }
-
-  /**
-   * Get random valid SCIB email
-   */
-  getRandomValidEmail(): string {
-    const validEmails = this.getEdgeCaseData().validScibEmails;
-    return validEmails[Math.floor(Math.random() * validEmails.length)];
-  }
-
-  /**
-   * Get random valid priority
-   */
-  getRandomValidPriority(): string {
-    const validPriorities = this.getEdgeCaseData().validPriorities;
-    return validPriorities[Math.floor(Math.random() * validPriorities.length)];
+    return configs[this.environment as keyof typeof configs] || configs.dev;
   }
 }

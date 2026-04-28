@@ -3,7 +3,7 @@ import { TaskCreationPage } from '../pages/TaskCreationPage';
 
 /**
  * Action class for Task Creation workflows
- * Contains reusable business logic flows without assertions
+ * Contains reusable business flows - no assertions
  */
 export class TaskCreationActions {
   readonly page: Page;
@@ -19,21 +19,21 @@ export class TaskCreationActions {
    */
   async navigateToTaskCreationForm(): Promise<void> {
     await this.taskCreationPage.navigateToTaskCreation();
-    await this.taskCreationPage.formContainer.waitFor({ state: 'visible' });
+    await this.taskCreationPage.waitForFormReady();
   }
 
   /**
-   * Fill the title field with provided text
+   * Fill task title field
    */
-  async fillTitle(title: string): Promise<void> {
+  async fillTaskTitle(title: string): Promise<void> {
     await this.taskCreationPage.titleField.clear();
     await this.taskCreationPage.titleField.fill(title);
   }
 
   /**
-   * Fill the description field with provided text
+   * Fill task description field
    */
-  async fillDescription(description: string): Promise<void> {
+  async fillTaskDescription(description: string): Promise<void> {
     await this.taskCreationPage.descriptionField.clear();
     await this.taskCreationPage.descriptionField.fill(description);
   }
@@ -43,28 +43,11 @@ export class TaskCreationActions {
    */
   async selectPriority(priority: string): Promise<void> {
     await this.taskCreationPage.priorityDropdown.click();
-    
-    switch (priority.toLowerCase()) {
-      case 'high':
-        await this.taskCreationPage.priorityHigh.click();
-        break;
-      case 'medium':
-        await this.taskCreationPage.priorityMedium.click();
-        break;
-      case 'low':
-        await this.taskCreationPage.priorityLow.click();
-        break;
-      case 'critical':
-        await this.taskCreationPage.priorityCritical.click();
-        break;
-      default:
-        // For invalid priority testing, try to type the value
-        await this.taskCreationPage.priorityDropdown.fill(priority);
-    }
+    await this.taskCreationPage.getPriorityOption(priority).click();
   }
 
   /**
-   * Fill the assignee field with provided email
+   * Fill assignee field
    */
   async fillAssignee(assignee: string): Promise<void> {
     await this.taskCreationPage.assigneeField.clear();
@@ -74,34 +57,44 @@ export class TaskCreationActions {
   /**
    * Submit the task creation form
    */
-  async submitForm(): Promise<void> {
+  async submitTaskForm(): Promise<void> {
     await this.taskCreationPage.submitButton.click();
   }
 
   /**
-   * Fill complete task form with all provided data
+   * Cancel task creation
+   */
+  async cancelTaskCreation(): Promise<void> {
+    await this.taskCreationPage.cancelButton.click();
+  }
+
+  /**
+   * Fill complete task form with all mandatory fields
    */
   async fillCompleteTaskForm(taskData: {
-    title?: string;
-    description?: string;
-    priority?: string;
-    assignee?: string;
+    title: string;
+    description: string;
+    priority: string;
+    assignee: string;
   }): Promise<void> {
-    if (taskData.title !== undefined) {
-      await this.fillTitle(taskData.title);
-    }
-    
-    if (taskData.description !== undefined) {
-      await this.fillDescription(taskData.description);
-    }
-    
-    if (taskData.priority !== undefined) {
-      await this.selectPriority(taskData.priority);
-    }
-    
-    if (taskData.assignee !== undefined) {
-      await this.fillAssignee(taskData.assignee);
-    }
+    await this.fillTaskTitle(taskData.title);
+    await this.fillTaskDescription(taskData.description);
+    await this.selectPriority(taskData.priority);
+    await this.fillAssignee(taskData.assignee);
+  }
+
+  /**
+   * Create task with complete workflow
+   */
+  async createTask(taskData: {
+    title: string;
+    description: string;
+    priority: string;
+    assignee: string;
+  }): Promise<void> {
+    await this.navigateToTaskCreationForm();
+    await this.fillCompleteTaskForm(taskData);
+    await this.submitTaskForm();
   }
 
   /**
@@ -111,52 +104,8 @@ export class TaskCreationActions {
     await this.taskCreationPage.titleField.clear();
     await this.taskCreationPage.descriptionField.clear();
     await this.taskCreationPage.assigneeField.clear();
-    // Reset priority dropdown to default
-    await this.taskCreationPage.priorityDropdown.selectOption('');
-  }
-
-  /**
-   * Fill form with valid data for successful task creation
-   */
-  async fillValidTaskData(): Promise<void> {
-    await this.fillCompleteTaskForm({
-      title: 'SCIB-2024-001: Implement User Authentication Module',
-      description: 'Develop secure user authentication system with multi-factor authentication support for SCIB platform',
-      priority: 'High',
-      assignee: 'john.smith@scib.com'
-    });
-  }
-
-  /**
-   * Generate long description text for testing character limits
-   */
-  generateLongDescription(length: number): string {
-    const baseText = 'This is a comprehensive task description that needs to be very detailed to test the character limit functionality of the system. ';
-    return baseText.repeat(Math.ceil(length / baseText.length)).substring(0, length);
-  }
-
-  /**
-   * Fill form with maximum length description
-   */
-  async fillMaxLengthDescription(): Promise<void> {
-    const longDescription = this.generateLongDescription(2001); // Exceeds 2000 character limit
-    await this.fillDescription(longDescription);
-  }
-
-  /**
-   * Wait for form validation to complete
-   */
-  async waitForValidation(): Promise<void> {
-    // Wait a brief moment for validation messages to appear
-    await this.page.waitForTimeout(500);
-  }
-
-  /**
-   * Check if any validation errors are visible
-   */
-  async hasValidationErrors(): Promise<boolean> {
-    const errorMessages = await this.taskCreationPage.getVisibleErrorMessages();
-    return errorMessages.length > 0;
+    // Priority dropdown will reset to default when clicked elsewhere
+    await this.taskCreationPage.formContainer.click();
   }
 
   /**
@@ -172,5 +121,37 @@ export class TaskCreationActions {
       description: await this.taskCreationPage.descriptionField.inputValue(),
       assignee: await this.taskCreationPage.assigneeField.inputValue()
     };
+  }
+
+  /**
+   * Generate long description text exceeding character limit
+   */
+  generateLongDescription(length: number = 2500): string {
+    const baseText = "This is a comprehensive task description that includes detailed requirements, implementation guidelines, testing criteria, and acceptance conditions. ";
+    return baseText.repeat(Math.ceil(length / baseText.length)).substring(0, length);
+  }
+
+  /**
+   * Attempt to select invalid priority (for testing validation)
+   */
+  async attemptInvalidPrioritySelection(invalidPriority: string): Promise<void> {
+    await this.taskCreationPage.priorityDropdown.click();
+    // Try to find the invalid option, if it doesn't exist, the test will handle it
+    const invalidOption = this.page.locator(`[data-testid="priority-option-${invalidPriority.toLowerCase()}"]`);
+    if (await invalidOption.isVisible()) {
+      await invalidOption.click();
+    }
+  }
+
+  /**
+   * Wait for form submission to complete
+   */
+  async waitForFormSubmission(): Promise<void> {
+    // Wait for either success message or error messages to appear
+    await Promise.race([
+      this.taskCreationPage.successMessage.waitFor({ state: 'visible', timeout: 10000 }),
+      this.taskCreationPage.generalErrorMessage.waitFor({ state: 'visible', timeout: 10000 }),
+      this.taskCreationPage.titleErrorMessage.waitFor({ state: 'visible', timeout: 10000 })
+    ]);
   }
 }
