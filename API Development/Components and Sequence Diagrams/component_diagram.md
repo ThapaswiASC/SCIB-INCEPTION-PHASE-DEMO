@@ -1,362 +1,496 @@
-# Component Diagram - Task Management API System
+# Component Diagram - Task Creation API System
 
-## Version: 1.0
-## Generated from: HLD Document - Task Management API System
-## Date: 2024
+## Document Information
+- **System**: Task Creation API
+- **Version**: 1.0
+- **Date**: 2024
+- **Related ADR**: DEMO-2350
+- **Generated From**: HLD Document and API Contract Outline
 
 ---
 
 ## Overview
-This component diagram illustrates the high-level architecture of the Task Management API System, showing the relationships between all system components, external dependencies, and data flows as defined in the HLD document and DEMO-2350 requirements.
+
+This component diagram illustrates the architectural structure of the Task Creation API system, showing all components, their relationships, dependencies, and interfaces. The diagram follows C4 model principles and maps directly to the requirements specified in ADR DEMO-2350.
 
 ---
 
-## System Architecture - C4 Model Container View
+## Component Diagram: Task Creation API Architecture
 
 ```mermaid
-C4Container
-    title Task Management API System - Component Architecture
+C4Component
+    title Component Diagram - Task Creation API System
     
-    Person(apiConsumer, "API Consumer", "External systems and applications")
-    Person(admin, "System Administrator", "Operations and monitoring")
-    
-    System_Boundary(taskSystem, "Task Management API System") {
-        Container(loadBalancer, "Load Balancer", "ALB", "Distributes incoming requests")
-        Container(apiGateway, "API Gateway", "Kong/AWS API Gateway", "Request routing, rate limiting, security")
+    Container_Boundary(apiSystem, "Task Creation API System") {
         
-        Container_Boundary(application, "Application Layer") {
-            Container(taskController, "TaskController", "NestJS/TypeScript", "REST API endpoints, HTTP request handling")
-            Container(createTaskDto, "CreateTaskDto", "TypeScript", "Request validation, data transfer object")
-            Container(taskService, "TaskService", "TypeScript", "Business logic, data operations")
-            Container(taskEntity, "Task Entity", "TypeORM", "Data model and persistence mapping")
-        }
+        %% Presentation Layer Components
+        Component(apiGateway, "API Gateway", "Kong/NGINX", "Rate limiting, SSL termination, request routing, CORS handling")
+        Component(loadBalancer, "Load Balancer", "HAProxy/ALB", "Traffic distribution, health checks, failover")
         
-        Container_Boundary(middleware, "Middleware Layer") {
-            Container(authMiddleware, "Auth Middleware", "TypeScript", "JWT validation, user context")
-            Container(validationMiddleware, "Validation Middleware", "class-validator", "Input validation pipeline")
-            Container(errorHandler, "Global Error Handler", "TypeScript", "Centralized exception handling")
-            Container(auditMiddleware, "Audit Middleware", "TypeScript", "Activity logging and tracking")
-        }
+        %% Application Layer Components
+        Component(taskController, "TaskController", "NestJS Controller", "HTTP request handling, response formatting, OpenAPI documentation generation")
+        Component(createTaskDto, "CreateTaskDto", "TypeScript Class", "Input validation with decorators: @IsNotEmpty, @MaxLength, @IsEnum, @IsDateString")
+        Component(validationPipe, "ValidationPipe", "NestJS Pipe", "Automatic DTO validation, error transformation, custom validation rules")
+        Component(authGuard, "AuthenticationGuard", "NestJS Guard", "JWT token validation, user context extraction, RBAC enforcement")
+        Component(rateLimitGuard, "RateLimitGuard", "NestJS Guard", "Request rate limiting per user, IP-based throttling")
         
-        Container_Boundary(infrastructure, "Infrastructure Layer") {
-            ContainerDb(database, "PostgreSQL Database", "PostgreSQL 14", "Primary data storage")
-            ContainerDb(readReplica, "Read Replica", "PostgreSQL 14", "Read-only database replica")
-            Container(connectionPool, "Connection Pool", "TypeORM", "Database connection management")
-            Container(cache, "Redis Cache", "Redis 7", "Application caching layer")
-        }
+        %% Business Logic Layer Components
+        Component(taskService, "TaskService", "NestJS Service", "Business logic validation, data sanitization, due date validation, user verification")
+        Component(taskRepository, "TaskRepository", "TypeORM Repository", "Database abstraction, CRUD operations, query optimization")
+        Component(userService, "UserService", "NestJS Service", "User validation, existence checks, permission verification")
+        Component(auditService, "AuditService", "NestJS Service", "Operation logging, compliance tracking, audit trail generation")
+        
+        %% Data Transfer Objects
+        Component(taskResponseDto, "TaskResponseDto", "TypeScript Class", "Response data formatting, field mapping, serialization")
+        Component(errorResponseDto, "ErrorResponseDto", "TypeScript Class", "Error response standardization, validation error formatting")
+        
+        %% Cross-Cutting Concerns
+        Component(logger, "Logger Service", "Winston/NestJS Logger", "Structured logging, correlation ID tracking, log level management")
+        Component(configService, "Configuration Service", "NestJS Config", "Environment variable management, feature flags, runtime configuration")
+        Component(healthCheck, "Health Check Service", "NestJS Health", "Liveness/readiness probes, dependency health monitoring")
+        Component(metricsService, "Metrics Service", "Prometheus Client", "Custom metrics collection, performance monitoring, business metrics")
+        
+        %% Security Components
+        Component(jwtService, "JWT Service", "NestJS JWT", "Token generation, validation, refresh token handling")
+        Component(encryptionService, "Encryption Service", "Crypto Module", "Data encryption/decryption, hashing, key management")
+        Component(sanitizationService, "Sanitization Service", "Custom Service", "Input sanitization, XSS prevention, data cleaning")
     }
     
-    System_Boundary(externalSystems, "External Systems") {
-        System_Ext(authService, "Authentication Service", "OAuth 2.0/JWT provider")
-        System_Ext(auditService, "Audit Service", "Centralized audit logging")
-        System_Ext(monitoringService, "Monitoring Service", "Application and infrastructure monitoring")
-        System_Ext(alertManager, "Alert Manager", "PagerDuty integration")
-    }
+    %% External Systems
+    ContainerDb(database, "PostgreSQL Database", "PostgreSQL 14+", "Primary data store with ACID compliance, connection pooling")
+    ContainerDb(redisCache, "Redis Cache", "Redis 7+", "Session storage, caching layer, rate limiting counters")
+    Container_Ext(authService, "Authentication Service", "OAuth 2.0/OIDC", "User authentication, token validation, user profile management")
+    Container_Ext(auditStore, "Audit Log Store", "ELK Stack", "Centralized audit logging, compliance reporting, log retention")
+    Container_Ext(monitoring, "Monitoring System", "Prometheus/Grafana", "Metrics collection, alerting, performance dashboards")
+    Container_Ext(notificationService, "Notification Service", "Email/SMS Gateway", "Task notifications, user communications")
     
-    System_Boundary(messageQueue, "Message Queue") {
-        Container(rabbitMQ, "RabbitMQ", "Message Broker", "Asynchronous event processing")
-        Container(deadLetterQueue, "Dead Letter Queue", "RabbitMQ", "Failed message handling")
-    }
+    %% Client Applications
+    Person(webClient, "Web Application", "Frontend application consuming the API")
+    Person(mobileClient, "Mobile Application", "Mobile app with task management features")
+    Person(thirdPartyClient, "Third-Party Integration", "External systems integrating with the API")
     
-    %% External Relationships
-    Rel(apiConsumer, loadBalancer, "HTTPS/REST", "API requests")
-    Rel(admin, monitoringService, "HTTPS", "System monitoring")
+    %% Component Relationships - Request Flow
+    Rel(webClient, apiGateway, "HTTPS Requests", "POST /api/tasks")
+    Rel(mobileClient, apiGateway, "HTTPS Requests", "Mobile API calls")
+    Rel(thirdPartyClient, apiGateway, "HTTPS Requests", "Integration API calls")
     
-    %% Load Balancer Relationships
-    Rel(loadBalancer, apiGateway, "HTTP", "Route requests")
+    Rel(apiGateway, loadBalancer, "Route Requests", "Load balancing")
+    Rel(loadBalancer, taskController, "HTTP Requests", "Balanced traffic")
     
-    %% API Gateway Relationships
-    Rel(apiGateway, authService, "HTTPS", "Token validation")
-    Rel(apiGateway, taskController, "HTTP", "Authenticated requests")
-    
-    %% Controller Relationships
-    Rel(taskController, authMiddleware, "Uses", "Authentication")
-    Rel(taskController, validationMiddleware, "Uses", "Input validation")
-    Rel(taskController, createTaskDto, "Uses", "Data validation")
+    %% Controller Layer Relationships
+    Rel(taskController, authGuard, "Uses", "Authentication check")
+    Rel(taskController, rateLimitGuard, "Uses", "Rate limiting")
+    Rel(taskController, validationPipe, "Uses", "Input validation")
+    Rel(taskController, createTaskDto, "Validates", "DTO validation")
     Rel(taskController, taskService, "Calls", "Business logic")
-    Rel(taskController, errorHandler, "Uses", "Error handling")
+    Rel(taskController, taskResponseDto, "Uses", "Response formatting")
+    Rel(taskController, errorResponseDto, "Uses", "Error responses")
     
-    %% Service Relationships
-    Rel(taskService, taskEntity, "Uses", "Data operations")
-    Rel(taskService, connectionPool, "Uses", "Database access")
-    Rel(taskService, cache, "Uses", "Caching")
-    Rel(taskService, auditMiddleware, "Uses", "Activity logging")
+    %% Service Layer Relationships
+    Rel(taskService, taskRepository, "Uses", "Data persistence")
+    Rel(taskService, userService, "Calls", "User validation")
+    Rel(taskService, auditService, "Calls", "Audit logging")
+    Rel(taskService, sanitizationService, "Uses", "Data sanitization")
     
-    %% Database Relationships
-    Rel(connectionPool, database, "SQL", "Write operations")
-    Rel(connectionPool, readReplica, "SQL", "Read operations")
-    Rel(database, readReplica, "Replication", "Data sync")
+    %% Repository and Data Access
+    Rel(taskRepository, database, "Queries", "SQL operations")
+    Rel(userService, database, "Queries", "User data access")
     
-    %% Audit and Monitoring
-    Rel(auditMiddleware, rabbitMQ, "AMQP", "Audit events")
-    Rel(rabbitMQ, auditService, "AMQP", "Event processing")
-    Rel(rabbitMQ, deadLetterQueue, "AMQP", "Failed events")
+    %% Authentication and Security
+    Rel(authGuard, jwtService, "Uses", "Token validation")
+    Rel(authGuard, authService, "Validates", "User authentication")
+    Rel(jwtService, redisCache, "Stores", "Token blacklist")
     
-    %% Monitoring Relationships
-    Rel(taskService, monitoringService, "HTTP/Metrics", "Performance data")
-    Rel(errorHandler, monitoringService, "HTTP/Metrics", "Error metrics")
-    Rel(monitoringService, alertManager, "HTTP", "Alert notifications")
+    %% Cross-Cutting Services
+    Rel(taskService, logger, "Uses", "Operation logging")
+    Rel(taskController, logger, "Uses", "Request logging")
+    Rel(auditService, auditStore, "Sends", "Audit events")
+    Rel(metricsService, monitoring, "Exports", "Performance metrics")
+    Rel(healthCheck, database, "Checks", "Database health")
+    Rel(healthCheck, redisCache, "Checks", "Cache health")
+    
+    %% Configuration and Utilities
+    Rel(taskService, configService, "Uses", "Configuration")
+    Rel(taskController, configService, "Uses", "Feature flags")
+    Rel(encryptionService, configService, "Uses", "Encryption keys")
+    
+    %% External Integrations
+    Rel(auditService, notificationService, "Triggers", "Task notifications")
+    Rel(rateLimitGuard, redisCache, "Uses", "Rate counters")
 ```
 
 ---
 
-## Detailed Component Breakdown
+## Component Descriptions
 
-### Application Layer Components
+### **Presentation Layer Components**
 
-#### TaskController (DEMO-2350)
-```mermaid
-classDiagram
-    class TaskController {
-        +createTask(createTaskDto: CreateTaskDto): Promise~TaskResponseDto~
-        +getTask(id: string): Promise~TaskResponseDto~
-        +updateTask(id: string, updateTaskDto: UpdateTaskDto): Promise~TaskResponseDto~
-        +deleteTask(id: string): Promise~void~
-        +listTasks(query: TaskQueryDto): Promise~PaginatedTaskResponse~
-    }
-    
-    class CreateTaskDto {
-        +title: string
-        +description?: string
-        +status?: TaskStatus
-        +due_date?: Date
-        +validate(): ValidationResult
-    }
-    
-    class TaskService {
-        +createTask(createTaskDto: CreateTaskDto): Promise~Task~
-        +findById(id: string): Promise~Task~
-        +update(id: string, updateData: Partial~Task~): Promise~Task~
-        +delete(id: string): Promise~void~
-        +findAll(query: TaskQuery): Promise~PaginatedResult~Task~~
-    }
-    
-    class Task {
-        +id: UUID
-        +title: string
-        +description: string
-        +status: TaskStatus
-        +due_date: Date
-        +created_at: Date
-        +updated_at: Date
-        +created_by: UUID
-    }
-    
-    TaskController --> CreateTaskDto
-    TaskController --> TaskService
-    TaskService --> Task
-```
+#### API Gateway
+- **Technology**: Kong/NGINX
+- **Responsibilities**: 
+  - SSL/TLS termination with TLS 1.3
+  - Rate limiting enforcement (100 req/min per user)
+  - CORS policy management
+  - Request/response logging
+  - API versioning support
+- **ADR Mapping**: Entry point for all API requests
 
-### Security and Middleware Components
+#### Load Balancer
+- **Technology**: HAProxy/AWS ALB
+- **Responsibilities**:
+  - Traffic distribution across multiple instances
+  - Health check monitoring
+  - Automatic failover
+  - Session affinity management
 
-```mermaid
-graph TB
-    subgraph "Security Layer"
-        A[Auth Middleware] --> B[JWT Validator]
-        A --> C[Role Checker]
-        A --> D[User Context]
-    end
-    
-    subgraph "Validation Layer"
-        E[Validation Middleware] --> F[DTO Validator]
-        E --> G[Schema Validator]
-        E --> H[Business Rule Validator]
-    end
-    
-    subgraph "Error Handling"
-        I[Global Error Handler] --> J[Error Classifier]
-        I --> K[Error Logger]
-        I --> L[Response Formatter]
-    end
-    
-    subgraph "Audit Layer"
-        M[Audit Middleware] --> N[Event Collector]
-        M --> O[Event Publisher]
-        M --> P[Correlation ID]
-    end
-```
+### **Application Layer Components**
 
----
+#### TaskController
+- **Technology**: NestJS Controller
+- **ADR Mapping**: Direct implementation of DEMO-2350 requirement
+- **Responsibilities**:
+  - HTTP request handling for POST /api/tasks
+  - Response formatting with proper status codes (201, 400, 401, 403, 409, 422, 429, 500)
+  - OpenAPI documentation generation with decorators
+  - Error handling and exception management
+- **Key Methods**:
+  - `createTask(@Body() createTaskDto: CreateTaskDto)`
+  - Error handling with proper HTTP status codes
 
-## Data Flow Architecture
+#### CreateTaskDto
+- **Technology**: TypeScript Class with Validation Decorators
+- **ADR Mapping**: Core validation requirement from DEMO-2350
+- **Validation Decorators**:
+  - `@IsNotEmpty()` - Required field validation
+  - `@MaxLength(255)` - Title length constraint
+  - `@MaxLength(1000)` - Description length constraint
+  - `@IsEnum(TaskStatus)` - Status enumeration validation
+  - `@IsDateString()` - Date format validation
+  - `@IsUUID()` - User ID format validation
+- **Properties**:
+  ```typescript
+  title: string;        // Required, max 255 chars
+  description?: string; // Optional, max 1000 chars
+  status: TaskStatus;   // Enum: TODO, IN_PROGRESS, DONE
+  dueDate: string;      // ISO 8601 date string
+  assignedTo?: string;  // UUID format
+  priority?: Priority;  // Enum: LOW, MEDIUM, HIGH, CRITICAL
+  ```
 
-```mermaid
-flowchart TD
-    A[API Request] --> B[Load Balancer]
-    B --> C[API Gateway]
-    C --> D{Authentication}
-    
-    D -->|Valid| E[TaskController]
-    D -->|Invalid| F[401 Unauthorized]
-    
-    E --> G[Input Validation]
-    G -->|Valid| H[TaskService]
-    G -->|Invalid| I[400 Bad Request]
-    
-    H --> J[Business Logic]
-    J --> K{Business Rules}
-    
-    K -->|Pass| L[Database Operation]
-    K -->|Fail| M[409 Conflict]
-    
-    L --> N[Audit Logging]
-    L --> O[Response Generation]
-    
-    N --> P[Message Queue]
-    P --> Q[Audit Service]
-    
-    O --> R[201 Created]
-    
-    style A fill:#e1f5fe
-    style R fill:#c8e6c9
-    style F fill:#ffcdd2
-    style I fill:#ffcdd2
-    style M fill:#ffcdd2
-```
+#### ValidationPipe
+- **Technology**: NestJS Built-in Pipe
+- **Responsibilities**:
+  - Automatic DTO validation execution
+  - Error message transformation
+  - Custom validation rule processing
+  - Whitelist and transform options
 
----
+#### AuthenticationGuard
+- **Technology**: NestJS Guard
+- **Responsibilities**:
+  - JWT token validation with 1-hour expiration
+  - User context extraction
+  - Role-Based Access Control (RBAC)
+  - Request authorization
 
-## Infrastructure Components
+#### RateLimitGuard
+- **Technology**: NestJS Guard with Redis
+- **Responsibilities**:
+  - Per-user rate limiting (100 requests/minute)
+  - IP-based throttling
+  - Sliding window rate limiting
+  - Rate limit header management
 
-### Database Architecture
-```mermaid
-erDiagram
-    TASK {
-        uuid id PK
-        varchar title
-        text description
-        enum status
-        timestamp due_date
-        timestamp created_at
-        timestamp updated_at
-        uuid created_by FK
-    }
-    
-    USER {
-        uuid id PK
-        varchar username
-        varchar email
-        varchar role
-        timestamp created_at
-        timestamp updated_at
-    }
-    
-    AUDIT_LOG {
-        uuid id PK
-        varchar action
-        uuid entity_id
-        varchar entity_type
-        json changes
-        uuid user_id FK
-        timestamp created_at
-        varchar correlation_id
-    }
-    
-    TASK ||--|| USER : created_by
-    AUDIT_LOG ||--|| USER : user_id
-```
+### **Business Logic Layer Components**
 
-### Deployment Architecture
-```mermaid
-C4Deployment
-    title Deployment Architecture - Task Management API
-    
-    Deployment_Node(aws, "AWS Cloud", "Amazon Web Services") {
-        Deployment_Node(vpc, "VPC", "Virtual Private Cloud") {
-            Deployment_Node(publicSubnet, "Public Subnet", "Internet-facing") {
-                Container(alb, "Application Load Balancer", "AWS ALB", "Load balancing and SSL termination")
-            }
-            
-            Deployment_Node(privateSubnet, "Private Subnet", "Internal network") {
-                Deployment_Node(eks, "EKS Cluster", "Kubernetes") {
-                    Container(taskPod, "Task API Pod", "Docker Container", "Application runtime")
-                    Container(redisPod, "Redis Pod", "Docker Container", "Caching layer")
-                }
-                
-                Deployment_Node(rds, "RDS Instance", "PostgreSQL") {
-                    ContainerDb(primaryDb, "Primary Database", "PostgreSQL 14", "Write operations")
-                    ContainerDb(replicaDb, "Read Replica", "PostgreSQL 14", "Read operations")
-                }
-            }
-        }
-    }
-    
-    Rel(alb, taskPod, "HTTPS", "Application traffic")
-    Rel(taskPod, redisPod, "TCP", "Cache operations")
-    Rel(taskPod, primaryDb, "TCP", "Database writes")
-    Rel(taskPod, replicaDb, "TCP", "Database reads")
-    Rel(primaryDb, replicaDb, "Replication", "Data sync")
-```
+#### TaskService
+- **Technology**: NestJS Service
+- **ADR Mapping**: Core business logic from DEMO-2350
+- **Responsibilities**:
+  - Business logic validation
+  - Data sanitization and transformation
+  - Due date validation (prevent past dates)
+  - User existence and activity verification
+  - Audit logging integration
+- **Key Methods**:
+  - `createTask(createTaskDto: CreateTaskDto): Promise<Task>`
+  - `validateDueDate(dueDate: string): boolean`
+  - `sanitizeTaskData(data: CreateTaskDto): SanitizedTaskData`
 
----
+#### TaskRepository
+- **Technology**: TypeORM Repository Pattern
+- **Responsibilities**:
+  - Database abstraction layer
+  - CRUD operations with type safety
+  - Query optimization
+  - Transaction management
+  - Connection pooling
 
-## Non-Functional Requirements Mapping
+#### UserService
+- **Technology**: NestJS Service
+- **Responsibilities**:
+  - User validation and existence checks
+  - Permission verification
+  - User profile data access
+  - Active user status validation
 
-### Performance Components
-- **Connection Pool**: 10-50 database connections
-- **Redis Cache**: Sub-millisecond response times
-- **Load Balancer**: Horizontal scaling support
-- **Read Replicas**: Query distribution for performance
+#### AuditService
+- **Technology**: NestJS Service
+- **Responsibilities**:
+  - Operation logging for compliance
+  - Before/after state capture
+  - User activity tracking
+  - IP address and timestamp logging
+  - Audit trail generation
 
-### Security Components
-- **JWT Validation**: Stateless authentication
-- **RBAC Enforcement**: Role-based access control
-- **Input Sanitization**: Multi-layer validation
-- **TLS Encryption**: End-to-end security
+### **Data Transfer Objects**
 
-### Reliability Components
-- **Circuit Breaker**: External service failure handling
-- **Retry Logic**: Transient failure recovery
-- **Health Checks**: Kubernetes liveness/readiness probes
-- **Dead Letter Queue**: Failed message handling
+#### TaskResponseDto
+- **Technology**: TypeScript Class
+- **Responsibilities**:
+  - Response data formatting
+  - Field mapping and serialization
+  - Sensitive data exclusion
+  - Consistent response structure
 
-### Monitoring Components
-- **Metrics Collection**: Performance and business metrics
-- **Centralized Logging**: ELK Stack integration
-- **Alert Management**: PagerDuty integration
-- **Audit Trail**: Compliance and traceability
+#### ErrorResponseDto
+- **Technology**: TypeScript Class
+- **Responsibilities**:
+  - Standardized error response format
+  - Validation error formatting
+  - Error code mapping
+  - Correlation ID inclusion
+
+### **Cross-Cutting Concern Components**
+
+#### Logger Service
+- **Technology**: Winston/NestJS Logger
+- **Responsibilities**:
+  - Structured JSON logging
+  - Correlation ID tracking
+  - Log level management
+  - Centralized log aggregation
+
+#### Configuration Service
+- **Technology**: NestJS Config Module
+- **Responsibilities**:
+  - Environment variable management
+  - Feature flag support
+  - Runtime configuration
+  - Secure secret management
+
+#### Health Check Service
+- **Technology**: NestJS Health Module
+- **Responsibilities**:
+  - Kubernetes liveness probes
+  - Readiness probe implementation
+  - Dependency health monitoring
+  - Service status reporting
+
+#### Metrics Service
+- **Technology**: Prometheus Client
+- **Responsibilities**:
+  - Custom metrics collection
+  - Performance monitoring
+  - Business metrics tracking
+  - SLA monitoring
+
+### **Security Components**
+
+#### JWT Service
+- **Technology**: NestJS JWT Module
+- **Responsibilities**:
+  - Token generation and validation
+  - RS256 algorithm implementation
+  - Token expiration management
+  - Refresh token handling
+
+#### Encryption Service
+- **Technology**: Node.js Crypto Module
+- **Responsibilities**:
+  - AES-256 encryption for sensitive data
+  - Password hashing with bcrypt
+  - Key management
+  - Data at rest encryption
+
+#### Sanitization Service
+- **Technology**: Custom NestJS Service
+- **Responsibilities**:
+  - XSS prevention through input sanitization
+  - HTML entity encoding
+  - SQL injection prevention
+  - Data cleaning and normalization
 
 ---
 
-## Integration Patterns
+## Component Interactions and Data Flow
 
-### Synchronous Integrations
-- **Authentication Service**: OAuth 2.0/JWT validation
-- **Database Operations**: ACID transaction support
-- **Cache Operations**: Redis read/write operations
+### **Request Processing Flow**
 
-### Asynchronous Integrations
-- **Audit Logging**: RabbitMQ message publishing
-- **Monitoring Events**: Metrics collection
-- **Alert Notifications**: PagerDuty integration
+1. **Client Request** → API Gateway → Load Balancer → TaskController
+2. **Authentication** → AuthGuard → JWT Service → Authentication Service
+3. **Rate Limiting** → RateLimitGuard → Redis Cache
+4. **Validation** → ValidationPipe → CreateTaskDto (with decorators)
+5. **Business Logic** → TaskService → Data Sanitization → Due Date Validation
+6. **Data Persistence** → TaskRepository → PostgreSQL Database
+7. **Audit Logging** → AuditService → ELK Stack
+8. **Response** → TaskResponseDto → TaskController → Client
 
----
+### **Error Handling Flow**
 
-## Compliance and Governance
-
-### TOGAF ADM Alignment
-- **Architecture Vision**: Clear business objectives
-- **Business Architecture**: Stakeholder requirements
-- **Information Systems Architecture**: Application and data architecture
-- **Technology Architecture**: Infrastructure and deployment
-
-### OpenAPI Standards
-- **Contract-First Development**: API specification driven
-- **Documentation Generation**: Automated API docs
-- **Schema Validation**: Request/response validation
-- **Code Generation**: Client SDK generation
-
-### SOC2 Compliance
-- **Security Controls**: Authentication and authorization
-- **Availability Controls**: High availability design
-- **Processing Integrity**: Data validation and integrity
-- **Confidentiality Controls**: Data encryption
-- **Privacy Controls**: Data handling and retention
+1. **Validation Errors** → ValidationPipe → ErrorResponseDto → 400 Bad Request
+2. **Authentication Errors** → AuthGuard → 401 Unauthorized
+3. **Authorization Errors** → AuthGuard → 403 Forbidden
+4. **Business Rule Violations** → TaskService → 422 Unprocessable Entity
+5. **Rate Limiting** → RateLimitGuard → 429 Too Many Requests
+6. **System Errors** → Exception Filters → 500 Internal Server Error
 
 ---
 
-**Generated by**: Senior Solution Architect and Integration Automation Specialist  
-**Source**: HLD Document v1.0 - Task Management API System  
-**Architecture Framework**: TOGAF ADM, C4 Model  
-**Compliance**: OpenAPI 3.0, SOC2 Type II  
-**Last Updated**: 2024
+## Component Dependencies
+
+### **Internal Dependencies**
+- TaskController → TaskService → TaskRepository
+- TaskController → CreateTaskDto → ValidationPipe
+- TaskService → UserService → Database
+- TaskService → AuditService → Audit Store
+- AuthGuard → JWT Service → Redis Cache
+
+### **External Dependencies**
+- Authentication Service (OAuth 2.0/OIDC)
+- PostgreSQL Database (Primary data store)
+- Redis Cache (Session and rate limiting)
+- ELK Stack (Centralized logging)
+- Prometheus/Grafana (Monitoring)
+- Notification Service (Email/SMS)
+
+---
+
+## Security Architecture
+
+### **Authentication Flow**
+1. Client provides JWT token in Authorization header
+2. AuthGuard validates token signature and expiration
+3. JWT Service extracts user claims and permissions
+4. User context is attached to request for downstream processing
+
+### **Authorization Model**
+- **Role-Based Access Control (RBAC)**
+- **Resource-level permissions**
+- **Operation-specific authorization**
+- **Context-aware access decisions**
+
+### **Data Protection**
+- **Encryption in Transit**: TLS 1.3 for all communications
+- **Encryption at Rest**: AES-256 for sensitive database fields
+- **Input Sanitization**: XSS and injection attack prevention
+- **Output Encoding**: Safe data rendering
+
+---
+
+## Scalability and Performance
+
+### **Horizontal Scaling**
+- **Stateless Design**: All components are stateless for easy scaling
+- **Load Balancing**: Traffic distribution across multiple instances
+- **Auto-scaling**: Kubernetes HPA based on CPU/memory metrics
+- **Database Scaling**: Read replicas for query optimization
+
+### **Caching Strategy**
+- **Redis Cache**: Session storage and rate limiting counters
+- **Application-level Caching**: Frequently accessed data
+- **Database Query Optimization**: Indexed queries and connection pooling
+
+### **Performance Optimizations**
+- **Connection Pooling**: Database connection management
+- **Async Processing**: Non-blocking I/O operations
+- **Lazy Loading**: On-demand data loading
+- **Compression**: Response compression for large payloads
+
+---
+
+## Monitoring and Observability
+
+### **Metrics Collection**
+- **Application Metrics**: Response time, throughput, error rates
+- **Business Metrics**: Task creation rate, user activity
+- **System Metrics**: CPU, memory, database performance
+- **Custom Metrics**: Domain-specific measurements
+
+### **Logging Strategy**
+- **Structured Logging**: JSON format with correlation IDs
+- **Centralized Aggregation**: ELK Stack for log management
+- **Log Levels**: Appropriate filtering and retention
+- **Security Logging**: Authentication and authorization events
+
+### **Health Monitoring**
+- **Liveness Probes**: Application health checks
+- **Readiness Probes**: Dependency availability checks
+- **Dependency Monitoring**: External service health
+- **Circuit Breaker**: Fault tolerance patterns
+
+---
+
+## Compliance and Audit
+
+### **GDPR Compliance**
+- **Data Minimization**: Only necessary data collection
+- **Right to Erasure**: Data deletion capabilities
+- **Audit Trail**: Complete operation logging
+- **Consent Management**: User permission tracking
+
+### **Security Standards**
+- **ISO 27001**: Information security controls
+- **SOC 2 Type II**: Security and availability controls
+- **OWASP Top 10**: Security vulnerability mitigation
+- **PCI-DSS**: Payment data security (if applicable)
+
+### **Audit Requirements**
+- **Operation Logging**: All CRUD operations logged
+- **User Activity Tracking**: IP address and timestamp logging
+- **Data Change History**: Before/after state capture
+- **Compliance Reporting**: Automated audit report generation
+
+---
+
+## Deployment Architecture
+
+### **Container Strategy**
+- **Docker Containers**: Application packaging
+- **Kubernetes Orchestration**: Container management
+- **Multi-AZ Deployment**: High availability setup
+- **Rolling Updates**: Zero-downtime deployments
+
+### **Environment Configuration**
+- **Development**: Local Docker containers
+- **Staging**: Single-replica Kubernetes deployment
+- **Production**: Multi-replica, multi-AZ deployment
+- **Configuration Management**: Environment-specific settings
+
+---
+
+## Technology Stack Summary
+
+### **Core Technologies**
+- **Runtime**: Node.js 18+ with TypeScript
+- **Framework**: NestJS with Express
+- **Database**: PostgreSQL 14+ with TypeORM
+- **Cache**: Redis 7+ for session and rate limiting
+- **Authentication**: JWT with RS256 algorithm
+
+### **Infrastructure**
+- **Container Platform**: Kubernetes
+- **Load Balancer**: HAProxy/AWS ALB
+- **API Gateway**: Kong/NGINX
+- **Monitoring**: Prometheus + Grafana
+- **Logging**: ELK Stack (Elasticsearch, Logstash, Kibana)
+
+### **Development Tools**
+- **API Documentation**: OpenAPI 3.0 with Swagger UI
+- **Testing**: Jest for unit and integration tests
+- **Code Quality**: ESLint, Prettier, SonarQube
+- **CI/CD**: GitLab CI/GitHub Actions
+
+---
+
+*This component diagram represents the complete architectural structure of the Task Creation API system as specified in ADR DEMO-2350, implementing all validation, security, and compliance requirements outlined in the HLD document.*
