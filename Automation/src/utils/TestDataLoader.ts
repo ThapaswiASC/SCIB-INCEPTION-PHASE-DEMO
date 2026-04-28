@@ -1,21 +1,22 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as taskData from '../test-data/task-creation-data.json';
+import * as validationMessages from '../test-data/validation-messages.json';
 
 /**
- * TestDataLoader Utility
- * Manages loading and processing of test data from JSON files
- * Supports environment-specific data loading and data transformation
+ * Utility class for loading and managing test data
+ * Provides environment-specific data loading and validation
  */
 export class TestDataLoader {
   private static instance: TestDataLoader;
-  private dataCache: Map<string, any> = new Map();
+  private environment: string;
 
-  private constructor() {}
+  private constructor() {
+    this.environment = process.env.TEST_ENV || 'development';
+  }
 
   /**
-   * Singleton pattern implementation
+   * Get singleton instance of TestDataLoader
    */
-  public static getInstance(): TestDataLoader {
+  static getInstance(): TestDataLoader {
     if (!TestDataLoader.instance) {
       TestDataLoader.instance = new TestDataLoader();
     }
@@ -23,81 +24,116 @@ export class TestDataLoader {
   }
 
   /**
-   * Load test data from JSON file
-   * @param fileName - Name of the JSON file (without extension)
-   * @param environment - Environment specific data (optional)
+   * Get valid task data for successful creation scenarios
    */
-  public loadTestData<T>(fileName: string, environment?: string): T {
-    const cacheKey = environment ? `${fileName}_${environment}` : fileName;
-    
-    if (this.dataCache.has(cacheKey)) {
-      return this.dataCache.get(cacheKey);
-    }
-
-    try {
-      const filePath = path.join(__dirname, '../test-data', `${fileName}.json`);
-      const rawData = fs.readFileSync(filePath, 'utf-8');
-      const jsonData = JSON.parse(rawData);
-      
-      let data = jsonData;
-      if (environment && jsonData[environment]) {
-        data = { ...jsonData.common, ...jsonData[environment] };
-      }
-      
-      this.dataCache.set(cacheKey, data);
-      return data;
-    } catch (error) {
-      throw new Error(`Failed to load test data from ${fileName}.json: ${error}`);
-    }
+  getValidTaskData(): any {
+    return taskData.validTaskData;
   }
 
   /**
-   * Get specific test data by key
-   * @param fileName - JSON file name
-   * @param key - Data key to retrieve
-   * @param environment - Environment (optional)
+   * Get invalid data sets for negative testing
    */
-  public getTestDataByKey<T>(fileName: string, key: string, environment?: string): T {
-    const data = this.loadTestData(fileName, environment);
-    if (!data[key]) {
-      throw new Error(`Test data key '${key}' not found in ${fileName}.json`);
-    }
-    return data[key];
+  getInvalidData(): any {
+    return taskData.invalidData;
   }
 
   /**
-   * Generate random test data
-   * @param template - Data template object
+   * Get edge case data for boundary testing
    */
-  public generateRandomData(template: Record<string, string>): Record<string, string> {
-    const result: Record<string, string> = {};
-    
-    for (const [key, pattern] of Object.entries(template)) {
-      switch (pattern) {
-        case 'email':
-          result[key] = `test${Date.now()}@example.com`;
-          break;
-        case 'username':
-          result[key] = `user${Date.now()}`;
-          break;
-        case 'password':
-          result[key] = `Pass${Date.now()}!`;
-          break;
-        case 'phone':
-          result[key] = `+1${Math.floor(Math.random() * 9000000000) + 1000000000}`;
-          break;
-        default:
-          result[key] = pattern;
-      }
-    }
-    
-    return result;
+  getEdgeCaseData(): any {
+    return taskData.edgeCaseData;
   }
 
   /**
-   * Clear data cache
+   * Get test data for specific scenario by test key
    */
-  public clearCache(): void {
-    this.dataCache.clear();
+  getScenarioData(testKey: string): any {
+    return taskData.testScenarios[testKey as keyof typeof taskData.testScenarios];
+  }
+
+  /**
+   * Get expected validation error messages
+   */
+  getValidationMessages(): any {
+    return validationMessages.errorMessages;
+  }
+
+  /**
+   * Get expected success messages
+   */
+  getSuccessMessages(): any {
+    return validationMessages.successMessages;
+  }
+
+  /**
+   * Get info messages
+   */
+  getInfoMessages(): any {
+    return validationMessages.infoMessages;
+  }
+
+  /**
+   * Get environment-specific base URL
+   */
+  getBaseUrl(): string {
+    const urls = {
+      development: 'https://dev-scib-task-management.com',
+      staging: 'https://staging-scib-task-management.com',
+      production: 'https://scib-task-management.com'
+    };
+    
+    return urls[this.environment as keyof typeof urls] || urls.development;
+  }
+
+  /**
+   * Get environment-specific timeout values
+   */
+  getTimeouts(): { navigation: number; action: number; assertion: number } {
+    const timeouts = {
+      development: { navigation: 60000, action: 30000, assertion: 10000 },
+      staging: { navigation: 45000, action: 20000, assertion: 8000 },
+      production: { navigation: 30000, action: 15000, assertion: 5000 }
+    };
+    
+    return timeouts[this.environment as keyof typeof timeouts] || timeouts.development;
+  }
+
+  /**
+   * Generate test data with dynamic values
+   */
+  generateDynamicTaskData(overrides: Partial<any> = {}): any {
+    const timestamp = Date.now();
+    const defaultData = {
+      title: `SCIB-${timestamp}: Dynamic Test Task`,
+      description: `Automated test task created at ${new Date().toISOString()}`,
+      priority: 'Medium',
+      assignee: `test.user.${timestamp}@scib.com`
+    };
+    
+    return { ...defaultData, ...overrides };
+  }
+
+  /**
+   * Validate test data structure
+   */
+  validateTestData(data: any): boolean {
+    const requiredFields = ['title', 'description', 'priority', 'assignee'];
+    return requiredFields.every(field => data.hasOwnProperty(field));
+  }
+
+  /**
+   * Get random valid SCIB email
+   */
+  getRandomValidEmail(): string {
+    const validEmails = this.getEdgeCaseData().validScibEmails;
+    return validEmails[Math.floor(Math.random() * validEmails.length)];
+  }
+
+  /**
+   * Get random valid priority
+   */
+  getRandomValidPriority(): string {
+    const validPriorities = this.getEdgeCaseData().validPriorities;
+    return validPriorities[Math.floor(Math.random() * validPriorities.length)];
   }
 }
