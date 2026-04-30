@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow - User Flow Diagram</title>
+    <title>Kanban Board User Flow Diagram</title>
     <script type="module">
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: true });
@@ -31,256 +31,122 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             margin: 20px 0;
         }
-        .description {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .flow-section {
-            margin: 20px 0;
-        }
-        .flow-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>TaskFlow Application - User Flow Diagram</h1>
-        
-        <div class="description">
-            <h2>Application Overview</h2>
-            <p>This diagram represents the complete user interaction flow for the TaskFlow application, showing how users navigate through task management, analytics, and configuration features.</p>
-        </div>
-
-        <div class="flow-section">
-            <div class="flow-title">Main User Flow</div>
-            <div class="mermaid">
+        <h1>Kanban Board Management System - User Flow Diagram</h1>
+        <div class="mermaid">
 flowchart TD
-    Start[User Opens TaskFlow Dashboard]
-    Start --> Login[Authentication Check]
-    Login --> Dashboard[Main Dashboard View]
+    Start[User Opens Application]
+    Start --> LoadApp[App Component Loads]
+    LoadApp --> AuthCheck{User Authenticated?}
+    AuthCheck -->|No| Login[Login Screen]
+    AuthCheck -->|Yes| Dashboard[Load Dashboard]
+    Login --> AuthSuccess[Authentication Success]
+    AuthSuccess --> Dashboard
     
-    Dashboard --> Sidebar[Navigate via Sidebar]
-    Dashboard --> Header[Use Header Actions]
-    Dashboard --> MainContent[Interact with Main Content]
+    Dashboard --> LoadSidebar[Sidebar Component Loads]
+    Dashboard --> LoadHeader[Header Component Loads]
+    Dashboard --> LoadKanban[Kanban Board Component Loads]
     
-    Sidebar --> TaskMgmt[Task Management]
-    Sidebar --> Analytics[Analytics]
-    Sidebar --> Config[Configuration]
+    LoadKanban --> FetchTasks[Fetch Tasks from API]
+    FetchTasks --> RenderColumns[Render Three Columns]
+    RenderColumns --> TodoColumn[To Do Column]
+    RenderColumns --> InProgressColumn[In Progress Column]
+    RenderColumns --> DoneColumn[Done Column]
     
-    TaskMgmt --> KanbanView[Kanban Board View]
-    TaskMgmt --> CollabBoard[Collaborative Board]
+    TodoColumn --> DisplayTasks[Display Task Cards]
+    InProgressColumn --> DisplayTasks
+    DoneColumn --> DisplayTasks
     
-    Analytics --> ProgressAnalytics[Progress Analytics]
-    Analytics --> ReportBuilder[Report Builder]
+    DisplayTasks --> UserActions{User Action}
     
-    Config --> BoardConfig[Board Configuration]
-    Config --> WorkflowRules[Workflow Rules]
-    Config --> Settings[Settings]
+    UserActions --> CreateTask[Click Add Task]
+    CreateTask --> OpenModal[Open Add Task Modal]
+    OpenModal --> FillForm[Fill Task Form]
+    FillForm --> SubmitTask[Submit New Task]
+    SubmitTask --> CreateAPI[POST API Call]
+    CreateAPI --> RefreshBoard[Refresh Kanban Board]
+    RefreshBoard --> DisplayTasks
     
-    Header --> Search[Search Tasks]
-    Header --> Notifications[View Notifications]
-    Header --> UserMenu[User Menu]
+    UserActions --> ViewTask[Click Task Card]
+    ViewTask --> TaskDetails[Show Task Details]
+    TaskDetails --> EditTask{Edit Task?}
+    EditTask -->|Yes| UpdateForm[Update Task Form]
+    UpdateForm --> SaveChanges[Save Changes]
+    SaveChanges --> UpdateAPI[PUT API Call]
+    UpdateAPI --> RefreshBoard
+    EditTask -->|No| BackToBoard[Back to Board]
+    BackToBoard --> DisplayTasks
     
-    MainContent --> ViewTasks[View Task Cards]
-    MainContent --> CreateTask[Create New Task]
+    UserActions --> DragTask[Drag Task Card]
+    DragTask --> DropColumn[Drop in New Column]
+    DropColumn --> UpdateStatus[Update Task Status]
+    UpdateStatus --> UpdateAPI
     
-    KanbanView --> ViewTasks
-    ViewTasks --> TaskDetail[View Task Details]
-    ViewTasks --> DragDrop[Drag Drop Tasks]
+    UserActions --> DeleteTask[Delete Task]
+    DeleteTask --> ConfirmDelete{Confirm Delete?}
+    ConfirmDelete -->|Yes| DeleteAPI[DELETE API Call]
+    DeleteAPI --> RefreshBoard
+    ConfirmDelete -->|No| DisplayTasks
     
-    CreateTask --> TaskForm[Task Creation Form]
-    TaskForm --> ValidateForm[Form Validation]
-    ValidateForm --> FormError[Show Validation Errors]
-    ValidateForm --> SubmitTask[Submit Task]
-    FormError --> TaskForm
+    UserActions --> SearchTasks[Use Search]
+    SearchTasks --> FilterResults[Filter Task Results]
+    FilterResults --> DisplayFiltered[Display Filtered Tasks]
+    DisplayFiltered --> DisplayTasks
     
-    SubmitTask --> Loading[Show Loading State]
-    Loading --> APICall[Call Task API]
-    APICall --> Success[Task Created Successfully]
-    APICall --> Error[API Error]
+    UserActions --> NavigateMenu[Click Sidebar Menu]
+    NavigateMenu --> MenuChoice{Menu Selection}
     
-    Success --> ShowToast[Show Success Message]
-    Success --> RefreshBoard[Refresh Kanban Board]
-    Success --> CloseModal[Close Task Form]
+    MenuChoice --> Analytics[Analytics Page]
+    Analytics --> ViewMetrics[View Metrics Cards]
+    ViewMetrics --> ViewCharts[View Chart Placeholders]
+    ViewCharts --> TeamPerformance[Team Performance Data]
+    TeamPerformance --> BackToMenu[Back to Menu]
+    BackToMenu --> UserActions
     
-    Error --> ShowError[Show Error Message]
-    Error --> TaskForm
+    MenuChoice --> Reports[Reports Page]
+    Reports --> ConfigureReport[Configure Report Settings]
+    ConfigureReport --> GenerateReport[Generate Report]
+    GenerateReport --> ViewReport[View Generated Report]
+    ViewReport --> BackToMenu
     
-    ShowToast --> Dashboard
-    RefreshBoard --> KanbanView
-    CloseModal --> Dashboard
-    ShowError --> TaskForm
+    MenuChoice --> Configuration[Configuration Page]
+    Configuration --> WorkflowRules[Workflow Rules]
+    WorkflowRules --> TeamAssignment[Team Assignment]
+    TeamAssignment --> SystemSettings[System Settings]
+    SystemSettings --> SaveConfig[Save Configuration]
+    SaveConfig --> BackToMenu
     
-    TaskDetail --> EditTask[Edit Task]
-    TaskDetail --> DeleteTask[Delete Task]
-    TaskDetail --> AddComment[Add Comment]
-    TaskDetail --> CloseDetail[Close Detail View]
+    MenuChoice --> CollaborativeBoard[Collaborative Board]
+    CollaborativeBoard --> RealTimeUpdates[Real-time Updates]
+    RealTimeUpdates --> TeamCollaboration[Team Collaboration Features]
+    TeamCollaboration --> BackToMenu
     
-    EditTask --> TaskForm
-    DeleteTask --> ConfirmDelete[Confirm Deletion]
-    ConfirmDelete --> Dashboard
-    AddComment --> TaskDetail
-    CloseDetail --> KanbanView
+    UserActions --> HeaderActions[Header Controls]
+    HeaderActions --> Notifications[View Notifications]
+    Notifications --> NotificationList[Show Notification List]
+    NotificationList --> UserActions
     
-    DragDrop --> UpdateStatus[Update Task Status]
-    UpdateStatus --> APIUpdate[API Status Update]
-    APIUpdate --> RefreshBoard
+    HeaderActions --> UserSettings[User Settings]
+    UserSettings --> ProfileSettings[Profile Settings]
+    ProfileSettings --> PreferenceSettings[Preference Settings]
+    PreferenceSettings --> SaveSettings[Save User Settings]
+    SaveSettings --> UserActions
     
-    Search --> SearchResults[Display Search Results]
-    SearchResults --> FilteredView[Filtered Task View]
-    FilteredView --> ViewTasks
+    HeaderActions --> UserAvatar[Click User Avatar]
+    UserAvatar --> UserMenu[User Menu Options]
+    UserMenu --> Logout[Logout]
+    Logout --> Login
+    UserMenu --> UserProfile[View Profile]
+    UserProfile --> UserActions
     
-    ProgressAnalytics --> ViewCharts[View Analytics Charts]
-    ViewCharts --> ExportData[Export Analytics]
-    
-    ReportBuilder --> ConfigReport[Configure Report]
-    ConfigReport --> GenerateReport[Generate Report]
-    GenerateReport --> DownloadReport[Download Report]
-    
-    BoardConfig --> ModifyColumns[Modify Board Columns]
-    BoardConfig --> SaveConfig[Save Configuration]
-    SaveConfig --> Dashboard
-    
-    WorkflowRules --> DefineRules[Define Workflow Rules]
-    DefineRules --> SaveRules[Save Rules]
-    SaveRules --> Dashboard
-    
-    Settings --> UpdatePreferences[Update User Preferences]
-    UpdatePreferences --> SaveSettings[Save Settings]
-    SaveSettings --> Dashboard
-            </div>
-        </div>
-
-        <div class="flow-section">
-            <div class="flow-title">Task Creation Flow (Primary Focus)</div>
-            <div class="mermaid">
-flowchart TD
-    StartCreate[Click Add Task Button]
-    StartCreate --> OpenModal[Open Task Creation Modal]
-    
-    OpenModal --> FormFields[Display Form Fields]
-    FormFields --> TitleField[Title Input Required MaxLength 255]
-    FormFields --> DescField[Description Textarea MaxLength 2000]
-    FormFields --> PriorityField[Priority Select Required]
-    FormFields --> DueDateField[Due Date Required Future Date]
-    FormFields --> AssigneeField[Assignee Select Optional]
-    
-    TitleField --> TitleValidation[Real-time Title Validation]
-    DescField --> DescValidation[Real-time Description Validation]
-    PriorityField --> PriorityValidation[Priority Enum Validation]
-    DueDateField --> DateValidation[Future Date Validation]
-    
-    TitleValidation --> CharCounter1[Title Character Counter]
-    DescValidation --> CharCounter2[Description Character Counter]
-    
-    CharCounter1 --> ValidationFeedback[Show Validation Feedback]
-    CharCounter2 --> ValidationFeedback
-    PriorityValidation --> ValidationFeedback
-    DateValidation --> ValidationFeedback
-    
-    ValidationFeedback --> FormValid{Form Valid?}
-    FormValid -->|No| DisableSubmit[Disable Submit Button]
-    FormValid -->|Yes| EnableSubmit[Enable Submit Button]
-    
-    DisableSubmit --> FormFields
-    EnableSubmit --> SubmitForm[Click Submit Button]
-    
-    SubmitForm --> ShowSpinner[Show Loading Spinner]
-    ShowSpinner --> CallAPI[TaskService.createTask API Call]
-    
-    CallAPI --> APISuccess{API Success?}
-    APISuccess -->|Yes| HideSpinner[Hide Loading Spinner]
-    APISuccess -->|No| APIError[Show API Error]
-    
-    HideSpinner --> SuccessToast[Show Success Toast]
-    SuccessToast --> ResetForm[Reset Form Fields]
-    ResetForm --> CloseTaskModal[Close Modal]
-    CloseTaskModal --> RefreshKanban[Refresh Kanban Board]
-    RefreshKanban --> EndSuccess[Task Creation Complete]
-    
-    APIError --> HideSpinner
-    APIError --> ShowErrorMsg[Display Error Message]
-    ShowErrorMsg --> FormFields
-            </div>
-        </div>
-
-        <div class="flow-section">
-            <div class="flow-title">Kanban Board Interaction Flow</div>
-            <div class="mermaid">
-flowchart TD
-    LoadBoard[Load Kanban Board]
-    LoadBoard --> FetchTasks[Fetch Tasks from API]
-    FetchTasks --> DisplayColumns[Display Three Columns]
-    
-    DisplayColumns --> TodoColumn[To Do Column]
-    DisplayColumns --> InProgressColumn[In Progress Column]
-    DisplayColumns --> DoneColumn[Done Column]
-    
-    TodoColumn --> TodoTasks[Display Todo Tasks]
-    InProgressColumn --> ProgressTasks[Display In Progress Tasks]
-    DoneColumn --> DoneTasks[Display Done Tasks]
-    
-    TodoTasks --> TaskCard1[Task Card Components]
-    ProgressTasks --> TaskCard2[Task Card Components]
-    DoneTasks --> TaskCard3[Task Card Components]
-    
-    TaskCard1 --> CardClick[Click Task Card]
-    TaskCard2 --> CardClick
-    TaskCard3 --> CardClick
-    
-    TaskCard1 --> DragStart[Start Drag Operation]
-    TaskCard2 --> DragStart
-    TaskCard3 --> DragStart
-    
-    CardClick --> OpenTaskDetail[Open Task Detail Modal]
-    OpenTaskDetail --> ViewTaskInfo[View Task Information]
-    ViewTaskInfo --> TaskActions[Task Actions Available]
-    
-    TaskActions --> EditTaskAction[Edit Task]
-    TaskActions --> DeleteTaskAction[Delete Task]
-    TaskActions --> CommentAction[Add Comment]
-    TaskActions --> CloseDetailAction[Close Detail]
-    
-    DragStart --> DragOver[Drag Over Column]
-    DragOver --> DropZone[Drop in New Column]
-    DropZone --> UpdateTaskStatus[Update Task Status]
-    UpdateTaskStatus --> OptimisticUpdate[Optimistic UI Update]
-    OptimisticUpdate --> APIStatusUpdate[API Status Update Call]
-    
-    APIStatusUpdate --> UpdateSuccess{Update Success?}
-    UpdateSuccess -->|Yes| ConfirmUpdate[Confirm UI Update]
-    UpdateSuccess -->|No| RevertUpdate[Revert UI Change]
-    
-    ConfirmUpdate --> RefreshBoardView[Refresh Board View]
-    RevertUpdate --> ShowUpdateError[Show Update Error]
-    ShowUpdateError --> RefreshBoardView
-            </div>
-        </div>
-
-        <div class="description">
-            <h2>Flow Description</h2>
-            <ul>
-                <li><strong>Main User Flow:</strong> Shows the complete navigation structure from dashboard entry through all major application sections</li>
-                <li><strong>Task Creation Flow:</strong> Detailed flow for the primary TaskCreationComponent with form validation, character counters, and API integration</li>
-                <li><strong>Kanban Board Flow:</strong> Interactive flow showing task viewing, drag-and-drop operations, and status updates</li>
-            </ul>
-            
-            <h3>Key Features Highlighted:</h3>
-            <ul>
-                <li>Real-time form validation with character counters</li>
-                <li>Loading states during API operations</li>
-                <li>Error handling and user feedback</li>
-                <li>Drag-and-drop task management</li>
-                <li>Modal-based task creation and editing</li>
-                <li>Comprehensive navigation structure</li>
-            </ul>
+    UserActions --> ErrorHandling{Error Occurred?}
+    ErrorHandling -->|Yes| ShowError[Display Error Message]
+    ShowError --> RetryAction[Retry Action]
+    RetryAction --> UserActions
+    ErrorHandling -->|No| UserActions
         </div>
     </div>
 </body>
