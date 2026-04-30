@@ -1,357 +1,439 @@
-# Sequence Diagram - Task Creation API System
-
-## Document Information
-- **System**: Task Creation API
-- **Version**: 1.0
-- **Date**: 2024
-- **Related ADR**: DEMO-2350
-- **Generated From**: HLD Document and API Contract Outline
-
----
+# Sequence Diagram - Task Management API System
 
 ## Overview
+This sequence diagram illustrates the complete flow for the task creation endpoint (POST /api/tasks) as specified in DEMO-2350, including authentication, validation, business logic processing, and data persistence.
 
-This sequence diagram illustrates the complete flow for task creation through the Task Creation API system, showing interactions between all components from initial request to final response, including validation, business logic, and audit logging.
-
----
-
-## Sequence Diagram: Task Creation Flow
+## Primary Flow: Task Creation
 
 ```mermaid
 sequenceDiagram
-    participant Client as API Consumer
+    participant Client as Client Application
     participant Gateway as API Gateway
-    participant Auth as Authentication Service
-    participant Controller as TaskController
-    participant DTO as CreateTaskDto
-    participant Service as TaskService
+    participant Auth as Auth Service
+    participant Controller as Task Controller
+    participant Validator as Validation Service
+    participant Service as Task Service
+    participant DAL as Data Access Layer
     participant DB as PostgreSQL Database
+    participant Cache as Redis Cache
     participant Audit as Audit Service
-    participant Monitor as Monitoring Service
+    participant Notification as Notification Service
 
-    Note over Client, Monitor: Task Creation API Flow - POST /api/tasks
+    Note over Client, Notification: Task Creation Flow (POST /api/tasks)
     
-    %% Request Initiation
-    Client->>Gateway: POST /api/tasks
-    Note right of Client: Request with task data:<br/>title, description, status,<br/>dueDate, assignedTo, priority
+    Client->>Gateway: POST /api/tasks<br/>Authorization: Bearer {token}<br/>Content-Type: application/json
     
-    %% API Gateway Processing
-    Gateway->>Gateway: Rate Limiting Check
-    Note right of Gateway: 100 requests/minute per user
-    
-    Gateway->>Gateway: TLS 1.3 Termination
-    Gateway->>Gateway: Request Correlation ID
-    
-    %% Authentication Flow
     Gateway->>Auth: Validate JWT Token
-    Note right of Auth: Bearer token validation<br/>1-hour expiration check
-    
     Auth-->>Gateway: Token Valid + User Context
     
-    %% Route to Application
-    Gateway->>Controller: Forward Request
-    Note right of Gateway: Include user context<br/>and correlation ID
+    Gateway->>Controller: Route Request + User Context
     
-    %% Input Validation Phase
-    Controller->>DTO: Validate Input Data
-    Note right of DTO: Validation Decorators:<br/>@IsNotEmpty() - title<br/>@MaxLength(255) - title<br/>@MaxLength(1000) - description<br/>@IsEnum(TaskStatus) - status<br/>@IsDateString() - dueDate<br/>@IsUUID() - assignedTo
+    Controller->>Validator: Validate CreateTaskDto
+    Note over Validator: - IsNotEmpty(title)<br/>- MaxLength(255)<br/>- IsEnum(status)<br/>- IsDateString(dueDate)
     
     alt Validation Success
-        DTO-->>Controller: Validation Passed
+        Validator-->>Controller: Validation Passed
         
-        %% Business Logic Processing
-        Controller->>Service: createTask(createTaskDto)
-        Note right of Controller: Pass validated DTO
+        Controller->>Service: createTask(dto, userContext)
         
-        %% Business Rule Validation
-        Service->>Service: Data Sanitization
-        Note right of Service: XSS prevention<br/>Input sanitization
+        Service->>Service: Apply Business Rules
+        Note over Service: - Check user permissions<br/>- Validate due date not in past<br/>- Check duplicate tasks<br/>- Apply default values
         
-        Service->>Service: Due Date Validation
-        Note right of Service: Ensure due date is in future<br/>Business rule enforcement
+        alt Business Rules Valid
+            Service->>DAL: Create Task Entity
+            
+            DAL->>DB: BEGIN TRANSACTION
+            DAL->>DB: INSERT INTO tasks
+            DAL->>DB: INSERT INTO task_history
+            DAL->>DB: COMMIT TRANSACTION
+            
+            DB-->>DAL: Task Created (ID: uuid)
+            DAL-->>Service: Task Entity with ID
+            
+            Service->>Cache: Cache Task Data
+            Cache-->>Service: Cache Updated
+            
+            Service->>Audit: Log Task Creation
+            Audit-->>Service: Audit Logged
+            
+            Service->>Notification: Send Task Notification
+            Notification-->>Service: Notification Queued
+            
+            Service-->>Controller: TaskResponseDto
+            Controller-->>Gateway: HTTP 201 Created + Task Data
+            Gateway-->>Client: HTTP 201 Created<br/>{
+              "id": "uuid",
+              "title": "Task Title",
+              "status": "TODO",
+              "createdAt": "timestamp"
+            }
+            
+        else Business Rule Violation
+            Service-->>Controller: BusinessRuleException
+            Controller-->>Gateway: HTTP 422 Unprocessable Entity
+            Gateway-->>Client: HTTP 422<br/>{
+              "error": {
+                "code": "BUSINESS_RULE_VIOLATION",
+                "message": "Business rule validation failed"
+              }
+            }
+        end
         
-        Service->>Service: User Existence Check
-        Note right of Service: Validate assignedTo user exists<br/>and is active
-        
-        %% Database Operations
-        Service->>DB: Begin Transaction
-        Service->>DB: INSERT INTO tasks
-        Note right of DB: Store task with:<br/>- Generated UUID<br/>- Timestamps<br/>- User context<br/>- Version for optimistic locking
-        
-        DB-->>Service: Task Created (with ID)
-        Service->>DB: Commit Transaction
-        
-        %% Audit Logging
-        Service->>Audit: Log Task Creation
-        Note right of Audit: Audit entry:<br/>- Operation: CREATE_TASK<br/>- User ID: from JWT<br/>- Task ID: generated<br/>- IP Address: from request<br/>- Timestamp<br/>- Before/After state
-        
-        Audit-->>Service: Audit Logged
-        
-        %% Response Construction
-        Service-->>Controller: Task Entity
-        Controller->>Controller: Format Response
-        Note right of Controller: HTTP 201 Created<br/>Include created task data
-        
-        %% Success Response
-        Controller-->>Gateway: 201 Created + Task Data
-        Gateway->>Monitor: Log Success Metrics
-        Note right of Monitor: Response time<br/>Success rate<br/>Business metrics
-        
-        Gateway-->>Client: 201 Created Response
-        Note left of Client: Response includes:<br/>- Task ID<br/>- All task fields<br/>- Timestamps<br/>- Version number
-        
-    else Validation Failure
-        DTO-->>Controller: Validation Errors
-        Note right of DTO: Field-level errors:<br/>- Required field missing<br/>- Length constraints<br/>- Format violations<br/>- Enum value invalid
-        
-        Controller->>Controller: Format Error Response
-        Note right of Controller: HTTP 400 Bad Request<br/>Detailed validation errors
-        
-        Controller-->>Gateway: 400 Bad Request
-        Gateway->>Monitor: Log Validation Error
-        Gateway-->>Client: 400 Bad Request
-        Note left of Client: Error response with:<br/>- Field-specific errors<br/>- Error codes<br/>- Correlation ID
-    end
-    
-    %% Error Scenarios
-    
-    Note over Client, Monitor: Alternative Flows - Error Scenarios
-    
-    %% Authentication Failure
-    alt Authentication Failure
-        Auth-->>Gateway: Invalid Token
-        Gateway->>Monitor: Log Auth Failure
-        Gateway-->>Client: 401 Unauthorized
-        Note left of Client: Authentication required
-    end
-    
-    %% Authorization Failure
-    alt Authorization Failure
-        Auth-->>Gateway: Insufficient Permissions
-        Gateway->>Monitor: Log Auth Failure
-        Gateway-->>Client: 403 Forbidden
-        Note left of Client: Insufficient permissions
-    end
-    
-    %% Rate Limiting
-    alt Rate Limit Exceeded
-        Gateway->>Gateway: Rate Limit Check Failed
-        Gateway->>Monitor: Log Rate Limit Hit
-        Gateway-->>Client: 429 Too Many Requests
-        Note left of Client: Retry after 60 seconds
-    end
-    
-    %% Business Rule Violation
-    alt Business Rule Violation
-        Service->>Service: Due Date in Past
-        Service-->>Controller: Business Rule Error
-        Controller-->>Gateway: 422 Unprocessable Entity
-        Gateway->>Monitor: Log Business Rule Error
-        Gateway-->>Client: 422 Unprocessable Entity
-        Note left of Client: Due date cannot be in past
-    end
-    
-    %% Duplicate Task Detection
-    alt Duplicate Task
-        Service->>DB: Check Existing Task
-        DB-->>Service: Duplicate Found
-        Service-->>Controller: Conflict Error
-        Controller-->>Gateway: 409 Conflict
-        Gateway->>Monitor: Log Conflict Error
-        Gateway-->>Client: 409 Conflict
-        Note left of Client: Similar task already exists
-    end
-    
-    %% Database Failure
-    alt Database Failure
-        Service->>DB: Database Operation
-        DB-->>Service: Connection/Query Error
-        Service->>DB: Rollback Transaction
-        Service-->>Controller: Database Error
-        Controller-->>Gateway: 500 Internal Server Error
-        Gateway->>Monitor: Log Database Error
-        Gateway-->>Client: 500 Internal Server Error
-        Note left of Client: Generic error message<br/>No internal details exposed
-    end
-    
-    %% External Service Failure
-    alt Audit Service Failure
-        Service->>Audit: Log Task Creation
-        Audit-->>Service: Service Unavailable
-        Note right of Service: Continue processing<br/>Log locally as fallback
-        Service->>Service: Local Audit Log
-        Service-->>Controller: Task Created (with warning)
-        Controller-->>Gateway: 201 Created
-        Gateway-->>Client: 201 Created
-        Note left of Client: Task created successfully<br/>Audit logged locally
+    else Validation Failed
+        Validator-->>Controller: ValidationException
+        Controller-->>Gateway: HTTP 400 Bad Request
+        Gateway-->>Client: HTTP 400<br/>{
+          "error": {
+            "code": "VALIDATION_ERROR",
+            "validationErrors": []
+          }
+        }
     end
 ```
 
----
-
-## Sequence Flow Description
-
-### 1. **Request Initiation**
-- API Consumer sends POST request to `/api/tasks` with task data
-- Request includes authentication token and task creation payload
-
-### 2. **API Gateway Processing**
-- **Rate Limiting**: Enforces 100 requests/minute per user limit
-- **TLS Termination**: Handles TLS 1.3 encryption/decryption
-- **Correlation ID**: Generates unique request identifier for tracing
-
-### 3. **Authentication & Authorization**
-- **JWT Validation**: Verifies token signature and expiration (1-hour limit)
-- **User Context**: Extracts user information and permissions
-- **RBAC Check**: Ensures user has task creation permissions
-
-### 4. **Input Validation (CreateTaskDto)**
-- **@IsNotEmpty()**: Validates required fields (title, dueDate)
-- **@MaxLength()**: Enforces character limits (title: 255, description: 1000)
-- **@IsEnum()**: Validates status and priority enum values
-- **@IsDateString()**: Ensures proper date format
-- **@IsUUID()**: Validates assignedTo user ID format
-
-### 5. **Business Logic Processing (TaskService)**
-- **Data Sanitization**: Prevents XSS and injection attacks
-- **Due Date Validation**: Ensures due date is in the future
-- **User Validation**: Verifies assigned user exists and is active
-- **Business Rule Enforcement**: Applies domain-specific constraints
-
-### 6. **Database Operations**
-- **Transaction Management**: Ensures ACID compliance
-- **UUID Generation**: Creates unique task identifier
-- **Optimistic Locking**: Implements version field for concurrency control
-- **Timestamp Management**: Sets createdAt and updatedAt fields
-
-### 7. **Audit Logging**
-- **Operation Logging**: Records task creation event
-- **User Tracking**: Captures user ID from JWT token
-- **IP Address Logging**: Records client IP for security
-- **State Capture**: Logs before/after state for compliance
-
-### 8. **Response Formation**
-- **Success Response**: HTTP 201 with complete task data
-- **Error Responses**: Appropriate HTTP status codes with detailed messages
-- **Correlation ID**: Included in all responses for traceability
-
----
-
 ## Error Handling Flows
 
-### Validation Errors (400 Bad Request)
-- Field-level validation failures
-- Detailed error messages with field names
-- Input format violations
+### Authentication Error Flow
 
-### Authentication Errors (401 Unauthorized)
-- Invalid or expired JWT tokens
-- Missing authentication headers
-- Token signature validation failures
+```mermaid
+sequenceDiagram
+    participant Client as Client Application
+    participant Gateway as API Gateway
+    participant Auth as Auth Service
 
-### Authorization Errors (403 Forbidden)
-- Insufficient user permissions
-- Role-based access control violations
-- Resource access restrictions
+    Client->>Gateway: POST /api/tasks<br/>Authorization: Bearer {invalid_token}
+    Gateway->>Auth: Validate JWT Token
+    Auth-->>Gateway: Token Invalid/Expired
+    Gateway-->>Client: HTTP 401 Unauthorized<br/>{
+      "error": {
+        "code": "UNAUTHORIZED",
+        "message": "Authentication required"
+      }
+    }
+```
 
-### Business Rule Violations (422 Unprocessable Entity)
-- Due date in the past
-- Invalid user assignments
-- Domain-specific constraint violations
+### Database Error Flow
 
-### Conflict Errors (409 Conflict)
-- Duplicate task detection
-- Optimistic locking failures
-- Resource state conflicts
+```mermaid
+sequenceDiagram
+    participant Service as Task Service
+    participant DAL as Data Access Layer
+    participant DB as PostgreSQL Database
+    participant Controller as Task Controller
+    participant Gateway as API Gateway
+    participant Client as Client Application
 
-### Rate Limiting (429 Too Many Requests)
-- Request rate exceeded
-- Per-user or per-IP limits
-- Retry-after headers included
+    Service->>DAL: Create Task Entity
+    DAL->>DB: BEGIN TRANSACTION
+    DAL->>DB: INSERT INTO tasks
+    DB-->>DAL: Database Connection Error
+    DAL->>DB: ROLLBACK TRANSACTION
+    DAL-->>Service: DatabaseException
+    Service-->>Controller: InternalServerError
+    Controller-->>Gateway: HTTP 500 Internal Server Error
+    Gateway-->>Client: HTTP 500<br/>{
+      "error": {
+        "code": "INTERNAL_SERVER_ERROR",
+        "message": "An unexpected error occurred"
+      }
+    }
+```
 
-### System Errors (500 Internal Server Error)
-- Database connectivity issues
-- External service failures
-- Unexpected system exceptions
+### Rate Limiting Flow
 
----
+```mermaid
+sequenceDiagram
+    participant Client as Client Application
+    participant Gateway as API Gateway
+    participant RateLimit as Rate Limiter
 
-## Performance Characteristics
+    Client->>Gateway: POST /api/tasks (Request #101)
+    Gateway->>RateLimit: Check Rate Limit
+    RateLimit-->>Gateway: Limit Exceeded (100/min)
+    Gateway-->>Client: HTTP 429 Too Many Requests<br/>{
+      "error": {
+        "code": "RATE_LIMIT_EXCEEDED",
+        "message": "Rate limit exceeded",
+        "retryAfter": 60
+      }
+    }
+```
+
+## Task Retrieval Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as Client Application
+    participant Gateway as API Gateway
+    participant Controller as Task Controller
+    participant Service as Task Service
+    participant Cache as Redis Cache
+    participant DAL as Data Access Layer
+    participant DB as PostgreSQL Database
+
+    Note over Client, DB: Task Retrieval Flow (GET /api/tasks/{id})
+    
+    Client->>Gateway: GET /api/tasks/{id}
+    Gateway->>Controller: Route Request
+    Controller->>Service: getTaskById(id, userContext)
+    
+    Service->>Cache: Check Cache for Task
+    
+    alt Cache Hit
+        Cache-->>Service: Task Data from Cache
+        Service-->>Controller: TaskResponseDto
+        Controller-->>Gateway: HTTP 200 OK + Task Data
+        Gateway-->>Client: Task Data
+        
+    else Cache Miss
+        Cache-->>Service: Cache Miss
+        Service->>DAL: Find Task by ID
+        DAL->>DB: SELECT FROM tasks WHERE id = ?
+        
+        alt Task Found
+            DB-->>DAL: Task Record
+            DAL-->>Service: Task Entity
+            Service->>Cache: Update Cache
+            Service-->>Controller: TaskResponseDto
+            Controller-->>Gateway: HTTP 200 OK + Task Data
+            Gateway-->>Client: Task Data
+            
+        else Task Not Found
+            DB-->>DAL: No Records Found
+            DAL-->>Service: null
+            Service-->>Controller: NotFoundException
+            Controller-->>Gateway: HTTP 404 Not Found
+            Gateway-->>Client: HTTP 404<br/>{
+              "error": {
+                "code": "TASK_NOT_FOUND",
+                "message": "Task not found"
+              }
+            }
+        end
+    end
+```
+
+## Task Update Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as Client Application
+    participant Gateway as API Gateway
+    participant Controller as Task Controller
+    participant Service as Task Service
+    participant DAL as Data Access Layer
+    participant DB as PostgreSQL Database
+    participant Cache as Redis Cache
+    participant Audit as Audit Service
+
+    Note over Client, Audit: Task Update Flow (PUT /api/tasks/{id})
+    
+    Client->>Gateway: PUT /api/tasks/{id}<br/>If-Match: version-2
+    Gateway->>Controller: Route Request + Version Header
+    Controller->>Service: updateTask(id, dto, version, userContext)
+    
+    Service->>DAL: Find Task with Version Check
+    DAL->>DB: SELECT FROM tasks WHERE id = ? AND version = ?
+    
+    alt Version Match
+        DB-->>DAL: Task Record
+        DAL-->>Service: Current Task Entity
+        
+        Service->>Service: Apply Updates + Increment Version
+        Service->>DAL: Update Task Entity
+        
+        DAL->>DB: BEGIN TRANSACTION
+        DAL->>DB: UPDATE tasks SET ... WHERE id = ? AND version = ?
+        DAL->>DB: INSERT INTO task_history
+        DAL->>DB: COMMIT TRANSACTION
+        
+        DB-->>DAL: Update Successful
+        DAL-->>Service: Updated Task Entity
+        
+        Service->>Cache: Invalidate/Update Cache
+        Service->>Audit: Log Task Update
+        
+        Service-->>Controller: Updated TaskResponseDto
+        Controller-->>Gateway: HTTP 200 OK + Updated Task
+        Gateway-->>Client: Updated Task Data
+        
+    else Version Mismatch
+        DB-->>DAL: No Records Found
+        DAL-->>Service: Version Conflict
+        Service-->>Controller: ConflictException
+        Controller-->>Gateway: HTTP 409 Conflict
+        Gateway-->>Client: HTTP 409<br/>{
+          "error": {
+            "code": "VERSION_CONFLICT",
+            "message": "Task has been modified by another user"
+          }
+        }
+    end
+```
+
+## Health Check Flow
+
+```mermaid
+sequenceDiagram
+    participant Monitor as Monitoring System
+    participant Gateway as API Gateway
+    participant Controller as Health Controller
+    participant Service as Health Service
+    participant DB as PostgreSQL Database
+    participant Cache as Redis Cache
+    participant External as External Services
+
+    Note over Monitor, External: Health Check Flow (GET /health/detailed)
+    
+    Monitor->>Gateway: GET /health/detailed
+    Gateway->>Controller: Route Health Check
+    Controller->>Service: performDetailedHealthCheck()
+    
+    par Database Check
+        Service->>DB: SELECT 1
+        DB-->>Service: DB Status: OK
+    and Cache Check
+        Service->>Cache: PING
+        Cache-->>Service: Cache Status: OK
+    and External Services Check
+        Service->>External: Health Check Endpoints
+        External-->>Service: External Status: OK
+    end
+    
+    Service->>Service: Aggregate Health Status
+    Service-->>Controller: HealthStatusDto
+    Controller-->>Gateway: HTTP 200 OK + Health Status
+    Gateway-->>Monitor: {
+      "status": "healthy",
+      "components": {
+        "database": "healthy",
+        "cache": "healthy",
+        "external": "healthy"
+      },
+      "timestamp": "2024-01-01T10:00:00Z"
+    }
+```
+
+## Audit Logging Flow
+
+```mermaid
+sequenceDiagram
+    participant Service as Task Service
+    participant Audit as Audit Service
+    participant Queue as Message Queue
+    participant AuditDB as Audit Database
+    participant SIEM as SIEM System
+
+    Note over Service, SIEM: Audit Logging Flow
+    
+    Service->>Audit: logAuditEvent(event, userContext)
+    
+    Audit->>Audit: Enrich Event with Metadata
+    Note over Audit: - Add timestamp<br/>- Add correlation ID<br/>- Add user context<br/>- Add IP address
+    
+    Audit->>Queue: Publish Audit Event
+    Queue-->>Audit: Event Queued
+    
+    Queue->>AuditDB: Store Audit Record
+    AuditDB-->>Queue: Record Stored
+    
+    Queue->>SIEM: Forward to SIEM
+    SIEM-->>Queue: Event Processed
+    
+    Audit-->>Service: Audit Logged Successfully
+```
+
+## Performance Metrics
 
 ### Response Time Targets
-- **Normal Flow**: < 200ms for 95% of requests
-- **Validation**: < 50ms for input validation
-- **Database Operations**: < 100ms for task creation
-- **Audit Logging**: Asynchronous, no impact on response time
+- **API Gateway Processing**: < 10ms
+- **Authentication**: < 50ms
+- **Validation**: < 20ms
+- **Business Logic**: < 50ms
+- **Database Operations**: < 100ms
+- **Cache Operations**: < 10ms
+- **Total Response Time**: < 200ms (95th percentile)
 
-### Throughput Capabilities
-- **Concurrent Requests**: 500 task creations per second
-- **Database TPS**: 2,000 transactions per second
-- **Rate Limiting**: 100 requests/minute per authenticated user
+### Throughput Targets
+- **Peak Load**: 10,000 requests/second
+- **Sustained Load**: 5,000 requests/second
+- **Concurrent Users**: 50,000 users
 
-### Scalability Features
-- **Horizontal Scaling**: Auto-scaling based on CPU utilization
-- **Database Scaling**: Read replicas for query optimization
-- **Caching**: Redis for frequently accessed data
+## Security Considerations
 
----
+### Authentication Flow
+- JWT token validation at API Gateway
+- Token expiration and refresh handling
+- Multi-factor authentication for sensitive operations
 
-## Security Measures
-
-### Input Security
-- **XSS Prevention**: Input sanitization and output encoding
-- **SQL Injection**: Parameterized queries and ORM usage
-- **Data Validation**: Multi-layer validation (DTO, Service, Database)
-
-### Authentication Security
-- **JWT Security**: RS256 algorithm, 1-hour expiration
-- **Token Validation**: Signature verification and claims validation
-- **Session Management**: Stateless authentication approach
+### Authorization Flow
+- Role-based access control (RBAC)
+- Resource-level permissions
+- Audit logging for all access attempts
 
 ### Data Protection
-- **Encryption in Transit**: TLS 1.3 for all communications
-- **Encryption at Rest**: AES-256 for sensitive database fields
-- **PII Masking**: Sensitive data excluded from logs
+- TLS 1.3 for all communications
+- AES-256 encryption at rest
+- PII data masking in logs
 
----
+## Error Handling Standards
 
-## Compliance Features
+### HTTP Status Codes
+- **200 OK**: Successful GET, PUT requests
+- **201 Created**: Successful POST requests
+- **400 Bad Request**: Validation errors
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: Resource not found
+- **409 Conflict**: Version conflicts, duplicate resources
+- **422 Unprocessable Entity**: Business rule violations
+- **429 Too Many Requests**: Rate limiting
+- **500 Internal Server Error**: Unexpected errors
+
+### Error Response Format
+All error responses follow a consistent structure:
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable message",
+    "details": "Additional details",
+    "timestamp": "2024-01-01T10:00:00.000Z",
+    "correlationId": "uuid",
+    "path": "/api/tasks"
+  }
+}
+```
+
+## Compliance and Audit
 
 ### GDPR Compliance
-- **Data Minimization**: Only necessary fields collected
-- **Audit Trail**: Complete operation logging for accountability
-- **Right to Erasure**: Audit logs support data deletion requests
+- Data subject consent tracking
+- Right to be forgotten implementation
+- Data portability support
+- Privacy by design principles
 
-### ISO 27001 Controls
-- **Access Control**: RBAC implementation
-- **Information Security**: Comprehensive logging and monitoring
-- **Incident Management**: Error tracking and alerting
+### SOC2 Compliance
+- Comprehensive audit logging
+- Access control monitoring
+- Data integrity verification
+- Security incident tracking
 
-### SOC 2 Type II
-- **Security**: Multi-layer security controls
-- **Availability**: High availability architecture
-- **Processing Integrity**: Data validation and error handling
-- **Confidentiality**: Encryption and access controls
-
----
-
-## Monitoring and Observability
-
-### Metrics Collection
-- **Request Metrics**: Response time, throughput, error rates
-- **Business Metrics**: Task creation rate, user activity
-- **System Metrics**: CPU, memory, database performance
-
-### Logging Strategy
-- **Structured Logging**: JSON format with correlation IDs
-- **Centralized Aggregation**: ELK Stack for log management
-- **Log Levels**: ERROR, WARN, INFO, DEBUG with appropriate filtering
-
-### Alerting
-- **Performance Alerts**: Response time degradation
-- **Error Rate Alerts**: Spike in error responses
-- **Security Alerts**: Authentication failures, suspicious activity
+### ISO 27001 Compliance
+- Information security management
+- Risk assessment and mitigation
+- Security control implementation
+- Continuous monitoring and improvement
 
 ---
 
-*This sequence diagram represents the complete task creation flow as specified in ADR DEMO-2350 and implements all validation, security, and compliance requirements outlined in the HLD document.*
+**Document Information**
+- **Version**: 1.0
+- **Created**: 2024
+- **Last Updated**: 2024
+- **Owner**: Enterprise Architecture Team
+- **Reviewers**: Security Team, Development Team, Operations Team
+
+**Compliance**: This sequence diagram complies with enterprise architecture standards, OpenAPI 3.0 specification, and regulatory requirements including GDPR, SOC2, and ISO 27001.
+
+**Traceability**: All flows are traceable to DEMO-2350 requirements and HLD document specifications.
