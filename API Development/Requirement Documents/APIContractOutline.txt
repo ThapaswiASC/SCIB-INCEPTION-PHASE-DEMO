@@ -1,36 +1,19 @@
 # API Contract Outline
-## Task Management API System
+## Task Management API
 
-### Version: 1.0
-### Base URL: https://api.enterprise.com/v1
-### Authentication: OAuth 2.0 Bearer Token
-
----
-
-## API Overview
-
-This document outlines the API contract for the Task Management System, focusing on the task creation endpoint as specified in DEMO-2350. The API follows RESTful principles and OpenAPI 3.0 specification.
-
-### Global Headers
-- **Authorization**: Bearer {token} (Required)
-- **Content-Type**: application/json
-- **Accept**: application/json
-- **X-Correlation-ID**: {uuid} (Optional, for request tracing)
-- **X-API-Version**: v1 (Optional, defaults to latest)
-
-### Global Error Response Schema
-```json
-{
-  "error": {
-    "code": "string",
-    "message": "string",
-    "details": "string",
-    "timestamp": "2024-01-01T00:00:00.000Z",
-    "correlationId": "uuid",
-    "path": "string"
-  }
-}
+### Base URL
 ```
+https://api.taskmanagement.com/v1
+```
+
+### Authentication
+- **Type**: Bearer Token (JWT)
+- **Header**: `Authorization: Bearer <token>`
+- **Required**: All endpoints require authentication
+
+### Content Type
+- **Request**: `application/json`
+- **Response**: `application/json`
 
 ---
 
@@ -38,561 +21,340 @@ This document outlines the API contract for the Task Management System, focusing
 
 ### 1. Create Task
 
-**Endpoint**: `POST /api/tasks`
+#### Endpoint
+```
+POST /api/tasks
+```
 
-**Description**: Creates a new task in the system with comprehensive validation and business logic processing.
+#### Description
+Creates a new task with validation and business logic processing.
 
-**Request Headers**:
-- Authorization: Bearer {token} (Required)
-- Content-Type: application/json (Required)
-- X-Correlation-ID: {uuid} (Optional)
+#### Headers
+```
+Content-Type: application/json
+Authorization: Bearer <jwt_token>
+X-Correlation-ID: <uuid> (optional)
+```
 
-**Request Schema**:
+#### Request Schema
 ```json
 {
   "title": {
     "type": "string",
     "required": true,
-    "maxLength": 255,
     "minLength": 1,
-    "description": "Task title",
-    "example": "Complete project documentation"
+    "maxLength": 200,
+    "description": "Task title"
   },
   "description": {
     "type": "string",
     "required": false,
-    "maxLength": 2000,
-    "description": "Detailed task description",
-    "example": "Create comprehensive documentation for the new API endpoints"
-  },
-  "status": {
-    "type": "string",
-    "required": true,
-    "enum": ["TODO", "IN_PROGRESS", "DONE", "CANCELLED"],
-    "description": "Current task status",
-    "example": "TODO"
+    "maxLength": 1000,
+    "description": "Task description"
   },
   "priority": {
     "type": "string",
+    "enum": ["LOW", "MEDIUM", "HIGH"],
+    "required": true,
+    "description": "Task priority level"
+  },
+  "status": {
+    "type": "string",
+    "enum": ["TODO", "IN_PROGRESS", "DONE"],
     "required": false,
-    "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
-    "default": "MEDIUM",
-    "description": "Task priority level",
-    "example": "HIGH"
+    "default": "TODO",
+    "description": "Task status"
   },
   "dueDate": {
     "type": "string",
     "format": "date-time",
-    "required": true,
-    "description": "Task due date (ISO 8601 format)",
-    "example": "2024-12-31T23:59:59.000Z"
+    "required": false,
+    "description": "Task due date (ISO 8601 format, future dates only)"
   },
   "assignedTo": {
     "type": "string",
     "format": "uuid",
     "required": false,
-    "description": "User ID of assigned person",
-    "example": "123e4567-e89b-12d3-a456-426614174000"
-  },
-  "tags": {
-    "type": "array",
-    "items": {
-      "type": "string",
-      "maxLength": 50
-    },
-    "maxItems": 10,
-    "required": false,
-    "description": "Task tags for categorization",
-    "example": ["documentation", "api", "urgent"]
-  },
-  "metadata": {
-    "type": "object",
-    "required": false,
-    "description": "Additional task metadata",
-    "example": {
-      "project": "API-2024",
-      "department": "Engineering"
-    }
+    "description": "UUID of assigned user"
   }
 }
 ```
 
-**Success Response (201 Created)**:
+#### Example Request
 ```json
 {
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "title": "Complete project documentation",
-  "description": "Create comprehensive documentation for the new API endpoints",
+  "title": "Implement user authentication",
+  "description": "Add JWT-based authentication to the API",
+  "priority": "HIGH",
   "status": "TODO",
+  "dueDate": "2024-12-31T23:59:59Z",
+  "assignedTo": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+#### Success Response (201 Created)
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "Implement user authentication",
+  "description": "Add JWT-based authentication to the API",
   "priority": "HIGH",
-  "dueDate": "2024-12-31T23:59:59.000Z",
-  "assignedTo": {
-    "id": "123e4567-e89b-12d3-a456-426614174001",
-    "name": "John Doe",
-    "email": "john.doe@enterprise.com"
-  },
-  "createdBy": {
-    "id": "123e4567-e89b-12d3-a456-426614174002",
-    "name": "Jane Smith",
-    "email": "jane.smith@enterprise.com"
-  },
-  "tags": ["documentation", "api", "urgent"],
-  "metadata": {
-    "project": "API-2024",
-    "department": "Engineering"
-  },
-  "createdAt": "2024-01-01T10:00:00.000Z",
-  "updatedAt": "2024-01-01T10:00:00.000Z",
-  "version": 1
+  "status": "TODO",
+  "dueDate": "2024-12-31T23:59:59Z",
+  "assignedTo": "123e4567-e89b-12d3-a456-426614174000",
+  "createdBy": "987fcdeb-51a2-43d7-b123-456789abcdef",
+  "createdAt": "2024-01-15T10:30:00Z",
+  "updatedAt": "2024-01-15T10:30:00Z"
 }
 ```
 
-**Error Responses**:
+#### Error Responses
 
-**400 Bad Request - Validation Error**:
+##### 400 Bad Request - Validation Error
 ```json
 {
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Request validation failed",
-    "details": "One or more fields contain invalid data",
-    "timestamp": "2024-01-01T10:00:00.000Z",
-    "correlationId": "123e4567-e89b-12d3-a456-426614174000",
-    "path": "/api/tasks",
-    "validationErrors": [
-      {
-        "field": "title",
-        "message": "Title is required and cannot be empty",
-        "value": ""
-      },
-      {
-        "field": "dueDate",
-        "message": "Due date cannot be in the past",
-        "value": "2023-01-01T00:00:00.000Z"
-      }
-    ]
-  }
-}
-```
-
-**401 Unauthorized**:
-```json
-{
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "Authentication required",
-    "details": "Valid bearer token must be provided",
-    "timestamp": "2024-01-01T10:00:00.000Z",
-    "correlationId": "123e4567-e89b-12d3-a456-426614174000",
-    "path": "/api/tasks"
-  }
-}
-```
-
-**403 Forbidden**:
-```json
-{
-  "error": {
-    "code": "FORBIDDEN",
-    "message": "Insufficient permissions",
-    "details": "User does not have permission to create tasks",
-    "timestamp": "2024-01-01T10:00:00.000Z",
-    "correlationId": "123e4567-e89b-12d3-a456-426614174000",
-    "path": "/api/tasks"
-  }
-}
-```
-
-**409 Conflict**:
-```json
-{
-  "error": {
-    "code": "DUPLICATE_TASK",
-    "message": "Task with similar title already exists",
-    "details": "A task with the same title and assignee already exists",
-    "timestamp": "2024-01-01T10:00:00.000Z",
-    "correlationId": "123e4567-e89b-12d3-a456-426614174000",
-    "path": "/api/tasks",
-    "existingTaskId": "123e4567-e89b-12d3-a456-426614174003"
-  }
-}
-```
-
-**422 Unprocessable Entity**:
-```json
-{
-  "error": {
-    "code": "BUSINESS_RULE_VIOLATION",
-    "message": "Business rule validation failed",
-    "details": "Task cannot be assigned to inactive user",
-    "timestamp": "2024-01-01T10:00:00.000Z",
-    "correlationId": "123e4567-e89b-12d3-a456-426614174000",
-    "path": "/api/tasks"
-  }
-}
-```
-
-**429 Too Many Requests**:
-```json
-{
-  "error": {
-    "code": "RATE_LIMIT_EXCEEDED",
-    "message": "Rate limit exceeded",
-    "details": "Maximum 100 requests per minute allowed",
-    "timestamp": "2024-01-01T10:00:00.000Z",
-    "correlationId": "123e4567-e89b-12d3-a456-426614174000",
-    "path": "/api/tasks",
-    "retryAfter": 60
-  }
-}
-```
-
-**500 Internal Server Error**:
-```json
-{
-  "error": {
-    "code": "INTERNAL_SERVER_ERROR",
-    "message": "An unexpected error occurred",
-    "details": "Please try again later or contact support",
-    "timestamp": "2024-01-01T10:00:00.000Z",
-    "correlationId": "123e4567-e89b-12d3-a456-426614174000",
-    "path": "/api/tasks"
-  }
-}
-```
-
----
-
-### 2. Get Task by ID
-
-**Endpoint**: `GET /api/tasks/{id}`
-
-**Description**: Retrieves a specific task by its unique identifier.
-
-**Path Parameters**:
-- `id` (string, uuid, required): Task unique identifier
-
-**Request Headers**:
-- Authorization: Bearer {token} (Required)
-- Accept: application/json (Required)
-- X-Correlation-ID: {uuid} (Optional)
-
-**Request Schema**: N/A (No request body)
-
-**Success Response (200 OK)**:
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "title": "Complete project documentation",
-  "description": "Create comprehensive documentation for the new API endpoints",
-  "status": "IN_PROGRESS",
-  "priority": "HIGH",
-  "dueDate": "2024-12-31T23:59:59.000Z",
-  "assignedTo": {
-    "id": "123e4567-e89b-12d3-a456-426614174001",
-    "name": "John Doe",
-    "email": "john.doe@enterprise.com"
-  },
-  "createdBy": {
-    "id": "123e4567-e89b-12d3-a456-426614174002",
-    "name": "Jane Smith",
-    "email": "jane.smith@enterprise.com"
-  },
-  "tags": ["documentation", "api", "urgent"],
-  "metadata": {
-    "project": "API-2024",
-    "department": "Engineering"
-  },
-  "createdAt": "2024-01-01T10:00:00.000Z",
-  "updatedAt": "2024-01-01T14:30:00.000Z",
-  "version": 2,
-  "history": [
+  "error": "ValidationError",
+  "message": "Invalid input data",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "path": "/api/tasks",
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000",
+  "details": [
     {
-      "field": "status",
-      "oldValue": "TODO",
-      "newValue": "IN_PROGRESS",
-      "changedBy": {
-        "id": "123e4567-e89b-12d3-a456-426614174001",
-        "name": "John Doe"
-      },
-      "changedAt": "2024-01-01T14:30:00.000Z"
+      "field": "title",
+      "message": "Title is required and cannot be empty",
+      "code": "REQUIRED_FIELD"
+    },
+    {
+      "field": "dueDate",
+      "message": "Due date cannot be in the past",
+      "code": "INVALID_DATE"
     }
   ]
 }
 ```
 
-**Error Responses**:
-
-**404 Not Found**:
+##### 401 Unauthorized
 ```json
 {
-  "error": {
-    "code": "TASK_NOT_FOUND",
-    "message": "Task not found",
-    "details": "No task exists with the provided ID",
-    "timestamp": "2024-01-01T10:00:00.000Z",
-    "correlationId": "123e4567-e89b-12d3-a456-426614174000",
-    "path": "/api/tasks/123e4567-e89b-12d3-a456-426614174000"
+  "error": "Unauthorized",
+  "message": "Invalid or missing authentication token",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "path": "/api/tasks",
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+##### 403 Forbidden
+```json
+{
+  "error": "Forbidden",
+  "message": "Insufficient permissions to create tasks",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "path": "/api/tasks",
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+##### 409 Conflict
+```json
+{
+  "error": "Conflict",
+  "message": "Task with similar title already exists",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "path": "/api/tasks",
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000",
+  "details": {
+    "existingTaskId": "123e4567-e89b-12d3-a456-426614174000"
   }
 }
 ```
 
+##### 422 Unprocessable Entity
+```json
+{
+  "error": "UnprocessableEntity",
+  "message": "Business rule validation failed",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "path": "/api/tasks",
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000",
+  "details": [
+    {
+      "rule": "ASSIGNED_USER_VALIDATION",
+      "message": "Assigned user does not exist or is inactive"
+    }
+  ]
+}
+```
+
+##### 429 Too Many Requests
+```json
+{
+  "error": "TooManyRequests",
+  "message": "Rate limit exceeded",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "path": "/api/tasks",
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000",
+  "retryAfter": 60
+}
+```
+
+##### 500 Internal Server Error
+```json
+{
+  "error": "InternalServerError",
+  "message": "An unexpected error occurred",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "path": "/api/tasks",
+  "correlationId": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
 ---
+
+## Future Endpoints (Roadmap)
+
+### 2. Get Task by ID
+```
+GET /api/tasks/{id}
+```
+- **Response**: 200 OK, 404 Not Found
+- **Description**: Retrieve a specific task by ID
 
 ### 3. Update Task
-
-**Endpoint**: `PUT /api/tasks/{id}`
-
-**Description**: Updates an existing task with new information.
-
-**Path Parameters**:
-- `id` (string, uuid, required): Task unique identifier
-
-**Request Headers**:
-- Authorization: Bearer {token} (Required)
-- Content-Type: application/json (Required)
-- If-Match: {version} (Required for optimistic locking)
-- X-Correlation-ID: {uuid} (Optional)
-
-**Request Schema**: Same as Create Task, but all fields are optional
-
-**Success Response (200 OK)**: Same as Get Task response
-
-**Error Responses**:
-- 400 Bad Request (Validation errors)
-- 404 Not Found (Task not found)
-- 409 Conflict (Version mismatch)
-- 412 Precondition Failed (If-Match header mismatch)
-
----
+```
+PUT /api/tasks/{id}
+```
+- **Response**: 200 OK, 400 Bad Request, 404 Not Found
+- **Description**: Update an existing task
 
 ### 4. Delete Task
+```
+DELETE /api/tasks/{id}
+```
+- **Response**: 204 No Content, 404 Not Found
+- **Description**: Soft delete a task
 
-**Endpoint**: `DELETE /api/tasks/{id}`
-
-**Description**: Soft deletes a task (marks as deleted but preserves data for audit).
-
-**Path Parameters**:
-- `id` (string, uuid, required): Task unique identifier
-
-**Request Headers**:
-- Authorization: Bearer {token} (Required)
-- X-Correlation-ID: {uuid} (Optional)
-
-**Request Schema**: N/A
-
-**Success Response (204 No Content)**: Empty response body
-
-**Error Responses**:
-- 404 Not Found (Task not found)
-- 409 Conflict (Task cannot be deleted due to business rules)
+### 5. List Tasks
+```
+GET /api/tasks
+```
+- **Query Parameters**: page, limit, status, priority, assignedTo
+- **Response**: 200 OK
+- **Description**: Retrieve paginated list of tasks with filtering
 
 ---
 
-### 5. List Tasks
+## Common Response Headers
 
-**Endpoint**: `GET /api/tasks`
+```
+Content-Type: application/json
+X-Correlation-ID: <uuid>
+X-Request-ID: <uuid>
+X-Rate-Limit-Remaining: <number>
+X-Rate-Limit-Reset: <timestamp>
+```
 
-**Description**: Retrieves a paginated list of tasks with filtering and sorting options.
+---
 
-**Query Parameters**:
-- `page` (integer, optional, default: 1): Page number
-- `limit` (integer, optional, default: 20, max: 100): Items per page
-- `status` (string, optional): Filter by task status
-- `priority` (string, optional): Filter by task priority
-- `assignedTo` (string, uuid, optional): Filter by assigned user
-- `createdBy` (string, uuid, optional): Filter by creator
-- `tags` (string, optional): Comma-separated list of tags
-- `sort` (string, optional, default: "createdAt"): Sort field
-- `order` (string, optional, default: "desc"): Sort order (asc/desc)
-- `search` (string, optional): Full-text search in title and description
+## Data Models
 
-**Success Response (200 OK)**:
+### Task Model
 ```json
 {
-  "data": [
-    {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "title": "Complete project documentation",
-      "status": "IN_PROGRESS",
-      "priority": "HIGH",
-      "dueDate": "2024-12-31T23:59:59.000Z",
-      "assignedTo": {
-        "id": "123e4567-e89b-12d3-a456-426614174001",
-        "name": "John Doe"
-      },
-      "createdAt": "2024-01-01T10:00:00.000Z",
-      "updatedAt": "2024-01-01T14:30:00.000Z"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 150,
-    "totalPages": 8,
-    "hasNext": true,
-    "hasPrev": false
-  },
-  "filters": {
-    "status": "IN_PROGRESS",
-    "priority": "HIGH"
-  },
-  "sort": {
-    "field": "createdAt",
-    "order": "desc"
-  }
+  "id": "string (uuid)",
+  "title": "string (1-200 chars)",
+  "description": "string (0-1000 chars)",
+  "priority": "enum (LOW|MEDIUM|HIGH)",
+  "status": "enum (TODO|IN_PROGRESS|DONE)",
+  "dueDate": "string (ISO 8601 datetime)",
+  "assignedTo": "string (uuid)",
+  "createdBy": "string (uuid)",
+  "createdAt": "string (ISO 8601 datetime)",
+  "updatedAt": "string (ISO 8601 datetime)"
 }
 ```
+
+### Error Model
+```json
+{
+  "error": "string",
+  "message": "string",
+  "timestamp": "string (ISO 8601 datetime)",
+  "path": "string",
+  "correlationId": "string (uuid)",
+  "details": "array or object (optional)"
+}
+```
+
+---
+
+## Validation Rules
+
+### Field Validation
+- **title**: Required, 1-200 characters, no HTML tags
+- **description**: Optional, max 1000 characters, HTML sanitized
+- **priority**: Required, must be one of: LOW, MEDIUM, HIGH
+- **status**: Optional, defaults to TODO, must be one of: TODO, IN_PROGRESS, DONE
+- **dueDate**: Optional, must be valid ISO 8601 date, future dates only
+- **assignedTo**: Optional, must be valid UUID format
+
+### Business Rules
+- Due date cannot be in the past
+- Assigned user must exist and be active
+- Title must be unique per user (soft validation with warning)
+- Maximum 100 tasks per user in TODO status
+
+---
+
+## Rate Limiting
+
+- **Authenticated Users**: 1000 requests per hour
+- **Burst Limit**: 100 requests per minute
+- **Headers**: X-Rate-Limit-Remaining, X-Rate-Limit-Reset
 
 ---
 
 ## Security Considerations
 
-### Authentication
-- All endpoints require valid OAuth 2.0 Bearer token
-- Tokens must be included in Authorization header
-- Token validation includes signature verification and expiration check
-
-### Authorization
-- Role-Based Access Control (RBAC) enforced
-- Permissions checked for each operation
-- Users can only access tasks they have permissions for
-
-### Data Validation
-- All input data validated against schema
+### Input Validation
+- All input fields are validated using class-validator decorators
+- HTML content is sanitized to prevent XSS attacks
 - SQL injection prevention through parameterized queries
-- XSS prevention through input sanitization
-- File upload restrictions and virus scanning
 
-### Rate Limiting
-- 100 requests per minute per user
-- 1000 requests per minute per organization
-- Rate limit headers included in responses
+### Authentication & Authorization
+- JWT tokens required for all endpoints
+- Token expiration: 24 hours
+- Refresh token mechanism available
+- Role-based access control (RBAC)
 
-### Audit Logging
-- All API calls logged with user context
-- Sensitive data masked in logs
-- Correlation IDs for request tracing
-
----
-
-## Error Handling Standards
-
-### Error Response Structure
-All error responses follow a consistent structure with:
-- Error code (machine-readable)
-- Error message (human-readable)
-- Detailed description
-- Timestamp
-- Correlation ID
-- Request path
-- Additional context (when applicable)
-
-### HTTP Status Codes
-- **200 OK**: Successful GET, PUT requests
-- **201 Created**: Successful POST requests
-- **204 No Content**: Successful DELETE requests
-- **400 Bad Request**: Invalid request data
-- **401 Unauthorized**: Authentication required
-- **403 Forbidden**: Insufficient permissions
-- **404 Not Found**: Resource not found
-- **409 Conflict**: Resource conflict
-- **422 Unprocessable Entity**: Business rule violation
-- **429 Too Many Requests**: Rate limit exceeded
-- **500 Internal Server Error**: Unexpected server error
-
-### Error Categories
-- **Validation Errors**: Input data validation failures
-- **Authentication Errors**: Token-related issues
-- **Authorization Errors**: Permission-related issues
-- **Business Logic Errors**: Domain rule violations
-- **System Errors**: Infrastructure or service failures
+### Data Protection
+- TLS 1.3 encryption for data in transit
+- AES-256 encryption for sensitive data at rest
+- PII data handling compliance (GDPR)
 
 ---
 
-## API Versioning
-
-### Versioning Strategy
-- URI versioning: `/api/v1/tasks`
-- Version in header: `X-API-Version: v1`
-- Default to latest version if not specified
-
-### Backward Compatibility
-- Maintain compatibility for at least 2 major versions
-- Deprecation notices provided 6 months in advance
-- Breaking changes only in major version updates
-
-### Version Lifecycle
-- **Alpha**: Development and testing
-- **Beta**: Limited production use
-- **Stable**: Full production support
-- **Deprecated**: Maintenance mode only
-- **Retired**: No longer supported
-
----
-
-## Performance Considerations
-
-### Response Times
-- Target: < 200ms for 95% of requests
-- Timeout: 30 seconds maximum
-- Caching: Aggressive caching for read operations
-
-### Pagination
-- Default page size: 20 items
-- Maximum page size: 100 items
-- Cursor-based pagination for large datasets
-
-### Caching Strategy
-- HTTP caching headers (ETag, Last-Modified)
-- Redis caching for frequently accessed data
-- CDN caching for static content
-
----
-
-## Monitoring and Observability
+## Monitoring & Observability
 
 ### Metrics
 - Request count and response times
-- Error rates by endpoint and status code
-- Authentication and authorization failures
-- Business metrics (tasks created, completed, etc.)
+- Error rates by status code
+- Business metrics (tasks created per day)
 
 ### Logging
-- Structured JSON logs
-- Correlation IDs for request tracing
-- Security events and audit logs
-- Performance and error logs
+- Structured JSON logging
+- Correlation ID tracking
+- Audit trail for all operations
 
 ### Health Checks
-- `/health`: Basic health check
-- `/health/detailed`: Detailed system status
-- `/metrics`: Prometheus-compatible metrics
+```
+GET /health
+GET /health/ready
+GET /health/live
+```
 
 ---
 
-## OpenAPI Specification
-
-The complete OpenAPI 3.0 specification is available at:
-- Development: `https://api-dev.enterprise.com/docs`
-- Staging: `https://api-staging.enterprise.com/docs`
-- Production: `https://api.enterprise.com/docs`
-
-### Interactive Documentation
-- Swagger UI for API exploration
-- Code examples in multiple languages
-- Try-it-out functionality with authentication
-- Schema validation and testing tools
-
----
-
-**Document Information**
-- **Version**: 1.0
-- **Last Updated**: 2024-01-01
-- **Next Review**: 2024-04-01
-- **Owner**: API Architecture Team
-- **Approvers**: Enterprise Architecture, Security Team
-
----
-
-*This API contract is subject to change. Clients should implement proper error handling and follow versioning guidelines to ensure compatibility.*
+**API Version**: 1.0
+**Last Updated**: [Current Date]
+**OpenAPI Specification**: Available at `/api/docs`

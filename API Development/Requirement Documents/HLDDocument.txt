@@ -1,684 +1,468 @@
 # High-Level Design Document
 ## Task Management API System
 
-### Version: 1.0
-### Date: 2024
-### Document Status: Draft
+### 1. Introduction
 
----
+#### 1.1 Purpose
+This High-Level Design (HLD) document outlines the architecture and design for the Task Management API System, specifically focusing on the task creation endpoint as defined in DEMO-2350. This document serves as a blueprint for the implementation team and ensures architectural decisions are traceable and compliant with enterprise standards.
 
-## 1. Introduction
-
-### 1.1 Purpose
-This High-Level Design (HLD) document describes the architecture and design for the Task Management API System, specifically focusing on the task creation endpoint implementation as defined in DEMO-2350. This document serves as the architectural blueprint for implementing a scalable, secure, and maintainable task management system.
-
-### 1.2 Scope
-The scope includes:
+#### 1.2 Scope
+The scope covers the design of a RESTful API endpoint for task creation, including:
 - Task creation API endpoint (POST /api/tasks)
-- Data validation and sanitization mechanisms
+- Data validation and sanitization
 - Business logic implementation
 - Error handling and response formatting
 - Security and compliance considerations
-- Integration with existing enterprise systems
 
-### 1.3 Stakeholders
-- Development Team
-- Enterprise Architects
-- Security Team
-- Operations Team
-- Product Owners
-- Compliance Officers
+#### 1.3 Document Structure
+This document follows enterprise HLD standards and includes architectural decisions, component designs, integration patterns, and non-functional requirements.
 
-### 1.4 Document Structure
-This document follows enterprise architecture standards and includes architectural decisions, component design, security considerations, and implementation guidance.
+### 2. System Overview
 
----
+#### 2.1 Business Context
+The Task Management API System enables users to create, manage, and track tasks through a RESTful API interface. The system supports task lifecycle management with proper validation, security, and audit capabilities.
 
-## 2. System Overview
-
-### 2.1 Business Context
-The Task Management API System enables enterprise users to create, manage, and track tasks within the organization's workflow management ecosystem. The system must integrate with existing enterprise infrastructure while maintaining high security, compliance, and performance standards.
-
-### 2.2 Key Capabilities
+#### 2.2 Key Capabilities
 - Task creation with comprehensive validation
-- Data sanitization and security enforcement
-- Integration with enterprise authentication systems
-- Audit logging and compliance tracking
-- Real-time error handling and reporting
-- Scalable architecture supporting enterprise load
+- Data sanitization and security controls
+- Error handling with appropriate HTTP status codes
+- OpenAPI documentation generation
+- Audit logging and traceability
 
-### 2.3 Success Criteria
-- API response time < 200ms for 95% of requests
-- 99.99% availability
-- Full compliance with GDPR, PCI-DSS, and ISO 27001
-- Zero data breaches
-- Comprehensive audit trail for all operations
+#### 2.3 Stakeholders
+- Development Team
+- API Consumers
+- System Administrators
+- Compliance Officers
+- End Users
 
----
+### 3. Architecture Overview
 
-## 3. Architecture Overview
-
-### 3.1 Architectural Principles
-- Security by Design
-- API-First Development
-- Microservices Architecture
-- Domain-Driven Design
-- Event-Driven Architecture
-- Cloud-Native Design
-
-### 3.2 Context Diagram
-
+#### 3.1 System Context Diagram
 ```mermaid
 C4Context
     title System Context Diagram - Task Management API
     
-    Person(user, "Enterprise User", "Creates and manages tasks")
-    Person(admin, "System Administrator", "Monitors and maintains system")
+    Person(user, "API Consumer", "External applications and users")
+    System(taskApi, "Task Management API", "RESTful API for task management")
+    SystemDb(database, "Task Database", "Persistent storage for task data")
+    System(authService, "Authentication Service", "User authentication and authorization")
+    System(auditService, "Audit Service", "Audit logging and compliance")
     
-    System(taskAPI, "Task Management API", "Provides task creation and management capabilities")
-    
-    System_Ext(authService, "Enterprise Auth Service", "Handles authentication and authorization")
-    System_Ext(auditService, "Audit Service", "Logs all system activities")
-    System_Ext(notificationService, "Notification Service", "Sends task-related notifications")
-    System_Ext(database, "Enterprise Database", "Stores task data")
-    System_Ext(monitoring, "Monitoring System", "System health and performance monitoring")
-    
-    Rel(user, taskAPI, "Creates tasks via", "HTTPS/REST")
-    Rel(admin, taskAPI, "Monitors via", "HTTPS/REST")
-    Rel(taskAPI, authService, "Authenticates users", "HTTPS")
-    Rel(taskAPI, auditService, "Logs activities", "HTTPS")
-    Rel(taskAPI, notificationService, "Sends notifications", "HTTPS")
-    Rel(taskAPI, database, "Stores/retrieves data", "TLS")
-    Rel(taskAPI, monitoring, "Reports metrics", "HTTPS")
+    Rel(user, taskApi, "Creates tasks via", "HTTPS/REST")
+    Rel(taskApi, database, "Stores task data", "Database Connection")
+    Rel(taskApi, authService, "Validates users", "HTTPS")
+    Rel(taskApi, auditService, "Logs activities", "Message Queue")
 ```
 
-### 3.3 Container Diagram
-
+#### 3.2 Container Diagram
 ```mermaid
 C4Container
     title Container Diagram - Task Management API
     
-    Person(user, "Enterprise User")
+    Person(user, "API Consumer")
     
-    Container_Boundary(apiSystem, "Task Management API System") {
-        Container(apiGateway, "API Gateway", "Kong/AWS API Gateway", "Rate limiting, authentication, routing")
-        Container(taskController, "Task Controller", "Node.js/TypeScript", "Handles HTTP requests and responses")
-        Container(taskService, "Task Service", "Node.js/TypeScript", "Business logic and validation")
-        Container(dataLayer, "Data Access Layer", "TypeORM/Prisma", "Database operations and caching")
-        Container(validationService, "Validation Service", "Node.js/TypeScript", "Input validation and sanitization")
+    Container_Boundary(api, "Task Management API") {
+        Container(controller, "Task Controller", "Node.js/TypeScript", "Handles HTTP requests and responses")
+        Container(service, "Task Service", "Node.js/TypeScript", "Business logic and validation")
+        Container(dto, "Data Transfer Objects", "TypeScript", "Request/response validation")
+        Container(middleware, "Middleware Layer", "Node.js", "Authentication, logging, error handling")
     }
     
-    ContainerDb(database, "Task Database", "PostgreSQL", "Stores task data")
-    ContainerDb(cache, "Redis Cache", "Redis", "Caches frequently accessed data")
+    ContainerDb(database, "Task Database", "PostgreSQL", "Stores task entities")
+    Container(cache, "Redis Cache", "Redis", "Caching layer")
     
-    Container_Ext(authService, "Auth Service", "OAuth2/OIDC")
-    Container_Ext(auditService, "Audit Service", "ELK Stack")
-    
-    Rel(user, apiGateway, "HTTPS requests")
-    Rel(apiGateway, taskController, "Routed requests")
-    Rel(taskController, taskService, "Business logic calls")
-    Rel(taskService, validationService, "Validation requests")
-    Rel(taskService, dataLayer, "Data operations")
-    Rel(dataLayer, database, "SQL queries")
-    Rel(dataLayer, cache, "Cache operations")
-    Rel(apiGateway, authService, "Authentication")
-    Rel(taskService, auditService, "Audit logs")
+    Rel(user, controller, "POST /api/tasks", "HTTPS")
+    Rel(controller, service, "Calls business logic")
+    Rel(service, database, "Persists data", "SQL")
+    Rel(service, cache, "Caches data", "Redis Protocol")
+    Rel(controller, dto, "Validates input")
+    Rel(controller, middleware, "Processes requests")
 ```
 
-### 3.4 Deployment Diagram
-
+#### 3.3 Deployment Diagram
 ```mermaid
 C4Deployment
     title Deployment Diagram - Task Management API
     
-    Deployment_Node(cdn, "CDN", "CloudFlare") {
-        Container(cdnCache, "CDN Cache", "Static content caching")
+    Deployment_Node(lb, "Load Balancer", "AWS ALB") {
+        Container(alb, "Application Load Balancer", "AWS ALB", "Routes traffic")
     }
     
-    Deployment_Node(loadBalancer, "Load Balancer", "AWS ALB") {
-        Container(alb, "Application Load Balancer", "Traffic distribution")
+    Deployment_Node(app, "Application Tier", "AWS ECS") {
+        Container(api1, "Task API Instance 1", "Docker Container", "API application")
+        Container(api2, "Task API Instance 2", "Docker Container", "API application")
     }
     
-    Deployment_Node(k8sCluster, "Kubernetes Cluster", "AWS EKS") {
-        Deployment_Node(apiPods, "API Pods", "Multiple instances") {
-            Container(taskAPI, "Task API", "Node.js application")
-        }
-        Deployment_Node(cachePods, "Cache Pods", "Redis cluster") {
-            ContainerDb(redis, "Redis", "In-memory cache")
-        }
+    Deployment_Node(data, "Data Tier", "AWS RDS") {
+        ContainerDb(db, "PostgreSQL Database", "AWS RDS", "Primary database")
+        ContainerDb(replica, "Read Replica", "AWS RDS", "Read-only replica")
     }
     
-    Deployment_Node(rdsCluster, "RDS Cluster", "AWS RDS PostgreSQL") {
-        ContainerDb(primaryDB, "Primary DB", "Write operations")
-        ContainerDb(readReplica, "Read Replica", "Read operations")
+    Deployment_Node(cache_tier, "Cache Tier", "AWS ElastiCache") {
+        Container(redis, "Redis Cluster", "ElastiCache", "Distributed cache")
     }
     
-    Deployment_Node(monitoring, "Monitoring", "AWS CloudWatch") {
-        Container(metrics, "Metrics", "Performance monitoring")
-        Container(logs, "Logs", "Centralized logging")
-    }
-    
-    Rel(cdnCache, alb, "HTTPS")
-    Rel(alb, taskAPI, "HTTPS")
-    Rel(taskAPI, redis, "TCP")
-    Rel(taskAPI, primaryDB, "TLS")
-    Rel(taskAPI, readReplica, "TLS")
-    Rel(taskAPI, metrics, "HTTPS")
+    Rel(alb, api1, "Routes requests")
+    Rel(alb, api2, "Routes requests")
+    Rel(api1, db, "Read/Write")
+    Rel(api2, db, "Read/Write")
+    Rel(api1, redis, "Cache operations")
+    Rel(api2, redis, "Cache operations")
 ```
 
-### 3.5 Data Model Diagram
-
+#### 3.4 Data Model Diagram
 ```mermaid
 erDiagram
     TASK {
         uuid id PK
-        varchar title
+        string title
         text description
         enum status
         enum priority
-        timestamp due_date
-        uuid assigned_to FK
-        uuid created_by FK
+        date due_date
         timestamp created_at
         timestamp updated_at
-        boolean is_deleted
-        jsonb metadata
+        uuid created_by FK
+        uuid assigned_to FK
     }
     
     USER {
         uuid id PK
-        varchar email
-        varchar name
-        enum role
+        string email
+        string name
         timestamp created_at
-        timestamp last_login
-        boolean is_active
+        timestamp updated_at
     }
     
     AUDIT_LOG {
         uuid id PK
         uuid entity_id
-        varchar entity_type
-        varchar action
-        jsonb old_values
-        jsonb new_values
+        string entity_type
+        string action
+        json old_values
+        json new_values
         uuid user_id FK
         timestamp created_at
-        varchar ip_address
-        varchar user_agent
     }
     
-    TASK_HISTORY {
-        uuid id PK
-        uuid task_id FK
-        varchar field_name
-        text old_value
-        text new_value
-        uuid changed_by FK
-        timestamp changed_at
-    }
-    
-    TASK ||--o{ TASK_HISTORY : "has history"
-    USER ||--o{ TASK : "creates/assigned"
-    USER ||--o{ AUDIT_LOG : "performs actions"
-    TASK ||--o{ AUDIT_LOG : "generates logs"
+    TASK ||--o{ USER : "created_by"
+    TASK ||--o{ USER : "assigned_to"
+    AUDIT_LOG ||--o{ USER : "user_id"
 ```
 
----
+### 4. Component Design
 
-## 4. Component Design
+#### 4.1 Task Controller (Mapped to DEMO-2350)
+**Location**: `src/controllers/task.controller.ts`
 
-### 4.1 Task Controller Component
+**Responsibilities**:
+- Handle HTTP POST requests to `/api/tasks`
+- Input validation using CreateTaskDto
+- Response formatting and HTTP status code management
+- Error handling and exception management
 
-**Responsibility**: Handle HTTP requests and responses for task operations
+**Key Methods**:
+- `createTask()`: Handles task creation requests
 
-**Key Features**:
-- Request routing and parameter extraction
-- Response formatting and status code management
-- Error handling and exception mapping
-- OpenAPI documentation generation
+**ADR Mapping**: Direct implementation of DEMO-2350 requirements
 
-**ADR Mapping**: Based on DEMO-2350 requirements for POST /api/tasks endpoint
+#### 4.2 CreateTaskDto (Mapped to DEMO-2350)
+**Validation Decorators**:
+- `@IsNotEmpty()`: Ensures required fields are provided
+- `@MaxLength()`: Limits field length
+- `@IsEnum()`: Validates enumerated values
+- `@IsDateString()`: Validates date format
 
-**Implementation Details**:
-```typescript
-@Controller('api/tasks')
-@ApiTags('Tasks')
-export class TaskController {
-  @Post()
-  @ApiOperation({ summary: 'Create a new task' })
-  @ApiResponse({ status: 201, description: 'Task created successfully' })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  async createTask(@Body() createTaskDto: CreateTaskDto): Promise<TaskResponseDto>
-}
-```
+**Fields**:
+- title: string (required, max 200 characters)
+- description: string (optional, max 1000 characters)
+- priority: enum (LOW, MEDIUM, HIGH)
+- status: enum (TODO, IN_PROGRESS, DONE)
+- dueDate: ISO date string (future dates only)
+- assignedTo: UUID (optional)
 
-### 4.2 Task Service Component
+#### 4.3 Task Service (Mapped to DEMO-2350)
+**Location**: `src/services/task.service.ts`
 
-**Responsibility**: Business logic implementation and orchestration
-
-**Key Features**:
-- Business rule validation
+**Responsibilities**:
+- Business logic validation
 - Data sanitization
-- Integration with external services
-- Transaction management
-- Error handling and logging
+- Database operations
+- Error handling
 
-**ADR Mapping**: Implements business logic validation as specified in DEMO-2350
+**Key Methods**:
+- `createTask(createTaskDto: CreateTaskDto)`: Core business logic
+- `validateDueDate(date: string)`: Prevents past dates
+- `sanitizeInput(input: any)`: Data sanitization
 
-### 4.3 Validation Service Component
+### 5. Data Design
 
-**Responsibility**: Input validation and data sanitization
+#### 5.1 Data Storage Strategy
+- **Primary Database**: PostgreSQL for ACID compliance
+- **Caching Layer**: Redis for performance optimization
+- **Audit Trail**: Separate audit log table for compliance
 
-**Key Features**:
-- DTO validation using class-validator decorators
-- Custom validation rules
-- Data sanitization and normalization
-- Security validation (XSS, SQL injection prevention)
+#### 5.2 Data Validation Rules
+- Title: Required, 1-200 characters
+- Description: Optional, max 1000 characters
+- Due Date: Must be future date, ISO 8601 format
+- Priority: Enum validation (LOW, MEDIUM, HIGH)
+- Status: Enum validation (TODO, IN_PROGRESS, DONE)
 
-**Implementation Details**:
-```typescript
-export class CreateTaskDto {
-  @IsNotEmpty()
-  @MaxLength(255)
-  @ApiProperty()
-  title: string;
+#### 5.3 Data Sanitization
+- HTML encoding for text fields
+- SQL injection prevention
+- XSS protection
+- Input trimming and normalization
 
-  @IsOptional()
-  @MaxLength(2000)
-  @ApiProperty()
-  description?: string;
+### 6. Interface Design
 
-  @IsEnum(TaskStatus)
-  @ApiProperty()
-  status: TaskStatus;
+#### 6.1 API Endpoint Specification
+**Endpoint**: `POST /api/tasks`
+**Content-Type**: `application/json`
+**Authentication**: Bearer token required
 
-  @IsDateString()
-  @IsNotEmpty()
-  @ApiProperty()
-  dueDate: string;
+**Request Schema**:
+```json
+{
+  "title": "string (required, 1-200 chars)",
+  "description": "string (optional, max 1000 chars)",
+  "priority": "enum (LOW|MEDIUM|HIGH)",
+  "status": "enum (TODO|IN_PROGRESS|DONE)",
+  "dueDate": "ISO date string (future dates only)",
+  "assignedTo": "UUID (optional)"
 }
 ```
 
-### 4.4 Data Access Layer Component
+**Success Response (201)**:
+```json
+{
+  "id": "uuid",
+  "title": "string",
+  "description": "string",
+  "priority": "enum",
+  "status": "enum",
+  "dueDate": "ISO date string",
+  "assignedTo": "uuid",
+  "createdAt": "ISO timestamp",
+  "updatedAt": "ISO timestamp",
+  "createdBy": "uuid"
+}
+```
 
-**Responsibility**: Database operations and caching
+**Error Response (400)**:
+```json
+{
+  "error": "Validation Error",
+  "message": "Invalid input data",
+  "details": [
+    {
+      "field": "title",
+      "message": "Title is required"
+    }
+  ]
+}
+```
 
-**Key Features**:
-- ORM-based database operations
-- Connection pooling
-- Query optimization
-- Caching strategies
-- Transaction management
+### 7. Non-Functional Aspects
 
----
+#### 7.1 Security
+- **Authentication**: JWT-based authentication required
+- **Authorization**: RBAC implementation
+- **Data Encryption**: TLS 1.3 for data in transit, AES-256 for data at rest
+- **Input Validation**: Comprehensive validation using class-validator
+- **SQL Injection Prevention**: Parameterized queries
+- **XSS Protection**: Input sanitization and output encoding
 
-## 5. Data Design
+#### 7.2 Compliance
+- **GDPR**: Data privacy controls, right to deletion
+- **SOX**: Audit trail for all operations
+- **ISO 27001**: Security management system compliance
 
-### 5.1 Data Architecture
-- **Primary Database**: PostgreSQL for ACID compliance and complex queries
-- **Caching Layer**: Redis for session management and frequently accessed data
-- **Search Engine**: Elasticsearch for full-text search capabilities
-- **Message Queue**: RabbitMQ for asynchronous processing
-
-### 5.2 Data Security
-- Encryption at rest using AES-256
-- Encryption in transit using TLS 1.3
-- Field-level encryption for sensitive data
-- Database access controls and audit logging
-
-### 5.3 Data Retention
-- Active tasks: Indefinite retention
-- Completed tasks: 7 years retention
-- Audit logs: 10 years retention
-- Soft delete implementation for data recovery
-
----
-
-## 6. Interface Design
-
-### 6.1 REST API Design
-- RESTful principles adherence
-- OpenAPI 3.0 specification
-- Consistent naming conventions
-- Proper HTTP status codes
-- Content negotiation support
-
-### 6.2 Request/Response Format
-- JSON as primary format
-- Consistent error response structure
-- Pagination for list endpoints
-- HATEOAS implementation
-
-### 6.3 API Versioning
-- URI versioning strategy
-- Backward compatibility maintenance
-- Deprecation policy implementation
-
----
-
-## 7. Non-Functional Aspects
-
-### 7.1 Security
-- **Authentication**: OAuth 2.0 / OpenID Connect
-- **Authorization**: Role-Based Access Control (RBAC)
-- **Data Protection**: Encryption at rest and in transit
-- **Input Validation**: Comprehensive validation and sanitization
-- **Security Headers**: CORS, CSP, HSTS implementation
-- **Rate Limiting**: API throttling and DDoS protection
-
-### 7.2 Compliance
-- **GDPR**: Data privacy and right to be forgotten
-- **PCI-DSS**: Payment data security (if applicable)
-- **ISO 27001**: Information security management
-- **SOX**: Financial data integrity and audit trails
-
-### 7.3 Performance
+#### 7.3 Performance
 - **Response Time**: < 200ms for 95% of requests
-- **Throughput**: 10,000 requests per second
-- **Concurrent Users**: 50,000 simultaneous users
-- **Database Performance**: Query optimization and indexing
+- **Throughput**: 1000 requests per second
+- **Caching**: Redis-based caching for frequently accessed data
 
-### 7.4 Scalability
-- **Horizontal Scaling**: Kubernetes-based auto-scaling
-- **Database Scaling**: Read replicas and sharding
-- **Caching Strategy**: Multi-level caching implementation
-- **Load Balancing**: Application and database load balancing
+#### 7.4 Scalability
+- **Horizontal Scaling**: Stateless API design
+- **Auto-scaling**: Based on CPU and memory metrics
+- **Load Balancing**: Application Load Balancer
 
-### 7.5 Availability
-- **Uptime Target**: 99.99% availability
+#### 7.5 Availability
+- **Target**: 99.99% uptime
 - **Redundancy**: Multi-AZ deployment
-- **Failover**: Automatic failover mechanisms
-- **Health Checks**: Comprehensive health monitoring
+- **Health Checks**: Application and database health monitoring
 
-### 7.6 Reliability
-- **Error Handling**: Graceful error handling and recovery
-- **Circuit Breakers**: Fault tolerance implementation
-- **Retry Logic**: Exponential backoff strategies
-- **Data Consistency**: ACID compliance and eventual consistency
+#### 7.6 Reliability
+- **Failover**: Automatic failover to healthy instances
+- **Circuit Breaker**: Protection against cascading failures
+- **Retry Logic**: Exponential backoff for transient failures
 
-### 7.7 Maintainability
-- **Code Quality**: Automated code analysis and testing
-- **Documentation**: Comprehensive API and code documentation
-- **Monitoring**: Real-time system monitoring and alerting
-- **Logging**: Structured logging and log aggregation
+### 8. Integration
 
-### 7.8 Auditability
-- **Audit Logging**: All user actions and system events
-- **Data Lineage**: Complete data change tracking
-- **Compliance Reporting**: Automated compliance reports
-- **Forensic Analysis**: Detailed audit trail for investigations
+#### 8.1 Database Integration
+- **ORM**: TypeORM for database operations
+- **Connection Pooling**: Optimized connection management
+- **Transaction Management**: ACID compliance
 
-### 7.9 Disaster Recovery
-- **RTO**: Recovery Time Objective < 4 hours
-- **RPO**: Recovery Point Objective < 1 hour
-- **Backup Strategy**: Daily encrypted backups
-- **DR Testing**: Quarterly disaster recovery testing
+#### 8.2 Authentication Service Integration
+- **Protocol**: OAuth 2.0 / JWT
+- **Validation**: Token validation middleware
+- **User Context**: User information extraction
 
-### 7.10 Backup
-- **Frequency**: Daily automated backups
-- **Retention**: 30 days online, 1 year archived
-- **Encryption**: AES-256 encryption for all backups
-- **Testing**: Monthly backup restoration testing
+#### 8.3 Audit Service Integration
+- **Logging**: Structured logging with correlation IDs
+- **Message Queue**: Asynchronous audit log processing
+- **Compliance**: Tamper-evident audit trails
 
-### 7.11 Monitoring
-- **Metrics**: Real-time performance and business metrics
-- **Alerting**: Proactive alerting and escalation
-- **Dashboards**: Executive and operational dashboards
-- **SLA Monitoring**: Service level agreement tracking
+### 9. Deployment
 
-### 7.12 Logging
-- **Centralized Logging**: ELK stack implementation
-- **Log Levels**: Configurable log levels
-- **Log Retention**: 90 days active, 1 year archived
-- **Security Logging**: Security events and access logs
+#### 9.1 Containerization
+- **Docker**: Multi-stage build for optimization
+- **Base Image**: Node.js Alpine for security
+- **Health Checks**: Built-in health check endpoints
 
-### 7.13 RBAC (Role-Based Access Control)
-- **Roles**: Admin, Manager, User, ReadOnly
-- **Permissions**: Granular permission system
-- **Inheritance**: Role inheritance and delegation
-- **Audit**: Role assignment and permission changes logged
+#### 9.2 Orchestration
+- **Platform**: AWS ECS with Fargate
+- **Service Discovery**: AWS Cloud Map
+- **Load Balancing**: Application Load Balancer
 
----
+#### 9.3 Infrastructure as Code
+- **Tool**: AWS CDK/CloudFormation
+- **Version Control**: Infrastructure versioning
+- **Environment Management**: Separate environments for dev/test/prod
 
-## 8. Integration
+### 10. Test Strategy
 
-### 8.1 External System Integration
-- **Enterprise Auth Service**: SSO integration
-- **Notification Service**: Email and SMS notifications
-- **Audit Service**: Centralized audit logging
-- **Monitoring System**: Health and performance monitoring
+#### 10.1 Unit Testing
+- **Framework**: Jest
+- **Coverage**: Minimum 80% code coverage
+- **Mocking**: Service and database mocking
 
-### 8.2 Integration Patterns
-- **Synchronous**: REST API calls for real-time operations
-- **Asynchronous**: Message queues for background processing
-- **Event-Driven**: Domain events for loose coupling
+#### 10.2 Integration Testing
+- **API Testing**: Supertest for endpoint testing
+- **Database Testing**: Test database with fixtures
+- **Contract Testing**: OpenAPI specification validation
 
-### 8.3 Data Integration
-- **ETL Processes**: Data extraction and transformation
-- **API Integration**: Real-time data synchronization
-- **Batch Processing**: Scheduled data processing jobs
+#### 10.3 Performance Testing
+- **Load Testing**: Artillery.js for load testing
+- **Stress Testing**: Gradual load increase
+- **Baseline**: Performance benchmarks
 
----
+### 11. Cross-Cutting Concerns
 
-## 9. Deployment
+#### 11.1 Logging
+- **Framework**: Winston with structured logging
+- **Correlation IDs**: Request tracing
+- **Log Levels**: DEBUG, INFO, WARN, ERROR
+- **Centralized**: ELK stack for log aggregation
 
-### 9.1 Deployment Architecture
-- **Container Orchestration**: Kubernetes (AWS EKS)
-- **CI/CD Pipeline**: GitLab CI/CD with automated testing
-- **Infrastructure as Code**: Terraform for infrastructure management
-- **Configuration Management**: Helm charts and ConfigMaps
+#### 11.2 Monitoring
+- **Metrics**: Prometheus for metrics collection
+- **Alerting**: CloudWatch alarms
+- **Dashboards**: Grafana for visualization
+- **APM**: Application Performance Monitoring
 
-### 9.2 Environment Strategy
-- **Development**: Local development environment
-- **Testing**: Automated testing environment
-- **Staging**: Production-like staging environment
-- **Production**: High-availability production environment
+#### 11.3 Error Handling
+- **Global Handler**: Centralized error handling
+- **Error Classification**: Business vs. technical errors
+- **User-Friendly Messages**: Sanitized error responses
 
-### 9.3 Deployment Process
-- **Blue-Green Deployment**: Zero-downtime deployments
-- **Feature Flags**: Gradual feature rollout
-- **Rollback Strategy**: Automated rollback capabilities
-- **Health Checks**: Deployment validation and monitoring
+### 12. Implementation Strategy
 
----
+#### 12.1 Phase 1: Core Implementation (Week 1-2)
+- Task Controller implementation
+- CreateTaskDto with validation
+- Task Service with business logic
+- Basic error handling
 
-## 10. Test Strategy
+#### 12.2 Phase 2: Integration & Testing (Week 3)
+- Database integration
+- Authentication middleware
+- Unit and integration tests
+- OpenAPI documentation
 
-### 10.1 Testing Pyramid
-- **Unit Tests**: 80% coverage minimum
-- **Integration Tests**: API and database integration
-- **Contract Tests**: API contract validation
-- **End-to-End Tests**: Critical user journey testing
-
-### 10.2 Testing Types
-- **Functional Testing**: Business logic validation
-- **Security Testing**: Vulnerability and penetration testing
-- **Performance Testing**: Load and stress testing
-- **Compliance Testing**: Regulatory compliance validation
-
-### 10.3 Test Automation
-- **Automated Testing**: CI/CD pipeline integration
-- **Test Data Management**: Synthetic test data generation
-- **Test Environment**: Containerized test environments
-- **Reporting**: Automated test reporting and metrics
-
----
-
-## 11. Cross-Cutting Concerns
-
-### 11.1 Logging and Monitoring
-- **Structured Logging**: JSON-formatted logs
-- **Correlation IDs**: Request tracing across services
-- **Metrics Collection**: Business and technical metrics
-- **Alerting**: Proactive monitoring and alerting
-
-### 11.2 Error Handling
-- **Global Exception Handler**: Centralized error handling
-- **Error Codes**: Standardized error code system
-- **Error Logging**: Comprehensive error logging
-- **User-Friendly Messages**: Clear error messages for users
-
-### 11.3 Configuration Management
-- **Environment Variables**: Environment-specific configuration
-- **Secret Management**: Secure secret storage and rotation
-- **Feature Flags**: Runtime feature toggling
-- **Configuration Validation**: Startup configuration validation
-
----
-
-## 12. Implementation Strategy
-
-### 12.1 Phased Implementation
-
-**Phase 1: Core API Development (Weeks 1-4)**
-- Task creation endpoint implementation
-- Basic validation and error handling
-- Database schema and initial data layer
-- Unit and integration testing
-
-**Phase 2: Security and Compliance (Weeks 5-6)**
-- Authentication and authorization integration
-- Security validation and sanitization
-- Audit logging implementation
-- Security testing and validation
-
-**Phase 3: Performance and Scalability (Weeks 7-8)**
-- Caching implementation
+#### 12.3 Phase 3: Production Readiness (Week 4)
+- Security hardening
 - Performance optimization
-- Load testing and tuning
-- Monitoring and alerting setup
+- Monitoring and logging
+- Deployment automation
 
-**Phase 4: Production Deployment (Weeks 9-10)**
-- Production environment setup
-- CI/CD pipeline implementation
-- Production deployment and validation
-- Documentation and knowledge transfer
+### 13. Technical Risks
 
-### 12.2 Technical Dependencies
-- **Infrastructure**: Kubernetes cluster setup
-- **Database**: PostgreSQL cluster configuration
-- **Authentication**: Enterprise SSO integration
-- **Monitoring**: Observability stack deployment
+#### 13.1 High-Impact Risks
 
-### 12.3 Risk Mitigation
-- **Technical Risks**: Proof of concepts and prototyping
-- **Integration Risks**: Early integration testing
-- **Performance Risks**: Performance testing throughout development
-- **Security Risks**: Security reviews at each phase
+**Risk 1: Data Validation Bypass**
+- **Impact**: High - Security vulnerability
+- **Likelihood**: Medium
+- **Mitigation**: Multiple validation layers, security testing
 
----
+**Risk 2: Database Performance Degradation**
+- **Impact**: High - System performance
+- **Likelihood**: Medium
+- **Mitigation**: Connection pooling, query optimization, caching
 
-## 13. Technical Risks
+**Risk 3: Authentication Service Dependency**
+- **Impact**: High - System availability
+- **Likelihood**: Low
+- **Mitigation**: Circuit breaker, fallback mechanisms
 
-### 13.1 High-Risk Items
+#### 13.2 Medium-Impact Risks
 
-**Risk 1: Database Performance Under Load**
-- **Impact**: High - System unavailability
-- **Likelihood**: Medium - Complex queries and high volume
-- **Mitigation**: Database optimization, read replicas, caching layer
+**Risk 4: API Rate Limiting**
+- **Impact**: Medium - User experience
+- **Likelihood**: Medium
+- **Mitigation**: Rate limiting implementation, auto-scaling
 
-**Risk 2: Security Vulnerabilities**
-- **Impact**: Critical - Data breach and compliance violations
-- **Likelihood**: Medium - Complex security requirements
-- **Mitigation**: Security reviews, penetration testing, automated security scanning
+### 14. Technical Debt
 
-**Risk 3: Integration Failures**
-- **Impact**: High - System functionality impairment
-- **Likelihood**: Medium - Multiple external dependencies
-- **Mitigation**: Circuit breakers, fallback mechanisms, comprehensive testing
+#### 14.1 Current Debt
+- Legacy validation patterns to be replaced
+- Inconsistent error handling across services
+- Missing comprehensive audit logging
 
-### 13.2 Medium-Risk Items
+#### 14.2 Debt Prevention
+- Code review requirements
+- Automated testing standards
+- Documentation requirements
+- Regular refactoring cycles
 
-**Risk 4: Scalability Limitations**
-- **Impact**: Medium - Performance degradation
-- **Likelihood**: Medium - Uncertain load patterns
-- **Mitigation**: Horizontal scaling, performance monitoring, load testing
+### 15. Appendices
 
-**Risk 5: Data Consistency Issues**
-- **Impact**: Medium - Data integrity problems
-- **Likelihood**: Low - Well-established patterns
-- **Mitigation**: ACID compliance, transaction management, data validation
+#### 15.1 ADR Mappings
 
----
+| Component | ADR Reference | Decision |
+|-----------|---------------|----------|
+| Task Controller | DEMO-2350 | POST /api/tasks endpoint implementation |
+| CreateTaskDto | DEMO-2350 | Validation decorators (IsNotEmpty, MaxLength, IsEnum, IsDateString) |
+| Task Service | DEMO-2350 | Business logic validation, data sanitization, error handling |
+| HTTP Status Codes | DEMO-2350 | 201 for success, 400 for validation errors |
+| OpenAPI Documentation | DEMO-2350 | API documentation generation |
 
-## 14. Technical Debt
+#### 15.2 Traceability Matrix
 
-### 14.1 Current Technical Debt
-- **Legacy System Integration**: Temporary workarounds for legacy system compatibility
-- **Documentation Gaps**: Incomplete API documentation
-- **Test Coverage**: Insufficient test coverage in some areas
+| Requirement | Component | Implementation |
+|-------------|-----------|----------------|
+| Task creation endpoint | TaskController.createTask() | POST /api/tasks |
+| Input validation | CreateTaskDto | class-validator decorators |
+| Business logic | TaskService.createTask() | Validation and persistence |
+| Error handling | Global error handler | Standardized error responses |
+| Due date validation | TaskService.validateDueDate() | Prevents past dates |
+| API documentation | OpenAPI decorators | Swagger documentation |
 
-### 14.2 Technical Debt Management
-- **Debt Tracking**: Technical debt backlog maintenance
-- **Prioritization**: Risk-based debt prioritization
-- **Remediation**: Planned debt reduction sprints
-- **Prevention**: Code review and quality gates
+#### 15.3 Compliance Mapping
 
-### 14.3 Future Considerations
-- **Technology Upgrades**: Framework and library updates
-- **Architecture Evolution**: Microservices migration planning
-- **Performance Optimization**: Continuous performance improvements
-
----
-
-## 15. Appendices
-
-### 15.1 ADR Mappings
-
-**DEMO-2350 → HLD Sections**
-- Task Controller Implementation → Section 4.1
-- CreateTaskDto Validation → Section 4.3
-- TaskService Business Logic → Section 4.2
-- HTTP Status Codes → Section 6.2
-- Error Handling → Section 11.2
-- OpenAPI Documentation → Section 6.1
-
-### 15.2 Traceability Matrix
-
-| Requirement | HLD Section | Implementation Component |
-|-------------|-------------|-------------------------|
-| POST /api/tasks endpoint | 4.1, 6.1 | TaskController |
-| Input validation | 4.3, 7.1 | ValidationService |
-| Business logic | 4.2 | TaskService |
-| Data persistence | 4.4, 5.1 | DataAccessLayer |
-| Error handling | 6.2, 11.2 | GlobalExceptionHandler |
-| Security | 7.1 | SecurityMiddleware |
-| Audit logging | 7.8 | AuditService |
-
-### 15.3 Technology Stack
-- **Runtime**: Node.js 18+
-- **Framework**: NestJS
-- **Language**: TypeScript
-- **Database**: PostgreSQL 14+
-- **Cache**: Redis 7+
-- **Container**: Docker
-- **Orchestration**: Kubernetes
-- **Cloud**: AWS
-- **Monitoring**: CloudWatch, Prometheus
-- **Logging**: ELK Stack
-
-### 15.4 Compliance Checklist
-- [ ] GDPR compliance validation
-- [ ] PCI-DSS security requirements
-- [ ] ISO 27001 information security
-- [ ] SOX audit trail requirements
-- [ ] Data encryption implementation
-- [ ] Access control validation
-- [ ] Audit logging verification
-- [ ] Backup and recovery testing
+| Standard | Requirement | Implementation |
+|----------|-------------|----------------|
+| GDPR | Data privacy | Encryption, access controls |
+| SOX | Audit trail | Comprehensive logging |
+| ISO 27001 | Security management | Security controls framework |
 
 ---
 
-**Document Approval**
-
-| Role | Name | Date | Signature |
-|------|------|------|----------|
-| Enterprise Architect | | | |
-| Security Architect | | | |
-| Development Lead | | | |
-| Product Owner | | | |
-
----
-
-*This document is confidential and proprietary. Distribution is restricted to authorized personnel only.*
+**Document Version**: 1.0
+**Last Updated**: [Current Date]
+**Approved By**: Enterprise Architecture Review Board
+**Next Review**: [Date + 6 months]
