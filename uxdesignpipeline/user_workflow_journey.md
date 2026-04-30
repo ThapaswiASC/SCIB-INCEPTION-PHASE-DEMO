@@ -1,360 +1,502 @@
-# User Workflow Journey: Three-Column Kanban Board
+# Youth Account Management - User Workflow Journey
 
 ## Experience Overview
 
-Project management is the user experience. Users need to visualize, organize, and track work progress efficiently through an intuitive Kanban board interface. This experience encompasses task management, workflow visualization, team collaboration, and progress tracking.
-
-## Scenarios Identified
-
-### Scenario 1: Task Management and Organization
-**Context + Action + Goal:** Sarah, a project manager leading a software development team, needs to organize and prioritize tasks across different stages of completion to maintain project momentum and meet sprint deadlines efficiently.
-
-#### Workflow Variation 1A: Primary Task Management Flow
-
-**User Goal:** Help the user efficiently organize, prioritize, and track tasks across different workflow stages to maintain project visibility and control.
-
-**Business Goal:** Increase team productivity and project completion rates by providing clear workflow visualization and reducing task management overhead.
-
-**Screens:**
-
-**1.0 Kanban Board Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive overview of all tasks across workflow stages with ability to manage and organize work items.
-- Screen Description:
-  1. User can view three distinct columns: 'To Do', 'In Progress', and 'Done'
-  2. User can see task cards within each column with essential information
-  3. User can drag and drop tasks between columns to update status
-  4. User can add new tasks via CTA button
-  5. User can filter and search tasks across all columns
-  6. User can access team member assignments and due dates
-  7. User can view column-specific metrics and counts
-- Design Problems:
-  i. HMW help users quickly identify high-priority tasks across all columns?
-  ii. HMW prevent users from losing track of tasks in large projects?
-  iii. HMW make task status transitions feel intuitive and immediate?
-  iv. HMW communicate task dependencies and blockers effectively?
-- Design Opportunities:
-  i. What if the system could auto-prioritize tasks based on deadlines and dependencies?
-  ii. What if users could customize column names and workflow stages?
-  iii. What if the board could show real-time collaboration indicators?
-  iv. What if we could provide smart suggestions for task assignments?
-
-**1.0-D Task Detail View [type: detail]**
-- HOW IT IS REACHED: Clicking on a specific task card from the Kanban board
-- NAVBAR PRESENCE: No
-- Page Goal: Provide comprehensive task information and enable detailed task management actions.
-- Screen Description:
-  1. User can view complete task details including description, assignee, due date, and comments
-  2. User can edit task properties and update status
-  3. User can add comments and attachments
-  4. User can view task history and activity timeline
-  5. User can assign or reassign team members
-  6. User can set or modify due dates and priorities
-  7. User can link related tasks or dependencies
-- Design Problems:
-  i. HMW ensure users can quickly update task details without losing context?
-  ii. HMW make task relationships and dependencies clear?
-  iii. HMW help users track task progress and blockers effectively?
-- Design Opportunities:
-  i. What if the system could suggest optimal assignees based on workload and skills?
-  ii. What if users could see real-time collaboration on task details?
-  iii. What if the system could auto-detect and suggest task dependencies?
-
-**Pu.1 Add New Task Modal [type: modal]**
-- HOW IT IS REACHED: Clicking the "+ Add Task" CTA button from Kanban board
-- NAVBAR PRESENCE: No
-- Page Goal: Enable quick task creation with essential information while maintaining workflow context.
-- Screen Description:
-  1. User can enter task title and description
-  2. User can select initial column/status for the task
-  3. User can assign team members from dropdown
-  4. User can set due date and priority level
-  5. User can add tags or labels for categorization
-  6. User can save and create another task or return to board
-- Design Problems:
-  i. HMW minimize the effort required to create a new task?
-  ii. HMW ensure new tasks are placed in the correct workflow stage?
-  iii. HMW help users provide adequate task information without overwhelming them?
-- Design Opportunities:
-  i. What if the system could pre-populate task details based on project templates?
-  ii. What if users could create tasks via voice input or smart suggestions?
-  iii. What if the system could auto-assign tasks based on team capacity?
-
-#### Workflow Variation 1B: Collaborative Task Management Flow
-
-**User Goal:** Enable seamless collaboration on task management with real-time updates and team coordination.
-
-**Business Goal:** Improve team coordination and reduce communication overhead by providing transparent, real-time task management capabilities.
-
-**Screens:**
-
-**1.1 Collaborative Kanban Board [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item with collaboration features enabled
-- NAVBAR PRESENCE: Yes
-- Page Goal: Facilitate real-time collaborative task management with team awareness and coordination features.
-- Screen Description:
-  1. User can see real-time indicators of team members currently viewing or editing tasks
-  2. User can view live updates as tasks move between columns
-  3. User can see team member avatars on assigned tasks
-  4. User can access quick team communication features
-  5. User can view recent activity feed for team actions
-  6. User can filter board view by team member or assignment
-  7. User can access conflict resolution when multiple users edit same task
-- Design Problems:
-  i. HMW prevent conflicts when multiple users manage tasks simultaneously?
-  ii. HMW keep team members aware of changes without overwhelming them?
-  iii. HMW make collaborative editing feel smooth and intuitive?
-- Design Opportunities:
-  i. What if the system could show predictive task movements based on team patterns?
-  ii. What if users could collaborate on task planning in real-time?
-  iii. What if the board could facilitate async team standups?
-
-**Pu.2 Team Assignment Modal [type: modal]**
-- HOW IT IS REACHED: Clicking team assignment CTA from collaborative board
-- NAVBAR PRESENCE: No
-- Page Goal: Enable efficient team member assignment with workload awareness and skill matching.
-- Screen Description:
-  1. User can view team member availability and current workload
-  2. User can see skill matches for task requirements
-  3. User can assign multiple team members to collaborative tasks
-  4. User can set assignment notifications and deadlines
-  5. User can view team member time zones and working hours
-- Design Problems:
-  i. HMW help users make optimal assignment decisions based on team capacity?
-  ii. HMW ensure fair workload distribution across team members?
-- Design Opportunities:
-  i. What if the system could suggest optimal team compositions for complex tasks?
-  ii. What if assignment could consider team member preferences and growth goals?
-
-**NAVIGATION STRUCTURE:** 1.0 Kanban Board Dashboard | 1.1 Collaborative Kanban Board
-
-**USER JOURNEY FLOW:** 
-1.0 Kanban Board Dashboard → [click task card] → 1.0-D Task Detail View → [click + Add Task] → Pu.1 Add New Task Modal → [submit] → 1.0 Kanban Board Dashboard (updated)
-
-Alternative: 1.1 Collaborative Kanban Board → [click team assign] → Pu.2 Team Assignment Modal → [assign] → 1.1 Collaborative Kanban Board (updated)
+Parents and guardians need to manage their children's financial education through digital banking tools. This experience encompasses fund allocation, spending oversight, limit management, and activity monitoring to teach financial responsibility while maintaining parental control.
 
 ---
 
-### Scenario 2: Progress Tracking and Reporting
-**Context + Action + Goal:** Marcus, a team lead, needs to monitor project progress and generate status reports for stakeholders to ensure project milestones are met and identify potential bottlenecks proactively.
+## Scenario 1: Parent Accessing and Managing Youth Account Dashboard
 
-#### Workflow Variation 2A: Progress Monitoring Flow
+**Context:** Sarah, a working mother of a 16-year-old daughter, wants to check her daughter's account balance and recent spending activity during her lunch break to ensure her daughter is managing money responsibly.
 
-**User Goal:** Provide clear visibility into project progress, bottlenecks, and team performance to enable data-driven decision making.
+**User Goal:** Quickly access comprehensive youth account information to monitor financial activity and make informed decisions about fund allocation.
 
-**Business Goal:** Improve project delivery predictability and stakeholder confidence through transparent progress tracking and reporting.
+**Business Goal:** Increase parent engagement with youth banking services and build trust through transparent account management tools.
 
-**Screens:**
-
-**2.0 Progress Analytics Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive project progress insights with actionable analytics and trend identification.
-- Screen Description:
-  1. User can view column-wise task distribution and flow metrics
-  2. User can see team velocity and throughput trends
-  3. User can identify bottlenecks and blocked tasks
-  4. User can access burndown charts and timeline projections
-  5. User can view individual team member performance metrics
-  6. User can generate and export progress reports
-  7. User can set up automated progress alerts and notifications
-- Design Problems:
-  i. HMW help users quickly identify project risks and bottlenecks?
-  ii. HMW present complex analytics in an easily digestible format?
-  iii. HMW enable proactive decision making based on progress trends?
-- Design Opportunities:
-  i. What if the system could predict project completion dates based on current velocity?
-  ii. What if analytics could suggest process improvements automatically?
-  iii. What if stakeholders could access real-time progress without manual reporting?
-
-**2.0-D Detailed Analytics View [type: detail]**
-- HOW IT IS REACHED: Clicking on specific metrics or charts from Progress Analytics Dashboard
-- NAVBAR PRESENCE: No
-- Page Goal: Provide deep-dive analytics with granular data and customizable reporting options.
-- Screen Description:
-  1. User can drill down into specific time periods and team segments
-  2. User can customize chart types and data visualizations
-  3. User can compare performance across different projects or sprints
-  4. User can export detailed data for external analysis
-  5. User can set up custom KPIs and tracking metrics
-- Design Problems:
-  i. HMW make detailed analytics accessible to users with varying technical expertise?
-  ii. HMW ensure data accuracy and real-time synchronization?
-- Design Opportunities:
-  i. What if users could create custom dashboards for different stakeholder needs?
-  ii. What if the system could provide AI-powered insights and recommendations?
-
-#### Workflow Variation 2B: Stakeholder Reporting Flow
-
-**User Goal:** Generate comprehensive, stakeholder-appropriate reports that communicate project status clearly and build confidence.
-
-**Business Goal:** Maintain stakeholder engagement and support through transparent, professional progress communication.
+### Workflow Variation A: Quick Dashboard Review
 
 **Screens:**
 
-**2.1 Report Builder Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
+**1.0 Youth Account Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "Youth Accounts"
 - NAVBAR PRESENCE: Yes
-- Page Goal: Enable creation of customized progress reports tailored to different stakeholder audiences.
+- Page Goal: Provide comprehensive overview of youth account status and enable quick management actions
 - Screen Description:
-  1. User can select report templates for different stakeholder types
-  2. User can customize report content, metrics, and visualizations
-  3. User can schedule automated report generation and distribution
-  4. User can preview reports before sending
-  5. User can access report history and previous versions
-  6. User can collaborate on report content with team members
+  1. Display current youth account balance prominently
+  2. Show recent transaction summary (last 5 transactions)
+  3. Display active spending limits and usage
+  4. Provide quick action buttons for fund transfer and limit management
+  5. Show account holder information and account status
+  6. Display spending analytics (weekly/monthly trends)
 - Design Problems:
-  i. HMW ensure reports contain relevant information for each stakeholder type?
-  ii. HMW make report creation efficient and not time-consuming?
+  - HMW present complex financial data in a scannable format for busy parents?
+  - HMW balance detailed information with quick actionability?
+  - HMW communicate spending patterns without overwhelming the parent?
 - Design Opportunities:
-  i. What if reports could be generated automatically based on stakeholder preferences?
-  ii. What if stakeholders could interact with live data within reports?
+  - What if the dashboard could predict when funds might run low?
+  - What if we could show spending categorization to help parents understand habits?
+  - What if parents could set up automated fund transfers based on balance thresholds?
 
-**Pu.3 Report Configuration Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Create Report" or "Configure Report" CTA from Report Builder
+**Pu.1 Fund Transfer Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "Add Funds" CTA button on dashboard
 - NAVBAR PRESENCE: No
-- Page Goal: Enable detailed report customization with audience-specific content and formatting.
+- Page Goal: Enable quick and secure fund transfer from parent to youth account
 - Screen Description:
-  1. User can select data sources and time ranges
-  2. User can choose visualization types and layouts
-  3. User can add narrative sections and executive summaries
-  4. User can set distribution lists and delivery schedules
-  5. User can configure branding and formatting options
+  1. Source account selector with available balances
+  2. Transfer amount input with validation
+  3. Transfer purpose/note field (optional)
+  4. Real-time balance preview after transfer
+  5. Confirmation step with transfer summary
 - Design Problems:
-  i. HMW help users create professional reports without design expertise?
-  ii. HMW ensure reports accurately reflect current project status?
+  - HMW prevent accidental large transfers while maintaining ease of use?
+  - HMW communicate transfer limits and validation errors clearly?
 - Design Opportunities:
-  i. What if the system could suggest report improvements based on stakeholder feedback?
-  ii. What if reports could include predictive analytics and risk assessments?
+  - What if we could suggest transfer amounts based on spending patterns?
+  - What if parents could schedule recurring transfers?
 
-**NAVIGATION STRUCTURE:** 2.0 Progress Analytics Dashboard | 2.1 Report Builder Dashboard
+**1.1 Dashboard with Updated Balance [type: primary]**
+- HOW IT IS REACHED: Automatic return after successful fund transfer
+- NAVBAR PRESENCE: Yes
+- Page Goal: Confirm successful transfer and show updated account status
+- Screen Description:
+  1. Updated youth account balance reflecting new transfer
+  2. Success notification with transfer details
+  3. Updated transaction history showing new transfer
+  4. Refreshed spending limit usage calculations
+- Design Problems:
+  - HMW ensure parents feel confident the transfer was successful?
+- Design Opportunities:
+  - What if we could show the impact of the transfer on spending runway?
+
+### Workflow Variation B: Detailed Account Analysis
+
+**Screens:**
+
+**1.0 Youth Account Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "Youth Accounts"
+- NAVBAR PRESENCE: Yes
+- Page Goal: Provide comprehensive overview with emphasis on detailed analytics
+- Screen Description:
+  1. Enhanced balance display with trend indicators
+  2. Expanded recent activity section (last 10 transactions)
+  3. Spending category breakdown chart
+  4. Monthly spending comparison
+  5. Goal tracking section (if savings goals are set)
+  6. Detailed spending limit status with time remaining
+- Design Problems:
+  - HMW present detailed analytics without creating cognitive overload?
+  - HMW help parents identify concerning spending patterns quickly?
+- Design Opportunities:
+  - What if we could provide personalized insights about spending behavior?
+  - What if parents could compare their child's spending to anonymized peer data?
+
+**1.0-D Transaction Detail View [type: detail]**
+- HOW IT IS REACHED: Clicking on any transaction row in the activity list
+- NAVBAR PRESENCE: No
+- Page Goal: Provide complete transaction context for parental review
+- Screen Description:
+  1. Complete transaction details (merchant, location, time)
+  2. Transaction category and tags
+  3. Remaining balance after transaction
+  4. Option to flag transaction for discussion
+  5. Related transactions from same merchant
+- Design Problems:
+  - HMW provide sufficient detail without making the interface feel invasive?
+- Design Opportunities:
+  - What if parents could add private notes about transactions for future reference?
+
+**NAVIGATION STRUCTURE:** 1.0 Youth Account Dashboard
 
 **USER JOURNEY FLOW:**
-2.0 Progress Analytics Dashboard → [click detailed metrics] → 2.0-D Detailed Analytics View → [return to dashboard] → 2.1 Report Builder Dashboard → [click Create Report] → Pu.3 Report Configuration Modal → [generate] → 2.1 Report Builder Dashboard (with new report)
+- Variation A: 1.0 Youth Account Dashboard → [click Add Funds] → Pu.1 Fund Transfer Modal → [submit] → 1.1 Dashboard with Updated Balance
+- Variation B: 1.0 Youth Account Dashboard → [click transaction] → 1.0-D Transaction Detail View → [back] → 1.0 Youth Account Dashboard
 
 ---
 
-### Scenario 3: Workflow Customization and Settings
-**Context + Action + Goal:** Jennifer, a process improvement specialist, needs to customize the Kanban board workflow and configure team settings to align with organizational processes and optimize team productivity.
+## Scenario 2: Parent Setting Up Spending Controls and Limits
 
-#### Workflow Variation 3A: Board Customization Flow
+**Context:** Mark, a father of twin 14-year-olds, wants to establish weekly spending limits for both children's accounts after noticing they spent their entire monthly allowance in the first week.
 
-**User Goal:** Customize Kanban board layout, columns, and workflow rules to match team processes and improve efficiency.
+**User Goal:** Configure appropriate spending controls that teach financial discipline while allowing reasonable flexibility for teenage needs.
 
-**Business Goal:** Increase user adoption and satisfaction by providing flexible, customizable workflow management that adapts to diverse team needs.
+**Business Goal:** Increase feature adoption of spending controls and reduce customer service calls related to overspending concerns.
+
+### Workflow Variation A: Simple Limit Configuration
 
 **Screens:**
 
-**3.0 Board Configuration Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
+**2.0 Spending Limits Management [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "Spending Controls"
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive board customization options with workflow rule configuration and template management.
+- Page Goal: Enable parents to configure and manage all spending-related controls in one location
 - Screen Description:
-  1. User can modify column names, colors, and workflow stages
-  2. User can set up workflow rules and automation triggers
-  3. User can configure card templates and required fields
-  4. User can manage board permissions and access controls
-  5. User can create and save board templates for reuse
-  6. User can import/export board configurations
-  7. User can preview changes before applying to live board
+  1. Current spending limit overview for all youth accounts
+  2. Quick limit adjustment controls (weekly/monthly toggles)
+  3. Limit usage visualization (progress bars)
+  4. Emergency override options
+  5. Notification preferences for limit breaches
+  6. Historical limit effectiveness analytics
 - Design Problems:
-  i. HMW make board customization intuitive for non-technical users?
-  ii. HMW prevent configuration changes from disrupting ongoing work?
-  iii. HMW help users understand the impact of workflow changes?
+  - HMW help parents choose appropriate limit amounts for different age groups?
+  - HMW balance control with teaching financial independence?
 - Design Opportunities:
-  i. What if the system could suggest optimal workflow configurations based on team type?
-  ii. What if users could A/B test different board configurations?
-  iii. What if configuration changes could be rolled back easily?
+  - What if the system could recommend limits based on the child's age and spending history?
+  - What if parents could set different limits for different spending categories?
 
-**Pu.4 Workflow Rules Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Configure Rules" CTA from Board Configuration Dashboard
+**Pu.2 Limit Configuration Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "Edit Limits" CTA button
 - NAVBAR PRESENCE: No
-- Page Goal: Enable creation of automated workflow rules and triggers to streamline task management processes.
+- Page Goal: Provide guided limit setting with contextual help
 - Screen Description:
-  1. User can set up automatic task assignments based on criteria
-  2. User can configure status transition rules and approvals
-  3. User can create notification triggers for specific events
-  4. User can set up escalation rules for overdue tasks
-  5. User can configure integration rules with external tools
+  1. Limit amount input with suggested ranges
+  2. Limit period selector (daily/weekly/monthly)
+  3. Category-specific limits (optional)
+  4. Override conditions configuration
+  5. Preview of how limits will affect current spending patterns
 - Design Problems:
-  i. HMW make workflow automation accessible to users without technical expertise?
-  ii. HMW prevent automation rules from creating unintended consequences?
+  - HMW prevent parents from setting unrealistic limits that frustrate children?
 - Design Opportunities:
-  i. What if the system could learn from user behavior and suggest automation rules?
-  ii. What if rules could be tested in a sandbox environment before activation?
+  - What if we could show the impact of different limit scenarios?
 
-#### Workflow Variation 3B: Team Settings and Preferences Flow
-
-**User Goal:** Configure team-wide settings, preferences, and access controls to ensure optimal collaboration and security.
-
-**Business Goal:** Maintain data security and compliance while enabling flexible team collaboration and productivity.
+### Workflow Variation B: Advanced Control Configuration
 
 **Screens:**
 
-**Settings Screen [type: settings]**
-- HOW IT IS REACHED: Clicking settings icon/link from any primary screen
-- NAVBAR PRESENCE: No
-- Page Goal: Centralize all user preferences, team settings, and system configurations in organized, accessible sections.
+**2.0 Spending Limits Management [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "Spending Controls"
+- NAVBAR PRESENCE: Yes
+- Page Goal: Provide comprehensive spending control management with advanced features
 - Screen Description:
-  1. **Team Management Section:**
-     - User can manage team member roles and permissions
-     - User can configure team working hours and time zones
-     - User can set up team notification preferences
-  2. **Board Preferences Section:**
-     - User can set default board views and filters
-     - User can configure card display options and information density
-     - User can customize keyboard shortcuts and interaction preferences
-  3. **Accessibility Section:**
-     - Screen Reader support toggle (ON/OFF)
-     - High Contrast mode toggle (ON/OFF)
-     - Keyboard navigation preferences
-     - Font size and display adjustments
-  4. **Integration Settings Section:**
-     - User can configure external tool connections
-     - User can manage API access and webhooks
-     - User can set up data sync preferences
-  5. **Security and Privacy Section:**
-     - User can manage two-factor authentication
-     - User can configure data retention policies
-     - User can review audit logs and access history
+  1. Multi-account limit management interface
+  2. Category-based spending controls
+  3. Time-based restrictions (school hours, weekends)
+  4. Merchant category blocking/allowing
+  5. Graduated limit increases based on responsible spending
+  6. Family spending goals and challenges
 - Design Problems:
-  i. HMW organize numerous settings without overwhelming users?
-  ii. HMW ensure critical security settings are easily accessible?
-  iii. HMW help users understand the impact of different setting changes?
+  - HMW make advanced controls accessible without overwhelming less tech-savvy parents?
 - Design Opportunities:
-  i. What if settings could be configured through guided setup wizards?
-  ii. What if the system could recommend optimal settings based on team size and type?
-  iii. What if settings could be synchronized across multiple projects?
+  - What if children could request temporary limit increases for special occasions?
 
-**NAVIGATION STRUCTURE:** 3.0 Board Configuration Dashboard
+**2.0-D Limit History and Analytics [type: detail]**
+- HOW IT IS REACHED: Clicking "View Limit History" link
+- NAVBAR PRESENCE: No
+- Page Goal: Show effectiveness of spending limits over time
+- Screen Description:
+  1. Historical limit changes and their impact
+  2. Spending pattern analysis before/after limit implementation
+  3. Limit breach incidents and resolutions
+  4. Recommendations for limit adjustments
+- Design Problems:
+  - HMW present historical data in a way that guides future decisions?
+- Design Opportunities:
+  - What if we could show correlation between limits and financial learning outcomes?
+
+**NAVIGATION STRUCTURE:** 2.0 Spending Limits Management
 
 **USER JOURNEY FLOW:**
-3.0 Board Configuration Dashboard → [click Configure Rules] → Pu.4 Workflow Rules Modal → [save rules] → 3.0 Board Configuration Dashboard → [click settings icon] → Settings Screen → [configure preferences] → [return to previous screen]
+- Variation A: 2.0 Spending Limits Management → [click Edit Limits] → Pu.2 Limit Configuration Modal → [save] → 2.0 Spending Limits Management (updated)
+- Variation B: 2.0 Spending Limits Management → [click View Limit History] → 2.0-D Limit History and Analytics → [back] → 2.0 Spending Limits Management
 
 ---
 
-## Error States and Edge Cases
+## Scenario 3: Parent Reviewing Youth Spending Activity and Patterns
 
-**Er.1 Empty Board State [type: state]**
-- Condition of 1.0 Kanban Board Dashboard when no tasks exist
-- Shows onboarding guidance and quick task creation options
-- Provides sample data or template suggestions
+**Context:** Jennifer, a single mother, receives a notification that her 17-year-old son has made several large purchases this week. She wants to review his spending activity to understand if this is concerning behavior or normal teenage spending.
 
-**Er.2 Network Connection Error [type: state]**
-- Condition affecting any screen when connectivity is lost
-- Shows offline mode capabilities and data sync status
-- Provides retry mechanisms and cached data access
+**User Goal:** Analyze spending patterns to make informed decisions about financial guidance and account management.
 
-**Er.3 Permission Denied State [type: state]**
-- Condition when user lacks access to specific board or features
-- Shows clear explanation of required permissions
-- Provides contact information for access requests
+**Business Goal:** Provide insights that help parents feel confident in their oversight while encouraging continued use of youth banking services.
 
-**Er.4 Data Loading Error [type: state]**
-- Condition when board data fails to load properly
-- Shows retry options and alternative data sources
-- Provides graceful degradation with limited functionality
+### Workflow Variation A: Quick Activity Review
+
+**Screens:**
+
+**3.0 Activity Monitor [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "Activity Monitor"
+- NAVBAR PRESENCE: Yes
+- Page Goal: Provide comprehensive spending activity overview with filtering and analysis tools
+- Screen Description:
+  1. Transaction timeline with visual spending patterns
+  2. Filter controls (date range, amount, category, merchant)
+  3. Spending velocity indicators (unusual activity alerts)
+  4. Category breakdown with percentage changes
+  5. Comparison to previous periods
+  6. Export options for detailed analysis
+- Design Problems:
+  - HMW help parents distinguish between normal and concerning spending patterns?
+  - HMW present transaction data without feeling like surveillance?
+- Design Opportunities:
+  - What if we could highlight transactions that deviate from normal patterns?
+  - What if parents could set up custom alerts for specific spending behaviors?
+
+**3.0-D Individual Transaction Analysis [type: detail]**
+- HOW IT IS REACHED: Clicking on any transaction in the activity timeline
+- NAVBAR PRESENCE: No
+- Page Goal: Provide complete context for individual transactions
+- Screen Description:
+  1. Full transaction details with location and time context
+  2. Spending pattern analysis for this merchant/category
+  3. Balance impact and remaining funds visualization
+  4. Option to discuss transaction with youth
+  5. Similar transaction history
+- Design Problems:
+  - HMW provide detailed oversight without damaging parent-child trust?
+- Design Opportunities:
+  - What if transactions could include photos or notes from the youth?
+
+### Workflow Variation B: Pattern Analysis and Insights
+
+**Screens:**
+
+**3.0 Activity Monitor [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "Activity Monitor"
+- NAVBAR PRESENCE: Yes
+- Page Goal: Focus on spending insights and pattern recognition
+- Screen Description:
+  1. AI-powered spending insights and recommendations
+  2. Behavioral pattern identification (impulse buying, saving streaks)
+  3. Peer comparison data (anonymized)
+  4. Financial milestone tracking
+  5. Predictive spending forecasts
+  6. Educational content recommendations based on spending patterns
+- Design Problems:
+  - HMW provide meaningful insights without being judgmental about spending choices?
+- Design Opportunities:
+  - What if the system could suggest conversation starters for financial discussions?
+
+**Pu.3 Spending Alert Configuration [type: modal]**
+- HOW IT IS REACHED: Clicking "Set Up Alerts" CTA button
+- NAVBAR PRESENCE: No
+- Page Goal: Allow parents to configure custom monitoring alerts
+- Screen Description:
+  1. Alert threshold settings (amount, frequency, category)
+  2. Notification method preferences
+  3. Alert severity levels
+  4. Temporary alert suspension options
+- Design Problems:
+  - HMW help parents set appropriate alert thresholds that aren't too sensitive?
+- Design Opportunities:
+  - What if alerts could include suggested responses or conversation guides?
+
+**NAVIGATION STRUCTURE:** 3.0 Activity Monitor
+
+**USER JOURNEY FLOW:**
+- Variation A: 3.0 Activity Monitor → [click transaction] → 3.0-D Individual Transaction Analysis → [back] → 3.0 Activity Monitor
+- Variation B: 3.0 Activity Monitor → [click Set Up Alerts] → Pu.3 Spending Alert Configuration → [save] → 3.0 Activity Monitor (updated)
+
+---
+
+## Scenario 4: Parent Handling Insufficient Funds and Transfer Errors
+
+**Context:** David attempts to transfer $500 to his daughter's youth account for a school trip, but his checking account only has $300 available. He needs to understand the error and find alternative funding solutions quickly.
+
+**User Goal:** Resolve funding issues efficiently while understanding available options and maintaining the planned transfer timeline.
+
+**Business Goal:** Reduce transfer abandonment rates and guide users toward successful completion of funding transactions.
+
+### Workflow Variation A: Error Resolution with Alternative Sources
+
+**Screens:**
+
+**Er.1 Insufficient Funds Error State [type: state]**
+- HOW IT IS REACHED: Automatic display when transfer amount exceeds available balance
+- NAVBAR PRESENCE: No
+- Page Goal: Clearly communicate the error and provide immediate resolution options
+- Screen Description:
+  1. Clear error message explaining insufficient funds
+  2. Available balance display for selected source account
+  3. Alternative funding source suggestions
+  4. Option to modify transfer amount
+  5. Link to account funding options
+  6. Save transfer for later option
+- Design Problems:
+  - HMW communicate funding errors without causing embarrassment or frustration?
+  - HMW guide users toward successful resolution quickly?
+- Design Opportunities:
+  - What if we could suggest optimal transfer amounts based on available funds?
+  - What if users could set up automatic funding from other accounts?
+
+**Pu.4 Alternative Funding Sources Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "View Other Funding Options" from error state
+- NAVBAR PRESENCE: No
+- Page Goal: Present all available funding alternatives in one interface
+- Screen Description:
+  1. List of all eligible parent accounts with balances
+  2. External funding options (linked accounts, credit lines)
+  3. Partial transfer options with scheduling for remainder
+  4. Account funding shortcuts (external transfers)
+- Design Problems:
+  - HMW help parents choose the best funding source for their situation?
+- Design Opportunities:
+  - What if we could recommend the most cost-effective funding option?
+
+### Workflow Variation B: Scheduled Transfer Resolution
+
+**Screens:**
+
+**Er.1 Insufficient Funds Error State [type: state]**
+- HOW IT IS REACHED: Automatic display when transfer amount exceeds available balance
+- NAVBAR PRESENCE: No
+- Page Goal: Focus on scheduling and planning solutions for funding shortfalls
+- Screen Description:
+  1. Error explanation with timeline impact assessment
+  2. Scheduled transfer options based on expected deposits
+  3. Partial immediate transfer with remainder scheduling
+  4. Notification setup for when funds become available
+  5. Youth account impact preview (if transfer is delayed)
+- Design Problems:
+  - HMW help parents maintain their intended financial support timeline despite temporary shortfalls?
+- Design Opportunities:
+  - What if we could predict when sufficient funds will be available based on deposit patterns?
+
+**Pu.5 Transfer Scheduling Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "Schedule Transfer" from error state
+- NAVBAR PRESENCE: No
+- Page Goal: Enable parents to plan future transfers when funds become available
+- Screen Description:
+  1. Calendar interface for selecting transfer date
+  2. Automatic transfer setup when balance threshold is met
+  3. Notification preferences for scheduled transfers
+  4. Option to modify or cancel scheduled transfers
+- Design Problems:
+  - HMW ensure scheduled transfers don't create future insufficient fund situations?
+- Design Opportunities:
+  - What if scheduled transfers could automatically adjust based on available funds?
+
+**NAVIGATION STRUCTURE:** N/A (Error states and modals only)
+
+**USER JOURNEY FLOW:**
+- Variation A: Er.1 Insufficient Funds Error State → [click View Other Funding Options] → Pu.4 Alternative Funding Sources Modal → [select source] → Return to transfer flow
+- Variation B: Er.1 Insufficient Funds Error State → [click Schedule Transfer] → Pu.5 Transfer Scheduling Modal → [schedule] → Confirmation of scheduled transfer
+
+---
+
+## Scenario 5: Parent Managing Multiple Youth Accounts
+
+**Context:** Lisa has three children (ages 13, 15, and 17) with different financial needs and maturity levels. She needs to manage all three accounts efficiently while applying age-appropriate controls and funding strategies.
+
+**User Goal:** Efficiently manage multiple youth accounts with different requirements while maintaining individual attention to each child's financial development.
+
+**Business Goal:** Increase account retention and cross-selling opportunities by demonstrating value in managing multiple youth accounts.
+
+### Workflow Variation A: Unified Multi-Account Dashboard
+
+**Screens:**
+
+**4.0 Multi-Account Overview [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "All Youth Accounts"
+- NAVBAR PRESENCE: Yes
+- Page Goal: Provide comprehensive overview of all youth accounts with comparative analysis
+- Screen Description:
+  1. Side-by-side account comparison cards
+  2. Combined spending analytics across all accounts
+  3. Bulk action capabilities (mass transfers, limit updates)
+  4. Individual account quick actions
+  5. Family spending goals and progress
+  6. Age-appropriate milestone tracking for each child
+- Design Problems:
+  - HMW present multiple accounts without creating overwhelming complexity?
+  - HMW enable efficient management while maintaining individual account focus?
+- Design Opportunities:
+  - What if we could show spending patterns that indicate sibling influence?
+  - What if parents could set up automatic rebalancing between accounts?
+
+**4.0-D Individual Account Deep Dive [type: detail]**
+- HOW IT IS REACHED: Clicking on any account card in the multi-account overview
+- NAVBAR PRESENCE: No
+- Page Goal: Provide focused management for individual youth account within multi-account context
+- Screen Description:
+  1. Individual account dashboard with full functionality
+  2. Sibling comparison context (when appropriate)
+  3. Age-specific recommendations and insights
+  4. Quick navigation to other sibling accounts
+  5. Account-specific goals and milestones
+- Design Problems:
+  - HMW maintain individual focus while leveraging multi-account insights?
+- Design Opportunities:
+  - What if we could suggest learning opportunities based on sibling successes?
+
+### Workflow Variation B: Account-by-Account Management
+
+**Screens:**
+
+**4.0 Multi-Account Overview [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item "All Youth Accounts"
+- NAVBAR PRESENCE: Yes
+- Page Goal: Facilitate sequential management of individual accounts with easy navigation
+- Screen Description:
+  1. Account selection interface with status indicators
+  2. Recent activity summary for each account
+  3. Priority alerts and action items per account
+  4. Quick account switching navigation
+  5. Bulk operations for common tasks
+- Design Problems:
+  - HMW help parents prioritize attention across multiple accounts?
+- Design Opportunities:
+  - What if we could suggest which accounts need attention most urgently?
+
+**Pu.6 Bulk Operations Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "Bulk Actions" CTA button
+- NAVBAR PRESENCE: No
+- Page Goal: Enable efficient management of common tasks across multiple accounts
+- Screen Description:
+  1. Multi-account fund distribution interface
+  2. Bulk limit updates with individual overrides
+  3. Mass notification settings
+  4. Coordinated goal setting across accounts
+- Design Problems:
+  - HMW enable bulk operations while respecting individual account differences?
+- Design Opportunities:
+  - What if bulk operations could automatically adjust for age-appropriate differences?
+
+**NAVIGATION STRUCTURE:** 4.0 Multi-Account Overview
+
+**USER JOURNEY FLOW:**
+- Variation A: 4.0 Multi-Account Overview → [click account card] → 4.0-D Individual Account Deep Dive → [back] → 4.0 Multi-Account Overview
+- Variation B: 4.0 Multi-Account Overview → [click Bulk Actions] → Pu.6 Bulk Operations Modal → [execute] → 4.0 Multi-Account Overview (updated)
+
+---
+
+## Settings and Configuration
+
+**5.0 Settings [type: settings]**
+- HOW IT IS REACHED: Clicking settings icon in navigation or user menu
+- NAVBAR PRESENCE: No
+- Page Goal: Centralize all user preferences and system configuration options
+- Screen Description:
+  1. **Notification Preferences**
+     - Transaction alerts (amount thresholds, frequency)
+     - Limit breach notifications
+     - Account activity summaries
+     - Email vs. SMS vs. in-app preferences
+  2. **Display Options**
+     - Currency display format
+     - Date and time format preferences
+     - Dashboard layout customization
+     - Chart and graph preferences
+  3. **Security Settings**
+     - Two-factor authentication setup
+     - Login notification preferences
+     - Session timeout settings
+     - Trusted device management
+  4. **Accessibility Options**
+     - Screen reader compatibility toggle
+     - High contrast mode toggle
+     - Font size adjustment
+     - Motion reduction preferences
+  5. **Account Management**
+     - Profile information updates
+     - Linked account management
+     - Youth account permissions
+     - Data export and privacy controls
+- Design Problems:
+  - HMW organize diverse settings without creating a overwhelming interface?
+  - HMW ensure critical accessibility settings are discoverable?
+- Design Opportunities:
+  - What if settings could be automatically optimized based on usage patterns?
+  - What if we could provide guided setup for new users?
 
 ---
 
@@ -362,62 +504,65 @@ Alternative: 1.1 Collaborative Kanban Board → [click team assign] → Pu.2 Tea
 
 **Keyboard Navigation:**
 - All primary screens support full keyboard navigation with logical tab order
-- Kanban columns navigable via arrow keys with screen reader announcements
-- Task cards accessible via Tab/Shift+Tab with Enter to open details
+- Tab order follows visual hierarchy: header navigation → main content → sidebar → footer
+- Skip links provided for main content and navigation sections
 - Modal dialogs trap focus and return to trigger element on close
 
 **ARIA Labels and Landmarks:**
-- Main navigation marked as navigation landmark
-- Kanban columns marked as regions with descriptive labels
-- Task cards include role="button" with accessible names
-- Form controls have associated labels and error descriptions
-- Live regions announce task movements and status changes
+- Main navigation marked with role="navigation" and aria-label="Main navigation"
+- Content areas use appropriate landmark roles (main, aside, complementary)
+- Form controls have associated labels and error messages
+- Dynamic content updates announced via aria-live regions
+- Data tables include proper headers and scope attributes
 
 **Screen Reader Announcements:**
-- Column changes announced as "Task moved to [column name]"
-- New task creation announced with task title and assigned column
-- Progress updates announced in analytics dashboard
-- Error states announced with clear resolution guidance
+- Balance updates announced when funds are transferred
+- Error states announced immediately when validation fails
+- Success confirmations announced after completed actions
+- Loading states communicated during data fetching
+- Navigation changes announced when moving between screens
 
 **High Contrast Mode:**
-- Toggled via Settings screen, applies as CSS class site-wide
-- Maintains color contrast ratios of 4.5:1 minimum
-- Preserves visual hierarchy and interactive element distinction
+- Toggled via Settings screen under Accessibility Options
+- Applies as CSS class site-wide affecting all screens
+- Maintains minimum 4.5:1 contrast ratio for normal text
+- Maintains minimum 3:1 contrast ratio for large text and UI elements
 
 **Focus Indicators:**
-- 2px solid focus outline on all interactive elements
-- High contrast focus indicators in high contrast mode
-- Focus visible on keyboard navigation, hidden on mouse interaction
+- Visible focus indicators on all interactive elements
+- Focus indicators use 2px solid border with high contrast color
+- Focus indicators never rely solely on color changes
+- Custom focus styles for complex components like data tables
 
 **Minimum Touch Targets:**
-- 44px minimum on all interactive elements across all screens
+- All interactive elements minimum 44px touch target
 - Adequate spacing between adjacent interactive elements
-- Drag handles sized appropriately for touch interaction
+- Applies to buttons, links, form controls, and custom interactive components
 
 ---
 
 ## VIEWPORT BEHAVIOUR
 
 **Desktop (1024px+):**
-- Three-column layout with equal column widths (33.33% each)
-- Full sidebar navigation visible
-- Detailed task cards with all metadata visible
-- Drag and drop functionality fully enabled
-- Analytics dashboard shows full chart layouts
+- Full sidebar navigation with expanded menu items
+- Multi-column layouts for dashboard cards and data tables
+- Hover states and tooltips for enhanced interaction
+- Side-by-side modal layouts for complex forms
 
 **Tablet (768px–1023px):**
-- Three-column layout maintained with adjusted spacing
-- Collapsible sidebar navigation
-- Condensed task cards with essential information
-- Touch-optimized drag and drop with larger touch targets
-- Analytics charts adapt to available width
+- Collapsible sidebar navigation with icon + text labels
+- Responsive grid layouts that stack at narrower widths
+- Touch-optimized interaction targets and spacing
+- Modal dialogs adapt to available screen space
 
 **Mobile (320px–767px):**
-- Single-column view with horizontal swipe between columns
 - Bottom navigation bar replaces sidebar
-- Simplified task cards with tap to expand details
-- Touch gestures for task management (swipe to move, long press for options)
-- Analytics presented as scrollable cards with simplified visualizations
-- Modal dialogs become full-screen overlays
+- Single-column layouts with vertical card stacking
+- Full-screen modal presentations
+- Swipe gestures for navigation between related screens
+- Condensed data tables with horizontal scrolling or accordion patterns
+- Priority-based content showing most important information first
 
-These viewport adaptations apply universally across all primary screens and produce zero additional wireframe screens.
+---
+
+*This workflow documentation serves as the foundation for wireframe generation and represents the complete user journey for youth account management functionality.*
