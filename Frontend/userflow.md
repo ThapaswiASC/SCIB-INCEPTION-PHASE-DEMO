@@ -2,86 +2,107 @@
 
 ```mermaid
 flowchart TD
-    Start[User Visits Application]
-    Start --> Landing[Landing Page]
-    Landing --> Login[Login Page]
-    Landing --> Register[Registration Page]
+    Start[User Opens Application]
+    Start --> Login[Authentication Check]
+    Login --> Dashboard[Main Dashboard]
     
-    Login --> Auth{Authentication}
-    Register --> Auth
-    Auth -->|Success| Dashboard[Main Dashboard]
-    Auth -->|Failed| Error[Error Message]
-    Error --> Login
+    Dashboard --> Header[Header Navigation]
+    Dashboard --> Sidebar[Sidebar Navigation]
+    Dashboard --> MainContent[Main Content Area]
     
-    Dashboard --> Profile[User Profile]
-    Dashboard --> Settings[Settings Page]
-    Dashboard --> Reports[Reports Section]
-    Dashboard --> Navigation[Main Navigation]
+    Header --> Search[Search Tasks]
+    Header --> Notifications[View Notifications]
+    Header --> UserProfile[User Profile Menu]
     
-    Profile --> EditProfile[Edit Profile Form]
-    EditProfile --> SaveProfile[Save Changes]
-    SaveProfile --> Profile
+    Sidebar --> KanbanNav[Kanban Board]
+    Sidebar --> CollabNav[Collaborative Board]
+    Sidebar --> AnalyticsNav[Progress Analytics]
+    Sidebar --> ReportsNav[Report Builder]
+    Sidebar --> ConfigNav[Board Configuration]
     
-    Settings --> AccountSettings[Account Settings]
-    Settings --> SecuritySettings[Security Settings]
-    Settings --> NotificationSettings[Notification Settings]
+    KanbanNav --> KanbanBoard[Kanban Board View]
+    KanbanBoard --> TodoColumn[To Do Column]
+    KanbanBoard --> InProgressColumn[In Progress Column]
+    KanbanBoard --> DoneColumn[Done Column]
     
-    Reports --> ViewReports[View Reports List]
-    Reports --> CreateReport[Create New Report]
-    Reports --> FilterReports[Filter Reports]
+    TodoColumn --> ViewTask[View Task Details]
+    InProgressColumn --> ViewTask
+    DoneColumn --> ViewTask
     
-    ViewReports --> ReportDetails[Report Details]
-    ReportDetails --> EditReport[Edit Report]
-    ReportDetails --> DeleteReport[Delete Report]
+    TodoColumn --> DragTask[Drag Task Between Columns]
+    InProgressColumn --> DragTask
+    DoneColumn --> DragTask
     
-    CreateReport --> ReportForm[Report Creation Form]
-    ReportForm --> SubmitReport[Submit Report]
-    SubmitReport --> ViewReports
+    KanbanBoard --> AddTaskBtn[Add New Task Button]
+    AddTaskBtn --> AddTaskModal[Add Task Modal]
+    AddTaskModal --> FillTaskForm[Fill Task Form]
+    FillTaskForm --> SubmitTask[Submit New Task]
+    SubmitTask --> KanbanBoard
     
-    Navigation --> Sidebar[Sidebar Menu]
-    Navigation --> Header[Header Navigation]
+    ViewTask --> TaskDetail[Task Detail View]
+    TaskDetail --> EditTask[Edit Task]
+    TaskDetail --> DeleteTask[Delete Task]
+    TaskDetail --> AddComment[Add Comment]
+    TaskDetail --> AssignUser[Assign Team Member]
     
-    Sidebar --> QuickActions[Quick Actions]
-    Sidebar --> MenuItems[Menu Items]
+    EditTask --> UpdateTaskForm[Update Task Form]
+    UpdateTaskForm --> SaveTask[Save Changes]
+    SaveTask --> TaskDetail
     
-    Header --> UserMenu[User Menu Dropdown]
-    Header --> SearchBar[Search Functionality]
+    DeleteTask --> ConfirmDelete[Confirm Deletion]
+    ConfirmDelete --> KanbanBoard
     
-    UserMenu --> Logout[Logout]
-    Logout --> Landing
+    DragTask --> UpdateStatus[Update Task Status]
+    UpdateStatus --> KanbanBoard
     
-    SearchBar --> SearchResults[Search Results]
-    SearchResults --> ItemDetails[Item Details]
+    AssignUser --> TeamModal[Team Assignment Modal]
+    TeamModal --> SelectMember[Select Team Member]
+    SelectMember --> AssignTask[Assign Task]
+    AssignTask --> TaskDetail
     
-    QuickActions --> NewItem[Create New Item]
-    QuickActions --> RecentItems[Recent Items]
+    AnalyticsNav --> AnalyticsDash[Analytics Dashboard]
+    AnalyticsDash --> ViewMetrics[View Progress Metrics]
+    AnalyticsDash --> ViewCharts[View Performance Charts]
     
-    MenuItems --> ModuleA[Module A]
-    MenuItems --> ModuleB[Module B]
-    MenuItems --> ModuleC[Module C]
+    ReportsNav --> ReportBuilder[Report Builder]
+    ReportBuilder --> ConfigReport[Configure Report]
+    ConfigReport --> GenerateReport[Generate Report]
+    GenerateReport --> ViewReport[View Generated Report]
     
-    ModuleA --> FeatureA1[Feature A1]
-    ModuleA --> FeatureA2[Feature A2]
+    ConfigNav --> BoardConfig[Board Configuration]
+    BoardConfig --> WorkflowRules[Workflow Rules]
+    BoardConfig --> TemplateSettings[Template Settings]
+    BoardConfig --> UserPermissions[User Permissions]
     
-    ModuleB --> FeatureB1[Feature B1]
-    ModuleB --> FeatureB2[Feature B2]
+    WorkflowRules --> EditWorkflow[Edit Workflow Rules]
+    EditWorkflow --> SaveWorkflow[Save Workflow Changes]
+    SaveWorkflow --> BoardConfig
     
-    ModuleC --> FeatureC1[Feature C1]
-    ModuleC --> FeatureC2[Feature C2]
+    TemplateSettings --> ManageTemplates[Manage Task Templates]
+    ManageTemplates --> CreateTemplate[Create New Template]
+    CreateTemplate --> SaveTemplate[Save Template]
+    SaveTemplate --> TemplateSettings
     
-    FeatureA1 --> ProcessA1[Process A1]
-    FeatureA2 --> ProcessA2[Process A2]
+    Search --> FilterResults[Filter Search Results]
+    FilterResults --> ViewSearchResults[View Search Results]
+    ViewSearchResults --> ViewTask
     
-    FeatureB1 --> ProcessB1[Process B1]
-    FeatureB2 --> ProcessB2[Process B2]
+    UserProfile --> AccountSettings[Account Settings]
+    UserProfile --> Logout[Logout]
+    Logout --> Login
     
-    FeatureC1 --> ProcessC1[Process C1]
-    FeatureC2 --> ProcessC2[Process C2]
+    AccountSettings --> UpdateProfile[Update Profile]
+    AccountSettings --> ChangePassword[Change Password]
+    AccountSettings --> NotificationPrefs[Notification Preferences]
     
-    ProcessA1 --> Dashboard
-    ProcessA2 --> Dashboard
-    ProcessB1 --> Dashboard
-    ProcessB2 --> Dashboard
-    ProcessC1 --> Dashboard
-    ProcessC2 --> Dashboard
+    UpdateProfile --> SaveProfile[Save Profile Changes]
+    SaveProfile --> UserProfile
+    
+    ChangePassword --> PasswordForm[Password Change Form]
+    PasswordForm --> UpdatePassword[Update Password]
+    UpdatePassword --> UserProfile
+    
+    NotificationPrefs --> ToggleNotifications[Toggle Notification Settings]
+    ToggleNotifications --> SaveNotificationPrefs[Save Preferences]
+    SaveNotificationPrefs --> UserProfile
 ```
