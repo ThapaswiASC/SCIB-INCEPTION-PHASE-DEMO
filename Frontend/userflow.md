@@ -3,106 +3,141 @@
 ```mermaid
 flowchart TD
     Start[User Opens Application]
-    Start --> Login[Authentication Check]
-    Login --> Dashboard[Main Dashboard]
+    Start --> Auth{Authentication Required?}
+    Auth -->|Yes| Login[Login Page]
+    Auth -->|No| Dashboard[Main Dashboard]
+    Login --> LoginSuccess{Login Successful?}
+    LoginSuccess -->|Yes| Dashboard
+    LoginSuccess -->|No| LoginError[Display Login Error]
+    LoginError --> Login
     
-    Dashboard --> Header[Header Navigation]
+    Dashboard --> Header[Header with Search and User Controls]
     Dashboard --> Sidebar[Sidebar Navigation]
     Dashboard --> MainContent[Main Content Area]
     
     Header --> Search[Search Tasks]
     Header --> Notifications[View Notifications]
-    Header --> UserProfile[User Profile Menu]
+    Header --> UserProfile[User Profile Settings]
     
-    Sidebar --> KanbanNav[Kanban Board]
-    Sidebar --> CollabNav[Collaborative Board]
-    Sidebar --> AnalyticsNav[Progress Analytics]
-    Sidebar --> ReportsNav[Report Builder]
-    Sidebar --> ConfigNav[Board Configuration]
+    Search --> SearchResults[Display Search Results]
+    SearchResults --> TaskDetails[View Task Details]
     
-    KanbanNav --> KanbanBoard[Kanban Board View]
-    KanbanBoard --> TodoColumn[To Do Column]
-    KanbanBoard --> InProgressColumn[In Progress Column]
-    KanbanBoard --> DoneColumn[Done Column]
+    Sidebar --> TaskManagement[Task Management Section]
+    Sidebar --> Analytics[Analytics Section]
+    Sidebar --> Configuration[Configuration Section]
     
-    TodoColumn --> ViewTask[View Task Details]
-    InProgressColumn --> ViewTask
-    DoneColumn --> ViewTask
+    TaskManagement --> KanbanBoard[Kanban Board View]
+    TaskManagement --> CollaborativeBoard[Collaborative Board View]
     
-    TodoColumn --> DragTask[Drag Task Between Columns]
-    InProgressColumn --> DragTask
-    DoneColumn --> DragTask
+    KanbanBoard --> ViewColumns[View Three Columns]
+    ViewColumns --> TodoColumn[To Do Column]
+    ViewColumns --> InProgressColumn[In Progress Column]
+    ViewColumns --> DoneColumn[Done Column]
     
-    KanbanBoard --> AddTaskBtn[Add New Task Button]
-    AddTaskBtn --> AddTaskModal[Add Task Modal]
+    TodoColumn --> ViewTasks[View Tasks in Column]
+    InProgressColumn --> ViewTasks
+    DoneColumn --> ViewTasks
+    
+    ViewTasks --> TaskCard[Individual Task Card]
+    TaskCard --> TaskClick{User Clicks Task?}
+    TaskClick -->|Yes| TaskDetails
+    TaskClick -->|No| DragTask[Drag Task to Another Column]
+    
+    DragTask --> DropTask[Drop Task in New Column]
+    DropTask --> UpdateTaskStatus[Update Task Status]
+    UpdateTaskStatus --> RefreshBoard[Refresh Kanban Board]
+    RefreshBoard --> ViewColumns
+    
+    KanbanBoard --> AddTaskButton[Click Add Task Button]
+    AddTaskButton --> AddTaskModal[Open Add Task Modal]
     AddTaskModal --> FillTaskForm[Fill Task Form]
-    FillTaskForm --> SubmitTask[Submit New Task]
-    SubmitTask --> KanbanBoard
+    FillTaskForm --> TaskFormValidation{Form Valid?}
+    TaskFormValidation -->|No| FormErrors[Display Form Errors]
+    FormErrors --> FillTaskForm
+    TaskFormValidation -->|Yes| SubmitTask[Submit New Task]
+    SubmitTask --> TaskCreated[Task Created Successfully]
+    TaskCreated --> CloseModal[Close Modal]
+    CloseModal --> RefreshBoard
     
-    ViewTask --> TaskDetail[Task Detail View]
-    TaskDetail --> EditTask[Edit Task]
-    TaskDetail --> DeleteTask[Delete Task]
-    TaskDetail --> AddComment[Add Comment]
-    TaskDetail --> AssignUser[Assign Team Member]
+    TaskDetails --> EditTask[Edit Task Details]
+    TaskDetails --> DeleteTask[Delete Task]
+    TaskDetails --> AssignTask[Assign Task to Team Member]
     
-    EditTask --> UpdateTaskForm[Update Task Form]
-    UpdateTaskForm --> SaveTask[Save Changes]
-    SaveTask --> TaskDetail
+    EditTask --> EditTaskModal[Open Edit Task Modal]
+    EditTaskModal --> UpdateTaskForm[Update Task Form]
+    UpdateTaskForm --> SaveTaskChanges[Save Task Changes]
+    SaveTaskChanges --> RefreshBoard
     
-    DeleteTask --> ConfirmDelete[Confirm Deletion]
-    ConfirmDelete --> KanbanBoard
+    AssignTask --> TeamAssignModal[Open Team Assignment Modal]
+    TeamAssignModal --> SelectTeamMember[Select Team Member]
+    SelectTeamMember --> AssignToMember[Assign Task to Member]
+    AssignToMember --> RefreshBoard
     
-    DragTask --> UpdateStatus[Update Task Status]
-    UpdateStatus --> KanbanBoard
+    DeleteTask --> ConfirmDelete{Confirm Deletion?}
+    ConfirmDelete -->|Yes| RemoveTask[Remove Task]
+    ConfirmDelete -->|No| TaskDetails
+    RemoveTask --> RefreshBoard
     
-    AssignUser --> TeamModal[Team Assignment Modal]
-    TeamModal --> SelectMember[Select Team Member]
-    SelectMember --> AssignTask[Assign Task]
-    AssignTask --> TaskDetail
+    Analytics --> ViewMetrics[View Analytics Metrics]
+    ViewMetrics --> TaskMetrics[Task Completion Metrics]
+    ViewMetrics --> TeamPerformance[Team Performance Charts]
+    ViewMetrics --> ReportGeneration[Generate Reports]
     
-    AnalyticsNav --> AnalyticsDash[Analytics Dashboard]
-    AnalyticsDash --> ViewMetrics[View Progress Metrics]
-    AnalyticsDash --> ViewCharts[View Performance Charts]
+    ReportGeneration --> ReportConfigModal[Open Report Configuration Modal]
+    ReportConfigModal --> ConfigureReport[Configure Report Parameters]
+    ConfigureReport --> GenerateReport[Generate Report]
+    GenerateReport --> DownloadReport[Download Report]
     
-    ReportsNav --> ReportBuilder[Report Builder]
-    ReportBuilder --> ConfigReport[Configure Report]
-    ConfigReport --> GenerateReport[Generate Report]
-    GenerateReport --> ViewReport[View Generated Report]
+    Configuration --> SystemSettings[System Settings]
+    Configuration --> UserPreferences[User Preferences]
+    Configuration --> WorkflowRules[Workflow Rules]
     
-    ConfigNav --> BoardConfig[Board Configuration]
-    BoardConfig --> WorkflowRules[Workflow Rules]
-    BoardConfig --> TemplateSettings[Template Settings]
-    BoardConfig --> UserPermissions[User Permissions]
+    SystemSettings --> ToggleSettings[Toggle System Settings]
+    ToggleSettings --> SaveSettings[Save Settings]
+    SaveSettings --> SettingsConfirmation[Settings Saved Confirmation]
     
-    WorkflowRules --> EditWorkflow[Edit Workflow Rules]
-    EditWorkflow --> SaveWorkflow[Save Workflow Changes]
-    SaveWorkflow --> BoardConfig
+    UserPreferences --> UpdateProfile[Update User Profile]
+    UserPreferences --> ChangePassword[Change Password]
+    UserPreferences --> NotificationSettings[Notification Settings]
     
-    TemplateSettings --> ManageTemplates[Manage Task Templates]
-    ManageTemplates --> CreateTemplate[Create New Template]
-    CreateTemplate --> SaveTemplate[Save Template]
-    SaveTemplate --> TemplateSettings
+    WorkflowRules --> WorkflowModal[Open Workflow Rules Modal]
+    WorkflowModal --> DefineRules[Define Workflow Rules]
+    DefineRules --> SaveWorkflow[Save Workflow Rules]
+    SaveWorkflow --> WorkflowConfirmation[Workflow Rules Saved]
     
-    Search --> FilterResults[Filter Search Results]
-    FilterResults --> ViewSearchResults[View Search Results]
-    ViewSearchResults --> ViewTask
+    UpdateProfile --> ProfileForm[Update Profile Form]
+    ProfileForm --> SaveProfile[Save Profile Changes]
+    SaveProfile --> ProfileUpdated[Profile Updated Successfully]
     
-    UserProfile --> AccountSettings[Account Settings]
+    ChangePassword --> PasswordForm[Change Password Form]
+    PasswordForm --> PasswordValidation{Password Valid?}
+    PasswordValidation -->|No| PasswordError[Display Password Error]
+    PasswordError --> PasswordForm
+    PasswordValidation -->|Yes| UpdatePassword[Update Password]
+    UpdatePassword --> PasswordChanged[Password Changed Successfully]
+    
+    NotificationSettings --> NotificationPrefs[Configure Notification Preferences]
+    NotificationPrefs --> SaveNotifications[Save Notification Settings]
+    SaveNotifications --> NotificationsSaved[Notifications Settings Saved]
+    
     UserProfile --> Logout[Logout]
-    Logout --> Login
+    Logout --> LogoutConfirm{Confirm Logout?}
+    LogoutConfirm -->|Yes| EndSession[End User Session]
+    LogoutConfirm -->|No| Dashboard
+    EndSession --> Start
     
-    AccountSettings --> UpdateProfile[Update Profile]
-    AccountSettings --> ChangePassword[Change Password]
-    AccountSettings --> NotificationPrefs[Notification Preferences]
+    %% Error Handling Flows
+    Dashboard --> ErrorState{System Error?}
+    ErrorState -->|Yes| ErrorDisplay[Display Error Message]
+    ErrorState -->|No| Dashboard
+    ErrorDisplay --> RetryAction[Retry Action]
+    RetryAction --> Dashboard
     
-    UpdateProfile --> SaveProfile[Save Profile Changes]
-    SaveProfile --> UserProfile
-    
-    ChangePassword --> PasswordForm[Password Change Form]
-    PasswordForm --> UpdatePassword[Update Password]
-    UpdatePassword --> UserProfile
-    
-    NotificationPrefs --> ToggleNotifications[Toggle Notification Settings]
-    ToggleNotifications --> SaveNotificationPrefs[Save Preferences]
-    SaveNotificationPrefs --> UserProfile
+    %% Loading States
+    KanbanBoard --> LoadingState[Loading Tasks]
+    LoadingState --> DataLoaded{Data Loaded?}
+    DataLoaded -->|Yes| ViewColumns
+    DataLoaded -->|No| LoadingError[Loading Error]
+    LoadingError --> RetryLoad[Retry Loading]
+    RetryLoad --> LoadingState
 ```
