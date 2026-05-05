@@ -4,202 +4,309 @@
 
 **Page Name:** Kanban Board Application
 
-**Mapped Layout:** CSS Grid and Flexbox Mixed Layout
+**Mapped Layout:** Three-column CSS Grid layout with sidebar navigation
 
 **Components from A1:**
-- KanbanBoardComponent (Main container with three-column layout)
-- KanbanColumnComponent (Individual column containers)
-- TaskCardComponent (Task display cards)
-- AddTaskModalComponent (Task creation modal)
-- HeaderComponent (Top navigation)
-- SidebarComponent (Left navigation menu)
-- SearchComponent (Search functionality)
-- UserControlsComponent (User avatar and settings)
+- Sidebar Navigation Component
+- Header Component  
+- Kanban Board Component
+- Task Column Component
+- Task Card Component
+- Task Detail Modal
+- Add Task Modal
+- Team Assignment Modal
+- Report Configuration Modal
+- Workflow Rules Modal
 
 ## 2. GLOBAL ARCHITECTURE SUMMARY
 
-**Layout Type:** CSS Grid / Flexbox Mixed
+**Layout Type:** CSS Grid / Flex Mixed
 
 **Main Sections:**
-- Header (Search, notifications, user controls)
-- Sidebar (Navigation menu with brand, task management, analytics, configuration)
-- Main Content (Kanban board with three columns)
-- Modals (Task creation, team assignment, configuration)
+- Header (top navigation bar)
+- Sidebar (left navigation panel)
+- Main Content (kanban board area)
+- Modals (overlay components)
 
-**Component Strategy:** Reuse existing library components where possible, create feature-specific components for business logic
+**Component Strategy:** Reuse Angular Material components where possible, create custom Kanban-specific components
 
 **Reused Components:**
-- Button (from uicomplibraryplay)
-- Card (Glass morphism cards)
-- Modal (Overlay with backdrop)
-- Badge (Status indicators)
-- Avatar (User profile circles)
-- Toggle Switch (Settings toggles)
-- Input Fields (Search, form inputs)
-- Navigation Menu (Sidebar navigation)
+- Angular Material Button
+- Angular Material Card
+- Angular Material Modal/Dialog
+- Angular Material Form Fields
+- Angular Material Badge
+- Angular Material Avatar
 
 **New Components (if any):**
-- KanbanBoardComponent (Feature-specific)
-- KanbanColumnComponent (Feature-specific)
-- TaskCardComponent (Feature-specific)
+- KanbanBoardComponent
+- TaskColumnComponent
+- TaskCardComponent
+- SidebarNavigationComponent
 
 ## 3. FOLDER STRUCTURE
 
 ```
 src/
  ├── pages/
- │    └── kanban-page/
- │         ├── kanban-page.component.ts
- │         ├── kanban-page.component.html
- │         └── kanban-page.component.scss
+ │    └── kanban/
+ │         ├── kanban-page.component.tsx
  │
  ├── components/
  │    ├── layout/
- │    │    ├── header/
- │    │    ├── sidebar/
- │    │    └── main-content/
+ │    │    ├── sidebar-navigation.component.tsx
+ │    │    └── header.component.tsx
  │    ├── feature/
- │    │    ├── kanban-board/
- │    │    ├── kanban-column/
- │    │    ├── task-card/
- │    │    └── add-task-modal/
+ │    │    ├── kanban-board.component.tsx
+ │    │    ├── task-column.component.tsx
+ │    │    ├── task-card.component.tsx
+ │    │    └── task-detail.component.tsx
  │    ├── shared/
- │    │    ├── button/
- │    │    ├── card/
- │    │    ├── modal/
- │    │    ├── badge/
- │    │    ├── avatar/
- │    │    └── search/
+ │    │    ├── button.component.tsx
+ │    │    ├── modal.component.tsx
+ │    │    ├── form-field.component.tsx
+ │    │    ├── badge.component.tsx
+ │    │    └── avatar.component.tsx
 ```
 
 ## 4. COMPONENT IMPLEMENTATION
 
-### 4.1 KanbanBoardComponent
+### 4.1 KanbanPageComponent
 
-**Component Type:** Feature
+**Component Type:** Page
 
-**Mapped From A1:** KanbanBoardComponent - Main kanban board container with three-column layout
+**Mapped From A1:** Main Kanban Application Container
 
-**Purpose:** Main container for kanban board with three columns (To Do, In Progress, Done)
+**Purpose:** Root page component that orchestrates the entire Kanban board application
 
-**Parent:** KanbanPageComponent
+**Parent:** App Component
 
 **Children:**
-- KanbanColumnComponent (3 instances)
-- AddTaskModalComponent
+- SidebarNavigationComponent
+- HeaderComponent
+- KanbanBoardComponent
 
 **Dependencies:**
-- TaskService
-- Angular CDK Drag Drop
+- Angular Router
+- Angular Material
+- RxJS
 
 **Library Components Used:**
-- Card → Glass morphism container
-- Button → Add task button
+- MatSidenav → Sidebar container
+- MatToolbar → Header toolbar
 
 **TypeScript Specification**
 
 **Inputs:**
-- loading: boolean (loading state)
-- error: string (error message)
+- boardId: string (route parameter)
+- userId: string (from auth service)
 
 **Outputs:**
-- taskCreated: EventEmitter<Task> (new task created)
-- taskUpdated: EventEmitter<Task> (task updated)
+- onTaskCreate: EventEmitter<Task> (new task created)
+- onTaskUpdate: EventEmitter<Task> (task updated)
 
 **State:**
-- columns: KanbanColumn[] (column configuration)
-- tasks: Task[] (all tasks)
-- selectedTask: Task | null (currently selected task)
-- draggedTask: Task | null (task being dragged)
-- isAddModalOpen: boolean (modal visibility)
+- isLoading: boolean (loading state)
+- currentBoard: Board (active board data)
+- sidebarOpen: boolean (sidebar visibility)
 
 **Methods:**
-- ngOnInit() → Initialize component and load data
-- loadTasks() → Fetch tasks from API
-- onTaskMove(event: CdkDragDrop) → Handle task movement
-- openAddModal() → Open task creation modal
-- onTaskCreated(task: Task) → Handle new task creation
+- loadBoard() → void (fetch board data)
+- toggleSidebar() → void (toggle sidebar)
+- handleTaskCreate(task: Task) → void (handle new task)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
-<div class="kanban-board" role="region" aria-label="Kanban Board">
-  <div class="board-header">
-    <h2>Kanban Board</h2>
-    <app-button (click)="openAddModal()">Add Task</app-button>
-  </div>
-  
-  <div class="board-columns" *ngIf="!error; else errorTemplate">
-    <app-kanban-column 
-      *ngFor="let column of columns" 
-      [column]="column"
-      [tasks]="getTasksForColumn(column.id)"
-      (taskMoved)="onTaskMove($event)"
-      cdkDropList
-      [cdkDropListData]="column.id">
-    </app-kanban-column>
-  </div>
-  
-  <ng-template #errorTemplate>
-    <div class="error-state" role="alert">
-      <p>{{ error }}</p>
-      <app-button (click)="loadTasks()">Retry</app-button>
-    </div>
-  </ng-template>
-  
-  <app-add-task-modal 
-    [isOpen]="isAddModalOpen"
-    (taskCreated)="onTaskCreated($event)"
-    (closed)="isAddModalOpen = false">
-  </app-add-task-modal>
+<div class="kanban-page">
+  <mat-sidenav-container>
+    <mat-sidenav [opened]="sidebarOpen">
+      <sidebar-navigation 
+        [boards]="boards" 
+        [activeBoard]="currentBoard"
+        (boardSelect)="onBoardSelect($event)">
+      </sidebar-navigation>
+    </mat-sidenav>
+    
+    <mat-sidenav-content>
+      <header-component 
+        [user]="currentUser"
+        (menuToggle)="toggleSidebar()"
+        (searchQuery)="onSearch($event)">
+      </header-component>
+      
+      <main class="main-content">
+        <kanban-board 
+          [board]="currentBoard"
+          [tasks]="tasks"
+          (taskCreate)="handleTaskCreate($event)"
+          (taskUpdate)="handleTaskUpdate($event)">
+        </kanban-board>
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
 </div>
 ```
 
 **CSS SPECIFICATION**
 
 **Layout:**
-- .kanban-board: display: flex, flex-direction: column
-- .board-columns: display: grid, grid-template-columns: repeat(3, 1fr), gap: 1rem
+- display: grid
+- grid-template-areas: "sidebar header" "sidebar main"
+- height: 100vh
 
 **Spacing:**
-- padding: 1.5rem
-- gap: 1rem between columns
+- padding: 0
+- gap: 0
 
 **Component Styles:**
-- .kanban-board: background: var(--surface-color)
-- .board-header: display: flex, justify-content: space-between, align-items: center
-- .error-state: text-align: center, padding: 2rem
+- .kanban-page: full viewport height
+- .main-content: overflow-y auto, padding 16px
 
 **Responsive:**
-- Desktop (>1024px): 3 columns
-- Tablet (768px-1024px): 2 columns, grid-template-columns: repeat(2, 1fr)
-- Mobile (<768px): 1 column, grid-template-columns: 1fr
+- Mobile (< 768px): sidebar overlay
+- Tablet (768px - 1024px): collapsible sidebar
+- Desktop (> 1024px): persistent sidebar
 
 **API INTEGRATION**
 
-- loadTasks() → GET /api/tasks → Load all tasks for board
-- onTaskMove() → PUT /api/tasks/{id} → Update task status when moved
+- loadBoard() → GET /api/boards/{boardId} → fetch board configuration
+- loadTasks() → GET /api/boards/{boardId}/tasks → fetch all tasks
+- createTask() → POST /api/tasks → create new task
 
 **ERROR HANDLING**
 
-- API failure → Display error template with retry button
-- Task move failure → Revert UI state and show snackbar
-- Validation error → Show inline validation messages
+- API failure → show error snackbar notification
+- Network error → display retry mechanism
+- Validation error → inline form validation messages
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Load board → ngOnInit() → GET /api/tasks → populate columns
-- Drag task → onTaskMove() → PUT /api/tasks/{id} → update task status
-- Click Add Task → openAddModal() → show modal → submit → POST /api/tasks
+- Page load → show loading spinner → fetch board data → render components
+- Toggle sidebar → animate sidebar → update state
+- Create task → open modal → validate → API call → refresh board
 
-### 4.2 KanbanColumnComponent
+### 4.2 KanbanBoardComponent
 
 **Component Type:** Feature
 
-**Mapped From A1:** KanbanColumnComponent - Individual column container for tasks
+**Mapped From A1:** Three-column Kanban Board Layout
 
-**Purpose:** Display tasks in a specific column with drag-drop functionality
+**Purpose:** Main board component displaying task columns with drag-and-drop functionality
+
+**Parent:** KanbanPageComponent
+
+**Children:**
+- TaskColumnComponent (multiple instances)
+- AddTaskModal
+
+**Dependencies:**
+- Angular CDK Drag Drop
+- RxJS
+
+**Library Components Used:**
+- CdkDropList → Column drop zones
+- CdkDrag → Draggable task cards
+
+**TypeScript Specification**
+
+**Inputs:**
+- board: Board (board configuration)
+- tasks: Task[] (array of tasks)
+
+**Outputs:**
+- taskCreate: EventEmitter<Task> (task creation event)
+- taskUpdate: EventEmitter<Task> (task update event)
+- taskMove: EventEmitter<TaskMoveEvent> (task moved between columns)
+
+**State:**
+- columns: Column[] (board columns)
+- draggedTask: Task | null (currently dragged task)
+- showAddModal: boolean (add task modal visibility)
+
+**Methods:**
+- onTaskDrop(event: CdkDragDrop) → void (handle task drop)
+- openAddTaskModal() → void (show add task modal)
+- filterTasksByColumn(columnId: string) → Task[] (get tasks for column)
+
+**HTML STRUCTURE (PSEUDO CODE ONLY)**
+
+```html
+<div class="kanban-board" cdkDropListGroup>
+  <div class="board-header">
+    <h2>{{board.name}}</h2>
+    <button mat-raised-button (click)="openAddTaskModal()">
+      Add Task
+    </button>
+  </div>
+  
+  <div class="board-columns">
+    <task-column 
+      *ngFor="let column of columns"
+      [column]="column"
+      [tasks]="filterTasksByColumn(column.id)"
+      (taskDrop)="onTaskDrop($event)"
+      (taskEdit)="onTaskEdit($event)">
+    </task-column>
+  </div>
+  
+  <add-task-modal 
+    [visible]="showAddModal"
+    [columns]="columns"
+    (taskCreate)="onTaskCreate($event)"
+    (close)="showAddModal = false">
+  </add-task-modal>
+</div>
+```
+
+**CSS SPECIFICATION**
+
+**Layout:**
+- display: grid
+- grid-template-columns: repeat(3, 1fr)
+- gap: 16px
+- height: calc(100vh - 120px)
+
+**Spacing:**
+- padding: 16px
+- column-gap: 16px
+
+**Component Styles:**
+- .board-columns: display flex, overflow-x auto
+- .board-header: flex layout, justify-content space-between
+
+**Responsive:**
+- Mobile: single column, vertical scroll
+- Tablet: two columns
+- Desktop: three columns
+
+**API INTEGRATION**
+
+- moveTask() → PUT /api/tasks/{taskId}/move → update task column
+- createTask() → POST /api/tasks → create new task
+- updateTask() → PUT /api/tasks/{taskId} → update task details
+
+**ERROR HANDLING**
+
+- Drag drop failure → revert task position, show error
+- API error → show snackbar, maintain UI state
+- Validation error → highlight invalid fields
+
+**INTERACTION FLOW**
+
+**User Action → UI → API**
+- Drag task → visual feedback → drop → API call → update state
+- Click add task → open modal → fill form → validate → create task
+- Edit task → open detail modal → modify → save → API update
+
+### 4.3 TaskColumnComponent
+
+**Component Type:** Feature
+
+**Mapped From A1:** Individual Kanban Column
+
+**Purpose:** Displays tasks in a specific column with drop zone functionality
 
 **Parent:** KanbanBoardComponent
 
@@ -210,51 +317,53 @@ src/
 - Angular CDK Drag Drop
 
 **Library Components Used:**
-- Card → Column container
-- Badge → Task count badge
+- CdkDropList → Drop zone container
+- MatCard → Column container
 
 **TypeScript Specification**
 
 **Inputs:**
-- column: KanbanColumn (column configuration)
-- tasks: Task[] (tasks for this column)
+- column: Column (column configuration)
+- tasks: Task[] (tasks in this column)
 
 **Outputs:**
-- taskMoved: EventEmitter<CdkDragDrop<Task[]>> (task moved event)
+- taskDrop: EventEmitter<CdkDragDrop> (task dropped in column)
+- taskEdit: EventEmitter<Task> (task edit requested)
 
 **State:**
-- isDropTarget: boolean (drop target highlight)
-- taskCount: number (computed from tasks length)
+- isDropZoneActive: boolean (drop zone highlight)
+- taskCount: number (number of tasks in column)
 
 **Methods:**
-- onTaskDrop(event: CdkDragDrop) → Handle task drop
-- onDragEnter() → Highlight drop target
-- onDragLeave() → Remove highlight
+- onTaskDrop(event: CdkDragDrop) → void (handle task drop)
+- onTaskClick(task: Task) → void (handle task selection)
+- getColumnColor() → string (get column theme color)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
-<div class="kanban-column" 
-     cdkDropList
-     [cdkDropListData]="column.id"
-     (cdkDropListDropped)="onTaskDrop($event)"
-     [class.drop-target]="isDropTarget">
-  
-  <div class="column-header" [attr.aria-labelledby]="column.id + '-header'">
-    <h3 [id]="column.id + '-header'">{{ column.title }}</h3>
-    <app-badge [count]="taskCount" variant="secondary"></app-badge>
+<div class="task-column" [attr.data-column]="column.id">
+  <div class="column-header">
+    <h3 [style.color]="getColumnColor()">{{column.name}}</h3>
+    <mat-chip class="task-count">{{taskCount}}</mat-chip>
   </div>
   
-  <div class="column-content">
-    <app-task-card 
+  <div 
+    class="column-content"
+    cdkDropList
+    [cdkDropListData]="tasks"
+    (cdkDropListDropped)="onTaskDrop($event)">
+    
+    <task-card 
       *ngFor="let task of tasks; trackBy: trackByTaskId"
       [task]="task"
       cdkDrag
-      [cdkDragData]="task">
-    </app-task-card>
+      (click)="onTaskClick(task)"
+      (edit)="taskEdit.emit(task)">
+    </task-card>
     
     <div *ngIf="tasks.length === 0" class="empty-column">
-      <p>No tasks in {{ column.title }}</p>
+      <p>No tasks in {{column.name}}</p>
     </div>
   </div>
 </div>
@@ -263,469 +372,351 @@ src/
 **CSS SPECIFICATION**
 
 **Layout:**
-- .kanban-column: display: flex, flex-direction: column, min-height: 400px
-- .column-content: flex: 1, overflow-y: auto
+- display: flex
+- flex-direction: column
+- min-height: 400px
+- width: 300px
 
 **Spacing:**
-- padding: 1rem
-- gap: 0.75rem between tasks
+- padding: 12px
+- gap: 8px between tasks
 
 **Component Styles:**
-- .kanban-column: background: var(--surface-variant), border-radius: 8px
-- .column-header: display: flex, justify-content: space-between, align-items: center
-- .drop-target: border: 2px dashed var(--primary-color)
-- .empty-column: text-align: center, color: var(--text-secondary)
+- .column-header: flex layout, background gradient
+- .column-content: flex-grow 1, overflow-y auto
+- .empty-column: centered text, muted color
 
 **Responsive:**
-- Mobile: reduce padding to 0.75rem
+- Mobile: full width, margin bottom
+- Tablet/Desktop: fixed width with scroll
 
 **API INTEGRATION**
 
-- None (receives data from parent)
+- No direct API calls (handled by parent)
 
 **ERROR HANDLING**
 
-- Drop failure → Emit error to parent component
-- Invalid task data → Skip rendering problematic tasks
+- Invalid drop → visual feedback, prevent drop
+- Task load error → show placeholder message
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Drag task over column → highlight drop target
-- Drop task → emit taskMoved event → parent handles API call
+- Drop task → validate drop zone → emit event to parent
+- Click task → highlight selection → emit edit event
 
-### 4.3 TaskCardComponent
+### 4.4 TaskCardComponent
 
 **Component Type:** Feature
 
-**Mapped From A1:** TaskCardComponent - Individual task card display
+**Mapped From A1:** Individual Task Card
 
-**Purpose:** Display individual task with metadata, assignee, and interaction capabilities
+**Purpose:** Displays individual task information with drag functionality
 
-**Parent:** KanbanColumnComponent
+**Parent:** TaskColumnComponent
 
 **Children:** None
 
 **Dependencies:**
 - Angular CDK Drag Drop
+- Angular Material
 
 **Library Components Used:**
-- Card → Task container
-- Avatar → Assignee avatar
-- Badge → Priority and status badges
+- MatCard → Card container
+- MatChip → Priority/status badges
+- MatIcon → Task icons
 
 **TypeScript Specification**
 
 **Inputs:**
 - task: Task (task data)
-- isSelected: boolean (selection state)
+- draggable: boolean (enable drag functionality)
 
 **Outputs:**
-- taskClicked: EventEmitter<Task> (task clicked event)
-- taskSelected: EventEmitter<Task> (task selected event)
+- edit: EventEmitter<Task> (edit task event)
+- delete: EventEmitter<string> (delete task event)
 
 **State:**
+- isSelected: boolean (selection state)
 - isDragging: boolean (drag state)
-- isHovered: boolean (hover state)
 
 **Methods:**
-- onClick() → Emit task clicked event
-- onDragStart() → Set dragging state
-- onDragEnd() → Clear dragging state
+- onEditClick() → void (handle edit button)
+- onDeleteClick() → void (handle delete button)
+- getPriorityColor() → string (get priority color)
+- formatDueDate() → string (format due date display)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
-<app-card class="task-card" 
-          [class.selected]="isSelected"
-          [class.dragging]="isDragging"
-          (click)="onClick()"
-          cdkDrag
-          [cdkDragData]="task"
-          (cdkDragStarted)="onDragStart()"
-          (cdkDragEnded)="onDragEnd()">
+<mat-card 
+  class="task-card"
+  [class.selected]="isSelected"
+  [class.dragging]="isDragging">
   
-  <div class="task-header">
-    <h4 class="task-title">{{ task.title }}</h4>
-    <app-badge [variant]="getPriorityVariant(task.priority)">
-      {{ task.priority }}
-    </app-badge>
-  </div>
-  
-  <div class="task-content" *ngIf="task.description">
-    <p class="task-description">{{ task.description | truncate:100 }}</p>
-  </div>
-  
-  <div class="task-footer">
-    <div class="task-meta">
-      <span class="task-id">#{{ task.id }}</span>
-      <span class="task-date">{{ task.dueDate | date:'short' }}</span>
+  <mat-card-header>
+    <div class="task-priority">
+      <mat-chip [style.background-color]="getPriorityColor()">
+        {{task.priority}}
+      </mat-chip>
     </div>
+    <div class="task-actions">
+      <button mat-icon-button (click)="onEditClick()">
+        <mat-icon>edit</mat-icon>
+      </button>
+      <button mat-icon-button (click)="onDeleteClick()">
+        <mat-icon>delete</mat-icon>
+      </button>
+    </div>
+  </mat-card-header>
+  
+  <mat-card-content>
+    <h4 class="task-title">{{task.title}}</h4>
+    <p class="task-description">{{task.description}}</p>
     
-    <div class="task-assignee" *ngIf="task.assignedTo">
-      <app-avatar 
-        [src]="task.assignedTo.avatar"
-        [name]="task.assignedTo.name"
-        size="small">
-      </app-avatar>
+    <div class="task-meta">
+      <div class="assignee" *ngIf="task.assignee">
+        <mat-icon>person</mat-icon>
+        <span>{{task.assignee.name}}</span>
+      </div>
+      <div class="due-date" *ngIf="task.dueDate">
+        <mat-icon>schedule</mat-icon>
+        <span>{{formatDueDate()}}</span>
+      </div>
     </div>
-  </div>
-</app-card>
+  </mat-card-content>
+</mat-card>
 ```
 
 **CSS SPECIFICATION**
 
 **Layout:**
-- .task-card: display: flex, flex-direction: column, cursor: pointer
-- .task-footer: display: flex, justify-content: space-between, align-items: center
+- display: block
+- margin-bottom: 8px
+- cursor: grab (when draggable)
 
 **Spacing:**
-- padding: 1rem
-- margin-bottom: 0.75rem
+- padding: 12px
+- margin: 4px 0
 
 **Component Styles:**
-- .task-card: background: var(--surface), border-radius: 6px, box-shadow: var(--shadow-sm)
-- .task-card:hover: box-shadow: var(--shadow-md), transform: translateY(-1px)
-- .task-card.selected: border: 2px solid var(--primary-color)
-- .task-card.dragging: opacity: 0.5, transform: rotate(5deg)
+- .task-card: border-radius 8px, box-shadow
+- .task-title: font-weight 600, margin-bottom 8px
+- .task-meta: flex layout, justify-content space-between
 
 **Responsive:**
-- Mobile: reduce padding to 0.75rem
+- All breakpoints: consistent card layout
 
 **API INTEGRATION**
 
-- None (receives data from parent)
+- deleteTask() → DELETE /api/tasks/{taskId} → remove task
 
 **ERROR HANDLING**
 
-- Missing task data → Display placeholder content
-- Invalid assignee → Hide assignee section
+- Delete failure → show confirmation dialog, handle error
+- Invalid task data → show placeholder content
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Click task → emit taskClicked → parent navigates to detail view
-- Drag task → visual feedback → parent handles drop and API call
+- Click edit → emit edit event → parent handles modal
+- Click delete → show confirmation → API call → remove from UI
+- Drag start → visual feedback → enable drop zones
 
-### 4.4 AddTaskModalComponent
+### 4.5 SidebarNavigationComponent
 
-**Component Type:** Feature
+**Component Type:** Layout
 
-**Mapped From A1:** AddTaskModalComponent - Modal for creating new tasks
+**Mapped From A1:** Left Navigation Sidebar
 
-**Purpose:** Provide form interface for creating new tasks
+**Purpose:** Navigation menu for boards, projects, and application features
 
-**Parent:** KanbanBoardComponent
+**Parent:** KanbanPageComponent
 
 **Children:** None
 
 **Dependencies:**
-- Angular Reactive Forms
-- UserService
+- Angular Router
+- Angular Material
 
 **Library Components Used:**
-- Modal → Container overlay
-- Button → Form actions
-- Input Fields → Form inputs
-- Avatar → User selection
+- MatList → Navigation list
+- MatListItem → Navigation items
+- MatIcon → Navigation icons
 
 **TypeScript Specification**
 
 **Inputs:**
-- isOpen: boolean (modal visibility)
-- users: User[] (available assignees)
+- boards: Board[] (available boards)
+- activeBoard: Board (currently selected board)
+- user: User (current user info)
 
 **Outputs:**
-- taskCreated: EventEmitter<Task> (new task created)
-- closed: EventEmitter<void> (modal closed)
+- boardSelect: EventEmitter<Board> (board selection event)
+- navigationSelect: EventEmitter<string> (navigation item selected)
 
 **State:**
-- taskForm: FormGroup (reactive form)
-- isSubmitting: boolean (submission state)
-- validationErrors: ValidationErrors (form errors)
+- expandedSections: string[] (expanded menu sections)
+- selectedItem: string (currently selected menu item)
 
 **Methods:**
-- ngOnInit() → Initialize form
-- onSubmit() → Submit new task
-- onCancel() → Close modal without saving
-- resetForm() → Clear form data
+- onBoardSelect(board: Board) → void (handle board selection)
+- toggleSection(section: string) → void (expand/collapse section)
+- navigateTo(route: string) → void (handle navigation)
 
 **HTML STRUCTURE (PSEUDO CODE ONLY)**
 
 ```html
-<app-modal [isOpen]="isOpen" 
-           (backdropClick)="onCancel()"
-           [closeOnEscape]="true">
-  
-  <div class="modal-header">
-    <h3>Add New Task</h3>
-    <app-button variant="icon" (click)="onCancel()">
-      <icon name="close"></icon>
-    </app-button>
+<div class="sidebar-navigation">
+  <div class="sidebar-header">
+    <div class="user-info">
+      <mat-icon>account_circle</mat-icon>
+      <span>{{user.name}}</span>
+    </div>
   </div>
   
-  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="task-form">
-    <div class="form-group">
-      <label for="title">Task Title *</label>
-      <app-input 
-        id="title"
-        formControlName="title"
-        placeholder="Enter task title"
-        [error]="getFieldError('title')">
-      </app-input>
-    </div>
+  <mat-nav-list class="navigation-list">
+    <mat-list-item 
+      *ngFor="let board of boards"
+      [class.active]="board.id === activeBoard?.id"
+      (click)="onBoardSelect(board)">
+      <mat-icon matListIcon>dashboard</mat-icon>
+      <span matLine>{{board.name}}</span>
+    </mat-list-item>
     
-    <div class="form-group">
-      <label for="description">Description</label>
-      <app-textarea 
-        id="description"
-        formControlName="description"
-        placeholder="Enter task description"
-        rows="3">
-      </app-textarea>
-    </div>
+    <mat-divider></mat-divider>
     
-    <div class="form-row">
-      <div class="form-group">
-        <label for="priority">Priority</label>
-        <app-select 
-          id="priority"
-          formControlName="priority"
-          [options]="priorityOptions">
-        </app-select>
-      </div>
-      
-      <div class="form-group">
-        <label for="dueDate">Due Date</label>
-        <app-date-picker 
-          id="dueDate"
-          formControlName="dueDate">
-        </app-date-picker>
-      </div>
-    </div>
+    <mat-list-item (click)="navigateTo('/analytics')">
+      <mat-icon matListIcon>analytics</mat-icon>
+      <span matLine>Analytics</span>
+    </mat-list-item>
     
-    <div class="form-group">
-      <label>Assign To</label>
-      <div class="user-selection">
-        <div *ngFor="let user of users" 
-             class="user-option"
-             [class.selected]="isUserSelected(user)"
-             (click)="toggleUserSelection(user)">
-          <app-avatar [src]="user.avatar" [name]="user.name" size="small"></app-avatar>
-          <span>{{ user.name }}</span>
-        </div>
-      </div>
-    </div>
-    
-    <div class="modal-actions">
-      <app-button variant="secondary" (click)="onCancel()" [disabled]="isSubmitting">
-        Cancel
-      </app-button>
-      <app-button type="submit" [loading]="isSubmitting" [disabled]="taskForm.invalid">
-        Create Task
-      </app-button>
-    </div>
-  </form>
-</app-modal>
+    <mat-list-item (click)="navigateTo('/settings')">
+      <mat-icon matListIcon>settings</mat-icon>
+      <span matLine>Settings</span>
+    </mat-list-item>
+  </mat-nav-list>
+</div>
 ```
 
 **CSS SPECIFICATION**
 
 **Layout:**
-- .task-form: display: flex, flex-direction: column, gap: 1.5rem
-- .form-row: display: grid, grid-template-columns: 1fr 1fr, gap: 1rem
-- .modal-actions: display: flex, justify-content: flex-end, gap: 0.75rem
+- display: flex
+- flex-direction: column
+- height: 100vh
+- width: 280px
 
 **Spacing:**
-- padding: 1.5rem
-- gap: 1rem between form groups
+- padding: 16px 0
+- list-item padding: 12px 16px
 
 **Component Styles:**
-- .modal-header: display: flex, justify-content: space-between, align-items: center
-- .user-selection: display: flex, flex-wrap: wrap, gap: 0.5rem
-- .user-option: display: flex, align-items: center, gap: 0.5rem, padding: 0.5rem, border-radius: 4px, cursor: pointer
-- .user-option.selected: background: var(--primary-light), border: 1px solid var(--primary-color)
+- .sidebar-navigation: background color, border-right
+- .sidebar-header: padding 16px, border-bottom
+- .active: background highlight, border-left accent
 
 **Responsive:**
-- Mobile: .form-row becomes single column, grid-template-columns: 1fr
+- Mobile: overlay sidebar, full width
+- Tablet/Desktop: persistent sidebar
 
 **API INTEGRATION**
 
-- onSubmit() → POST /api/tasks → Create new task with form data
+- loadBoards() → GET /api/user/boards → fetch user boards
 
 **ERROR HANDLING**
 
-- API failure → Display error message above form actions
-- Validation errors → Show inline field errors
-- Network timeout → Show retry option
+- Board load failure → show error message in sidebar
+- Navigation error → fallback to dashboard
 
 **INTERACTION FLOW**
 
 **User Action → UI → API**
-- Open modal → initialize form → load users if needed
-- Fill form → real-time validation → enable/disable submit
-- Submit form → POST /api/tasks → emit taskCreated → close modal
-
-### 4.5 HeaderComponent
-
-**Component Type:** Layout
-
-**Mapped From A1:** HeaderComponent - Top navigation with search and user controls
-
-**Purpose:** Provide top navigation with search functionality and user controls
-
-**Parent:** AppComponent
-
-**Children:**
-- SearchComponent
-- UserControlsComponent
-
-**Dependencies:**
-- AuthService
-- NotificationService
-
-**Library Components Used:**
-- Button → Action buttons
-- Avatar → User avatar
-- Input Fields → Search input
-
-**TypeScript Specification**
-
-**Inputs:**
-- user: User (current user data)
-- notifications: Notification[] (user notifications)
-
-**Outputs:**
-- searchQuery: EventEmitter<string> (search performed)
-- notificationClicked: EventEmitter<Notification> (notification clicked)
-- settingsClicked: EventEmitter<void> (settings accessed)
-
-**State:**
-- isSearchFocused: boolean (search input focus)
-- unreadCount: number (unread notifications)
-
-**Methods:**
-- onSearch(query: string) → Emit search query
-- onNotificationClick() → Handle notification click
-- onSettingsClick() → Handle settings click
-- onUserMenuClick() → Toggle user menu
-
-**HTML STRUCTURE (PSEUDO CODE ONLY)**
-
-```html
-<header class="app-header" role="banner">
-  <div class="header-content">
-    <div class="header-left">
-      <app-search 
-        placeholder="Search tasks..."
-        (searchQuery)="onSearch($event)"
-        [isFocused]="isSearchFocused">
-      </app-search>
-    </div>
-    
-    <div class="header-right">
-      <app-button 
-        variant="icon"
-        (click)="onNotificationClick()"
-        [badge]="unreadCount"
-        aria-label="Notifications">
-        <icon name="bell"></icon>
-      </app-button>
-      
-      <app-button 
-        variant="icon"
-        (click)="onSettingsClick()"
-        aria-label="Settings">
-        <icon name="settings"></icon>
-      </app-button>
-      
-      <app-user-controls 
-        [user]="user"
-        (menuClicked)="onUserMenuClick()">
-      </app-user-controls>
-    </div>
-  </div>
-</header>
-```
-
-**CSS SPECIFICATION**
-
-**Layout:**
-- .app-header: display: flex, align-items: center, position: sticky, top: 0
-- .header-content: display: flex, justify-content: space-between, align-items: center, width: 100%
-- .header-right: display: flex, align-items: center, gap: 0.75rem
-
-**Spacing:**
-- padding: 1rem 1.5rem
-- height: 64px
-
-**Component Styles:**
-- .app-header: background: var(--surface), border-bottom: 1px solid var(--border-color), z-index: 100
-- .header-left: flex: 1, max-width: 400px
-
-**Responsive:**
-- Mobile: reduce padding, hide search on small screens
-
-**API INTEGRATION**
-
-- onSearch() → GET /api/tasks?search=query → Filter tasks based on search
-
-**ERROR HANDLING**
-
-- Search API failure → Show "Search unavailable" message
-- Notification load failure → Hide notification badge
-
-**INTERACTION FLOW**
-
-**User Action → UI → API**
-- Type in search → debounced search → GET /api/tasks → filter results
-- Click notifications → show notification panel → mark as read
-- Click settings → navigate to settings page
+- Click board → highlight selection → emit event → parent loads board
+- Click navigation → route change → load new page
 
 ## 5. COMPONENT MAPPING SUMMARY
 
 | A1 Component | Final Component | Type |
 |--------------|----------------|---------|
-| KanbanBoardComponent | KanbanBoardComponent | Feature |
-| KanbanColumnComponent | KanbanColumnComponent | Feature |
-| TaskCardComponent | TaskCardComponent | Feature |
-| AddTaskModalComponent | AddTaskModalComponent | Feature |
-| HeaderComponent | HeaderComponent | Layout |
-| SidebarComponent | SidebarComponent | Layout |
-| SearchComponent | SearchComponent | Shared |
-| UserControlsComponent | UserControlsComponent | Shared |
+| Kanban Application | KanbanPageComponent | Page |
+| Sidebar Navigation | SidebarNavigationComponent | Layout |
+| Header | HeaderComponent | Layout |
+| Kanban Board | KanbanBoardComponent | Feature |
+| Task Column | TaskColumnComponent | Feature |
+| Task Card | TaskCardComponent | Feature |
+| Task Detail Modal | TaskDetailComponent | Feature |
+| Add Task Modal | AddTaskModalComponent | Feature |
+| Button | MatButton | Shared |
+| Card | MatCard | Shared |
+| Modal | MatDialog | Shared |
 
 ## 6. DATA FLOW (FROM AGENT-1)
 
 **Parent → Child:**
-- AppComponent → HeaderComponent (user, notifications)
-- AppComponent → SidebarComponent (activeRoute, menuItems)
-- AppComponent → MainContentComponent (currentPage, data)
-- KanbanBoardComponent → KanbanColumnComponent (column, tasks)
-- KanbanColumnComponent → TaskCardComponent (task, assignee)
-- KanbanBoardComponent → AddTaskModalComponent (isOpen, users)
+- KanbanPage → SidebarNavigation (boards, activeBoard, user)
+- KanbanPage → Header (user, searchQuery)
+- KanbanPage → KanbanBoard (board, tasks)
+- KanbanBoard → TaskColumn (column, tasks)
+- TaskColumn → TaskCard (task, draggable)
+
+**Child → Parent:**
+- TaskCard → TaskColumn (edit, delete events)
+- TaskColumn → KanbanBoard (taskDrop, taskEdit events)
+- KanbanBoard → KanbanPage (taskCreate, taskUpdate, taskMove events)
+- SidebarNavigation → KanbanPage (boardSelect event)
 
 ## 7. API USAGE SUMMARY
 
 **Component → API:**
-- KanbanBoardComponent → GET /api/tasks (load board data)
-- KanbanBoardComponent → PUT /api/tasks/{id} (update task status)
-- AddTaskModalComponent → POST /api/tasks (create new task)
-- SearchComponent → GET /api/tasks?search=query (search functionality)
-- TaskDetailComponent → GET /api/tasks/{id} (load task details)
+- KanbanPageComponent → GET /api/boards/{boardId} (load board)
+- KanbanPageComponent → GET /api/boards/{boardId}/tasks (load tasks)
+- KanbanBoardComponent → POST /api/tasks (create task)
+- KanbanBoardComponent → PUT /api/tasks/{taskId}/move (move task)
+- TaskCardComponent → DELETE /api/tasks/{taskId} (delete task)
+- SidebarNavigationComponent → GET /api/user/boards (load user boards)
+
+**API Endpoints Required:**
+- GET /api/boards/{boardId} - Board configuration
+- GET /api/boards/{boardId}/tasks - Task list
+- POST /api/tasks - Create task
+- PUT /api/tasks/{taskId} - Update task
+- PUT /api/tasks/{taskId}/move - Move task between columns
+- DELETE /api/tasks/{taskId} - Delete task
+- GET /api/user/boards - User's accessible boards
 
 ## 8. NOTES & CONSTRAINTS
 
-- HTML must follow A1 structure strictly with three-column kanban layout
-- Do NOT create new components unnecessarily - reuse library components
-- Prefer reusable library components from uicomplibraryplay
+**Implementation Guidelines:**
+- HTML must follow A1 structure strictly - three-column CSS Grid layout
+- Do NOT create new components unnecessarily - reuse Angular Material components
+- Prefer reusable library components over custom implementations
 - HTML must be pseudo-code ONLY (NOT real framework code)
-- Implement proper ARIA attributes for accessibility compliance
-- CSS Grid layout must use grid-template-columns: repeat(3, 1fr) for desktop
-- Error state handling must be implemented with conditional rendering using *ngIf
-- OnInit lifecycle hook must initialize column data structure as specified in Jira requirements
-- Component must compile without errors and pass linting checks
-- Responsive breakpoints: desktop (>1024px), tablet (768px-1024px), mobile (<768px)
-- Drag and drop functionality must use Angular CDK
-- Form validation must be implemented using Angular Reactive Forms
-- API error handling must show user-friendly messages with retry options
+- Implement proper TypeScript interfaces for all data models
+- Follow Angular style guide for component architecture
+- Ensure accessibility compliance with ARIA attributes
+- Implement proper error handling for all API interactions
+- Use Angular CDK for drag-and-drop functionality
+- Follow responsive design principles with mobile-first approach
+
+**Technical Constraints:**
+- Angular 15+ framework required
+- Angular Material UI library mandatory
+- TypeScript strict mode enabled
+- RxJS for reactive programming patterns
+- CSS Grid and Flexbox for layouts
+- No external drag-drop libraries (use Angular CDK)
+
+**Performance Considerations:**
+- Implement OnPush change detection strategy
+- Use trackBy functions for *ngFor loops
+- Lazy load modal components
+- Implement virtual scrolling for large task lists
+- Optimize API calls with caching strategies
+
+**Accessibility Requirements:**
+- ARIA labels for all interactive elements
+- Keyboard navigation support
+- Screen reader compatibility
+- High contrast mode support
+- Focus management for modals and drag operations
