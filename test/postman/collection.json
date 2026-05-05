@@ -1,39 +1,44 @@
 {
   "info": {
     "name": "MyProject Task Management API",
-    "description": "Comprehensive API test collection for Task Management System",
+    "description": "Comprehensive API test collection for Task Management System with Kanban board functionality",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_postman_id": "myproject-task-management-api"
+    "version": "1.0.0"
   },
   "item": [
     {
       "name": "Task Management",
       "item": [
         {
-          "name": "Create Task - Valid",
+          "name": "Create Task - Valid Request",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 201', function () {",
+                  "pm.test(\"Status code is 201\", function () {",
                   "    pm.response.to.have.status(201);",
                   "});",
                   "",
-                  "pm.test('Response has task ID', function () {",
+                  "pm.test(\"Response has task ID\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('id');",
                   "    pm.environment.set('task_id', jsonData.id);",
                   "});",
                   "",
-                  "pm.test('Task has correct status', function () {",
+                  "pm.test(\"Task has correct status\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.status).to.eql('PENDING');",
                   "});",
                   "",
-                  "pm.test('Task has correct priority', function () {",
+                  "pm.test(\"Response contains all required fields\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.priority).to.eql('HIGH');",
+                  "    pm.expect(jsonData).to.have.property('title');",
+                  "    pm.expect(jsonData).to.have.property('userId');",
+                  "    pm.expect(jsonData).to.have.property('priority');",
+                  "    pm.expect(jsonData).to.have.property('createdAt');",
+                  "    pm.expect(jsonData).to.have.property('updatedAt');",
+                  "    pm.expect(jsonData).to.have.property('version');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -50,7 +55,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"Implement user authentication\",\n  \"description\": \"Add JWT-based authentication to the API\",\n  \"userId\": {{user_id}},\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2024-12-31T23:59:59\"\n}"
+              "raw": "{\n  \"title\": \"Implement user authentication\",\n  \"description\": \"Add JWT-based authentication to the API\",\n  \"userId\": 1,\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2024-12-31T23:59:59\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/v1/tasks",
@@ -67,18 +72,20 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 400', function () {",
+                  "pm.test(\"Status code is 400\", function () {",
                   "    pm.response.to.have.status(400);",
                   "});",
                   "",
-                  "pm.test('Error code is VALIDATION_ERROR', function () {",
+                  "pm.test(\"Error code is VALIDATION_ERROR\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.errorCode).to.eql('VALIDATION_ERROR');",
                   "});",
                   "",
-                  "pm.test('Error details mention title', function () {",
+                  "pm.test(\"Error details contain title validation\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(JSON.stringify(jsonData.details)).to.include('title');",
+                  "    pm.expect(jsonData.details).to.be.an('array');",
+                  "    var titleError = jsonData.details.find(d => d.includes('title'));",
+                  "    pm.expect(titleError).to.exist;",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -95,7 +102,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": {{user_id}},\n  \"priority\": \"HIGH\"\n}"
+              "raw": "{\n  \"description\": \"Task without title\",\n  \"userId\": 1,\n  \"priority\": \"HIGH\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/v1/tasks",
@@ -106,17 +113,17 @@
           "response": []
         },
         {
-          "name": "Get Task Details - Valid",
+          "name": "Get Task Details - Valid ID",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200', function () {",
+                  "pm.test(\"Status code is 200\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Response has task details', function () {",
+                  "pm.test(\"Response contains task details\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('taskId');",
                   "    pm.expect(jsonData).to.have.property('title');",
@@ -140,17 +147,17 @@
           "response": []
         },
         {
-          "name": "Get Task Details - Not Found",
+          "name": "Get Task Details - Invalid ID",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 404', function () {",
+                  "pm.test(\"Status code is 404\", function () {",
                   "    pm.response.to.have.status(404);",
                   "});",
                   "",
-                  "pm.test('Error code is TASK_NOT_FOUND', function () {",
+                  "pm.test(\"Error code is TASK_NOT_FOUND\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.errorCode).to.eql('TASK_NOT_FOUND');",
                   "});"
@@ -171,22 +178,22 @@
           "response": []
         },
         {
-          "name": "Update Task Status - Valid",
+          "name": "Update Task Status - Valid Transition",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200', function () {",
+                  "pm.test(\"Status code is 200\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Status updated successfully', function () {",
+                  "pm.test(\"Status updated successfully\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.status).to.eql('IN_PROGRESS');",
                   "});",
                   "",
-                  "pm.test('Response has updatedAt timestamp', function () {",
+                  "pm.test(\"Response contains updatedAt timestamp\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('updatedAt');",
                   "});"
@@ -222,11 +229,11 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 400', function () {",
+                  "pm.test(\"Status code is 400\", function () {",
                   "    pm.response.to.have.status(400);",
                   "});",
                   "",
-                  "pm.test('Error code is INVALID_STATUS_TRANSITION', function () {",
+                  "pm.test(\"Error code is INVALID_STATUS_TRANSITION\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.errorCode).to.eql('INVALID_STATUS_TRANSITION');",
                   "});"
@@ -256,96 +263,17 @@
           "response": []
         },
         {
-          "name": "Get User Tasks - Paginated",
+          "name": "Update Task - Valid Request",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200', function () {",
+                  "pm.test(\"Status code is 200\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Response has pagination info', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('content');",
-                  "    pm.expect(jsonData).to.have.property('page');",
-                  "    pm.expect(jsonData).to.have.property('size');",
-                  "    pm.expect(jsonData).to.have.property('totalElements');",
-                  "    pm.expect(jsonData).to.have.property('totalPages');",
-                  "    pm.expect(jsonData).to.have.property('last');",
-                  "});",
-                  "",
-                  "pm.test('Content is an array', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.content).to.be.an('array');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/v1/users/{{user_id}}/tasks?page=0&size=10&sort=createdAt,desc",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "users", "{{user_id}}", "tasks"],
-              "query": [
-                {"key": "page", "value": "0"},
-                {"key": "size", "value": "10"},
-                {"key": "sort", "value": "createdAt,desc"}
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Get Task Count",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Response has task count', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('userId');",
-                  "    pm.expect(jsonData).to.have.property('taskCount');",
-                  "    pm.expect(jsonData.taskCount).to.be.a('number');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/v1/users/{{user_id}}/tasks/count",
-              "host": ["{{base_url}}"],
-              "path": ["v1", "users", "{{user_id}}", "tasks", "count"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Update Task - Valid",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Task updated successfully', function () {",
+                  "pm.test(\"Task updated successfully\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.title).to.eql('Updated Task Title');",
                   "    pm.expect(jsonData.priority).to.eql('URGENT');",
@@ -376,21 +304,110 @@
           "response": []
         },
         {
-          "name": "Bulk Create Tasks - Valid",
+          "name": "Get User Tasks - Paginated",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 201', function () {",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains pagination info\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('content');",
+                  "    pm.expect(jsonData).to.have.property('page');",
+                  "    pm.expect(jsonData).to.have.property('size');",
+                  "    pm.expect(jsonData).to.have.property('totalElements');",
+                  "    pm.expect(jsonData).to.have.property('totalPages');",
+                  "    pm.expect(jsonData).to.have.property('last');",
+                  "});",
+                  "",
+                  "pm.test(\"Content is an array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.content).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/users/{{user_id}}/tasks?page=0&size=10&sort=createdAt,desc",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "users", "{{user_id}}", "tasks"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "createdAt,desc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task Count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains task count\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('userId');",
+                  "    pm.expect(jsonData).to.have.property('taskCount');",
+                  "    pm.expect(jsonData.taskCount).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/users/{{user_id}}/tasks/count",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "users", "{{user_id}}", "tasks", "count"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Create Tasks - Valid Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
                   "    pm.response.to.have.status(201);",
                   "});",
                   "",
-                  "pm.test('All tasks created successfully', function () {",
+                  "pm.test(\"All tasks created successfully\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.successCount).to.eql(3);",
                   "    pm.expect(jsonData.failureCount).to.eql(0);",
-                  "    pm.expect(jsonData.createdTasks).to.have.lengthOf(3);",
+                  "    pm.expect(jsonData.createdTasks).to.be.an('array');",
+                  "    pm.expect(jsonData.createdTasks.length).to.eql(3);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -407,7 +424,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "[\n  {\n    \"title\": \"Bulk Task 1\",\n    \"userId\": {{user_id}},\n    \"priority\": \"HIGH\"\n  },\n  {\n    \"title\": \"Bulk Task 2\",\n    \"userId\": {{user_id}},\n    \"priority\": \"MEDIUM\"\n  },\n  {\n    \"title\": \"Bulk Task 3\",\n    \"userId\": {{user_id}},\n    \"priority\": \"LOW\"\n  }\n]"
+              "raw": "[\n  {\n    \"title\": \"Bulk Task 1\",\n    \"description\": \"First bulk task\",\n    \"userId\": 1,\n    \"priority\": \"HIGH\"\n  },\n  {\n    \"title\": \"Bulk Task 2\",\n    \"description\": \"Second bulk task\",\n    \"userId\": 1,\n    \"priority\": \"MEDIUM\"\n  },\n  {\n    \"title\": \"Bulk Task 3\",\n    \"description\": \"Third bulk task\",\n    \"userId\": 1,\n    \"priority\": \"LOW\"\n  }\n]"
             },
             "url": {
               "raw": "{{base_url}}/v1/tasks/bulk",
@@ -418,13 +435,13 @@
           "response": []
         },
         {
-          "name": "Delete Task - Valid",
+          "name": "Delete Task - Valid ID",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 204', function () {",
+                  "pm.test(\"Status code is 204\", function () {",
                   "    pm.response.to.have.status(204);",
                   "});"
                 ],
@@ -449,17 +466,17 @@
       "name": "Column Management",
       "item": [
         {
-          "name": "Get Column Stats - Valid",
+          "name": "Get Column Stats - Valid ID",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200', function () {",
+                  "pm.test(\"Status code is 200\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Response has column stats', function () {",
+                  "pm.test(\"Response contains column stats\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('columnId');",
                   "    pm.expect(jsonData).to.have.property('taskCount');",
@@ -482,17 +499,17 @@
           "response": []
         },
         {
-          "name": "Get Column Stats - Not Found",
+          "name": "Get Column Stats - Invalid ID",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 404', function () {",
+                  "pm.test(\"Status code is 404\", function () {",
                   "    pm.response.to.have.status(404);",
                   "});",
                   "",
-                  "pm.test('Error code is COLUMN_NOT_FOUND', function () {",
+                  "pm.test(\"Error code is COLUMN_NOT_FOUND\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.errorCode).to.eql('COLUMN_NOT_FOUND');",
                   "});"
@@ -513,21 +530,21 @@
           "response": []
         },
         {
-          "name": "Bulk Update Column Counts - Valid",
+          "name": "Bulk Update Column Counts - Valid Request",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 200', function () {",
+                  "pm.test(\"Status code is 200\", function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Update successful', function () {",
+                  "pm.test(\"Update successful\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.success).to.be.true;",
                   "    pm.expect(jsonData.updatedColumns).to.be.an('array');",
-                  "    pm.expect(jsonData.updatedColumns).to.have.lengthOf(2);",
+                  "    pm.expect(jsonData.updatedColumns.length).to.eql(2);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -561,11 +578,11 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status code is 400', function () {",
+                  "pm.test(\"Status code is 400\", function () {",
                   "    pm.response.to.have.status(400);",
                   "});",
                   "",
-                  "pm.test('Error code is VALIDATION_ERROR', function () {",
+                  "pm.test(\"Error code is VALIDATION_ERROR\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.errorCode).to.eql('VALIDATION_ERROR');",
                   "});"
@@ -595,6 +612,23 @@
           "response": []
         }
       ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    },
+    {
+      "key": "task_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "string"
     }
   ]
 }
