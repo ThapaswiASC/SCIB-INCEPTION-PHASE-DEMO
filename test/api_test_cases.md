@@ -1,36 +1,40 @@
-# API Test Cases Documentation
+# API Test Cases - MyProject Task Management System
 
-## MyProject Task Management System
+## Overview
 
-**Generated:** 2024-01-15  
-**Repository:** SCIB-INCEPTION-PHASE-DEMO  
-**Branch:** feature/DEMO-222  
-**Base URL:** http://localhost:8080/api
+This document describes comprehensive API test cases for the Task Management System with Kanban board functionality. The system supports task creation, updates, deletion, status transitions, and column management.
 
----
+**Base URL:** `http://localhost:8080/api`
 
-## Table of Contents
-
-1. [Task Management Endpoints](#task-management-endpoints)
-2. [Column Management Endpoints](#column-management-endpoints)
-3. [Test Execution Guide](#test-execution-guide)
+**API Version:** v1
 
 ---
 
-## Task Management Endpoints
+## Test Case Summary
 
-### TC-001: Create Task - Valid Request
+| Category | Total Test Cases | Positive | Negative |
+|----------|-----------------|----------|----------|
+| Task Management | 24 | 14 | 10 |
+| Column Management | 8 | 4 | 4 |
+| **Total** | **32** | **18** | **14** |
 
-**Test Case ID:** TC-001  
-**Endpoint:** POST /v1/tasks  
-**Scenario:** Create a new task with valid data  
-**Priority:** High
+---
+
+## 1. Task Management API
+
+### 1.1 Create Task
+
+#### TC-TASK-001: Create Task - Valid Request
+
+**Endpoint:** `POST /v1/tasks`
+
+**Scenario:** Create a new task with all required fields
 
 **Preconditions:**
-- API server is running
-- User ID exists in the system
+- User ID 1 exists
+- User has not reached task limit (10,000 tasks)
 
-**Request:**
+**Request Body:**
 ```json
 {
   "title": "Implement user authentication",
@@ -41,72 +45,54 @@
 }
 ```
 
-**Steps:**
-1. Send POST request to /v1/tasks with valid task data
-2. Verify response status code
-3. Verify response body contains task ID
-4. Verify task status is set to PENDING
-5. Verify task priority matches request
-
 **Expected Result:**
-- Status Code: 201 Created
+- HTTP Status: `201 Created`
 - Response contains:
-  - `id`: Generated task ID
+  - `id`: Auto-generated task ID
   - `title`: "Implement user authentication"
   - `status`: "PENDING"
   - `priority`: "HIGH"
-  - `createdAt`: Timestamp
-  - `updatedAt`: Timestamp
+  - `createdAt`: Current timestamp
+  - `updatedAt`: Current timestamp
   - `version`: 0
 
 ---
 
-### TC-002: Create Task - Missing Title
+#### TC-TASK-002: Create Task - Missing Title
 
-**Test Case ID:** TC-002  
-**Endpoint:** POST /v1/tasks  
-**Scenario:** Attempt to create task without required title field  
-**Priority:** High
+**Endpoint:** `POST /v1/tasks`
 
-**Preconditions:**
-- API server is running
+**Scenario:** Attempt to create task without required title field
 
-**Request:**
+**Preconditions:** None
+
+**Request Body:**
 ```json
 {
+  "description": "Task without title",
   "userId": 1,
   "priority": "HIGH"
 }
 ```
 
-**Steps:**
-1. Send POST request to /v1/tasks without title field
-2. Verify response status code
-3. Verify error response structure
-4. Verify error details mention title field
-
 **Expected Result:**
-- Status Code: 400 Bad Request
-- Response contains:
+- HTTP Status: `400 Bad Request`
+- Error Response:
   - `errorCode`: "VALIDATION_ERROR"
   - `message`: "Validation failed"
-  - `details`: Array containing "title: Title is required"
-  - `timestamp`: Current timestamp
-  - `traceId`: UUID
+  - `details`: Contains "title: Title is required"
 
 ---
 
-### TC-003: Create Task - Missing User ID
+#### TC-TASK-003: Create Task - Missing User ID
 
-**Test Case ID:** TC-003  
-**Endpoint:** POST /v1/tasks  
-**Scenario:** Attempt to create task without required userId field  
-**Priority:** High
+**Endpoint:** `POST /v1/tasks`
 
-**Preconditions:**
-- API server is running
+**Scenario:** Attempt to create task without required userId field
 
-**Request:**
+**Preconditions:** None
+
+**Request Body:**
 ```json
 {
   "title": "New Task",
@@ -114,28 +100,25 @@
 }
 ```
 
-**Steps:**
-1. Send POST request to /v1/tasks without userId field
-2. Verify response status code
-3. Verify error response structure
-
 **Expected Result:**
-- Status Code: 400 Bad Request
-- Response contains validation error for userId field
+- HTTP Status: `400 Bad Request`
+- Error Response:
+  - `errorCode`: "VALIDATION_ERROR"
+  - `message`: "Validation failed"
+  - `details`: Contains "userId: User ID is required"
 
 ---
 
-### TC-004: Create Task - Task Limit Exceeded
+#### TC-TASK-004: Create Task - Task Limit Exceeded
 
-**Test Case ID:** TC-004  
-**Endpoint:** POST /v1/tasks  
-**Scenario:** Attempt to create task when user has reached maximum limit (10,000 tasks)  
-**Priority:** Medium
+**Endpoint:** `POST /v1/tasks`
+
+**Scenario:** Attempt to create task when user has reached maximum limit (10,000 tasks)
 
 **Preconditions:**
-- User already has 10,000 tasks
+- User ID 1 has 10,000 existing tasks
 
-**Request:**
+**Request Body:**
 ```json
 {
   "title": "New Task",
@@ -144,78 +127,70 @@
 }
 ```
 
-**Steps:**
-1. Send POST request to /v1/tasks
-2. Verify response status code
-3. Verify error message indicates limit exceeded
-
 **Expected Result:**
-- Status Code: 400 Bad Request
-- Response contains:
+- HTTP Status: `400 Bad Request`
+- Error Response:
   - `errorCode`: "TASK_LIMIT_EXCEEDED"
   - `message`: "User 1 has reached the maximum task limit of 10000"
 
 ---
 
-### TC-005: Get Task Details - Valid Task ID
+### 1.2 Get Task Details
 
-**Test Case ID:** TC-005  
-**Endpoint:** GET /v1/tasks/{taskId}  
-**Scenario:** Retrieve details of an existing task  
-**Priority:** High
+#### TC-TASK-005: Get Task Details - Valid ID
+
+**Endpoint:** `GET /v1/tasks/{taskId}`
+
+**Scenario:** Retrieve details of an existing task
 
 **Preconditions:**
-- Task with given ID exists
+- Task with ID 1 exists
 
-**Steps:**
-1. Send GET request to /v1/tasks/{taskId}
-2. Verify response status code
-3. Verify response contains all task details
+**Request Parameters:**
+- `taskId`: 1
 
 **Expected Result:**
-- Status Code: 200 OK
+- HTTP Status: `200 OK`
 - Response contains:
-  - `taskId`: Requested task ID
+  - `taskId`: "1"
   - `title`: Task title
   - `status`: Current task status
   - `columnId`: Associated column ID
 
 ---
 
-### TC-006: Get Task Details - Task Not Found
+#### TC-TASK-006: Get Task Details - Invalid ID
 
-**Test Case ID:** TC-006  
-**Endpoint:** GET /v1/tasks/{taskId}  
-**Scenario:** Attempt to retrieve non-existent task  
-**Priority:** High
+**Endpoint:** `GET /v1/tasks/{taskId}`
 
-**Preconditions:**
-- Task with given ID does not exist
+**Scenario:** Attempt to retrieve non-existent task
 
-**Steps:**
-1. Send GET request to /v1/tasks/99999
-2. Verify response status code
-3. Verify error response structure
+**Preconditions:** None
+
+**Request Parameters:**
+- `taskId`: 99999
 
 **Expected Result:**
-- Status Code: 404 Not Found
-- Response contains:
+- HTTP Status: `404 Not Found`
+- Error Response:
   - `errorCode`: "TASK_NOT_FOUND"
   - `message`: "Task not found with ID: 99999"
 
 ---
 
-### TC-007: Update Task Status - Valid Transition
+### 1.3 Update Task Status
 
-**Test Case ID:** TC-007  
-**Endpoint:** PUT /v1/tasks/{taskId}/status  
-**Scenario:** Update task status with valid transition (TO_DO → IN_PROGRESS)  
-**Priority:** High
+#### TC-TASK-007: Update Task Status - Valid Transition (TO_DO → IN_PROGRESS)
+
+**Endpoint:** `PUT /v1/tasks/{taskId}/status`
+
+**Scenario:** Update task status from TO_DO to IN_PROGRESS
 
 **Preconditions:**
-- Task exists with status TO_DO
+- Task with ID 1 exists
+- Task current status is TO_DO
 
-**Request:**
+**Request Body:**
 ```json
 {
   "status": "IN_PROGRESS",
@@ -223,32 +198,27 @@
 }
 ```
 
-**Steps:**
-1. Send PUT request to /v1/tasks/{taskId}/status
-2. Verify response status code
-3. Verify status updated successfully
-4. Verify updatedAt timestamp is present
-
 **Expected Result:**
-- Status Code: 200 OK
+- HTTP Status: `200 OK`
 - Response contains:
-  - `taskId`: Task ID
+  - `taskId`: "1"
   - `status`: "IN_PROGRESS"
   - `updatedAt`: Current timestamp
+- Column counts updated (to-do: -1, in-progress: +1)
 
 ---
 
-### TC-008: Update Task Status - Invalid Transition
+#### TC-TASK-008: Update Task Status - Valid Transition (IN_PROGRESS → DONE)
 
-**Test Case ID:** TC-008  
-**Endpoint:** PUT /v1/tasks/{taskId}/status  
-**Scenario:** Attempt invalid status transition (TO_DO → DONE)  
-**Priority:** High
+**Endpoint:** `PUT /v1/tasks/{taskId}/status`
+
+**Scenario:** Update task status from IN_PROGRESS to DONE
 
 **Preconditions:**
-- Task exists with status TO_DO
+- Task with ID 1 exists
+- Task current status is IN_PROGRESS
 
-**Request:**
+**Request Body:**
 ```json
 {
   "status": "DONE",
@@ -256,134 +226,105 @@
 }
 ```
 
-**Steps:**
-1. Send PUT request to /v1/tasks/{taskId}/status
-2. Verify response status code
-3. Verify error indicates invalid transition
+**Expected Result:**
+- HTTP Status: `200 OK`
+- Response contains:
+  - `taskId`: "1"
+  - `status`: "DONE"
+  - `updatedAt`: Current timestamp
+
+---
+
+#### TC-TASK-009: Update Task Status - Invalid Transition (TO_DO → DONE)
+
+**Endpoint:** `PUT /v1/tasks/{taskId}/status`
+
+**Scenario:** Attempt invalid status transition from TO_DO directly to DONE
+
+**Preconditions:**
+- Task with ID 1 exists
+- Task current status is TO_DO
+
+**Request Body:**
+```json
+{
+  "status": "DONE",
+  "columnId": "done"
+}
+```
 
 **Expected Result:**
-- Status Code: 400 Bad Request
-- Response contains:
+- HTTP Status: `400 Bad Request`
+- Error Response:
   - `errorCode`: "INVALID_STATUS_TRANSITION"
   - `message`: "Invalid status transition from TO_DO to DONE"
 
 ---
 
-### TC-009: Update Task Status - Missing Status
+#### TC-TASK-010: Update Task Status - Missing Status
 
-**Test Case ID:** TC-009  
-**Endpoint:** PUT /v1/tasks/{taskId}/status  
-**Scenario:** Attempt to update status without providing status field  
-**Priority:** Medium
+**Endpoint:** `PUT /v1/tasks/{taskId}/status`
 
-**Request:**
+**Scenario:** Attempt to update status without providing status field
+
+**Preconditions:**
+- Task with ID 1 exists
+
+**Request Body:**
 ```json
 {
   "columnId": "in-progress"
 }
 ```
 
-**Steps:**
-1. Send PUT request without status field
-2. Verify validation error response
-
 **Expected Result:**
-- Status Code: 400 Bad Request
-- Response contains validation error for status field
+- HTTP Status: `400 Bad Request`
+- Error Response:
+  - `errorCode`: "VALIDATION_ERROR"
+  - `message`: "Validation failed"
+  - `details`: Contains "status: Status is required"
 
 ---
 
-### TC-010: Get User Tasks - Paginated
+#### TC-TASK-011: Update Task Status - Task Not Found
 
-**Test Case ID:** TC-010  
-**Endpoint:** GET /v1/users/{userId}/tasks  
-**Scenario:** Retrieve paginated list of user tasks  
-**Priority:** High
+**Endpoint:** `PUT /v1/tasks/{taskId}/status`
 
-**Preconditions:**
-- User has tasks in the system
+**Scenario:** Attempt to update status of non-existent task
 
-**Query Parameters:**
-- page: 0
-- size: 10
-- sort: createdAt,desc
+**Preconditions:** None
 
-**Steps:**
-1. Send GET request with pagination parameters
-2. Verify response status code
-3. Verify pagination metadata
-4. Verify content is an array
+**Request Parameters:**
+- `taskId`: 99999
+
+**Request Body:**
+```json
+{
+  "status": "IN_PROGRESS",
+  "columnId": "in-progress"
+}
+```
 
 **Expected Result:**
-- Status Code: 200 OK
-- Response contains:
-  - `content`: Array of tasks
-  - `page`: 0
-  - `size`: 10
-  - `totalElements`: Total task count
-  - `totalPages`: Calculated total pages
-  - `last`: Boolean indicating if last page
+- HTTP Status: `404 Not Found`
+- Error Response:
+  - `errorCode`: "TASK_NOT_FOUND"
+  - `message`: "Task not found with ID: 99999"
 
 ---
 
-### TC-011: Get User Tasks - Empty Result
+### 1.4 Update Task
 
-**Test Case ID:** TC-011  
-**Endpoint:** GET /v1/users/{userId}/tasks  
-**Scenario:** Retrieve tasks for user with no tasks  
-**Priority:** Medium
+#### TC-TASK-012: Update Task - Valid Request
 
-**Preconditions:**
-- User has no tasks
+**Endpoint:** `PUT /v1/tasks/{taskId}`
 
-**Steps:**
-1. Send GET request for user with no tasks
-2. Verify response status code
-3. Verify empty content array
-
-**Expected Result:**
-- Status Code: 200 OK
-- Response contains:
-  - `content`: Empty array
-  - `totalElements`: 0
-  - `totalPages`: 0
-
----
-
-### TC-012: Get Task Count
-
-**Test Case ID:** TC-012  
-**Endpoint:** GET /v1/users/{userId}/tasks/count  
-**Scenario:** Retrieve total task count for user  
-**Priority:** Medium
+**Scenario:** Update task title, description, and priority
 
 **Preconditions:**
-- User exists in system
+- Task with ID 1 exists
 
-**Steps:**
-1. Send GET request to /v1/users/{userId}/tasks/count
-2. Verify response status code
-3. Verify count is returned
-
-**Expected Result:**
-- Status Code: 200 OK
-- Response contains:
-  - `userId`: Requested user ID
-  - `taskCount`: Number of tasks (max 10000)
-
----
-
-### TC-013: Update Task - Valid Request
-
-**Test Case ID:** TC-013  
-**Endpoint:** PUT /v1/tasks/{taskId}  
-**Scenario:** Update task with valid data  
-**Priority:** High
-
-**Preconditions:**
-- Task exists
-
-**Request:**
+**Request Body:**
 ```json
 {
   "title": "Updated Task Title",
@@ -392,140 +333,284 @@
 }
 ```
 
-**Steps:**
-1. Send PUT request with updated fields
-2. Verify response status code
-3. Verify fields are updated
-
 **Expected Result:**
-- Status Code: 200 OK
-- Response contains updated task with new values
+- HTTP Status: `200 OK`
+- Response contains:
+  - `id`: 1
+  - `title`: "Updated Task Title"
+  - `description`: "Updated description"
+  - `priority`: "URGENT"
+  - `updatedAt`: Current timestamp
 
 ---
 
-### TC-014: Update Task - Task Not Found
+#### TC-TASK-013: Update Task - Partial Update
 
-**Test Case ID:** TC-014  
-**Endpoint:** PUT /v1/tasks/{taskId}  
-**Scenario:** Attempt to update non-existent task  
-**Priority:** Medium
+**Endpoint:** `PUT /v1/tasks/{taskId}`
+
+**Scenario:** Update only task title, leaving other fields unchanged
 
 **Preconditions:**
-- Task does not exist
+- Task with ID 1 exists
 
-**Steps:**
-1. Send PUT request for non-existent task
-2. Verify error response
+**Request Body:**
+```json
+{
+  "title": "New Title Only"
+}
+```
 
 **Expected Result:**
-- Status Code: 404 Not Found
-- Response contains TASK_NOT_FOUND error
+- HTTP Status: `200 OK`
+- Response contains:
+  - `title`: "New Title Only"
+  - Other fields remain unchanged
 
 ---
 
-### TC-015: Update Task - Title Too Long
+#### TC-TASK-014: Update Task - Title Too Long
 
-**Test Case ID:** TC-015  
-**Endpoint:** PUT /v1/tasks/{taskId}  
-**Scenario:** Attempt to update task with title exceeding 255 characters  
-**Priority:** Medium
+**Endpoint:** `PUT /v1/tasks/{taskId}`
 
-**Request:**
+**Scenario:** Attempt to update task with title exceeding 255 characters
+
+**Preconditions:**
+- Task with ID 1 exists
+
+**Request Body:**
 ```json
 {
   "title": "<256 character string>"
 }
 ```
 
-**Steps:**
-1. Send PUT request with oversized title
-2. Verify validation error
-
 **Expected Result:**
-- Status Code: 400 Bad Request
-- Response contains validation error for title length
+- HTTP Status: `400 Bad Request`
+- Error Response:
+  - `errorCode`: "VALIDATION_ERROR"
+  - `message`: "Validation failed"
+  - `details`: Contains "title: Title must be between 1 and 255 characters"
 
 ---
 
-### TC-016: Delete Task - Valid Task ID
+#### TC-TASK-015: Update Task - Task Not Found
 
-**Test Case ID:** TC-016  
-**Endpoint:** DELETE /v1/tasks/{taskId}  
-**Scenario:** Delete an existing task  
-**Priority:** High
+**Endpoint:** `PUT /v1/tasks/{taskId}`
 
-**Preconditions:**
-- Task exists
+**Scenario:** Attempt to update non-existent task
 
-**Steps:**
-1. Send DELETE request to /v1/tasks/{taskId}
-2. Verify response status code
-3. Verify task is deleted
+**Preconditions:** None
+
+**Request Parameters:**
+- `taskId`: 99999
+
+**Request Body:**
+```json
+{
+  "title": "Updated Title"
+}
+```
 
 **Expected Result:**
-- Status Code: 204 No Content
-- No response body
+- HTTP Status: `404 Not Found`
+- Error Response:
+  - `errorCode`: "TASK_NOT_FOUND"
+  - `message`: "Task not found with ID: 99999"
 
 ---
 
-### TC-017: Delete Task - Task Not Found
+### 1.5 Get User Tasks
 
-**Test Case ID:** TC-017  
-**Endpoint:** DELETE /v1/tasks/{taskId}  
-**Scenario:** Attempt to delete non-existent task  
-**Priority:** Medium
+#### TC-TASK-016: Get User Tasks - Default Pagination
+
+**Endpoint:** `GET /v1/users/{userId}/tasks`
+
+**Scenario:** Retrieve user tasks with default pagination
 
 **Preconditions:**
-- Task does not exist
+- User ID 1 has at least 1 task
 
-**Steps:**
-1. Send DELETE request for non-existent task
-2. Verify error response
+**Request Parameters:**
+- `userId`: 1
+- `page`: 0 (default)
+- `size`: 50 (default)
+- `sort`: createdAt,desc (default)
 
 **Expected Result:**
-- Status Code: 404 Not Found
-- Response contains TASK_NOT_FOUND error
+- HTTP Status: `200 OK`
+- Response contains:
+  - `content`: Array of tasks
+  - `page`: 0
+  - `size`: 50
+  - `totalElements`: Total task count
+  - `totalPages`: Calculated total pages
+  - `last`: Boolean indicating if last page
 
 ---
 
-### TC-018: Bulk Create Tasks - Valid Request
+#### TC-TASK-017: Get User Tasks - Custom Pagination
 
-**Test Case ID:** TC-018  
-**Endpoint:** POST /v1/tasks/bulk  
-**Scenario:** Create multiple tasks in single request  
-**Priority:** High
+**Endpoint:** `GET /v1/users/{userId}/tasks?page=1&size=10&sort=title,asc`
+
+**Scenario:** Retrieve user tasks with custom pagination parameters
 
 **Preconditions:**
-- User has not reached task limit
+- User ID 1 has at least 11 tasks
 
-**Request:**
+**Request Parameters:**
+- `userId`: 1
+- `page`: 1
+- `size`: 10
+- `sort`: title,asc
+
+**Expected Result:**
+- HTTP Status: `200 OK`
+- Response contains:
+  - `content`: Array of 10 tasks (or fewer if last page)
+  - `page`: 1
+  - `size`: 10
+
+---
+
+#### TC-TASK-018: Get User Tasks - Empty Result
+
+**Endpoint:** `GET /v1/users/{userId}/tasks`
+
+**Scenario:** Retrieve tasks for user with no tasks
+
+**Preconditions:**
+- User ID 999 has no tasks
+
+**Request Parameters:**
+- `userId`: 999
+
+**Expected Result:**
+- HTTP Status: `200 OK`
+- Response contains:
+  - `content`: Empty array
+  - `totalElements`: 0
+  - `totalPages`: 0
+
+---
+
+### 1.6 Get Task Count
+
+#### TC-TASK-019: Get Task Count - Valid User
+
+**Endpoint:** `GET /v1/users/{userId}/tasks/count`
+
+**Scenario:** Retrieve task count for user with tasks
+
+**Preconditions:**
+- User ID 1 has 42 tasks
+
+**Request Parameters:**
+- `userId`: 1
+
+**Expected Result:**
+- HTTP Status: `200 OK`
+- Response contains:
+  - `userId`: 1
+  - `taskCount`: 42
+
+---
+
+#### TC-TASK-020: Get Task Count - Zero Tasks
+
+**Endpoint:** `GET /v1/users/{userId}/tasks/count`
+
+**Scenario:** Retrieve task count for user with no tasks
+
+**Preconditions:**
+- User ID 999 has no tasks
+
+**Request Parameters:**
+- `userId`: 999
+
+**Expected Result:**
+- HTTP Status: `200 OK`
+- Response contains:
+  - `userId`: 999
+  - `taskCount`: 0
+
+---
+
+### 1.7 Delete Task
+
+#### TC-TASK-021: Delete Task - Valid ID
+
+**Endpoint:** `DELETE /v1/tasks/{taskId}`
+
+**Scenario:** Delete an existing task
+
+**Preconditions:**
+- Task with ID 1 exists
+
+**Request Parameters:**
+- `taskId`: 1
+
+**Expected Result:**
+- HTTP Status: `204 No Content`
+- Task is removed from datastore
+
+---
+
+#### TC-TASK-022: Delete Task - Task Not Found
+
+**Endpoint:** `DELETE /v1/tasks/{taskId}`
+
+**Scenario:** Attempt to delete non-existent task
+
+**Preconditions:** None
+
+**Request Parameters:**
+- `taskId`: 99999
+
+**Expected Result:**
+- HTTP Status: `404 Not Found`
+- Error Response:
+  - `errorCode`: "TASK_NOT_FOUND"
+  - `message`: "Task not found with ID: 99999"
+
+---
+
+### 1.8 Bulk Create Tasks
+
+#### TC-TASK-023: Bulk Create Tasks - Valid Request
+
+**Endpoint:** `POST /v1/tasks/bulk`
+
+**Scenario:** Create multiple tasks in a single request
+
+**Preconditions:**
+- User ID 1 has not reached task limit
+
+**Request Body:**
 ```json
 [
   {
     "title": "Bulk Task 1",
+    "description": "First bulk task",
     "userId": 1,
     "priority": "HIGH"
   },
   {
     "title": "Bulk Task 2",
+    "description": "Second bulk task",
     "userId": 1,
     "priority": "MEDIUM"
   },
   {
     "title": "Bulk Task 3",
+    "description": "Third bulk task",
     "userId": 1,
     "priority": "LOW"
   }
 ]
 ```
 
-**Steps:**
-1. Send POST request with array of tasks
-2. Verify response status code
-3. Verify all tasks created successfully
-
 **Expected Result:**
-- Status Code: 201 Created
+- HTTP Status: `201 Created`
 - Response contains:
   - `successCount`: 3
   - `failureCount`: 0
@@ -534,74 +619,45 @@
 
 ---
 
-### TC-019: Bulk Create Tasks - Exceeds Limit
+#### TC-TASK-024: Bulk Create Tasks - Exceeds Limit
 
-**Test Case ID:** TC-019  
-**Endpoint:** POST /v1/tasks/bulk  
-**Scenario:** Attempt to create more than 100 tasks at once  
-**Priority:** Medium
+**Endpoint:** `POST /v1/tasks/bulk`
 
-**Preconditions:**
-- None
+**Scenario:** Attempt to create more than 100 tasks in a single request
 
-**Request:**
-- Array of 101 task objects
+**Preconditions:** None
 
-**Steps:**
-1. Send POST request with 101 tasks
-2. Verify error response
+**Request Body:**
+```json
+[<101 task objects>]
+```
 
 **Expected Result:**
-- Status Code: 400 Bad Request
-- Response contains:
+- HTTP Status: `400 Bad Request`
+- Error Response:
   - `errorCode`: "TASK_LIMIT_EXCEEDED"
   - `message`: "Bulk creation limited to 100 tasks at a time"
 
 ---
 
-### TC-020: Bulk Create Tasks - Partial Success
+## 2. Column Management API
 
-**Test Case ID:** TC-020  
-**Endpoint:** POST /v1/tasks/bulk  
-**Scenario:** Some tasks succeed, some fail during bulk creation  
-**Priority:** Medium
+### 2.1 Get Column Statistics
 
-**Preconditions:**
-- User near task limit
+#### TC-COL-001: Get Column Stats - Valid ID (to-do)
 
-**Steps:**
-1. Send POST request with multiple tasks
-2. Verify partial success response
+**Endpoint:** `GET /v1/columns/{columnId}/stats`
 
-**Expected Result:**
-- Status Code: 201 Created
-- Response contains:
-  - `successCount`: Number of successful creations
-  - `failureCount`: Number of failures
-  - `createdTasks`: Array of successfully created tasks
-  - `errors`: Array of error objects with index and message
-
----
-
-## Column Management Endpoints
-
-### TC-021: Get Column Stats - Valid Column ID
-
-**Test Case ID:** TC-021  
-**Endpoint:** GET /v1/columns/{columnId}/stats  
-**Scenario:** Retrieve statistics for an existing column  
-**Priority:** High
+**Scenario:** Retrieve statistics for to-do column
 
 **Preconditions:**
-- Column exists (to-do, in-progress, or done)
+- Column "to-do" exists
 
-**Steps:**
-1. Send GET request to /v1/columns/to-do/stats
-2. Verify response status code
-3. Verify response contains column statistics
+**Request Parameters:**
+- `columnId`: to-do
 
 **Expected Result:**
-- Status Code: 200 OK
+- HTTP Status: `200 OK`
 - Response contains:
   - `columnId`: "to-do"
   - `taskCount`: Current task count
@@ -609,39 +665,79 @@
 
 ---
 
-### TC-022: Get Column Stats - Column Not Found
+#### TC-COL-002: Get Column Stats - Valid ID (in-progress)
 
-**Test Case ID:** TC-022  
-**Endpoint:** GET /v1/columns/{columnId}/stats  
-**Scenario:** Attempt to retrieve stats for non-existent column  
-**Priority:** Medium
+**Endpoint:** `GET /v1/columns/{columnId}/stats`
+
+**Scenario:** Retrieve statistics for in-progress column
 
 **Preconditions:**
-- Column does not exist
+- Column "in-progress" exists
 
-**Steps:**
-1. Send GET request to /v1/columns/invalid-column/stats
-2. Verify error response
+**Request Parameters:**
+- `columnId`: in-progress
 
 **Expected Result:**
-- Status Code: 404 Not Found
+- HTTP Status: `200 OK`
 - Response contains:
+  - `columnId`: "in-progress"
+  - `taskCount`: Current task count
+  - `lastUpdated`: Timestamp of last update
+
+---
+
+#### TC-COL-003: Get Column Stats - Valid ID (done)
+
+**Endpoint:** `GET /v1/columns/{columnId}/stats`
+
+**Scenario:** Retrieve statistics for done column
+
+**Preconditions:**
+- Column "done" exists
+
+**Request Parameters:**
+- `columnId`: done
+
+**Expected Result:**
+- HTTP Status: `200 OK`
+- Response contains:
+  - `columnId`: "done"
+  - `taskCount`: Current task count
+  - `lastUpdated`: Timestamp of last update
+
+---
+
+#### TC-COL-004: Get Column Stats - Invalid ID
+
+**Endpoint:** `GET /v1/columns/{columnId}/stats`
+
+**Scenario:** Attempt to retrieve statistics for non-existent column
+
+**Preconditions:** None
+
+**Request Parameters:**
+- `columnId`: invalid-column
+
+**Expected Result:**
+- HTTP Status: `404 Not Found`
+- Error Response:
   - `errorCode`: "COLUMN_NOT_FOUND"
   - `message`: "Column not found with ID: invalid-column"
 
 ---
 
-### TC-023: Bulk Update Column Counts - Valid Request
+### 2.2 Bulk Update Column Counts
 
-**Test Case ID:** TC-023  
-**Endpoint:** PUT /v1/columns/bulk-update  
-**Scenario:** Update task counts for multiple columns atomically  
-**Priority:** High
+#### TC-COL-005: Bulk Update Column Counts - Valid Request
+
+**Endpoint:** `PUT /v1/columns/bulk-update`
+
+**Scenario:** Update task counts for multiple columns atomically
 
 **Preconditions:**
-- Columns exist
+- Columns "to-do" and "in-progress" exist
 
-**Request:**
+**Request Body:**
 ```json
 {
   "updates": [
@@ -657,49 +753,53 @@
 }
 ```
 
-**Steps:**
-1. Send PUT request with column updates
-2. Verify response status code
-3. Verify all columns updated successfully
-
 **Expected Result:**
-- Status Code: 200 OK
+- HTTP Status: `200 OK`
 - Response contains:
   - `success`: true
   - `updatedColumns`: ["to-do", "in-progress"]
+- Column counts updated accordingly
 
 ---
 
-### TC-024: Bulk Update Column Counts - Missing Updates
+#### TC-COL-006: Bulk Update Column Counts - Single Update
 
-**Test Case ID:** TC-024  
-**Endpoint:** PUT /v1/columns/bulk-update  
-**Scenario:** Attempt to update without providing updates array  
-**Priority:** Medium
+**Endpoint:** `PUT /v1/columns/bulk-update`
 
-**Request:**
+**Scenario:** Update task count for a single column
+
+**Preconditions:**
+- Column "done" exists
+
+**Request Body:**
 ```json
-{}
+{
+  "updates": [
+    {
+      "columnId": "done",
+      "increment": 5
+    }
+  ]
+}
 ```
 
-**Steps:**
-1. Send PUT request without updates field
-2. Verify validation error
-
 **Expected Result:**
-- Status Code: 400 Bad Request
-- Response contains validation error for updates field
+- HTTP Status: `200 OK`
+- Response contains:
+  - `success`: true
+  - `updatedColumns`: ["done"]
 
 ---
 
-### TC-025: Bulk Update Column Counts - Column Not Found
+#### TC-COL-007: Bulk Update Column Counts - Column Not Found
 
-**Test Case ID:** TC-025  
-**Endpoint:** PUT /v1/columns/bulk-update  
-**Scenario:** Attempt to update non-existent column  
-**Priority:** Medium
+**Endpoint:** `PUT /v1/columns/bulk-update`
 
-**Request:**
+**Scenario:** Attempt to update non-existent column
+
+**Preconditions:** None
+
+**Request Body:**
 ```json
 {
   "updates": [
@@ -711,100 +811,90 @@
 }
 ```
 
-**Steps:**
-1. Send PUT request with invalid column ID
-2. Verify error response
+**Expected Result:**
+- HTTP Status: `404 Not Found`
+- Error Response:
+  - `errorCode`: "COLUMN_NOT_FOUND"
+  - `message`: "Column not found with ID: invalid-column"
+
+---
+
+#### TC-COL-008: Bulk Update Column Counts - Missing Updates
+
+**Endpoint:** `PUT /v1/columns/bulk-update`
+
+**Scenario:** Attempt to update without providing updates array
+
+**Preconditions:** None
+
+**Request Body:**
+```json
+{}
+```
 
 **Expected Result:**
-- Status Code: 404 Not Found
-- Response contains COLUMN_NOT_FOUND error
+- HTTP Status: `400 Bad Request`
+- Error Response:
+  - `errorCode`: "VALIDATION_ERROR"
+  - `message`: "Validation failed"
+  - `details`: Contains "updates: Updates list is required"
 
 ---
 
-## Test Execution Guide
+## Valid Status Transitions
 
-### Prerequisites
+The following status transitions are allowed:
 
-1. **Environment Setup:**
-   - Java 21 installed
-   - Maven 3.6+ installed
-   - Application running on http://localhost:8080/api
+1. `TO_DO` → `IN_PROGRESS`
+2. `IN_PROGRESS` → `DONE`
+3. `IN_PROGRESS` → `TO_DO`
+4. `PENDING` → `IN_PROGRESS`
+5. `IN_PROGRESS` → `COMPLETED`
+6. `IN_PROGRESS` → `CANCELLED`
 
-2. **Starting the Application:**
-   ```bash
-   cd code
-   mvn spring-boot:run
-   ```
-
-3. **Running JUnit Tests:**
-   ```bash
-   mvn test
-   ```
-
-4. **Running Postman Tests:**
-   - Import `test/postman/collection.json`
-   - Import `test/postman/environment.json`
-   - Select "MyProject Task Management Environment"
-   - Run collection
-
-### Test Data
-
-**Default Columns:**
-- `to-do`: To Do (position 0)
-- `in-progress`: In Progress (position 1)
-- `done`: Done (position 2)
-
-**Valid Status Transitions:**
-- TO_DO → IN_PROGRESS
-- IN_PROGRESS → DONE
-- IN_PROGRESS → TO_DO
-- PENDING → IN_PROGRESS
-- IN_PROGRESS → COMPLETED
-- IN_PROGRESS → CANCELLED
-
-**Task Priorities:**
-- LOW
-- MEDIUM
-- HIGH
-- URGENT
-
-**Task Statuses:**
-- TO_DO
-- IN_PROGRESS
-- DONE
-- PENDING
-- COMPLETED
-- CANCELLED
-
-### Coverage Summary
-
-**Total Test Cases:** 25
-
-**By Category:**
-- Task Management: 20 test cases
-- Column Management: 5 test cases
-
-**By Type:**
-- Positive Tests: 13
-- Negative Tests: 12
-
-**By Priority:**
-- High: 16
-- Medium: 9
+All other transitions will result in `INVALID_STATUS_TRANSITION` error.
 
 ---
 
-## Notes
+## Error Codes Reference
 
-- All timestamps are in ISO 8601 format
-- All error responses include a unique traceId for debugging
-- Maximum tasks per user: 10,000
-- Maximum bulk creation: 100 tasks
-- Maximum pagination size: 100
-- Title length: 1-255 characters
-- Description length: 0-2000 characters
+| Error Code | HTTP Status | Description |
+|------------|-------------|-------------|
+| TASK_NOT_FOUND | 404 | Task does not exist |
+| COLUMN_NOT_FOUND | 404 | Column does not exist |
+| INVALID_STATUS_TRANSITION | 400 | Invalid status change |
+| VALIDATION_ERROR | 400 | Request validation failed |
+| TASK_LIMIT_EXCEEDED | 400 | User task limit reached |
+| CONCURRENT_CREATION_ERROR | 409 | Concurrent modification conflict |
+| PERFORMANCE_THRESHOLD_EXCEEDED | 503 | Service overloaded |
+| INTERNAL_SERVER_ERROR | 500 | Unexpected error occurred |
 
 ---
 
-**Document Version:** 1.0  
+## Test Execution Notes
+
+1. **Test Order:** Execute tests in the order listed to ensure proper setup and teardown
+2. **Data Cleanup:** Delete created tasks after test execution to maintain clean state
+3. **Pagination:** Default page size is 50, maximum is 100
+4. **Task Limits:** Maximum 10,000 tasks per user
+5. **Bulk Operations:** Maximum 100 tasks per bulk create request
+6. **Timestamps:** All timestamps are in ISO-8601 format
+7. **Column IDs:** Pre-initialized columns are: to-do, in-progress, done
+
+---
+
+## Test Environment Setup
+
+1. Start the application: `mvn spring-boot:run`
+2. Application runs on: `http://localhost:8080/api`
+3. Import Postman collection from: `test/postman/collection.json`
+4. Import Postman environment from: `test/postman/environment.json`
+5. Run tests using Postman Collection Runner or Newman CLI
+
+---
+
+**Document Version:** 1.0.0
+
 **Last Updated:** 2024-01-15
+
+**Generated By:** SpringBoot API QA Automation Agent
