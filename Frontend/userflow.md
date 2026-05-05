@@ -3,94 +3,121 @@
 ```mermaid
 flowchart TD
     Start[User Opens Application]
-    Start --> Login[Login Page]
-    Login --> Dashboard[Main Dashboard]
-    Dashboard --> BoardList[Board Selection]
-    BoardList --> KanbanBoard[Kanban Board View]
+    Start --> LoadApp[Application Loads]
+    LoadApp --> CheckAuth[Check Authentication]
+    CheckAuth --> Login[Login Required]
+    CheckAuth --> Dashboard[Main Dashboard]
     
-    KanbanBoard --> ViewTask[View Task Details]
-    KanbanBoard --> CreateTask[Create New Task]
-    KanbanBoard --> EditTask[Edit Existing Task]
-    KanbanBoard --> DeleteTask[Delete Task]
-    KanbanBoard --> MoveTask[Move Task Between Columns]
+    Login --> AuthSuccess[Authentication Success]
+    AuthSuccess --> Dashboard
     
-    ViewTask --> TaskDetail[Task Detail Modal]
-    TaskDetail --> EditFromDetail[Edit Task from Detail]
-    TaskDetail --> CloseDetail[Close Task Detail]
-    CloseDetail --> KanbanBoard
+    Dashboard --> Sidebar[Sidebar Navigation]
+    Dashboard --> Header[Header Controls]
+    Dashboard --> MainContent[Main Content Area]
     
-    CreateTask --> AddTaskModal[Add Task Modal]
-    AddTaskModal --> FillTaskForm[Fill Task Information]
-    FillTaskForm --> SaveTask[Save New Task]
-    SaveTask --> KanbanBoard
-    AddTaskModal --> CancelAdd[Cancel Task Creation]
-    CancelAdd --> KanbanBoard
+    Sidebar --> TaskMgmt[Task Management]
+    Sidebar --> Analytics[Analytics]
+    Sidebar --> Config[Configuration]
     
-    EditTask --> EditTaskModal[Edit Task Modal]
-    EditTaskModal --> UpdateTaskForm[Update Task Information]
-    UpdateTaskForm --> SaveChanges[Save Task Changes]
-    SaveChanges --> KanbanBoard
-    EditTaskModal --> CancelEdit[Cancel Task Edit]
-    CancelEdit --> KanbanBoard
+    TaskMgmt --> KanbanBoard[Kanban Board]
+    TaskMgmt --> CollabBoard[Collaborative Board]
     
-    EditFromDetail --> EditTaskModal
+    Analytics --> ProgressAnalytics[Progress Analytics]
+    Analytics --> ReportBuilder[Report Builder]
     
-    DeleteTask --> ConfirmDelete[Confirm Task Deletion]
-    ConfirmDelete --> RemoveTask[Remove Task]
-    RemoveTask --> KanbanBoard
-    ConfirmDelete --> CancelDelete[Cancel Deletion]
-    CancelDelete --> KanbanBoard
+    Config --> BoardConfig[Board Configuration]
+    Config --> WorkflowRules[Workflow Rules]
     
-    MoveTask --> TodoColumn[Move to To Do]
-    MoveTask --> InProgressColumn[Move to In Progress]
-    MoveTask --> DoneColumn[Move to Done]
-    TodoColumn --> KanbanBoard
-    InProgressColumn --> KanbanBoard
-    DoneColumn --> KanbanBoard
+    Header --> Search[Search Tasks]
+    Header --> Notifications[View Notifications]
+    Header --> Settings[User Settings]
+    Header --> UserMenu[User Profile Menu]
     
-    KanbanBoard --> SidebarNav[Sidebar Navigation]
-    SidebarNav --> SwitchBoard[Switch Board]
-    SwitchBoard --> BoardList
-    SidebarNav --> UserProfile[User Profile]
-    UserProfile --> ProfileModal[Profile Settings Modal]
-    ProfileModal --> UpdateProfile[Update Profile]
-    UpdateProfile --> KanbanBoard
-    ProfileModal --> CloseProfile[Close Profile]
-    CloseProfile --> KanbanBoard
+    KanbanBoard --> ViewColumns[View Three Columns]
+    ViewColumns --> TodoColumn[To Do Column]
+    ViewColumns --> InProgressColumn[In Progress Column]
+    ViewColumns --> DoneColumn[Done Column]
     
-    SidebarNav --> TeamManagement[Team Management]
-    TeamManagement --> TeamModal[Team Assignment Modal]
-    TeamModal --> AssignMembers[Assign Team Members]
-    AssignMembers --> KanbanBoard
-    TeamModal --> CloseTeam[Close Team Modal]
-    CloseTeam --> KanbanBoard
+    TodoColumn --> ViewTasks[View Tasks]
+    InProgressColumn --> ViewTasks
+    DoneColumn --> ViewTasks
     
-    KanbanBoard --> HeaderActions[Header Actions]
-    HeaderActions --> SearchTasks[Search Tasks]
-    SearchTasks --> FilterResults[Filter Task Results]
-    FilterResults --> KanbanBoard
-    HeaderActions --> BoardSettings[Board Settings]
-    BoardSettings --> SettingsModal[Board Configuration Modal]
-    SettingsModal --> UpdateSettings[Update Board Settings]
-    UpdateSettings --> KanbanBoard
-    SettingsModal --> CloseSettings[Close Settings]
-    CloseSettings --> KanbanBoard
+    ViewTasks --> SelectTask[Click Task Card]
+    ViewTasks --> DragTask[Drag Task]
+    ViewTasks --> AddNewTask[Add New Task]
     
-    HeaderActions --> ReportsView[View Reports]
-    ReportsView --> ReportModal[Report Configuration Modal]
-    ReportModal --> GenerateReport[Generate Analytics Report]
-    GenerateReport --> ViewReport[View Generated Report]
-    ViewReport --> KanbanBoard
-    ReportModal --> CloseReport[Close Report Modal]
-    CloseReport --> KanbanBoard
+    SelectTask --> TaskDetail[Task Detail View]
+    TaskDetail --> EditTask[Edit Task]
+    TaskDetail --> DeleteTask[Delete Task]
+    TaskDetail --> CloseDetail[Close Detail]
     
-    HeaderActions --> WorkflowRules[Workflow Rules]
-    WorkflowRules --> WorkflowModal[Workflow Configuration Modal]
-    WorkflowModal --> SetRules[Set Workflow Rules]
-    SetRules --> KanbanBoard
-    WorkflowModal --> CloseWorkflow[Close Workflow Modal]
-    CloseWorkflow --> KanbanBoard
+    EditTask --> SaveChanges[Save Changes]
+    SaveChanges --> UpdateAPI[Update Task API]
+    UpdateAPI --> RefreshBoard[Refresh Kanban Board]
     
-    KanbanBoard --> Logout[Logout]
-    Logout --> Login
+    DeleteTask --> ConfirmDelete[Confirm Deletion]
+    ConfirmDelete --> DeleteAPI[Delete Task API]
+    DeleteAPI --> RefreshBoard
+    
+    DragTask --> DropZone[Drop in New Column]
+    DropZone --> UpdateStatus[Update Task Status]
+    UpdateStatus --> StatusAPI[Update Status API]
+    StatusAPI --> RefreshBoard
+    
+    AddNewTask --> OpenModal[Open Add Task Modal]
+    OpenModal --> FillForm[Fill Task Form]
+    FillForm --> ValidateForm[Validate Form Data]
+    ValidateForm --> SubmitTask[Submit New Task]
+    ValidateForm --> ShowErrors[Show Validation Errors]
+    
+    ShowErrors --> FillForm
+    
+    SubmitTask --> CreateAPI[Create Task API]
+    CreateAPI --> CloseModal[Close Modal]
+    CloseModal --> RefreshBoard
+    
+    Search --> SearchResults[Display Search Results]
+    SearchResults --> FilterTasks[Filter Task Display]
+    
+    Notifications --> NotificationPanel[Notification Panel]
+    NotificationPanel --> MarkRead[Mark as Read]
+    NotificationPanel --> ViewNotification[View Notification]
+    
+    Settings --> UserProfile[User Profile Settings]
+    Settings --> AppPreferences[Application Preferences]
+    Settings --> ThemeSettings[Theme Settings]
+    
+    UserProfile --> UpdateProfile[Update Profile Info]
+    UpdateProfile --> SaveProfile[Save Profile Changes]
+    
+    AppPreferences --> ToggleSettings[Toggle Preferences]
+    ToggleSettings --> SavePreferences[Save Preferences]
+    
+    ProgressAnalytics --> ViewMetrics[View Performance Metrics]
+    ViewMetrics --> MetricCards[Display Metric Cards]
+    ViewMetrics --> Charts[Display Charts]
+    
+    ReportBuilder --> ConfigReport[Configure Report]
+    ConfigReport --> GenerateReport[Generate Report]
+    GenerateReport --> DownloadReport[Download Report]
+    
+    BoardConfig --> ColumnSettings[Column Settings]
+    BoardConfig --> TeamAssignment[Team Assignment]
+    
+    ColumnSettings --> ModifyColumns[Modify Column Rules]
+    ModifyColumns --> SaveColumnConfig[Save Configuration]
+    
+    TeamAssignment --> AssignMembers[Assign Team Members]
+    AssignMembers --> SaveTeamConfig[Save Team Configuration]
+    
+    WorkflowRules --> DefineRules[Define Workflow Rules]
+    DefineRules --> SetAutomation[Set Automation Rules]
+    SetAutomation --> SaveWorkflow[Save Workflow Configuration]
+    
+    RefreshBoard --> ViewColumns
+    CloseDetail --> ViewTasks
+    CloseModal --> ViewTasks
+    
+    UserMenu --> Logout[Logout]
+    Logout --> Start
 ```
