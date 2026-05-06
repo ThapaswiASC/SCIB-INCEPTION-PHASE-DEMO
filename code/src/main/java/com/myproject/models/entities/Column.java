@@ -9,22 +9,22 @@ import java.time.LocalDateTime;
 public class Column {
 
     @Id
-    @jakarta.persistence.Column(length = 100)
+    @Column(length = 100)
     private String id;
 
-    @jakarta.persistence.Column(nullable = false, length = 255)
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @jakarta.persistence.Column(name = "board_id", length = 100)
+    @Column(name = "board_id", length = 100)
     private String boardId;
 
-    @jakarta.persistence.Column(name = "task_count")
+    @Column(name = "task_count")
     private Integer taskCount = 0;
 
-    @jakarta.persistence.Column
+    @Column
     private Integer position;
 
-    @jakarta.persistence.Column(name = "last_updated")
+    @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
 
     public Column() {
