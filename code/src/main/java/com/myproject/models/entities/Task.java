@@ -1,27 +1,56 @@
 package com.myproject.models.entities;
 
-import com.myproject.models.dtos.TaskPriority;
-import com.myproject.models.dtos.TaskStatus;
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "tasks", indexes = {
+    @Index(name = "idx_user_id", columnList = "user_id"),
+    @Index(name = "idx_created_at", columnList = "created_at"),
+    @Index(name = "idx_status", columnList = "status")
+})
 public class Task {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, length = 255)
     private String title;
+
+    @Column(length = 10000)
     private String description;
+
+    @Column(name = "user_id")
     private Long userId;
-    private TaskStatus status;
-    private TaskPriority priority;
+
+    @Column(length = 50)
+    private String status;
+
+    @Column(length = 20)
+    private String priority;
+
+    @Column(name = "column_id")
     private String columnId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private Long version;
+
+    @Column(name = "due_date")
     private LocalDateTime dueDate;
 
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Version
+    private Long version;
+
     public Task() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        this.version = 0L;
     }
 
     public Long getId() {
@@ -56,19 +85,19 @@ public class Task {
         this.userId = userId;
     }
 
-    public TaskStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public TaskPriority getPriority() {
+    public String getPriority() {
         return priority;
     }
 
-    public void setPriority(TaskPriority priority) {
+    public void setPriority(String priority) {
         this.priority = priority;
     }
 
@@ -78,6 +107,14 @@ public class Task {
 
     public void setColumnId(String columnId) {
         this.columnId = columnId;
+    }
+
+    public LocalDateTime getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDateTime dueDate) {
+        this.dueDate = dueDate;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -102,13 +139,5 @@ public class Task {
 
     public void setVersion(Long version) {
         this.version = version;
-    }
-
-    public LocalDateTime getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDateTime dueDate) {
-        this.dueDate = dueDate;
     }
 }

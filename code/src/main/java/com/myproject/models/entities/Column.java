@@ -1,18 +1,28 @@
 package com.myproject.models.entities;
 
-import java.time.LocalDateTime;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "columns")
 public class Column {
+
+    @Id
+    @Column(length = 100)
     private String id;
+
+    @Column(nullable = false, length = 255)
     private String name;
+
+    @Column(name = "board_id", length = 100)
     private String boardId;
-    private Integer taskCount;
+
+    @Column(name = "task_count")
+    private Integer taskCount = 0;
+
+    @Column
     private Integer position;
-    private LocalDateTime lastUpdated;
 
     public Column() {
-        this.taskCount = 0;
-        this.lastUpdated = LocalDateTime.now();
     }
 
     public String getId() {
@@ -53,13 +63,5 @@ public class Column {
 
     public void setPosition(Integer position) {
         this.position = position;
-    }
-
-    public LocalDateTime getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(LocalDateTime lastUpdated) {
-        this.lastUpdated = lastUpdated;
     }
 }
