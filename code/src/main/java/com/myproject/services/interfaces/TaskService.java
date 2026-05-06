@@ -1,16 +1,31 @@
 package com.myproject.services.interfaces;
 
 import com.myproject.models.dtos.*;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 public interface TaskService {
-    UpdateTaskStatusResponse updateTaskStatus(String taskId, UpdateTaskStatusRequest request);
-    TaskDetailsResponse getTaskDetails(String taskId);
+
     TaskResponse createTask(TaskCreateRequest request);
-    PagedTaskResponse getUserTasks(Long userId, int page, int size, String sort);
+
+    TaskResponse createTaskValidated(TaskCreateRequestValidated request);
+
+    PagedTaskResponse getUserTasks(Long userId, Pageable pageable);
+
     TaskCountResponse getTaskCount(Long userId);
+
     TaskResponse getTaskById(Long taskId);
+
+    TaskDetailsResponse getTaskDetails(String taskId);
+
     TaskResponse updateTask(Long taskId, TaskUpdateRequest request);
+
+    UpdateTaskStatusResponse updateTaskStatus(String taskId, UpdateTaskStatusRequest request);
+
     void deleteTask(Long taskId);
+
     BulkTaskResponse bulkCreateTasks(List<TaskCreateRequest> requests);
+
+    ValidationResponse validateTaskInput(TaskCreateRequestValidated request);
 }
