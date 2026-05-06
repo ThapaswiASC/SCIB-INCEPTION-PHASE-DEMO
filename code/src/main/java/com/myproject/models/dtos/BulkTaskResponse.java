@@ -3,28 +3,12 @@ package com.myproject.models.dtos;
 import java.util.List;
 
 public class BulkTaskResponse {
-    private Integer successCount;
-    private Integer failureCount;
+
     private List<TaskResponse> createdTasks;
-    private List<BulkTaskError> errors;
+    private Integer totalCreated;
+    private List<FailureInfo> failures;
 
     public BulkTaskResponse() {
-    }
-
-    public Integer getSuccessCount() {
-        return successCount;
-    }
-
-    public void setSuccessCount(Integer successCount) {
-        this.successCount = successCount;
-    }
-
-    public Integer getFailureCount() {
-        return failureCount;
-    }
-
-    public void setFailureCount(Integer failureCount) {
-        this.failureCount = failureCount;
     }
 
     public List<TaskResponse> getCreatedTasks() {
@@ -35,19 +19,27 @@ public class BulkTaskResponse {
         this.createdTasks = createdTasks;
     }
 
-    public List<BulkTaskError> getErrors() {
-        return errors;
+    public Integer getTotalCreated() {
+        return totalCreated;
     }
 
-    public void setErrors(List<BulkTaskError> errors) {
-        this.errors = errors;
+    public void setTotalCreated(Integer totalCreated) {
+        this.totalCreated = totalCreated;
     }
 
-    public static class BulkTaskError {
+    public List<FailureInfo> getFailures() {
+        return failures;
+    }
+
+    public void setFailures(List<FailureInfo> failures) {
+        this.failures = failures;
+    }
+
+    public static class FailureInfo {
         private Integer index;
-        private String message;
+        private String error;
 
-        public BulkTaskError() {
+        public FailureInfo() {
         }
 
         public Integer getIndex() {
@@ -58,12 +50,12 @@ public class BulkTaskResponse {
             this.index = index;
         }
 
-        public String getMessage() {
-            return message;
+        public String getError() {
+            return error;
         }
 
-        public void setMessage(String message) {
-            this.message = message;
+        public void setError(String error) {
+            this.error = error;
         }
     }
 }

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 
 public class TaskCreateRequest {
+
     @NotBlank(message = "Title is required")
     @Size(min = 1, max = 255, message = "Title must be between 1 and 255 characters")
     private String title;
@@ -12,11 +13,11 @@ public class TaskCreateRequest {
     private String description;
 
     @NotNull(message = "User ID is required")
-    @Positive(message = "User ID must be positive")
+    @Min(value = 1, message = "User ID must be positive")
     private Long userId;
 
     @NotNull(message = "Priority is required")
-    private TaskPriority priority;
+    private String priority;
 
     private LocalDateTime dueDate;
 
@@ -47,11 +48,11 @@ public class TaskCreateRequest {
         this.userId = userId;
     }
 
-    public TaskPriority getPriority() {
+    public String getPriority() {
         return priority;
     }
 
-    public void setPriority(TaskPriority priority) {
+    public void setPriority(String priority) {
         this.priority = priority;
     }
 

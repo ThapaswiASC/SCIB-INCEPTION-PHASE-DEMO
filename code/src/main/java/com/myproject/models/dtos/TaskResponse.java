@@ -3,15 +3,15 @@ package com.myproject.models.dtos;
 import java.time.LocalDateTime;
 
 public class TaskResponse {
+
     private Long id;
     private String title;
     private String description;
     private Long userId;
-    private TaskStatus status;
-    private TaskPriority priority;
+    private String status;
+    private String priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Long version;
 
     public TaskResponse() {
     }
@@ -48,19 +48,19 @@ public class TaskResponse {
         this.userId = userId;
     }
 
-    public TaskStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public TaskPriority getPriority() {
+    public String getPriority() {
         return priority;
     }
 
-    public void setPriority(TaskPriority priority) {
+    public void setPriority(String priority) {
         this.priority = priority;
     }
 
@@ -78,13 +78,5 @@ public class TaskResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public Long getVersion() {
-        return version;
-    }
-
-    public void setVersion(Long version) {
-        this.version = version;
     }
 }
