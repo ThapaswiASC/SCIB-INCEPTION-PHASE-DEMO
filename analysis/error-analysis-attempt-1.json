@@ -11,32 +11,32 @@
       "file": "code/src/main/java/com/myproject/models/entities/Column.java",
       "line": 10,
       "message": "incompatible types: Column cannot be converted to java.lang.annotation.Annotation (19 occurrences across Column.java, Task.java, User.java)",
-      "root_cause": "Custom Column class name conflicts with JPA @Column annotation. The compiler is trying to use the custom Column class where @Column annotation is expected on entity fields.",
-      "fix_recommendation": "Rename the custom Column entity class to avoid conflict with JPA @Column annotation. Suggested names: BoardColumn, TaskColumn, or ColumnEntity. Update all references including imports, repositories, services, and controllers."
+      "root_cause": "Custom Column entity class name conflicts with JPA's @Column annotation. The compiler is confusing the custom Column class with javax.persistence.Column annotation, causing type conversion errors in all entity classes that use @Column annotations.",
+      "fix_recommendation": "Rename the custom Column entity class to a non-conflicting name such as 'BoardColumn', 'TaskColumn', or 'ColumnEntity'. Update all references to this class throughout the codebase including repositories, services, controllers, and data stores."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/main/java/com/myproject/controllers/TaskController.java",
       "line": 46,
       "message": "method getUserTasks cannot be applied to given types; required: Long,Pageable found: Long,int,int,String",
-      "root_cause": "TaskController is calling getUserTasks with 4 parameters (userId, page, size, sortBy) but TaskService interface expects 2 parameters (userId, Pageable).",
-      "fix_recommendation": "In TaskController.java line 46, create a Pageable object from the page, size, and sortBy parameters using PageRequest.of(page, size, Sort.by(sortBy)) and pass it to getUserTasks method along with userId."
+      "root_cause": "The TaskController is calling getUserTasks with 4 parameters (userId, page, size, sortBy) but the TaskService interface defines getUserTasks with only 2 parameters (Long userId, Pageable pageable). The controller needs to construct a Pageable object from the pagination parameters.",
+      "fix_recommendation": "In TaskController.java line 46, create a Pageable object using PageRequest.of(page, size, Sort.by(sortBy)) and pass it to getUserTasks method. Import org.springframework.data.domain.PageRequest and org.springframework.data.domain.Sort."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/main/java/com/myproject/models/datastores/InMemoryColumnDataStore.java",
       "line": 41,
       "message": "cannot find symbol: method setLastUpdated(LocalDateTime) (2 occurrences at lines 41 and 56)",
-      "root_cause": "Column entity class is missing the setLastUpdated() method, but InMemoryColumnDataStore attempts to call it when creating and updating columns.",
-      "fix_recommendation": "Add setLastUpdated(LocalDateTime lastUpdated) method to the Column entity class. Ensure the lastUpdated field exists with proper getter and setter methods, or use Lombok @Data/@Setter annotation."
+      "root_cause": "The Column entity class is missing the setLastUpdated() setter method. The InMemoryColumnDataStore attempts to call this method to update the lastUpdated timestamp, but the method does not exist in the Column class.",
+      "fix_recommendation": "Add the setLastUpdated(LocalDateTime lastUpdated) setter method to the Column entity class. Ensure the corresponding lastUpdated field exists with proper JPA annotations (@Column annotation for the database column mapping)."
     },
     {
-      "type": "CONFIGURATION_ERROR",
+      "type": "COMPILATION_ERROR",
       "file": null,
       "line": null,
-      "message": "Build failed during compilation phase preventing test execution",
-      "root_cause": "Compilation errors prevented the build from reaching the test phase. Tests were skipped due to -DskipTests flag, but would have failed anyway due to compilation issues.",
-      "fix_recommendation": "Fix all compilation errors first. After successful compilation, remove -DskipTests flag to run tests and verify application context loads correctly."
+      "message": "22 compilation errors total causing BUILD FAILURE",
+      "root_cause": "The build failed during the maven-compiler-plugin:3.14.1:compile phase due to multiple compilation errors. The primary root cause is the Column class naming conflict which cascades into 19 related errors across entity classes.",
+      "fix_recommendation": "Address errors in priority order: 1) Rename Column class to resolve annotation conflict (fixes 19 errors), 2) Fix TaskController method signature (fixes 1 error), 3) Add setLastUpdated method to Column class (fixes 2 errors). After fixes, run 'mvn clean compile' to verify."
     }
   ],
   "summary": "4 errors found"
