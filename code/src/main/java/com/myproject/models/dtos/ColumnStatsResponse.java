@@ -1,37 +1,18 @@
 package com.myproject.models.dtos;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ColumnStatsResponse {
-
     private String columnId;
     private Integer taskCount;
     private LocalDateTime lastUpdated;
-
-    public ColumnStatsResponse() {
-    }
-
-    public String getColumnId() {
-        return columnId;
-    }
-
-    public void setColumnId(String columnId) {
-        this.columnId = columnId;
-    }
-
-    public Integer getTaskCount() {
-        return taskCount;
-    }
-
-    public void setTaskCount(Integer taskCount) {
-        this.taskCount = taskCount;
-    }
-
-    public LocalDateTime getLastUpdated() {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated(LocalDateTime lastUpdated) {
-        this.lastUpdated = lastUpdated;
-    }
 }
