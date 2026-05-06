@@ -4,6 +4,9 @@ import com.myproject.models.dtos.*;
 import com.myproject.services.interfaces.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +46,13 @@ public class TaskController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort) {
-        PagedTaskResponse response = taskService.getUserTasks(userId, page, size, sort);
+        String[] sortParams = sort.split(",");
+        String sortField = sortParams[0];
+        Sort.Direction direction = sortParams.length > 1 && sortParams[1].equalsIgnoreCase("asc") 
+            ? Sort.Direction.ASC 
+            : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+        PagedTaskResponse response = taskService.getUserTasks(userId, pageable);
         return ResponseEntity.ok(response);
     }
 
