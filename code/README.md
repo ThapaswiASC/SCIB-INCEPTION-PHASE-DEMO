@@ -2,43 +2,60 @@
 
 ## Overview
 
-This is a Spring Boot application implementing a task management system with Kanban board functionality. The application supports:
+This is a Spring Boot application implementing a comprehensive task management system with Kanban board functionality. The application supports task creation, status updates, validation, and column management.
 
-- Task creation, update, and deletion
-- Drag-and-drop task status updates
-- Column statistics and bulk updates
-- User task management with pagination
-- High-performance operations supporting up to 10,000 tasks per user
+## Features
 
-## Technical Stack
+### DEMO-222: Kanban Board Drag and Drop
+- Update task status when dragging between columns
+- Get task details
+- Get column statistics
+- Bulk update column counts
+- Real-time status synchronization
+
+### DEMO-757: High-Performance Task Management
+- Create tasks with validation
+- Support for 10,000+ tasks per user
+- Paginated task retrieval
+- Task count tracking
+- Update and delete tasks
+- Bulk task creation
+- Optimistic locking for concurrent operations
+
+### DEMO-759: Input Validation
+- Comprehensive input validation
+- Special character support
+- Character limit enforcement (title: 255, description: 10,000)
+- Validation endpoint for pre-submission checks
+- Meaningful error messages
+
+## Technology Stack
 
 - **Java**: 21
 - **Spring Boot**: 3.5.9
+- **Database**: H2 (in-memory)
 - **Build Tool**: Maven
-- **Architecture**: RESTful API with in-memory data storage
+- **Testing**: JUnit Jupiter
+- **Code Coverage**: JaCoCo
 
 ## Project Structure
 
 ```
 code/
-├── pom.xml
-├── src/
-│   └── main/
-│       ├── java/com/myproject/
-│       │   ├── controllers/          # REST API endpoints
-│       │   ├── models/
-│       │   │   ├── dtos/            # Data Transfer Objects
-│       │   │   ├── entities/        # Domain entities
-│       │   │   └── datastores/      # In-memory data storage
-│       │   ├── services/
-│       │   │   ├── interfaces/      # Service contracts
-│       │   │   └── impl/            # Service implementations
-│       │   ├── config/              # Configuration classes
-│       │   ├── exceptions/          # Custom exceptions
-│       │   └── Application.java     # Main application class
-│       └── resources/
-│           └── application.properties
-└── .github/workflows/build.yml      # CI/CD workflow
+├── src/main/java/com/myproject/
+│   ├── controllers/          # REST API endpoints
+│   ├── models/
+│   │   ├── dtos/            # Data Transfer Objects
+│   │   ├── entities/        # JPA entities
+│   │   └── datastores/      # Repository interfaces
+│   ├── services/
+│   │   ├── interfaces/      # Service interfaces
+│   │   └── impl/            # Service implementations
+│   ├── config/              # Configuration classes
+│   ├── exceptions/          # Custom exceptions
+│   └── Application.java     # Main application class
+└── src/main/resources/
+    └── application.properties
 ```
 
 ## API Endpoints
@@ -46,54 +63,132 @@ code/
 ### Task Management (DEMO-222 & DEMO-757)
 
 #### Update Task Status
-- **PUT** `/api/v1/tasks/{taskId}/status`
-- Updates task status when dragged between columns
+```
+PUT /api/v1/tasks/{taskId}/status
+Content-Type: application/json
+
+{
+  "status": "DONE",
+  "columnId": "done-column"
+}
+```
 
 #### Get Task Details
-- **GET** `/api/v1/tasks/{taskId}`
-- Retrieves detailed information about a specific task
+```
+GET /api/v1/tasks/{taskId}
+```
 
 #### Create Task
-- **POST** `/api/v1/tasks`
-- Creates a new task for a user
+```
+POST /api/v1/tasks
+Content-Type: application/json
 
-#### Get User Tasks
-- **GET** `/api/v1/users/{userId}/tasks`
-- Retrieves paginated list of tasks for a user
-- Query params: `page`, `size`, `sort`
+{
+  "title": "Task Title",
+  "description": "Task Description",
+  "userId": 1,
+  "priority": "HIGH",
+  "dueDate": "2024-12-31T23:59:59"
+}
+```
+
+#### Get User Tasks (Paginated)
+```
+GET /api/v1/users/{userId}/tasks?page=0&size=50
+```
 
 #### Get Task Count
-- **GET** `/api/v1/users/{userId}/tasks/count`
-- Returns total task count for a user
+```
+GET /api/v1/users/{userId}/tasks/count
+```
 
 #### Update Task
-- **PUT** `/api/v1/tasks/{taskId}`
-- Updates an existing task
+```
+PUT /api/v1/tasks/{taskId}/update
+Content-Type: application/json
+
+{
+  "title": "Updated Title",
+  "description": "Updated Description",
+  "status": "IN_PROGRESS",
+  "priority": "URGENT"
+}
+```
 
 #### Delete Task
-- **DELETE** `/api/v1/tasks/{taskId}`
-- Deletes a task
+```
+DELETE /api/v1/tasks/{taskId}/delete
+```
 
 #### Bulk Create Tasks
-- **POST** `/api/v1/tasks/bulk`
-- Creates multiple tasks in a single operation (max 100)
+```
+POST /api/v1/tasks/bulk
+Content-Type: application/json
+
+[
+  {
+    "title": "Task 1",
+    "userId": 1,
+    "priority": "LOW"
+  },
+  {
+    "title": "Task 2",
+    "userId": 1,
+    "priority": "MEDIUM"
+  }
+]
+```
 
 ### Column Management (DEMO-222)
 
 #### Get Column Statistics
-- **GET** `/api/v1/columns/{columnId}/stats`
-- Retrieves statistics for a column
+```
+GET /api/v1/columns/{columnId}/stats
+```
 
 #### Bulk Update Column Counts
-- **PUT** `/api/v1/columns/bulk-update`
-- Updates task counts for multiple columns atomically
+```
+PUT /api/v1/columns/bulk-update
+Content-Type: application/json
 
-## Configuration
+{
+  "updates": [
+    {
+      "columnId": "in-progress",
+      "increment": -1
+    },
+    {
+      "columnId": "done",
+      "increment": 1
+    }
+  ]
+}
+```
 
-The application runs on:
-- **Port**: 8080
-- **Context Path**: `/api`
-- **CORS**: Enabled for `http://localhost:4200`
+### Input Validation (DEMO-759)
+
+#### Create Task with Validation
+```
+POST /api/tasks
+Content-Type: application/json
+
+{
+  "title": "Validated Task",
+  "description": "Task with comprehensive validation",
+  "priority": "CRITICAL"
+}
+```
+
+#### Validate Task Input
+```
+POST /api/tasks/validate
+Content-Type: application/json
+
+{
+  "title": "Task to Validate",
+  "priority": "HIGH"
+}
+```
 
 ## Building and Running
 
@@ -112,46 +207,46 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-The application will start at `http://localhost:8080/api`
+The application will start on `http://localhost:8080/api`
+
+### H2 Console
+Access the H2 database console at: `http://localhost:8080/api/h2-console`
+- JDBC URL: `jdbc:h2:mem:taskdb`
+- Username: `sa`
+- Password: (leave empty)
 
 ## Testing
 
-Run tests with:
+### Run Tests
 ```bash
 mvn test
 ```
 
-Generate coverage report:
+### Generate Coverage Report
 ```bash
 mvn jacoco:report
 ```
 
-Coverage reports are available at `target/site/jacoco/index.html`
+Coverage report will be available at: `target/site/jacoco/index.html`
 
-## CI/CD
+## Configuration
 
-The project includes a GitHub Actions workflow (`.github/workflows/build.yml`) that:
-- Builds the application
-- Runs tests
-- Generates coverage reports
-- Uploads artifacts
+Key configuration properties in `application.properties`:
 
-Trigger manually via GitHub Actions UI using `workflow_dispatch`.
+```properties
+# Application
+spring.application.name=myproject
+server.port=8080
+server.servlet.context-path=/api
 
-## Features
+# Database
+spring.datasource.url=jdbc:h2:mem:taskdb
 
-### DEMO-222: Kanban Board Drag & Drop
-- Drag tasks between columns (To Do, In Progress, Done)
-- Automatic status updates
-- Column count synchronization
-- Validation of status transitions
-
-### DEMO-757: High-Performance Task Management
-- Support for 10,000+ tasks per user
-- Efficient pagination
-- Bulk operations
-- Optimistic locking for concurrent updates
-- Performance monitoring
+# Validation
+app.validation.title.max-length=255
+app.validation.description.max-length=10000
+app.task.max-per-user=10000
+```
 
 ## Error Handling
 
@@ -160,61 +255,49 @@ The application provides structured error responses:
 ```json
 {
   "timestamp": "2024-01-01T10:00:00",
-  "traceId": "uuid",
-  "errorCode": "TASK_NOT_FOUND",
-  "message": "Task not found with ID: 123",
-  "details": []
+  "errorCode": "VALIDATION_ERROR",
+  "message": "Validation failed",
+  "details": [
+    "Title is required",
+    "Priority must be one of: LOW, MEDIUM, HIGH, CRITICAL"
+  ]
 }
 ```
 
 ### Error Codes
+- `VALIDATION_ERROR`: Input validation failed
 - `TASK_NOT_FOUND`: Task does not exist
-- `INVALID_STATUS_TRANSITION`: Invalid status change
+- `TASK_LIMIT_EXCEEDED`: User has reached maximum task limit
+- `INVALID_STATUS_TRANSITION`: Invalid task status change
 - `COLUMN_NOT_FOUND`: Column does not exist
-- `VALIDATION_ERROR`: Request validation failed
-- `TASK_LIMIT_EXCEEDED`: User task limit reached
-- `CONCURRENT_CREATION_ERROR`: Concurrent modification conflict
-- `PERFORMANCE_THRESHOLD_EXCEEDED`: Service overloaded
+- `INTERNAL_ERROR`: Unexpected server error
 
-## Data Storage
+## Security
 
-The application uses in-memory data stores:
-- **TaskDataStore**: Manages task entities
-- **ColumnDataStore**: Manages column entities
+- CORS enabled for `http://localhost:4200`
+- All endpoints under `/api/v1/**` and `/api/tasks/**` are publicly accessible (for demo purposes)
+- H2 console is enabled for development
 
-Default columns are pre-initialized:
-- `to-do`: To Do
-- `in-progress`: In Progress
-- `done`: Done
+## Performance Considerations
 
-## Validation Rules
+- Database indexes on frequently queried fields (user_id, created_at, status)
+- Optimistic locking for concurrent task updates
+- Pagination support for large result sets
+- Efficient bulk operations
 
-### Task Creation
-- Title: Required, 1-255 characters
-- Description: Optional, max 2000 characters
-- User ID: Required, positive number
-- Priority: Required (LOW, MEDIUM, HIGH, URGENT)
-- Due Date: Optional, future or present
+## Future Enhancements
 
-### Task Limits
-- Maximum tasks per user: 10,000
-- Bulk creation limit: 100 tasks
-- Pagination max size: 100
-
-## Status Transitions
-
-Valid task status transitions:
-- `TO_DO` → `IN_PROGRESS`
-- `IN_PROGRESS` → `DONE`
-- `IN_PROGRESS` → `TO_DO`
-- `PENDING` → `IN_PROGRESS`
-- `IN_PROGRESS` → `COMPLETED`
-- `IN_PROGRESS` → `CANCELLED`
+- Replace H2 with PostgreSQL for production
+- Add JWT-based authentication
+- Implement WebSocket for real-time updates
+- Add Redis caching layer
+- Implement rate limiting
+- Add comprehensive audit logging
 
 ## License
 
 This project is part of the SCIB Inception Phase Demo.
 
-## Support
+## Contact
 
-For issues or questions, please refer to the project documentation or contact the development team.
+For questions or issues, please contact the development team.
