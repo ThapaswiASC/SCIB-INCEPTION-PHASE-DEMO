@@ -1,43 +1,19 @@
 {
-  "executive_summary": "Maven build failed during compilation with 26 type incompatibility errors. The custom Column class conflicts with JPA's @Column annotation. Entity classes are incorrectly using the custom Column class where the @Column annotation is expected. This requires renaming the custom Column entity class to avoid the naming collision.",
+  "executive_summary": "Maven compilation failed with 26 type incompatibility errors. A custom Column class in com.myproject.models.entities conflicts with the JPA @Column annotation, causing the compiler to interpret field annotations as the wrong type. All entity classes (Column, Task, User, BoardColumn) are affected. Fix requires renaming the custom Column class or using fully qualified JPA annotation names.",
   "attempt_number": 1,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-759",
   "log_file": "logs/build_failure_attempt-1.log",
-  "errors_found": 4,
+  "errors_found": 1,
   "errors": [
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/entities/Column.java",
+      "file": "code/src/main/java/com/myproject/models/entities",
       "line": null,
-      "message": "6 occurrences: incompatible types - Column class cannot be converted to Annotation",
-      "root_cause": "The custom entity class 'Column' has the same name as JPA's @Column annotation, causing a naming conflict. The compiler cannot distinguish between the entity class and the annotation when both are in scope.",
-      "fix_recommendation": "Rename the Column.java entity class to a more specific name such as 'BoardColumn', 'ColumnEntity', or 'KanbanColumn' to avoid conflict with javax.persistence.Column annotation. Update all references throughout the codebase."
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/entities/Task.java",
-      "line": null,
-      "message": "9 occurrences: incompatible types - Column class cannot be converted to Annotation",
-      "root_cause": "Task entity is attempting to use the custom Column class where JPA expects @Column annotation. The naming conflict between the custom Column entity and JPA's @Column annotation causes type incompatibility.",
-      "fix_recommendation": "After renaming the Column entity class, update all import statements and field type references in Task.java. Replace references to the old Column class name with the new entity class name."
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/entities/User.java",
-      "line": null,
-      "message": "5 occurrences: incompatible types - Column class cannot be converted to Annotation",
-      "root_cause": "User entity is attempting to use the custom Column class where JPA expects @Column annotation. The naming conflict between the custom Column entity and JPA's @Column annotation causes type incompatibility.",
-      "fix_recommendation": "After renaming the Column entity class, update all import statements and field type references in User.java. Replace references to the old Column class name with the new entity class name."
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/entities/BoardColumn.java",
-      "line": null,
-      "message": "6 occurrences: incompatible types - Column class cannot be converted to Annotation",
-      "root_cause": "BoardColumn entity is attempting to use the custom Column class where JPA expects @Column annotation. The naming conflict between the custom Column entity and JPA's @Column annotation causes type incompatibility.",
-      "fix_recommendation": "After renaming the Column entity class, update all import statements and field type references in BoardColumn.java. Replace references to the old Column class name with the new entity class name."
+      "message": "26 errors: com.myproject.models.entities.Column cannot be converted to java.lang.annotation.Annotation across Column.java, Task.java, User.java, BoardColumn.java",
+      "root_cause": "A custom class named 'Column' exists in the entities package, creating a naming conflict with the JPA @Column annotation. The compiler resolves 'Column' to the custom class instead of javax.persistence.Column annotation, causing type incompatibility errors on all entity field declarations.",
+      "fix_recommendation": "Rename the custom Column class to a non-conflicting name (e.g., ColumnEntity, BoardColumnEntity, or TaskColumn). Alternatively, use fully qualified annotation names (@javax.persistence.Column) in all entity classes, though renaming is the cleaner solution."
     }
   ],
-  "summary": "4 grouped compilation errors found (26 total occurrences)"
+  "summary": "1 grouped compilation error affecting 26 locations across 4 entity files"
 }
