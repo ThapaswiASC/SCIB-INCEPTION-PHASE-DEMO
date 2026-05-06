@@ -18,33 +18,33 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255)
+    @jakarta.persistence.Column(nullable = false, length = 255)
     private String title;
 
-    @Column(length = 10000)
+    @jakarta.persistence.Column(length = 10000)
     private String description;
 
-    @Column(name = "user_id")
+    @jakarta.persistence.Column(name = "user_id")
     private Long userId;
 
-    @Column(length = 50)
+    @jakarta.persistence.Column(length = 50)
     private String status;
 
-    @Column(length = 20)
+    @jakarta.persistence.Column(length = 20)
     private String priority;
 
-    @Column(name = "column_id")
+    @jakarta.persistence.Column(name = "column_id")
     private String columnId;
 
-    @Column(name = "due_date")
+    @jakarta.persistence.Column(name = "due_date")
     private LocalDateTime dueDate;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @jakarta.persistence.Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @jakarta.persistence.Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @Version

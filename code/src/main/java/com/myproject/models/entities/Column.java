@@ -5,26 +5,26 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "columns")
+@Table(name = "board_columns")
 public class Column {
 
     @Id
-    @Column(length = 100)
+    @jakarta.persistence.Column(length = 100)
     private String id;
 
-    @Column(nullable = false, length = 255)
+    @jakarta.persistence.Column(nullable = false, length = 255)
     private String name;
 
-    @Column(name = "board_id", length = 100)
+    @jakarta.persistence.Column(name = "board_id", length = 100)
     private String boardId;
 
-    @Column(name = "task_count")
+    @jakarta.persistence.Column(name = "task_count")
     private Integer taskCount = 0;
 
-    @Column
+    @jakarta.persistence.Column
     private Integer position;
 
-    @Column(name = "last_updated")
+    @jakarta.persistence.Column(name = "last_updated")
     private LocalDateTime lastUpdated;
 
     public Column() {

@@ -14,21 +14,21 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 50)
+    @jakarta.persistence.Column(unique = true, nullable = false, length = 50)
     private String username;
 
-    @Column(unique = true, nullable = false, length = 100)
+    @jakarta.persistence.Column(unique = true, nullable = false, length = 100)
     private String email;
 
-    @Column(name = "task_count")
+    @jakarta.persistence.Column(name = "task_count")
     private Long taskCount = 0L;
 
     @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @jakarta.persistence.Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(name = "updated_at")
+    @jakarta.persistence.Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     public User() {
