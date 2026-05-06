@@ -1,6 +1,6 @@
 package com.myproject.models.datastores;
 
-import com.myproject.models.entities.Column;
+import com.myproject.models.entities.BoardColumn;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -10,25 +10,25 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class InMemoryColumnDataStore implements ColumnDataStore {
-    private final Map<String, Column> columns = new ConcurrentHashMap<>();
+    private final Map<String, BoardColumn> columns = new ConcurrentHashMap<>();
 
     public InMemoryColumnDataStore() {
         // Initialize default columns
-        Column toDoColumn = new Column();
+        BoardColumn toDoColumn = new BoardColumn();
         toDoColumn.setId("to-do");
         toDoColumn.setName("To Do");
         toDoColumn.setTaskCount(0);
         toDoColumn.setPosition(0);
         columns.put("to-do", toDoColumn);
 
-        Column inProgressColumn = new Column();
+        BoardColumn inProgressColumn = new BoardColumn();
         inProgressColumn.setId("in-progress");
         inProgressColumn.setName("In Progress");
         inProgressColumn.setTaskCount(0);
         inProgressColumn.setPosition(1);
         columns.put("in-progress", inProgressColumn);
 
-        Column doneColumn = new Column();
+        BoardColumn doneColumn = new BoardColumn();
         doneColumn.setId("done");
         doneColumn.setName("Done");
         doneColumn.setTaskCount(0);
@@ -37,20 +37,20 @@ public class InMemoryColumnDataStore implements ColumnDataStore {
     }
 
     @Override
-    public Column save(Column column) {
+    public BoardColumn save(BoardColumn column) {
         column.setLastUpdated(LocalDateTime.now());
         columns.put(column.getId(), column);
         return column;
     }
 
     @Override
-    public Optional<Column> findById(String id) {
+    public Optional<BoardColumn> findById(String id) {
         return Optional.ofNullable(columns.get(id));
     }
 
     @Override
     public void incrementTaskCount(String columnId, int increment) {
-        Column column = columns.get(columnId);
+        BoardColumn column = columns.get(columnId);
         if (column != null) {
             column.setTaskCount(column.getTaskCount() + increment);
             column.setLastUpdated(LocalDateTime.now());

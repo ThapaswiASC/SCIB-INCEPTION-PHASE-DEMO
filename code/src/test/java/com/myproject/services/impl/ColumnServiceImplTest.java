@@ -5,7 +5,7 @@ import com.myproject.models.datastores.ColumnDataStore;
 import com.myproject.models.dtos.BulkUpdateColumnCountsRequest;
 import com.myproject.models.dtos.BulkUpdateColumnCountsResponse;
 import com.myproject.models.dtos.ColumnStatsResponse;
-import com.myproject.models.entities.Column;
+import com.myproject.models.entities.BoardColumn;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,7 +37,7 @@ class ColumnServiceImplTest {
     void getColumnStats_ValidColumnId_ReturnsStats() {
         // Arrange
         String columnId = "to-do";
-        Column column = new Column();
+        BoardColumn column = new BoardColumn();
         column.setId(columnId);
         column.setName("To Do");
         column.setTaskCount(15);
@@ -73,7 +73,7 @@ class ColumnServiceImplTest {
     void getColumnStats_InProgressColumn_ReturnsStats() {
         // Arrange
         String columnId = "in-progress";
-        Column column = new Column();
+        BoardColumn column = new BoardColumn();
         column.setId(columnId);
         column.setName("In Progress");
         column.setTaskCount(8);
@@ -94,7 +94,7 @@ class ColumnServiceImplTest {
     void getColumnStats_DoneColumn_ReturnsStats() {
         // Arrange
         String columnId = "done";
-        Column column = new Column();
+        BoardColumn column = new BoardColumn();
         column.setId(columnId);
         column.setName("Done");
         column.setTaskCount(23);
@@ -115,7 +115,7 @@ class ColumnServiceImplTest {
     void getColumnStats_ZeroTasks_ReturnsStats() {
         // Arrange
         String columnId = "to-do";
-        Column column = new Column();
+        BoardColumn column = new BoardColumn();
         column.setId(columnId);
         column.setName("To Do");
         column.setTaskCount(0);
@@ -147,11 +147,11 @@ class ColumnServiceImplTest {
         BulkUpdateColumnCountsRequest request = new BulkUpdateColumnCountsRequest();
         request.setUpdates(Arrays.asList(update1, update2));
 
-        Column column1 = new Column();
+        BoardColumn column1 = new BoardColumn();
         column1.setId("to-do");
         column1.setTaskCount(10);
 
-        Column column2 = new Column();
+        BoardColumn column2 = new BoardColumn();
         column2.setId("in-progress");
         column2.setTaskCount(5);
 
@@ -184,7 +184,7 @@ class ColumnServiceImplTest {
         BulkUpdateColumnCountsRequest request = new BulkUpdateColumnCountsRequest();
         request.setUpdates(Collections.singletonList(update));
 
-        Column column = new Column();
+        BoardColumn column = new BoardColumn();
         column.setId("done");
         column.setTaskCount(20);
 
@@ -240,11 +240,11 @@ class ColumnServiceImplTest {
         BulkUpdateColumnCountsRequest request = new BulkUpdateColumnCountsRequest();
         request.setUpdates(Arrays.asList(update1, update2, update3));
 
-        Column column1 = new Column();
+        BoardColumn column1 = new BoardColumn();
         column1.setId("to-do");
-        Column column2 = new Column();
+        BoardColumn column2 = new BoardColumn();
         column2.setId("in-progress");
-        Column column3 = new Column();
+        BoardColumn column3 = new BoardColumn();
         column3.setId("done");
 
         when(columnDataStore.findById("to-do")).thenReturn(Optional.of(column1));
@@ -272,7 +272,7 @@ class ColumnServiceImplTest {
         BulkUpdateColumnCountsRequest request = new BulkUpdateColumnCountsRequest();
         request.setUpdates(Collections.singletonList(update));
 
-        Column column = new Column();
+        BoardColumn column = new BoardColumn();
         column.setId("to-do");
         column.setTaskCount(10);
 

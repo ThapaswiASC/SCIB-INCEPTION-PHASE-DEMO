@@ -5,7 +5,7 @@ import com.myproject.models.datastores.ColumnRepository;
 import com.myproject.models.dtos.BulkUpdateColumnCountsRequest;
 import com.myproject.models.dtos.BulkUpdateColumnCountsResponse;
 import com.myproject.models.dtos.ColumnStatsResponse;
-import com.myproject.models.entities.Column;
+import com.myproject.models.entities.BoardColumn;
 import com.myproject.services.interfaces.ColumnService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +26,7 @@ public class ColumnServiceImpl implements ColumnService {
 
     @Override
     public ColumnStatsResponse getColumnStats(String columnId) {
-        Column column = columnRepository.findById(columnId)
+        BoardColumn column = columnRepository.findById(columnId)
             .orElseThrow(() -> new ColumnNotFoundException(columnId));
 
         ColumnStatsResponse response = new ColumnStatsResponse();
