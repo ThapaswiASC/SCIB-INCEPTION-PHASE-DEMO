@@ -1,9 +1,10 @@
 package com.myproject.models.dtos;
 
 public class TaskDetailsResponse {
+
     private String taskId;
     private String title;
-    private TaskStatus status;
+    private String status;
     private String columnId;
 
     public TaskDetailsResponse() {
@@ -25,11 +26,11 @@ public class TaskDetailsResponse {
         this.title = title;
     }
 
-    public TaskStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

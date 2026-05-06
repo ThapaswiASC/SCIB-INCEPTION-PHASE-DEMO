@@ -3,6 +3,7 @@ package com.myproject.models.dtos;
 import java.util.List;
 
 public class BulkUpdateColumnCountsResponse {
+
     private Boolean success;
     private List<String> updatedColumns;
 

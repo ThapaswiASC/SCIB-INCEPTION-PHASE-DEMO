@@ -3,8 +3,9 @@ package com.myproject.models.dtos;
 import java.time.LocalDateTime;
 
 public class UpdateTaskStatusResponse {
+
     private String taskId;
-    private TaskStatus status;
+    private String status;
     private LocalDateTime updatedAt;
 
     public UpdateTaskStatusResponse() {
@@ -18,11 +19,11 @@ public class UpdateTaskStatusResponse {
         this.taskId = taskId;
     }
 
-    public TaskStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

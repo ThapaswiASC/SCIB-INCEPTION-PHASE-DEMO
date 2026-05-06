@@ -4,8 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class UpdateTaskStatusRequest {
+
     @NotNull(message = "Status is required")
-    private TaskStatus status;
+    private String status;
 
     @NotBlank(message = "Column ID is required")
     private String columnId;
@@ -13,11 +14,11 @@ public class UpdateTaskStatusRequest {
     public UpdateTaskStatusRequest() {
     }
 
-    public TaskStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
