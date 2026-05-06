@@ -1,59 +1,78 @@
 package com.myproject.models.datastores;
 
-import com.myproject.models.entities.BoardColumn;
+import com.myproject.models.entities.Column;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
 public class InMemoryColumnDataStore implements ColumnDataStore {
-    private final Map<String, BoardColumn> columns = new ConcurrentHashMap<>();
-
+    
+    private final Map<String, Column> columns = new ConcurrentHashMap<>();
+    
     public InMemoryColumnDataStore() {
-        // Initialize default columns
-        BoardColumn toDoColumn = new BoardColumn();
-        toDoColumn.setId("to-do");
-        toDoColumn.setName("To Do");
-        toDoColumn.setTaskCount(0);
-        toDoColumn.setPosition(0);
-        columns.put("to-do", toDoColumn);
-
-        BoardColumn inProgressColumn = new BoardColumn();
-        inProgressColumn.setId("in-progress");
-        inProgressColumn.setName("In Progress");
-        inProgressColumn.setTaskCount(0);
-        inProgressColumn.setPosition(1);
-        columns.put("in-progress", inProgressColumn);
-
-        BoardColumn doneColumn = new BoardColumn();
-        doneColumn.setId("done");
-        doneColumn.setName("Done");
-        doneColumn.setTaskCount(0);
-        doneColumn.setPosition(2);
-        columns.put("done", doneColumn);
+        // Initialize with default columns
+        save(Column.builder()
+            .id("to-do")
+            .name("To Do")
+            .boardId("default-board")
+            .taskCount(0)
+            .position(1)
+            .lastUpdated(LocalDateTime.now())
+            .build());
+        
+        save(Column.builder()
+            .id("in-progress")
+            .name("In Progress")
+            .boardId("default-board")
+            .taskCount(0)
+            .position(2)
+            .lastUpdated(LocalDateTime.now())
+            .build());
+        
+        save(Column.builder()
+            .id("done")
+            .name("Done")
+            .boardId("default-board")
+            .taskCount(0)
+            .position(3)
+            .lastUpdated(LocalDateTime.now())
+            .build());
     }
-
+    
     @Override
-    public BoardColumn save(BoardColumn column) {
-        column.setLastUpdated(LocalDateTime.now());
+    public Column save(Column column) {
         columns.put(column.getId(), column);
         return column;
     }
-
+    
     @Override
-    public Optional<BoardColumn> findById(String id) {
+    public Optional<Column> findById(String id) {
         return Optional.ofNullable(columns.get(id));
     }
-
+    
+    @Override
+    public List<Column> findByBoardId(String boardId) {
+        return columns.values().stream()
+            .filter(column -> column.getBoardId().equals(boardId))
+            .sorted(Comparator.comparing(Column::getPosition))
+            .collect(Collectors.toList());
+    }
+    
     @Override
     public void incrementTaskCount(String columnId, int increment) {
-        BoardColumn column = columns.get(columnId);
+        Column column = columns.get(columnId);
         if (column != null) {
             column.setTaskCount(column.getTaskCount() + increment);
             column.setLastUpdated(LocalDateTime.now());
         }
+    }
+    
+    @Override
+    public List<Column> findAll() {
+        return new ArrayList<>(columns.values());
     }
 }
