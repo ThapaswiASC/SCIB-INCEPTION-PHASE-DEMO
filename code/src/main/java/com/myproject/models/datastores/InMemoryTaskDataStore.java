@@ -1,13 +1,12 @@
 package com.myproject.models.datastores;
 
 import com.myproject.models.entities.Task;
-import com.myproject.models.dtos.TaskStatus;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 @Component
 public class InMemoryTaskDataStore implements TaskDataStore {
@@ -19,7 +18,9 @@ public class InMemoryTaskDataStore implements TaskDataStore {
     public Task save(Task task) {
         if (task.getId() == null) {
             task.setId(idGenerator.getAndIncrement());
+            task.setCreatedAt(LocalDateTime.now());
         }
+        task.setUpdatedAt(LocalDateTime.now());
         taskStore.put(task.getId(), task);
         return task;
     }
@@ -30,19 +31,17 @@ public class InMemoryTaskDataStore implements TaskDataStore {
     }
 
     @Override
-    public List<Task> findByStatus(TaskStatus status) {
-        return taskStore.values().stream()
-                .filter(task -> task.getStatus() == status)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public boolean deleteById(Long id) {
-        return taskStore.remove(id) != null;
-    }
-
-    @Override
     public List<Task> findAll() {
         return new ArrayList<>(taskStore.values());
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        taskStore.remove(id);
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return taskStore.containsKey(id);
     }
 }

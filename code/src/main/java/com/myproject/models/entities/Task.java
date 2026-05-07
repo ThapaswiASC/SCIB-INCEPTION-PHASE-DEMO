@@ -1,7 +1,7 @@
 package com.myproject.models.entities;
 
+import com.myproject.models.dtos.Priority;
 import com.myproject.models.dtos.TaskStatus;
-
 import java.time.LocalDateTime;
 
 public class Task {
@@ -9,20 +9,30 @@ public class Task {
     private Long id;
     private String title;
     private String description;
+    private Priority priority;
     private TaskStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime dueDate;
+    private Long userId;
 
     public Task() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.status = TaskStatus.PENDING;
     }
 
-    public Task(Long id, String title, String description, TaskStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Task(Long id, String title, String description, Priority priority, TaskStatus status,
+               LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime dueDate, Long userId) {
         this.id = id;
         this.title = title;
         this.description = description;
+        this.priority = priority;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.dueDate = dueDate;
+        this.userId = userId;
     }
 
     public Long getId() {
@@ -49,6 +59,14 @@ public class Task {
         this.description = description;
     }
 
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
     public TaskStatus getStatus() {
         return status;
     }
@@ -71,5 +89,21 @@ public class Task {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDateTime dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }
