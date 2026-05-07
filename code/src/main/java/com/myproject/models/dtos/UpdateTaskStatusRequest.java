@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class UpdateTaskStatusRequest {
     
     @NotNull(message = "Status is required")
-    private String status;
+    private TaskStatus status;
     
     @NotBlank(message = "Column ID is required")
     private String columnId;
