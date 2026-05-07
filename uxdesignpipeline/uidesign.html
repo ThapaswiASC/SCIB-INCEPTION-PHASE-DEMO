@@ -1,2201 +1,2382 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow — Light · Kanban Board</title>
-    <style>
-        /* ── Play+ Light Theme Tokens (light.css + base.css names inlined) ── */
-        :root {
-            --color-brand-primary: #E91E63;
-            --rgb-brand-primary: 233, 30, 99;
-            --color-brand-secondary: #673AB7;
-            --rgb-brand-secondary: 103, 58, 183;
-            
-            --glass-background-color: rgba(255, 255, 255, 0.6);
-            --surface-glass-border: rgba(255, 255, 255, 0.7);
-            --surface-glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-backdrop-blur: 12px;
-            --glass-elevation: 0px 4px 12px rgba(0, 0, 0, 0.1);
-            
-            --global-elevation-01: 0px 2px 4px rgba(0, 0, 0, 0.08);
-            --global-elevation-02: 0px 4px 12px rgba(0, 0, 0, 0.1);
-            --global-glassmorphic-blur-30: blur(15px);
-            --global-glassmorphic-blur-60: blur(30px);
-            --global-glassmorphic-blur-90: blur(45px);
-            
-            --glass-0-blur: blur(4px);
-            --glass-0-border: 1px solid rgba(255, 255, 255, 0.8);
-            --glass-0-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-            
-            --glass-10-blur: blur(12px);
-            --glass-10-border: 0px solid rgba(255, 255, 255, 0.6);
-            --glass-10-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 5px 15px rgba(0, 0, 0, 0.10);
-            
-            --glass-25-blur: blur(8px);
-            --glass-25-border: 1px solid rgba(255, 255, 255, 0.4);
-            --glass-25-shadow: 0 8px 20px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.08);
-            
-            --glass-100-blur: blur(20px);
-            --glass-100-border: 1px solid rgba(255, 255, 255, 0.3);
-            --glass-100-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            
-            --global-background: #f0f4ff;
-            --color-input-background: rgba(255, 255, 255, .75);
-            
-            --color-text-primary: #4C515B;
-            --color-text-muted: #898E99;
-            --color-text-subtle: #B0B5BE;
-            
-            --color-border-default: rgba(0, 0, 0, .10);
-            --color-border-focus: var(--color-brand-primary);
-            
-            --global-color-green-500: #2E9E72;
-            --global-color-red-500: #D64545;
-            --global-color-yellow-500: #C97A1A;
-            --global-color-blue-500: #3B6FD4;
-            --global-color-deep-purple-500: #7B52BC;
-            
-            --green-bg: rgba(46, 158, 114, .12);
-            --red-bg: rgba(214, 69, 69, .10);
-            --amber-bg: rgba(201, 122, 26, .10);
-            --blue-bg: rgba(59, 111, 212, .10);
-            
-            --gradient-brand: linear-gradient(135deg, var(--color-brand-primary), #9c27b0);
-            --gradient-mesh: radial-gradient(ellipse at 15% 55%, rgba(233, 30, 99, .13) 0%, transparent 55%),
-                radial-gradient(ellipse at 85% 15%, rgba(156, 39, 176, .10) 0%, transparent 50%),
-                radial-gradient(ellipse at 55% 88%, rgba(59, 111, 212, .09) 0%, transparent 48%),
-                radial-gradient(ellipse at 70% 50%, rgba(255, 255, 255, .65) 0%, transparent 70%);
-            
-            --global-font-family-body: 'Inter', sans-serif;
-            --global-font-family-heading: 'Mulish', sans-serif;
-            
-            --global-spacing-1: 4px;
-            --global-spacing-2: 8px;
-            --global-spacing-3: 12px;
-            --global-spacing-4: 16px;
-            --global-spacing-5: 20px;
-            --global-spacing-6: 24px;
-            --global-spacing-7: 28px;
-            --global-spacing-8: 32px;
-            
-            --global-radius-sm: 6px;
-            --global-radius-md: 8px;
-            --global-radius-lg: 12px;
-            --global-radius-xl: 16px;
-            --global-radius-pill: 9999px;
-            --global-radius-circle: 50%;
-            
-            --global-motion-duration-swift: .2s;
-            --global-motion-easing-standard: cubic-bezier(.4, 0, .2, 1);
-            
-            --focus-outline-color: #3B6FD4;
-            --focus-outline-style: solid;
-            --focus-outline-width: 3px;
-        }
-        
-        /* ── Reset ── */
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
-        body {
-            font-family: var(--global-font-family-body);
-            color: var(--color-text-primary);
-            font-size: 14px;
-            line-height: 1.5;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            background: var(--global-background);
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background: var(--gradient-mesh);
-            pointer-events: none;
-            z-index: 0;
-        }
-        
-        @media(prefers-reduced-motion: no-preference) {
-            body::before {
-                animation: meshShift 14s ease-in-out infinite alternate;
-            }
-        }
-        
-        @keyframes meshShift {
-            0% {
-                opacity: .85;
-                transform: scale(1);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1.05) rotate(.8deg);
-            }
-        }
-        
-        /* ── Skip link (WCAG Motor — Keyboard Navigability) ── */
-        .skip-link {
-            position: absolute;
-            top: -999px;
-            left: 8px;
-            z-index: 9999;
-            background: var(--global-background);
-            color: var(--color-text-primary);
-            padding: 8px 16px;
-            border-radius: var(--global-radius-md);
-            font-weight: 700;
-            font-size: 13px;
-            text-decoration: none;
-            border: 2px solid var(--focus-outline-color);
-        }
-        
-        .skip-link:focus {
-            top: 8px;
-        }
-        
-        /* ── Global focus ring (accessibilitystandards.txt: --focus-outline-*) ── */
-        :focus-visible {
-            outline: var(--focus-outline-width) var(--focus-outline-style) var(--focus-outline-color);
-            outline-offset: 2px;
-            border-radius: var(--global-radius-sm);
-        }
-        
-        /* ── Layout ── */
-        #app {
-            display: flex;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* ── SIDEBAR — glass-100 ── */
-        .sidebar {
-            width: 234px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            padding: var(--global-spacing-5) var(--global-spacing-4);
-            overflow-y: auto;
-            background: rgba(255, 255, 255, .82);
-            backdrop-filter: var(--glass-100-blur);
-            -webkit-backdrop-filter: var(--glass-100-blur);
-            border-right: var(--glass-25-border);
-            box-shadow: var(--glass-100-shadow);
-        }
-        
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: var(--global-spacing-3);
-            padding-bottom: var(--global-spacing-5);
-            border-bottom: 1px solid rgba(0, 0, 0, .08);
-            margin-bottom: var(--global-spacing-4);
-        }
-        
-        .brand-ico {
-            width: 34px;
-            height: 34px;
-            border-radius: var(--global-radius-md);
-            background: var(--gradient-brand);
-            display: grid;
-            place-items: center;
-            font-weight: 800;
-            font-family: var(--global-font-family-heading);
-            color: #fff;
-            font-size: 14px;
-            flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(var(--rgb-brand-primary), .30);
-        }
-        
-        .brand-name {
-            font-family: var(--global-font-family-heading);
-            font-weight: 800;
-            font-size: 15px;
-            color: var(--color-text-primary);
-        }
-        
-        .brand-name b {
-            color: var(--color-brand-primary);
-        }
-        
-        .nav-label {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-            color: var(--color-text-subtle);
-            padding: var(--global-spacing-4) 0 var(--global-spacing-2);
-        }
-        
-        .nav-list {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        
-        .nav-list li {
-            display: flex;
-            align-items: center;
-            gap: var(--global-spacing-3);
-            padding: 9px var(--global-spacing-3);
-            border-radius: var(--global-radius-md);
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--color-text-muted);
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-            border: 1px solid transparent;
-        }
-        
-        .nav-list li:hover {
-            background: var(--glass-background-color);
-            border-color: rgba(0, 0, 0, .07);
-            color: var(--color-text-primary);
-        }
-        
-        .nav-list li.active {
-            background: linear-gradient(135deg, rgba(var(--rgb-brand-primary), .10), rgba(156, 39, 176, .07));
-            border-color: rgba(var(--rgb-brand-primary), .2);
-            color: var(--color-brand-primary);
-            font-weight: 600;
-            box-shadow: 0 2px 12px rgba(var(--rgb-brand-primary), .10);
-        }
-        
-        .nav-icon {
-            width: 16px;
-            height: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-        }
-        
-        /* ── MAIN ── */
-        #main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            min-width: 0;
-        }
-        
-        /* ── HEADER — glass-25 ── */
-        .header {
-            height: 54px;
-            flex-shrink: 0;
-            background: rgba(255, 255, 255, .72);
-            backdrop-filter: var(--glass-25-blur);
-            -webkit-backdrop-filter: var(--glass-25-blur);
-            border-bottom: var(--glass-100-border);
-            box-shadow: var(--global-elevation-01);
-            display: flex;
-            align-items: center;
-            padding: 0 var(--global-spacing-5);
-            gap: var(--global-spacing-3);
-        }
-        
-        .search {
-            display: flex;
-            align-items: center;
-            gap: var(--global-spacing-2);
-            flex: 1;
-            max-width: 340px;
-            background: var(--glass-background-color);
-            border: var(--glass-25-border);
-            border-radius: var(--global-radius-sm);
-            padding: var(--global-spacing-2) var(--global-spacing-3);
-            transition: border-color var(--global-motion-duration-swift) var(--global-motion-easing-standard), box-shadow var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-        }
-        
-        .search:focus-within {
-            border-color: rgba(var(--rgb-brand-primary), .4);
-            box-shadow: 0 0 0 3px rgba(var(--rgb-brand-primary), .08);
-        }
-        
-        .search input {
-            border: none;
-            background: transparent;
-            outline: none;
-            font-size: 13px;
-            font-family: var(--global-font-family-body);
-            color: var(--color-text-primary);
-            flex: 1;
-        }
-        
-        .search input::placeholder {
-            color: var(--color-text-subtle);
-        }
-        
-        .h-right {
-            display: flex;
-            align-items: center;
-            gap: var(--global-spacing-3);
-            margin-left: auto;
-        }
-        
-        .ico-btn {
-            width: 34px;
-            height: 34px;
-            border-radius: var(--global-radius-circle);
-            border: var(--glass-25-border);
-            background: var(--glass-background-color);
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-            position: relative;
-            color: var(--color-text-muted);
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-        }
-        
-        .ico-btn:hover {
-            background: rgba(255, 255, 255, .88);
-            border-color: rgba(var(--rgb-brand-primary), .25);
-            color: var(--color-brand-primary);
-        }
-        
-        .avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: var(--global-radius-circle);
-            background: var(--gradient-brand);
-            display: grid;
-            place-items: center;
-            font-size: 11px;
-            font-weight: 700;
-            color: #fff;
-            flex-shrink: 0;
-            box-shadow: var(--glass-elevation), 0 0 0 2px rgba(var(--rgb-brand-primary), .15);
-        }
-        
-        /* ── CONTENT ── */
-        #content {
-            flex: 1;
-            overflow-y: auto;
-            background: transparent;
-        }
-        
-        .page {
-            display: none;
-            padding: var(--global-spacing-5) var(--global-spacing-6);
-        }
-        
-        .page.active {
-            display: block;
-        }
-        
-        /* ── Glass CARD — glass-10 ── */
-        .card {
-            background: var(--glass-background-color);
-            backdrop-filter: var(--glass-10-blur);
-            -webkit-backdrop-filter: var(--glass-10-blur);
-            border: var(--glass-0-border);
-            border-radius: var(--global-radius-xl);
-            padding: var(--global-spacing-4);
-            box-shadow: var(--glass-25-shadow);
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-            margin-bottom: var(--global-spacing-4);
-        }
-        
-        .card:hover {
-            background: rgba(255, 255, 255, .80);
-            border-color: rgba(255, 255, 255, .95);
-            box-shadow: var(--glass-0-shadow);
-        }
-        
-        .card-title {
-            font-family: var(--global-font-family-heading);
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--color-text-primary);
-            margin-bottom: var(--global-spacing-4);
-        }
-        
-        /* ── Page header ── */
-        .ph {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: var(--global-spacing-5);
-        }
-        
-        .ph-title {
-            font-family: var(--global-font-family-heading);
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--color-text-primary);
-        }
-        
-        .ph-sub {
-            font-size: 12px;
-            color: var(--color-text-muted);
-            margin-top: 2px;
-        }
-        
-        /* ── Grid ── */
-        .g3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--global-spacing-4);
-            margin-bottom: var(--global-spacing-4);
-        }
-        
-        .g2 {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: var(--global-spacing-4);
-            margin-bottom: var(--global-spacing-4);
-        }
-        
-        /* ── BUTTONS — Play+ .ava-button structure ── */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--global-radius-md);
-            font-family: var(--global-font-family-body);
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            font-size: 13px;
-            padding: 7px 15px;
-            height: 34px;
-            border: none;
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-        
-        .btn .button-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--global-spacing-2);
-            position: relative;
-            z-index: 1;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, var(--color-brand-primary), #9c27b0);
-            color: #fff;
-            border: 1px solid rgba(var(--rgb-brand-primary), .25);
-            box-shadow: var(--glass-elevation), 0 0 12px rgba(var(--rgb-brand-primary), .25);
-        }
-        
-        .btn-primary:hover {
-            box-shadow: var(--glass-0-shadow), 0 0 20px rgba(var(--rgb-brand-primary), .30);
-            transform: translateY(-1px) scale(1.02);
-        }
-        
-        .btn-secondary {
-            background: var(--glass-background-color);
-            border: var(--glass-0-border);
-            color: var(--color-text-primary);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, .88);
-            border-color: rgba(var(--rgb-brand-primary), .3);
-            color: var(--color-brand-primary);
-        }
-        
-        .btn-sm {
-            height: 28px;
-            padding: 4px 10px;
-            font-size: 12px;
-        }
-        
-        /* ── BADGES ── */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 2px 8px;
-            border-radius: var(--global-radius-pill);
-            font-size: 11px;
-            font-weight: 600;
-        }
-        
-        .badge-success {
-            background: var(--green-bg);
-            color: var(--global-color-green-500);
-            border: 1px solid rgba(46, 158, 114, .2);
-        }
-        
-        .badge-info {
-            background: var(--blue-bg);
-            color: var(--global-color-blue-500);
-            border: 1px solid rgba(59, 111, 212, .2);
-        }
-        
-        .badge-brand {
-            background: rgba(var(--rgb-brand-primary), .10);
-            color: var(--color-brand-primary);
-            border: 1px solid rgba(var(--rgb-brand-primary), .20);
-        }
-        
-        /* ── KANBAN BOARD ── */
-        .kanban-board {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--global-spacing-4);
-            height: calc(100vh - 200px);
-        }
-        
-        .kanban-column {
-            background: var(--glass-background-color);
-            backdrop-filter: var(--glass-10-blur);
-            -webkit-backdrop-filter: var(--glass-10-blur);
-            border: var(--glass-0-border);
-            border-radius: var(--global-radius-xl);
-            padding: var(--global-spacing-4);
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--glass-25-shadow);
-        }
-        
-        .column-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--global-spacing-4);
-            padding-bottom: var(--global-spacing-3);
-            border-bottom: 1px solid rgba(0, 0, 0, .08);
-        }
-        
-        .column-title {
-            font-family: var(--global-font-family-heading);
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--color-text-primary);
-        }
-        
-        .column-count {
-            background: rgba(var(--rgb-brand-primary), .10);
-            color: var(--color-brand-primary);
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: var(--global-radius-pill);
-            border: 1px solid rgba(var(--rgb-brand-primary), .20);
-        }
-        
-        .task-list {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: var(--global-spacing-3);
-            overflow-y: auto;
-        }
-        
-        .task-card {
-            background: rgba(255, 255, 255, .85);
-            backdrop-filter: var(--glass-0-blur);
-            -webkit-backdrop-filter: var(--glass-0-blur);
-            border: var(--glass-0-border);
-            border-radius: var(--global-radius-lg);
-            padding: var(--global-spacing-4);
-            cursor: pointer;
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-            box-shadow: var(--global-elevation-01);
-        }
-        
-        .task-card:hover {
-            background: rgba(255, 255, 255, .95);
-            border-color: rgba(var(--rgb-brand-primary), .25);
-            transform: translateY(-2px);
-            box-shadow: var(--glass-25-shadow);
-        }
-        
-        .task-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--color-text-primary);
-            margin-bottom: var(--global-spacing-3);
-            line-height: 1.4;
-        }
-        
-        .task-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            color: var(--color-text-muted);
-        }
-        
-        .task-assignee {
-            width: 24px;
-            height: 24px;
-            border-radius: var(--global-radius-circle);
-            background: var(--gradient-brand);
-            border: 1px solid rgba(var(--rgb-brand-primary), .2);
-            display: grid;
-            place-items: center;
-            font-size: 10px;
-            font-weight: 700;
-            color: #fff;
-            box-shadow: 0 2px 6px rgba(var(--rgb-brand-primary), .20);
-        }
-        
-        /* ── MODAL ── */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        .modal-overlay.active {
-            display: flex;
-        }
-        
-        .modal {
-            background: rgba(255, 255, 255, .95);
-            backdrop-filter: var(--glass-10-blur);
-            -webkit-backdrop-filter: var(--glass-10-blur);
-            border: var(--glass-0-border);
-            border-radius: var(--global-radius-xl);
-            padding: var(--global-spacing-6);
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: var(--glass-0-shadow);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--global-spacing-5);
-            padding-bottom: var(--global-spacing-3);
-            border-bottom: 1px solid rgba(0, 0, 0, .08);
-        }
-        
-        .modal-title {
-            font-family: var(--global-font-family-heading);
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--color-text-primary);
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            color: var(--color-text-muted);
-            width: 32px;
-            height: 32px;
-            border-radius: var(--global-radius-circle);
-            display: grid;
-            place-items: center;
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-        }
-        
-        .modal-close:hover {
-            background: rgba(var(--rgb-brand-primary), .08);
-            color: var(--color-brand-primary);
-        }
-        
-        /* ── FORM ── */
-        .field {
-            margin-bottom: var(--global-spacing-4);
-        }
-        
-        .field label {
-            display: block;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--color-text-muted);
-            margin-bottom: var(--global-spacing-1);
-        }
-        
-        .field input, .field select, .field textarea {
-            width: 100%;
-            padding: var(--global-spacing-2) var(--global-spacing-3);
-            border: 1px solid rgba(0, 0, 0, .12);
-            border-radius: var(--global-radius-sm);
-            font-family: var(--global-font-family-body);
-            font-size: 13px;
-            color: var(--color-text-primary);
-            background: var(--color-input-background);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            outline: none;
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-        }
-        
-        .field input:focus, .field select:focus, .field textarea:focus {
-            border-color: rgba(var(--rgb-brand-primary), .5);
-            box-shadow: 0 0 0 3px rgba(var(--rgb-brand-primary), .10);
-        }
-        
-        .field textarea {
-            resize: vertical;
-            min-height: 68px;
-        }
-        
-        /* ── ANALYTICS ── */
-        .metric-card {
-            background: var(--glass-background-color);
-            backdrop-filter: var(--glass-10-blur);
-            -webkit-backdrop-filter: var(--glass-10-blur);
-            border: var(--glass-0-border);
-            border-radius: var(--global-radius-xl);
-            padding: var(--global-spacing-5);
-            text-align: center;
-            box-shadow: var(--glass-25-shadow);
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--glass-0-shadow);
-        }
-        
-        .metric-value {
-            font-family: var(--global-font-family-heading);
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--color-brand-primary);
-            margin-bottom: var(--global-spacing-2);
-            line-height: 1;
-        }
-        
-        .metric-label {
-            font-size: 12px;
-            color: var(--color-text-muted);
-            font-weight: 500;
-        }
-        
-        .chart-placeholder {
-            height: 200px;
-            background: rgba(255, 255, 255, .6);
-            backdrop-filter: var(--glass-0-blur);
-            -webkit-backdrop-filter: var(--glass-0-blur);
-            border: 2px dashed rgba(var(--rgb-brand-primary), .2);
-            border-radius: var(--global-radius-lg);
-            display: grid;
-            place-items: center;
-            color: var(--color-text-muted);
-            font-size: 13px;
-            text-align: center;
-            line-height: 1.5;
-        }
-        
-        /* ── SETTINGS ── */
-        .settings-section {
-            margin-bottom: var(--global-spacing-6);
-        }
-        
-        .settings-title {
-            font-family: var(--global-font-family-heading);
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: var(--global-spacing-4);
-            color: var(--color-text-primary);
-        }
-        
-        .toggle-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: var(--global-spacing-3) 0;
-            border-bottom: 1px solid rgba(0, 0, 0, .07);
-        }
-        
-        .toggle-row:last-child {
-            border-bottom: none;
-        }
-        
-        .toggle-lbl {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--color-text-primary);
-        }
-        
-        .toggle-hint {
-            font-size: 11px;
-            color: var(--color-text-muted);
-            margin-top: 1px;
-        }
-        
-        .toggle-wrapper {
-            width: 42px;
-            height: 22px;
-            border-radius: var(--global-radius-pill);
-            background: rgba(0, 0, 0, .12);
-            cursor: pointer;
-            position: relative;
-            flex-shrink: 0;
-            transition: background .35s cubic-bezier(.68, -.55, .265, 1.55);
-            border: 1px solid rgba(0, 0, 0, .10);
-            padding: 2px;
-        }
-        
-        .toggle-wrapper.on {
-            background: linear-gradient(90deg, var(--color-brand-primary), #9c27b0);
-            border-color: rgba(var(--rgb-brand-primary), .35);
-            box-shadow: 0 0 10px rgba(var(--rgb-brand-primary), .25);
-        }
-        
-        .toggle-slider {
-            width: 16px;
-            height: 16px;
-            border-radius: var(--global-radius-circle);
-            background: #fff;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
-            transition: transform .35s cubic-bezier(.68, -.55, .265, 1.55);
-            position: relative;
-            z-index: 1;
-        }
-        
-        .toggle-wrapper.on .toggle-slider {
-            transform: translateX(20px);
-        }
-        
-        /* ── DETAIL VIEW ── */
-        .detail-header {
-            display: flex;
-            align-items: center;
-            gap: var(--global-spacing-3);
-            margin-bottom: var(--global-spacing-5);
-        }
-        
-        .back-btn {
-            background: var(--glass-background-color);
-            border: var(--glass-0-border);
-            border-radius: var(--global-radius-md);
-            padding: var(--global-spacing-2) var(--global-spacing-3);
-            cursor: pointer;
-            color: var(--color-text-primary);
-            font-size: 13px;
-            font-weight: 500;
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-        }
-        
-        .back-btn:hover {
-            background: rgba(255, 255, 255, .88);
-            border-color: rgba(var(--rgb-brand-primary), .3);
-            color: var(--color-brand-primary);
-        }
-        
-        .detail-content {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: var(--global-spacing-5);
-        }
-        
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(0, 0, 0, .07);
-            font-size: 13px;
-        }
-        
-        .info-row:last-child {
-            border-bottom: none;
-        }
-        
-        .info-label {
-            font-size: 11px;
-            color: var(--color-text-muted);
-            font-weight: 500;
-        }
-        
-        .info-value {
-            font-weight: 500;
-            color: var(--color-text-primary);
-        }
-        
-        /* ── EMPTY STATE ── */
-        .empty-state {
-            text-align: center;
-            padding: var(--global-spacing-8) var(--global-spacing-5);
-            color: var(--color-text-muted);
-        }
-        
-        .empty-icon {
-            width: 64px;
-            height: 64px;
-            border: 2px dashed rgba(var(--rgb-brand-primary), .3);
-            border-radius: var(--global-radius-circle);
-            margin: 0 auto var(--global-spacing-4);
-            display: grid;
-            place-items: center;
-            background: rgba(var(--rgb-brand-primary), .05);
-            font-size: 24px;
-            color: var(--color-brand-primary);
-        }
-        
-        .empty-title {
-            font-family: var(--global-font-family-heading);
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: var(--global-spacing-2);
-            color: var(--color-text-primary);
-        }
-        
-        .empty-desc {
-            font-size: 13px;
-            margin-bottom: var(--global-spacing-4);
-            line-height: 1.5;
-        }
-        
-        /* ── Activity Feed ── */
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: var(--global-spacing-3);
-            padding: var(--global-spacing-3);
-            border-radius: var(--global-radius-md);
-            margin-bottom: var(--global-spacing-2);
-            background: rgba(255, 255, 255, .6);
-            border: 1px solid rgba(0, 0, 0, .05);
-        }
-        
-        .activity-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: var(--global-radius-circle);
-            background: var(--gradient-brand);
-            display: grid;
-            place-items: center;
-            font-size: 10px;
-            font-weight: 700;
-            color: #fff;
-            flex-shrink: 0;
-        }
-        
-        .activity-text {
-            font-size: 12px;
-            color: var(--color-text-primary);
-            line-height: 1.4;
-        }
-        
-        .activity-time {
-            font-size: 10px;
-            color: var(--color-text-subtle);
-            margin-left: auto;
-            flex-shrink: 0;
-        }
-        
-        /* ── Team Member Cards ── */
-        .team-member {
-            display: flex;
-            align-items: center;
-            gap: var(--global-spacing-3);
-            padding: var(--global-spacing-3);
-            border: 1px solid rgba(0, 0, 0, .08);
-            border-radius: var(--global-radius-md);
-            margin-bottom: var(--global-spacing-3);
-            background: rgba(255, 255, 255, .6);
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-        }
-        
-        .team-member:hover {
-            border-color: rgba(var(--rgb-brand-primary), .25);
-            background: rgba(255, 255, 255, .8);
-        }
-        
-        .team-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: var(--global-radius-circle);
-            background: var(--gradient-brand);
-            display: grid;
-            place-items: center;
-            font-size: 12px;
-            font-weight: 700;
-            color: #fff;
-            flex-shrink: 0;
-        }
-        
-        .team-info {
-            flex: 1;
-        }
-        
-        .team-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--color-text-primary);
-            margin-bottom: 2px;
-        }
-        
-        .team-workload {
-            font-size: 11px;
-            color: var(--color-text-muted);
-        }
-        
-        /* ── Report Templates ── */
-        .template-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--global-spacing-3);
-        }
-        
-        .template-card {
-            padding: var(--global-spacing-4);
-            border: 1px solid rgba(0, 0, 0, .08);
-            border-radius: var(--global-radius-lg);
-            cursor: pointer;
-            background: rgba(255, 255, 255, .6);
-            transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
-        }
-        
-        .template-card:hover {
-            border-color: rgba(var(--rgb-brand-primary), .3);
-            background: rgba(255, 255, 255, .8);
-            transform: translateY(-2px);
-            box-shadow: var(--glass-25-shadow);
-        }
-        
-        .template-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--color-text-primary);
-            margin-bottom: var(--global-spacing-2);
-        }
-        
-        .template-desc {
-            font-size: 12px;
-            color: var(--color-text-muted);
-            line-height: 1.4;
-        }
-        
-        /* ── Scrollbar ── */
-        ::-webkit-scrollbar {
-            width: 5px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, .12);
-            border-radius: var(--global-radius-pill);
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(var(--rgb-brand-primary), .35);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TaskFlow Pro — Task Management Platform</title>
+  <style>
+    /* ── Play+ Dark Theme Tokens ── */
+    :root {
+      /* Brand Colors */
+      --color-brand-primary: #D41B5A;
+      --rgb-brand-primary: 212,27,90;
+      
+      /* Glass Effects */
+      --glass-background-color: rgba(0, 0, 0, 0.4);
+      --glass-background-heavy: rgba(0, 0, 0, 0.55);
+      --glass-border-color: rgba(255,255,255,.10);
+      --glass-border-color-hi: rgba(255,255,255,.18);
+      --glass-backdrop-blur: 16px;
+      --glass-backdrop-blur-heavy: 24px;
+      --glass-box-shadow: 0 8px 32px rgba(0,0,0,.45), 0 2px 8px rgba(0,0,0,.3);
+      --glass-box-shadow-md: 0 4px 16px rgba(0,0,0,.35);
+      
+      /* Backgrounds */
+      --global-background: #0e0f14;
+      --color-input-background: rgba(0,0,0,.25);
+      
+      /* Text Colors */
+      --color-text-primary: #F0F1F2;
+      --color-text-muted: #9CA1AA;
+      --color-text-subtle: #616874;
+      
+      /* Border Colors */
+      --color-border-default: rgba(255,255,255,.09);
+      --color-border-focus: var(--color-brand-primary);
+      
+      /* Status Colors */
+      --global-color-green-500: #37AB87;
+      --global-color-red-500: #E86E6E;
+      --global-color-yellow-500: #E19238;
+      --global-color-blue-500: #5082EF;
+      --global-color-deep-purple-500: #8561C5;
+      
+      /* Status Backgrounds */
+      --green-bg: rgba(55,171,135,.15);
+      --red-bg: rgba(232,110,110,.13);
+      --amber-bg: rgba(225,146,56,.13);
+      --blue-bg: rgba(80,130,239,.13);
+      
+      /* Gradients */
+      --gradient-brand: linear-gradient(135deg, var(--color-brand-primary), #7b1fa2);
+      --gradient-mesh: radial-gradient(ellipse at 20% 50%, rgba(212,27,90,.18) 0%, transparent 60%),
+                       radial-gradient(ellipse at 80% 20%, rgba(133,97,197,.15) 0%, transparent 55%),
+                       radial-gradient(ellipse at 60% 90%, rgba(80,130,239,.12) 0%, transparent 50%);
+      
+      /* Typography */
+      --global-font-family-body: 'Inter', sans-serif;
+      --global-font-family-heading: 'Mulish', sans-serif;
+      
+      /* Spacing */
+      --global-spacing-1: 4px;
+      --global-spacing-2: 8px;
+      --global-spacing-3: 12px;
+      --global-spacing-4: 16px;
+      --global-spacing-5: 20px;
+      --global-spacing-6: 24px;
+      --global-spacing-7: 28px;
+      --global-spacing-8: 32px;
+      
+      /* Radius */
+      --global-radius-sm: 6px;
+      --global-radius-md: 8px;
+      --global-radius-lg: 12px;
+      --global-radius-xl: 16px;
+      --global-radius-pill: 9999px;
+      --global-radius-circle: 50%;
+      
+      /* Motion */
+      --global-motion-duration-swift: .2s;
+      --global-motion-easing-standard: cubic-bezier(.4,0,.2,1);
+      
+      /* Accessibility */
+      --focus-outline-color: #5082EF;
+      --focus-outline-style: solid;
+      --focus-outline-width: 3px;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--global-font-family-body);
+      color: var(--color-text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      background: var(--global-background);
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: var(--gradient-mesh);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      body::before {
+        animation: meshShift 14s ease-in-out infinite alternate;
+      }
+    }
+
+    @keyframes meshShift {
+      0% { opacity: .8; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.06) rotate(1deg); }
+    }
+
+    /* ── Skip Link ── */
+    .skip-link {
+      position: absolute;
+      top: -999px;
+      left: 8px;
+      z-index: 9999;
+      background: var(--global-background);
+      color: var(--color-text-primary);
+      padding: 8px 16px;
+      border-radius: var(--global-radius-md);
+      font-weight: 700;
+      font-size: 13px;
+      text-decoration: none;
+      border: 2px solid var(--focus-outline-color);
+    }
+
+    .skip-link:focus {
+      top: 8px;
+    }
+
+    /* ── Global Focus Ring ── */
+    :focus-visible {
+      outline: var(--focus-outline-width) var(--focus-outline-style) var(--focus-outline-color);
+      outline-offset: 2px;
+      border-radius: var(--global-radius-sm);
+    }
+
+    /* ── Layout ── */
+    #app {
+      display: flex;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      padding: var(--global-spacing-5) var(--global-spacing-4);
+      overflow-y: auto;
+      background: rgba(20,21,30,.85);
+      backdrop-filter: blur(var(--glass-backdrop-blur-heavy));
+      -webkit-backdrop-filter: blur(var(--glass-backdrop-blur-heavy));
+      border-right: 1px solid var(--glass-border-color);
+      box-shadow: var(--glass-box-shadow-md);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: var(--global-spacing-3);
+      padding-bottom: var(--global-spacing-5);
+      border-bottom: 1px solid var(--glass-border-color);
+      margin-bottom: var(--global-spacing-4);
+    }
+
+    .brand-ico {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--global-radius-md);
+      background: var(--gradient-brand);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-family: var(--global-font-family-heading);
+      color: #fff;
+      font-size: 14px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(var(--rgb-brand-primary),.35);
+    }
+
+    .brand-name {
+      font-family: var(--global-font-family-heading);
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--color-text-primary);
+    }
+
+    .brand-name b {
+      color: var(--color-brand-primary);
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--color-text-subtle);
+      padding: var(--global-spacing-4) 0 var(--global-spacing-2);
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-list li {
+      display: flex;
+      align-items: center;
+      gap: var(--global-spacing-3);
+      padding: 10px var(--global-spacing-3);
+      border-radius: var(--global-radius-md);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+      border: 1px solid transparent;
+    }
+
+    .nav-list li:hover {
+      background: var(--glass-background-color);
+      border-color: var(--glass-border-color);
+      color: var(--color-text-primary);
+    }
+
+    .nav-list li.active {
+      background: linear-gradient(135deg, rgba(var(--rgb-brand-primary),.2), rgba(133,97,197,.12));
+      border-color: rgba(var(--rgb-brand-primary),.3);
+      color: var(--color-brand-primary);
+      font-weight: 600;
+      box-shadow: 0 2px 12px rgba(var(--rgb-brand-primary),.15);
+    }
+
+    .nav-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .nav-pill {
+      margin-left: auto;
+      background: var(--color-brand-primary);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--global-radius-pill);
+      box-shadow: 0 2px 8px rgba(var(--rgb-brand-primary),.35);
+    }
+
+    .sb-foot {
+      margin-top: auto;
+      padding-top: var(--global-spacing-4);
+      border-top: 1px solid var(--glass-border-color);
+      font-size: 11px;
+      color: var(--color-text-subtle);
+      line-height: 1.7;
+    }
+
+    /* ── MAIN ── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      height: 60px;
+      flex-shrink: 0;
+      background: rgba(14,15,20,.8);
+      backdrop-filter: blur(var(--glass-backdrop-blur));
+      -webkit-backdrop-filter: blur(var(--glass-backdrop-blur));
+      border-bottom: 1px solid var(--glass-border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 var(--global-spacing-5);
+      gap: var(--global-spacing-3);
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: var(--global-spacing-2);
+      flex: 1;
+      max-width: 380px;
+      background: var(--glass-background-color);
+      border: 1px solid var(--glass-border-color);
+      border-radius: var(--global-radius-sm);
+      padding: var(--global-spacing-2) var(--global-spacing-3);
+      transition: border-color var(--global-motion-duration-swift) var(--global-motion-easing-standard), box-shadow var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    .search:focus-within {
+      border-color: rgba(var(--rgb-brand-primary),.4);
+      box-shadow: 0 0 0 3px rgba(var(--rgb-brand-primary),.08);
+    }
+
+    .search input {
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 13px;
+      font-family: var(--global-font-family-body);
+      color: var(--color-text-primary);
+      flex: 1;
+    }
+
+    .search input::placeholder {
+      color: var(--color-text-subtle);
+    }
+
+    .h-right {
+      display: flex;
+      align-items: center;
+      gap: var(--global-spacing-3);
+      margin-left: auto;
+    }
+
+    .ico-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--global-radius-circle);
+      border: 1px solid var(--glass-border-color);
+      background: var(--glass-background-color);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      position: relative;
+      color: var(--color-text-muted);
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    .ico-btn:hover {
+      background: var(--glass-background-heavy);
+      border-color: var(--glass-border-color-hi);
+      color: var(--color-text-primary);
+    }
+
+    .notif-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 6px;
+      height: 6px;
+      background: var(--global-color-red-500);
+      border-radius: var(--global-radius-circle);
+      border: 1.5px solid var(--global-background);
+      box-shadow: 0 0 6px rgba(232,110,110,.6);
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--global-radius-circle);
+      background: var(--gradient-brand);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px rgba(var(--rgb-brand-primary),.35);
+    }
+
+    .av-chip {
+      display: flex;
+      align-items: center;
+      gap: var(--global-spacing-2);
+      padding: 4px 12px 4px 4px;
+      border: 1px solid var(--glass-border-color);
+      border-radius: var(--global-radius-pill);
+      background: var(--glass-background-color);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    .av-chip:hover {
+      background: var(--glass-background-heavy);
+      border-color: var(--glass-border-color-hi);
+    }
+
+    /* ── CONTENT ── */
+    #content {
+      flex: 1;
+      overflow-y: auto;
+      background: transparent;
+    }
+
+    .page {
+      display: none;
+      padding: var(--global-spacing-6);
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* ── Glass CARD ── */
+    .card {
+      background: var(--glass-background-color);
+      backdrop-filter: blur(var(--glass-backdrop-blur));
+      -webkit-backdrop-filter: blur(var(--glass-backdrop-blur));
+      border: 1px solid var(--glass-border-color);
+      border-radius: var(--global-radius-xl);
+      padding: var(--global-spacing-5);
+      box-shadow: var(--glass-box-shadow);
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    .card:hover {
+      background: var(--glass-background-heavy);
+      border-color: var(--glass-border-color-hi);
+      box-shadow: 0 12px 40px rgba(0,0,0,.5);
+    }
+
+    .card-title {
+      font-family: var(--global-font-family-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--global-spacing-4);
+    }
+
+    /* ── Page Header ── */
+    .ph {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--global-spacing-6);
+    }
+
+    .ph-title {
+      font-family: var(--global-font-family-heading);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--color-text-primary);
+    }
+
+    .ph-sub {
+      font-size: 14px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── Grid ── */
+    .g3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--global-spacing-5);
+      margin-bottom: var(--global-spacing-5);
+    }
+
+    .g2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--global-spacing-5);
+      margin-bottom: var(--global-spacing-5);
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--global-radius-md);
+      font-family: var(--global-font-family-body);
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      font-size: 13px;
+      padding: 8px 16px;
+      height: 36px;
+      border: none;
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .btn .button-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--global-spacing-2);
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--color-brand-primary), #7b1fa2);
+      color: #fff;
+      border: 1px solid rgba(var(--rgb-brand-primary),.3);
+      box-shadow: 0 2px 12px rgba(var(--rgb-brand-primary),.35);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 4px 20px rgba(var(--rgb-brand-primary),.5);
+      transform: translateY(-1px) scale(1.02);
+    }
+
+    .btn-secondary {
+      background: var(--glass-background-color);
+      border: 1px solid var(--glass-border-color);
+      color: var(--color-text-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--glass-background-heavy);
+      border-color: rgba(var(--rgb-brand-primary),.3);
+      color: var(--color-brand-primary);
+    }
+
+    .btn-danger {
+      background: rgba(232,110,110,.12);
+      border: 1px solid rgba(232,110,110,.25);
+      color: var(--global-color-red-500);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      padding: 8px 12px;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(var(--rgb-brand-primary),.15);
+      color: var(--color-brand-primary);
+    }
+
+    .btn-sm {
+      height: 30px;
+      padding: 5px 12px;
+      font-size: 12px;
+    }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--global-radius-pill);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background: var(--green-bg);
+      color: var(--global-color-green-500);
+      border: 1px solid rgba(55,171,135,.2);
+    }
+
+    .badge-danger {
+      background: var(--red-bg);
+      color: var(--global-color-red-500);
+      border: 1px solid rgba(232,110,110,.2);
+    }
+
+    .badge-warning {
+      background: var(--amber-bg);
+      color: var(--global-color-yellow-500);
+      border: 1px solid rgba(225,146,56,.2);
+    }
+
+    .badge-info {
+      background: var(--blue-bg);
+      color: var(--global-color-blue-500);
+      border: 1px solid rgba(80,130,239,.2);
+    }
+
+    .badge-neutral {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--glass-border-color);
+      color: var(--color-text-muted);
+    }
+
+    .badge-brand {
+      background: rgba(var(--rgb-brand-primary),.15);
+      color: var(--color-brand-primary);
+      border: 1px solid rgba(var(--rgb-brand-primary),.25);
+    }
+
+    .dot::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: var(--global-radius-circle);
+      background: currentColor;
+      display: inline-block;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--glass-border-color);
+      margin-bottom: var(--global-spacing-5);
+      gap: 2px;
+    }
+
+    .tab {
+      padding: var(--global-spacing-3) var(--global-spacing-4);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-subtle);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    .tab:hover {
+      color: var(--color-text-primary);
+    }
+
+    .tab.active {
+      color: var(--color-brand-primary);
+      border-bottom-color: var(--color-brand-primary);
+      font-weight: 600;
+      text-shadow: 0 0 20px rgba(var(--rgb-brand-primary),.4);
+    }
+
+    /* ── STATS ── */
+    .stat-ico {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--global-radius-md);
+      display: grid;
+      place-items: center;
+      margin-bottom: var(--global-spacing-3);
+      font-size: 18px;
+    }
+
+    .stat-lbl {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .stat-val {
+      font-family: var(--global-font-family-heading);
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--color-text-primary);
+    }
+
+    .stat-hint {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+    }
+
+    /* ── LIST ITEMS ── */
+    .li {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--global-spacing-3);
+      padding: var(--global-spacing-4);
+      background: var(--glass-background-color);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border-color);
+      border-radius: var(--global-radius-lg);
+      margin-bottom: var(--global-spacing-3);
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    .li:hover {
+      background: var(--glass-background-heavy);
+      border-color: var(--glass-border-color-hi);
+      transform: translateX(2px);
+    }
+
+    .li-ico {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--global-radius-sm);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .li-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .li-sub {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      line-height: 1.5;
+    }
+
+    .li-acts {
+      display: flex;
+      flex-direction: column;
+      gap: var(--global-spacing-2);
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    /* ── KANBAN ── */
+    .kanban {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--global-spacing-4);
+      height: 100%;
+    }
+
+    .kanban-col {
+      background: var(--glass-background-color);
+      border: 1px solid var(--glass-border-color);
+      border-radius: var(--global-radius-lg);
+      padding: var(--global-spacing-4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .kanban-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--global-spacing-4);
+      padding-bottom: var(--global-spacing-3);
+      border-bottom: 1px solid var(--glass-border-color);
+    }
+
+    .kanban-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--color-text-primary);
+    }
+
+    .kanban-count {
+      background: var(--glass-background-heavy);
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: var(--global-radius-pill);
+    }
+
+    .kanban-items {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--global-spacing-3);
+    }
+
+    .kanban-card {
+      background: var(--glass-background-heavy);
+      border: 1px solid var(--glass-border-color);
+      border-radius: var(--global-radius-md);
+      padding: var(--global-spacing-3);
+      cursor: grab;
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    .kanban-card:hover {
+      border-color: var(--glass-border-color-hi);
+      transform: translateY(-1px);
+    }
+
+    .kanban-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: var(--global-spacing-2);
+    }
+
+    .kanban-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--color-text-muted);
+    }
+
+    /* ── CHARTS ── */
+    .chart-container {
+      height: 200px;
+      background: var(--glass-background-color);
+      border: 1px solid var(--glass-border-color);
+      border-radius: var(--global-radius-md);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-muted);
+      font-size: 12px;
+    }
+
+    /* ── FORMS ── */
+    .field {
+      margin-bottom: var(--global-spacing-4);
+    }
+
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      margin-bottom: var(--global-spacing-2);
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: var(--global-spacing-3);
+      border: 1px solid var(--glass-border-color);
+      border-radius: var(--global-radius-sm);
+      font-family: var(--global-font-family-body);
+      font-size: 13px;
+      color: var(--color-text-primary);
+      background: var(--color-input-background);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      outline: none;
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: rgba(var(--rgb-brand-primary),.6);
+      box-shadow: 0 0 0 3px rgba(var(--rgb-brand-primary),.12), 0 0 20px rgba(var(--rgb-brand-primary),.06);
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* ── TOGGLE ── */
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--global-spacing-3) 0;
+      border-bottom: 1px solid var(--glass-border-color);
+    }
+
+    .toggle-row:last-child {
+      border-bottom: none;
+    }
+
+    .toggle-lbl {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+    }
+
+    .toggle-hint {
+      font-size: 11px;
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
+    .ava-toggle-container {
+      display: flex;
+      align-items: center;
+      gap: var(--global-spacing-3);
+      user-select: none;
+    }
+
+    .toggle-wrapper {
+      width: 44px;
+      height: 24px;
+      border-radius: var(--global-radius-pill);
+      background: rgba(255,255,255,.12);
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: background .35s cubic-bezier(.68,-.55,.265,1.55);
+      border: 1px solid var(--glass-border-color);
+      padding: 2px;
+    }
+
+    .toggle-wrapper.on {
+      background: linear-gradient(90deg, var(--color-brand-primary), #7b1fa2);
+      border-color: rgba(var(--rgb-brand-primary),.4);
+      box-shadow: 0 0 12px rgba(var(--rgb-brand-primary),.35);
+    }
+
+    .toggle-slider {
+      width: 18px;
+      height: 18px;
+      border-radius: var(--global-radius-circle);
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,.4);
+      transition: transform .35s cubic-bezier(.68,-.55,.265,1.55);
+      position: relative;
+      z-index: 1;
+    }
+
+    .toggle-wrapper.on .toggle-slider {
+      transform: translateX(20px);
+    }
+
+    .toggle-wrapper:hover:not(.disabled) .toggle-slider {
+      box-shadow: 0 2px 6px rgba(0,0,0,.4), 0 0 0 3px rgba(var(--rgb-brand-primary),.25);
+    }
+
+    /* ── MODALS ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--glass-background-heavy);
+      border: 1px solid var(--glass-border-color);
+      border-radius: var(--global-radius-xl);
+      padding: var(--global-spacing-6);
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--glass-box-shadow);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--global-spacing-5);
+    }
+
+    .modal-title {
+      font-family: var(--global-font-family-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: var(--glass-background-color);
+      border-radius: var(--global-radius-circle);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    .modal-close:hover {
+      background: var(--glass-background-heavy);
+      color: var(--color-text-primary);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: var(--global-spacing-3);
+      justify-content: flex-end;
+      margin-top: var(--global-spacing-5);
+    }
+
+    /* ── PROGRESS ── */
+    .progress {
+      width: 100%;
+      height: 6px;
+      background: var(--glass-background-color);
+      border-radius: var(--global-radius-pill);
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--gradient-brand);
+      border-radius: var(--global-radius-pill);
+      transition: width var(--global-motion-duration-swift) var(--global-motion-easing-standard);
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,.1);
+      border-radius: var(--global-radius-pill);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(var(--rgb-brand-primary),.4);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1023px) {
+      .sidebar {
+        width: 220px;
+      }
+      
+      .g3 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .kanban {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 767px) {
+      .sidebar {
+        width: 200px;
+      }
+      
+      .g3,
+      .g2 {
+        grid-template-columns: 1fr;
+      }
+      
+      .kanban {
+        grid-template-columns: 1fr;
+      }
+      
+      .ph {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--global-spacing-3);
+      }
+    }
+  </style>
 </head>
 <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <div id="app">
+    <!-- SIDEBAR -->
+    <nav class="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="brand">
+        <div class="brand-ico">TF</div>
+        <div class="brand-name">TaskFlow <b>Pro</b></div>
+      </div>
+      
+      <div class="nav-label">Main</div>
+      <ul class="nav-list" role="menubar">
+        <li role="menuitem" tabindex="0" class="active" onclick="nav(this, 'dashboard')" onkeydown="navKey(event, this, 'dashboard')">
+          <span class="nav-icon">📊</span>
+          Dashboard
+        </li>
+        <li role="menuitem" tabindex="-1" onclick="nav(this, 'tasks')" onkeydown="navKey(event, this, 'tasks')">
+          <span class="nav-icon">✓</span>
+          My Tasks
+        </li>
+        <li role="menuitem" tabindex="-1" onclick="nav(this, 'team')" onkeydown="navKey(event, this, 'team')">
+          <span class="nav-icon">👥</span>
+          Team Management
+        </li>
+        <li role="menuitem" tabindex="-1" onclick="nav(this, 'sprint')" onkeydown="navKey(event, this, 'sprint')">
+          <span class="nav-icon">🏃</span>
+          Sprint Board
+        </li>
+      </ul>
+      
+      <div class="nav-label">Analytics</div>
+      <ul class="nav-list" role="menubar">
+        <li role="menuitem" tabindex="-1" onclick="nav(this, 'analytics')" onkeydown="navKey(event, this, 'analytics')">
+          <span class="nav-icon">📈</span>
+          Analytics
+        </li>
+        <li role="menuitem" tabindex="-1" onclick="nav(this, 'monitoring')" onkeydown="navKey(event, this, 'monitoring')">
+          <span class="nav-icon">📡</span>
+          Live Monitoring
+        </li>
+      </ul>
+      
+      <div class="nav-label">Account</div>
+      <ul class="nav-list" role="menubar">
+        <li role="menuitem" tabindex="-1" onclick="nav(this, 'settings')" onkeydown="navKey(event, this, 'settings')">
+          <span class="nav-icon">⚙️</span>
+          Settings
+        </li>
+        <li role="menuitem" tabindex="-1" onclick="nav(this, 'setup')" onkeydown="navKey(event, this, 'setup')">
+          <span class="nav-icon">🚀</span>
+          Quick Setup
+        </li>
+      </ul>
+      
+      <div class="sb-foot">
+        TaskFlow Pro v3.2<br>
+        © 2024 TaskFlow Inc.
+      </div>
+    </nav>
     
-    <div id="app">
-        <!-- SIDEBAR -->
-        <nav class="sidebar" role="navigation" aria-label="Main navigation">
-            <div class="brand">
-                <div class="brand-ico" aria-hidden="true">TF</div>
-                <div class="brand-name">Task<b>Flow</b></div>
-            </div>
-            
-            <div class="nav-label">Task Management</div>
-            <ul class="nav-list" role="menubar">
-                <li role="menuitem" tabindex="0" class="active" onclick="nav(this,'kanban')" onkeydown="navKey(event,this,'kanban')" aria-label="Kanban Board Dashboard">
-                    <div class="nav-icon" aria-hidden="true">📋</div>
-                    <span>Kanban Board</span>
-                </li>
-                <li role="menuitem" tabindex="-1" onclick="nav(this,'collaborative')" onkeydown="navKey(event,this,'collaborative')" aria-label="Collaborative Kanban Board">
-                    <div class="nav-icon" aria-hidden="true">👥</div>
-                    <span>Collaborative Board</span>
-                </li>
-            </ul>
-            
-            <div class="nav-label">Analytics</div>
-            <ul class="nav-list" role="menubar">
-                <li role="menuitem" tabindex="-1" onclick="nav(this,'analytics')" onkeydown="navKey(event,this,'analytics')" aria-label="Progress Analytics Dashboard">
-                    <div class="nav-icon" aria-hidden="true">📊</div>
-                    <span>Progress Analytics</span>
-                </li>
-                <li role="menuitem" tabindex="-1" onclick="nav(this,'reports')" onkeydown="navKey(event,this,'reports')" aria-label="Report Builder Dashboard">
-                    <div class="nav-icon" aria-hidden="true">📈</div>
-                    <span>Report Builder</span>
-                </li>
-            </ul>
-            
-            <div class="nav-label">Configuration</div>
-            <ul class="nav-list" role="menubar">
-                <li role="menuitem" tabindex="-1" onclick="nav(this,'config')" onkeydown="navKey(event,this,'config')" aria-label="Board Configuration Dashboard">
-                    <div class="nav-icon" aria-hidden="true">⚙️</div>
-                    <span>Board Configuration</span>
-                </li>
-            </ul>
-        </nav>
+    <!-- MAIN CONTENT -->
+    <main id="main">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="search">
+          <span>🔍</span>
+          <input type="text" placeholder="Search tasks, projects, team members..." aria-label="Search">
+        </div>
         
-        <!-- MAIN -->
-        <main id="main">
-            <!-- HEADER -->
-            <header class="header">
-                <div class="search" role="search">
-                    <span style="color: var(--color-text-subtle); font-size: 14px;">🔍</span>
-                    <input type="text" placeholder="Search tasks..." aria-label="Search tasks">
-                </div>
-                <div class="h-right">
-                    <button class="ico-btn" aria-label="Notifications" onclick="showNotifications()">
-                        <span style="font-size: 16px;">🔔</span>
-                    </button>
-                    <button class="ico-btn" aria-label="Settings" onclick="showSettings()">
-                        <span style="font-size: 16px;">⚙️</span>
-                    </button>
-                    <div class="avatar" aria-label="User profile">SJ</div>
-                </div>
-            </header>
-            
-            <!-- CONTENT -->
-            <div id="content" id="main-content">
-                <!-- 1.0 Kanban Board Dashboard [type: primary] -->
-                <div id="kanban" class="page active">
-                    <div class="ph">
-                        <div>
-                            <div class="ph-title">Kanban Board Dashboard</div>
-                            <div class="ph-sub">Organize and track tasks across workflow stages</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="showAddTaskModal()" aria-label="Add new task">
-                            <span class="button-content">+ Add Task</span>
-                        </button>
-                    </div>
-                    
-                    <div class="kanban-board" role="application" aria-label="Kanban board with three columns">
-                        <div class="kanban-column" role="region" aria-label="To Do column">
-                            <div class="column-header">
-                                <div class="column-title">To Do</div>
-                                <div class="column-count" aria-label="3 tasks">3</div>
-                            </div>
-                            <div class="task-list" role="list">
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('task1')" onkeydown="if(event.key==='Enter')showTaskDetail('task1')" aria-label="Task: Design new user interface">
-                                    <div class="task-title">Design new user interface</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-info">UI/UX</span>
-                                        <div class="task-assignee" aria-label="Assigned to Sarah">S</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 11px; color: var(--color-text-muted);">Due: Oct 30</div>
-                                </div>
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('task2')" onkeydown="if(event.key==='Enter')showTaskDetail('task2')" aria-label="Task: Update documentation">
-                                    <div class="task-title">Update documentation</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-brand">Docs</span>
-                                        <div class="task-assignee" aria-label="Assigned to Mike">M</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 11px; color: var(--color-text-muted);">Due: Nov 2</div>
-                                </div>
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('task3')" onkeydown="if(event.key==='Enter')showTaskDetail('task3')" aria-label="Task: Review code changes">
-                                    <div class="task-title">Review code changes</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-info">Review</span>
-                                        <div class="task-assignee" aria-label="Assigned to Alex">A</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 11px; color: var(--color-text-muted);">Due: Oct 28</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="kanban-column" role="region" aria-label="In Progress column">
-                            <div class="column-header">
-                                <div class="column-title">In Progress</div>
-                                <div class="column-count" aria-label="2 tasks">2</div>
-                            </div>
-                            <div class="task-list" role="list">
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('task4')" onkeydown="if(event.key==='Enter')showTaskDetail('task4')" aria-label="Task: Implement authentication">
-                                    <div class="task-title">Implement authentication</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-brand">Backend</span>
-                                        <div class="task-assignee" aria-label="Assigned to John">J</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 11px; color: var(--color-text-muted);">Due: Nov 1</div>
-                                </div>
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('task5')" onkeydown="if(event.key==='Enter')showTaskDetail('task5')" aria-label="Task: Database optimization">
-                                    <div class="task-title">Database optimization</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-info">Database</span>
-                                        <div class="task-assignee" aria-label="Assigned to Lisa">L</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 11px; color: var(--color-text-muted);">Due: Oct 29</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="kanban-column" role="region" aria-label="Done column">
-                            <div class="column-header">
-                                <div class="column-title">Done</div>
-                                <div class="column-count" aria-label="4 tasks">4</div>
-                            </div>
-                            <div class="task-list" role="list">
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('task6')" onkeydown="if(event.key==='Enter')showTaskDetail('task6')" aria-label="Task: Setup project structure">
-                                    <div class="task-title">Setup project structure</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-success">Setup</span>
-                                        <div class="task-assignee" aria-label="Completed by Tom">T</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 11px; color: var(--color-text-muted);">Completed: Oct 25</div>
-                                </div>
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('task7')" onkeydown="if(event.key==='Enter')showTaskDetail('task7')" aria-label="Task: Initial wireframes">
-                                    <div class="task-title">Initial wireframes</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-success">Design</span>
-                                        <div class="task-assignee" aria-label="Completed by Sarah">S</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 11px; color: var(--color-text-muted);">Completed: Oct 24</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 1.1 Collaborative Kanban Board [type: primary] -->
-                <div id="collaborative" class="page">
-                    <div class="ph">
-                        <div>
-                            <div class="ph-title">Collaborative Kanban Board</div>
-                            <div class="ph-sub">Real-time collaborative task management with team awareness</div>
-                        </div>
-                        <div style="display:flex;gap:var(--global-spacing-3);">
-                            <button class="btn btn-secondary" onclick="showTeamAssignModal()" aria-label="Assign team members">
-                                <span class="button-content">👥 Team Assign</span>
-                            </button>
-                            <button class="btn btn-primary" onclick="showAddTaskModal()" aria-label="Add new task">
-                                <span class="button-content">+ Add Task</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title">🔄 Real-time Activity Feed</div>
-                        <div class="activity-item">
-                            <div class="activity-avatar">S</div>
-                            <div class="activity-text">Sarah moved "Design UI" to In Progress</div>
-                            <div class="activity-time">2 min ago</div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-avatar">M</div>
-                            <div class="activity-text">Mike added comment to "Update docs"</div>
-                            <div class="activity-time">5 min ago</div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-avatar">A</div>
-                            <div class="activity-text">Alex completed "Code review"</div>
-                            <div class="activity-time">8 min ago</div>
-                        </div>
-                    </div>
-                    
-                    <div class="kanban-board" role="application" aria-label="Collaborative kanban board with real-time updates">
-                        <div class="kanban-column" role="region" aria-label="To Do column">
-                            <div class="column-header">
-                                <div class="column-title">To Do</div>
-                                <div class="column-count" aria-label="2 tasks">2</div>
-                            </div>
-                            <div class="task-list" role="list">
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('collab1')" onkeydown="if(event.key==='Enter')showTaskDetail('collab1')" aria-label="Task: Plan sprint goals">
-                                    <div class="task-title">Plan sprint goals</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-brand">Planning</span>
-                                        <div style="display:flex;gap:2px;">
-                                            <div class="task-assignee" aria-label="Assigned to Sarah">S</div>
-                                            <div class="task-assignee" aria-label="Assigned to Mike">M</div>
-                                        </div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 10px; color: var(--color-brand-primary); font-weight: 600;">👁️ Sarah viewing</div>
-                                </div>
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('collab2')" onkeydown="if(event.key==='Enter')showTaskDetail('collab2')" aria-label="Task: Team retrospective">
-                                    <div class="task-title">Team retrospective</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-info">Meeting</span>
-                                        <div class="task-assignee" aria-label="Assigned to Team Lead">TL</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 11px; color: var(--color-text-muted);">Due: Nov 5</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="kanban-column" role="region" aria-label="In Progress column">
-                            <div class="column-header">
-                                <div class="column-title">In Progress</div>
-                                <div class="column-count" aria-label="1 task">1</div>
-                            </div>
-                            <div class="task-list" role="list">
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('collab3')" onkeydown="if(event.key==='Enter')showTaskDetail('collab3')" aria-label="Task: Feature development">
-                                    <div class="task-title">Feature development</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-brand">Development</span>
-                                        <div class="task-assignee" aria-label="Assigned to Alex">A</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 10px; color: var(--color-brand-primary); font-weight: 600;">✏️ Alex editing</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="kanban-column" role="region" aria-label="Done column">
-                            <div class="column-header">
-                                <div class="column-title">Done</div>
-                                <div class="column-count" aria-label="2 tasks">2</div>
-                            </div>
-                            <div class="task-list" role="list">
-                                <div class="task-card" role="listitem" tabindex="0" onclick="showTaskDetail('collab4')" onkeydown="if(event.key==='Enter')showTaskDetail('collab4')" aria-label="Task: Sprint planning">
-                                    <div class="task-title">Sprint planning</div>
-                                    <div class="task-meta">
-                                        <span class="badge badge-success">Planning</span>
-                                        <div class="task-assignee" aria-label="Completed by Team">T</div>
-                                    </div>
-                                    <div style="margin-top: var(--global-spacing-2); font-size: 11px; color: var(--color-text-muted);">Completed: Oct 26</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 2.0 Progress Analytics Dashboard [type: primary] -->
-                <div id="analytics" class="page">
-                    <div class="ph">
-                        <div>
-                            <div class="ph-title">Progress Analytics Dashboard</div>
-                            <div class="ph-sub">Monitor project progress and identify bottlenecks</div>
-                        </div>
-                        <button class="btn btn-secondary" onclick="showDetailedAnalytics()" aria-label="View detailed analytics">
-                            <span class="button-content">📊 Detailed View</span>
-                        </button>
-                    </div>
-                    
-                    <div class="g3">
-                        <div class="metric-card">
-                            <div class="metric-value">24</div>
-                            <div class="metric-label">Total Tasks</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">67%</div>
-                            <div class="metric-label">Completion Rate</div>
-                        </div>
-                        <div class="metric-card">
-                            <div class="metric-value">3.2</div>
-                            <div class="metric-label">Avg Days/Task</div>
-                        </div>
-                    </div>
-                    
-                    <div class="g2">
-                        <div class="card">
-                            <div class="card-title">📈 Velocity Trend Chart</div>
-                            <div class="chart-placeholder">
-                                📊 Tasks completed per week<br><br>
-                                Week 1: 8 tasks<br>
-                                Week 2: 12 tasks<br>
-                                Week 3: 15 tasks<br><br>
-                                <span style="color: var(--color-brand-primary); font-weight: 600;">↗️ Trending upward</span>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-title">🔍 Bottleneck Analysis</div>
-                            <div class="chart-placeholder">
-                                ⏱️ Time spent in each column<br><br>
-                                To Do: 1.2 days<br>
-                                In Progress: 4.8 days<br>
-                                Review: 2.1 days<br><br>
-                                <span style="color: var(--global-color-red-500); font-weight: 600;">⚠️ In Progress bottleneck</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title">👥 Team Performance Overview</div>
-                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--global-spacing-4);">
-                            <div style="text-align:center;padding:var(--global-spacing-3);">
-                                <div class="team-avatar" style="margin:0 auto var(--global-spacing-2);">S</div>
-                                <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Sarah</div>
-                                <div style="font-size:11px;color:var(--color-text-muted);">8 tasks completed</div>
-                                <div class="badge badge-success" style="margin-top:4px;">Top Performer</div>
-                            </div>
-                            <div style="text-align:center;padding:var(--global-spacing-3);">
-                                <div class="team-avatar" style="margin:0 auto var(--global-spacing-2);">M</div>
-                                <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Mike</div>
-                                <div style="font-size:11px;color:var(--color-text-muted);">6 tasks completed</div>
-                                <div class="badge badge-info" style="margin-top:4px;">Steady</div>
-                            </div>
-                            <div style="text-align:center;padding:var(--global-spacing-3);">
-                                <div class="team-avatar" style="margin:0 auto var(--global-spacing-2);">A</div>
-                                <div style="font-size:13px;font-weight:600;margin-bottom:2px;">Alex</div>
-                                <div style="font-size:11px;color:var(--color-text-muted);">7 tasks completed</div>
-                                <div class="badge badge-success" style="margin-top:4px;">Excellent</div>
-                            </div>
-                            <div style="text-align:center;padding:var(--global-spacing-3);">
-                                <div class="team-avatar" style="margin:0 auto var(--global-spacing-2);">J</div>
-                                <div style="font-size:13px;font-weight:600;margin-bottom:2px;">John</div>
-                                <div style="font-size:11px;color:var(--color-text-muted);">5 tasks completed</div>
-                                <div class="badge badge-brand" style="margin-top:4px;">Growing</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 2.1 Report Builder Dashboard [type: primary] -->
-                <div id="reports" class="page">
-                    <div class="ph">
-                        <div>
-                            <div class="ph-title">Report Builder Dashboard</div>
-                            <div class="ph-sub">Create customized progress reports for stakeholders</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="showReportConfigModal()" aria-label="Create new report">
-                            <span class="button-content">📄 Create Report</span>
-                        </button>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title">📋 Report Templates</div>
-                        <div class="template-grid">
-                            <div class="template-card" onclick="selectTemplate('executive')">
-                                <div class="template-title">📊 Executive Summary</div>
-                                <div class="template-desc">High-level progress overview for leadership and stakeholders</div>
-                            </div>
-                            <div class="template-card" onclick="selectTemplate('detailed')">
-                                <div class="template-title">📈 Detailed Analytics</div>
-                                <div class="template-desc">Comprehensive metrics and trends for project managers</div>
-                            </div>
-                            <div class="template-card" onclick="selectTemplate('team')">
-                                <div class="template-title">👥 Team Performance</div>
-                                <div class="template-desc">Individual and team metrics for performance reviews</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title">📚 Recent Reports</div>
-                        <div style="display:flex;flex-direction:column;gap:var(--global-spacing-3);">
-                            <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--global-spacing-3);border:1px solid rgba(0,0,0,.08);border-radius:var(--global-radius-md);background:rgba(255,255,255,.6);">
-                                <div>
-                                    <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:2px;">📊 Weekly Progress Report</div>
-                                    <div style="font-size:11px;color:var(--color-text-muted);">Generated: Oct 26, 2024 • Executive Summary</div>
-                                </div>
-                                <div style="display:flex;gap:var(--global-spacing-2);">
-                                    <button class="btn btn-secondary btn-sm">👁️ View</button>
-                                    <button class="btn btn-secondary btn-sm">⬇️ Download</button>
-                                </div>
-                            </div>
-                            <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--global-spacing-3);border:1px solid rgba(0,0,0,.08);border-radius:var(--global-radius-md);background:rgba(255,255,255,.6);">
-                                <div>
-                                    <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);margin-bottom:2px;">🔄 Sprint Retrospective</div>
-                                    <div style="font-size:11px;color:var(--color-text-muted);">Generated: Oct 24, 2024 • Team Performance</div>
-                                </div>
-                                <div style="display:flex;gap:var(--global-spacing-2);">
-                                    <button class="btn btn-secondary btn-sm">👁️ View</button>
-                                    <button class="btn btn-secondary btn-sm">⬇️ Download</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 3.0 Board Configuration Dashboard [type: primary] -->
-                <div id="config" class="page">
-                    <div class="ph">
-                        <div>
-                            <div class="ph-title">Board Configuration Dashboard</div>
-                            <div class="ph-sub">Customize workflow stages, rules, and board settings</div>
-                        </div>
-                        <div style="display:flex;gap:var(--global-spacing-3);">
-                            <button class="btn btn-secondary" onclick="showWorkflowRulesModal()" aria-label="Configure workflow rules">
-                                <span class="button-content">⚙️ Configure Rules</span>
-                            </button>
-                            <button class="btn btn-primary" onclick="saveConfiguration()" aria-label="Save configuration">
-                                <span class="button-content">💾 Save Changes</span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="g2">
-                        <div class="card">
-                            <div class="card-title">📋 Column Configuration</div>
-                            <div style="display:flex;flex-direction:column;gap:var(--global-spacing-3);">
-                                <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--global-spacing-3);border:1px solid rgba(0,0,0,.08);border-radius:var(--global-radius-md);background:rgba(255,255,255,.6);">
-                                    <div>
-                                        <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);">📝 To Do</div>
-                                        <div style="font-size:11px;color:var(--color-text-muted);">Initial task stage for new items</div>
-                                    </div>
-                                    <button class="btn btn-secondary btn-sm">✏️ Edit</button>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--global-spacing-3);border:1px solid rgba(0,0,0,.08);border-radius:var(--global-radius-md);background:rgba(255,255,255,.6);">
-                                    <div>
-                                        <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);">🔄 In Progress</div>
-                                        <div style="font-size:11px;color:var(--color-text-muted);">Active work stage for ongoing tasks</div>
-                                    </div>
-                                    <button class="btn btn-secondary btn-sm">✏️ Edit</button>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--global-spacing-3);border:1px solid rgba(0,0,0,.08);border-radius:var(--global-radius-md);background:rgba(255,255,255,.6);">
-                                    <div>
-                                        <div style="font-size:14px;font-weight:600;color:var(--color-text-primary);">✅ Done</div>
-                                        <div style="font-size:11px;color:var(--color-text-muted);">Completed tasks and deliverables</div>
-                                    </div>
-                                    <button class="btn btn-secondary btn-sm">✏️ Edit</button>
-                                </div>
-                            </div>
-                            <button class="btn btn-secondary" style="margin-top:var(--global-spacing-3);width:100%;">+ Add Column</button>
-                        </div>
-                        
-                        <div class="card">
-                            <div class="card-title">📐 Board Templates</div>
-                            <div style="display:flex;flex-direction:column;gap:var(--global-spacing-3);">
-                                <div class="template-card" onclick="loadTemplate('scrum')">
-                                    <div class="template-title">🏃 Scrum Board</div>
-                                    <div class="template-desc">Backlog → Sprint → In Progress → Review → Done</div>
-                                </div>
-                                <div class="template-card" onclick="loadTemplate('simple')">
-                                    <div class="template-title">⚡ Simple Workflow</div>
-                                    <div class="template-desc">To Do → Doing → Done</div>
-                                </div>
-                                <div class="template-card" onclick="loadTemplate('custom')">
-                                    <div class="template-title">🎨 Custom Template</div>
-                                    <div class="template-desc">Create your own workflow stages</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-title">🤖 Automation Rules Preview</div>
-                        <div style="display:flex;flex-direction:column;gap:var(--global-spacing-2);">
-                            <div style="display:flex;align-items:center;gap:var(--global-spacing-2);padding:var(--global-spacing-2);background:rgba(46,158,114,.08);border-radius:var(--global-radius-sm);">
-                                <span style="color:var(--global-color-green-500);">✅</span>
-                                <span style="font-size:12px;color:var(--color-text-primary);">Auto-assign tasks to team members based on workload</span>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:var(--global-spacing-2);padding:var(--global-spacing-2);background:rgba(46,158,114,.08);border-radius:var(--global-radius-sm);">
-                                <span style="color:var(--global-color-green-500);">✅</span>
-                                <span style="font-size:12px;color:var(--color-text-primary);">Send notifications when tasks are overdue</span>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:var(--global-spacing-2);padding:var(--global-spacing-2);background:rgba(46,158,114,.08);border-radius:var(--global-radius-sm);">
-                                <span style="color:var(--global-color-green-500);">✅</span>
-                                <span style="font-size:12px;color:var(--color-text-primary);">Move completed tasks to Done column automatically</span>
-                            </div>
-                            <div style="display:flex;align-items:center;gap:var(--global-spacing-2);padding:var(--global-spacing-2);background:rgba(214,69,69,.08);border-radius:var(--global-radius-sm);">
-                                <span style="color:var(--global-color-red-500);">⚠️</span>
-                                <span style="font-size:12px;color:var(--color-text-primary);">Escalate blocked tasks after 2 days</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-    
-    <!-- MODALS -->
-    
-    <!-- Pu.1 Add New Task Modal [type: modal] -->
-    <div id="addTaskModal" class="modal-overlay" role="dialog" aria-labelledby="addTaskTitle" aria-modal="true">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="addTaskTitle" class="modal-title">➕ Add New Task</h2>
-                <button class="modal-close" onclick="closeAddTaskModal()" aria-label="Close modal">×</button>
-            </div>
-            <form onsubmit="submitTask(event)">
-                <div class="field">
-                    <label for="taskTitle">Task Title *</label>
-                    <input type="text" id="taskTitle" required aria-describedby="taskTitleHelp" placeholder="Enter a clear, descriptive task title">
-                    <div id="taskTitleHelp" style="font-size:10px;color:var(--color-text-muted);margin-top:2px;">Enter a clear, descriptive task title</div>
-                </div>
-                <div class="field">
-                    <label for="taskDesc">Description</label>
-                    <textarea id="taskDesc" placeholder="Describe the task details and requirements..."></textarea>
-                </div>
-                <div class="field">
-                    <label for="taskColumn">Initial Status</label>
-                    <select id="taskColumn">
-                        <option value="todo">📝 To Do</option>
-                        <option value="progress">🔄 In Progress</option>
-                        <option value="done">✅ Done</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="taskAssignee">Assign To</label>
-                    <select id="taskAssignee">
-                        <option value="">👤 Unassigned</option>
-                        <option value="sarah">👩 Sarah Johnson</option>
-                        <option value="mike">👨 Mike Chen</option>
-                        <option value="alex">👨 Alex Rodriguez</option>
-                        <option value="john">👨 John Smith</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="taskDue">Due Date</label>
-                    <input type="date" id="taskDue">
-                </div>
-                <div style="display:flex;gap:var(--global-spacing-3);justify-content:flex-end;margin-top:var(--global-spacing-5);">
-                    <button type="button" class="btn btn-secondary" onclick="closeAddTaskModal()">
-                        <span class="button-content">Cancel</span>
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="button-content">✅ Create Task</span>
-                    </button>
-                </div>
-            </form>
+        <div class="h-right">
+          <button class="ico-btn" aria-label="Notifications">
+            <span>🔔</span>
+            <div class="notif-dot"></div>
+          </button>
+          <button class="ico-btn" aria-label="Help">
+            <span>❓</span>
+          </button>
+          <div class="av-chip">
+            <div class="avatar">SJ</div>
+            Sarah Johnson
+          </div>
         </div>
-    </div>
-    
-    <!-- Pu.2 Team Assignment Modal [type: modal] -->
-    <div id="teamAssignModal" class="modal-overlay" role="dialog" aria-labelledby="teamAssignTitle" aria-modal="true">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="teamAssignTitle" class="modal-title">👥 Team Assignment</h2>
-                <button class="modal-close" onclick="closeTeamAssignModal()" aria-label="Close modal">×</button>
-            </div>
-            <div class="card">
-                <div class="card-title">📊 Team Workload Overview</div>
-                <div style="display:flex;flex-direction:column;gap:var(--global-spacing-3);">
-                    <div class="team-member">
-                        <div class="team-avatar">S</div>
-                        <div class="team-info">
-                            <div class="team-name">Sarah Johnson</div>
-                            <div class="team-workload">Current: 3 tasks • Capacity: 80% • Available</div>
-                        </div>
-                        <button class="btn btn-secondary btn-sm">👤 Assign</button>
-                    </div>
-                    <div class="team-member">
-                        <div class="team-avatar">M</div>
-                        <div class="team-info">
-                            <div class="team-name">Mike Chen</div>
-                            <div class="team-workload">Current: 2 tasks • Capacity: 60% • Available</div>
-                        </div>
-                        <button class="btn btn-secondary btn-sm">👤 Assign</button>
-                    </div>
-                    <div class="team-member">
-                        <div class="team-avatar">A</div>
-                        <div class="team-info">
-                            <div class="team-name">Alex Rodriguez</div>
-                            <div class="team-workload">Current: 4 tasks • Capacity: 95% • Nearly Full</div>
-                        </div>
-                        <button class="btn btn-secondary btn-sm" disabled style="opacity:0.5;">⚠️ Full</button>
-                    </div>
-                </div>
-            </div>
-            <div style="display:flex;gap:var(--global-spacing-3);justify-content:flex-end;margin-top:var(--global-spacing-5);">
-                <button type="button" class="btn btn-secondary" onclick="closeTeamAssignModal()">
-                    <span class="button-content">Cancel</span>
-                </button>
-                <button type="button" class="btn btn-primary" onclick="confirmAssignment()">
-                    <span class="button-content">✅ Confirm Assignment</span>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Pu.3 Report Configuration Modal [type: modal] -->
-    <div id="reportConfigModal" class="modal-overlay" role="dialog" aria-labelledby="reportConfigTitle" aria-modal="true">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="reportConfigTitle" class="modal-title">📄 Report Configuration</h2>
-                <button class="modal-close" onclick="closeReportConfigModal()" aria-label="Close modal">×</button>
-            </div>
-            <form onsubmit="generateReport(event)">
-                <div class="field">
-                    <label for="reportName">Report Name *</label>
-                    <input type="text" id="reportName" required placeholder="Weekly Progress Report">
-                </div>
-                <div class="field">
-                    <label for="reportType">Report Type</label>
-                    <select id="reportType">
-                        <option value="executive">📊 Executive Summary</option>
-                        <option value="detailed">📈 Detailed Analytics</option>
-                        <option value="team">👥 Team Performance</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="dateRange">Date Range</label>
-                    <select id="dateRange">
-                        <option value="week">📅 Last 7 days</option>
-                        <option value="month">📅 Last 30 days</option>
-                        <option value="quarter">📅 Last 90 days</option>
-                        <option value="custom">🎯 Custom range</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label for="recipients">Recipients</label>
-                    <input type="email" id="recipients" placeholder="stakeholder@company.com">
-                </div>
-                <div style="display:flex;gap:var(--global-spacing-3);justify-content:flex-end;margin-top:var(--global-spacing-5);">
-                    <button type="button" class="btn btn-secondary" onclick="closeReportConfigModal()">
-                        <span class="button-content">Cancel</span>
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="button-content">📊 Generate Report</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Pu.4 Workflow Rules Modal [type: modal] -->
-    <div id="workflowRulesModal" class="modal-overlay" role="dialog" aria-labelledby="workflowRulesTitle" aria-modal="true">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="workflowRulesTitle" class="modal-title">⚙️ Workflow Rules Configuration</h2>
-                <button class="modal-close" onclick="closeWorkflowRulesModal()" aria-label="Close modal">×</button>
-            </div>
-            <div class="card">
-                <div class="card-title">🤖 Automation Rules</div>
-                <div style="display:flex;flex-direction:column;gap:var(--global-spacing-3);">
-                    <div class="toggle-row">
-                        <div>
-                            <div class="toggle-lbl">🎯 Auto-assign based on workload</div>
-                            <div class="toggle-hint">Automatically assign new tasks to team members with lowest workload</div>
-                        </div>
-                        <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                            <div class="toggle-slider"></div>
-                        </div>
-                    </div>
-                    <div class="toggle-row">
-                        <div>
-                            <div class="toggle-lbl">⏰ Overdue task notifications</div>
-                            <div class="toggle-hint">Send notifications when tasks exceed due date</div>
-                        </div>
-                        <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                            <div class="toggle-slider"></div>
-                        </div>
-                    </div>
-                    <div class="toggle-row">
-                        <div>
-                            <div class="toggle-lbl">✅ Status transition approvals</div>
-                            <div class="toggle-hint">Require approval before moving tasks to Done</div>
-                        </div>
-                        <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                            <div class="toggle-slider"></div>
-                        </div>
-                    </div>
-                    <div class="toggle-row">
-                        <div>
-                            <div class="toggle-lbl">🔄 Auto-move completed tasks</div>
-                            <div class="toggle-hint">Automatically move tasks to Done when marked complete</div>
-                        </div>
-                        <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                            <div class="toggle-slider"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div style="display:flex;gap:var(--global-spacing-3);justify-content:flex-end;margin-top:var(--global-spacing-5);">
-                <button type="button" class="btn btn-secondary" onclick="closeWorkflowRulesModal()">
-                    <span class="button-content">Cancel</span>
-                </button>
-                <button type="button" class="btn btn-primary" onclick="saveWorkflowRules()">
-                    <span class="button-content">💾 Save Rules</span>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Task Detail View [type: detail] -->
-    <div id="taskDetail" class="page" style="display:none;">
-        <div class="detail-header">
-            <button class="back-btn" onclick="goBackToBoard()" aria-label="Back to Kanban board">
-                <span>← Back</span>
-            </button>
+      </header>
+      
+      <!-- CONTENT -->
+      <div id="content" id="main-content">
+        <!-- WELCOME DASHBOARD -->
+        <div id="dashboard" class="page active">
+          <div class="ph">
             <div>
-                <div class="ph-title">📋 Task Details</div>
-                <div class="ph-sub">Complete task information and management</div>
+              <h1 class="ph-title">Welcome to TaskFlow Pro</h1>
+              <p class="ph-sub">Get started with your task management journey</p>
             </div>
-        </div>
-        
-        <div class="detail-content">
-            <div class="detail-main">
-                <div class="card">
-                    <div class="card-title">📝 Task Information</div>
-                    <div class="field">
-                        <label for="detailTitle">Task Title</label>
-                        <input type="text" id="detailTitle" value="Design new user interface">
-                    </div>
-                    <div class="field">
-                        <label for="detailDesc">Description</label>
-                        <textarea id="detailDesc">Create wireframes and mockups for the new user interface design. Include responsive layouts for desktop and mobile devices. Ensure accessibility compliance and modern design patterns.</textarea>
-                    </div>
-                    <div class="field">
-                        <label for="detailStatus">Status</label>
-                        <select id="detailStatus">
-                            <option value="todo" selected>📝 To Do</option>
-                            <option value="progress">🔄 In Progress</option>
-                            <option value="done">✅ Done</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-title">💬 Comments & Activity</div>
-                    <div style="display:flex;flex-direction:column;gap:var(--global-spacing-3);margin-bottom:var(--global-spacing-4);">
-                        <div style="padding:var(--global-spacing-3);background:rgba(255,255,255,.8);border-radius:var(--global-radius-md);border:1px solid rgba(0,0,0,.05);">
-                            <div style="display:flex;align-items:center;gap:var(--global-spacing-2);margin-bottom:var(--global-spacing-2);">
-                                <div class="task-assignee">S</div>
-                                <div style="font-size:12px;font-weight:600;">Sarah Johnson</div>
-                                <div style="font-size:10px;color:var(--color-text-muted);">2 hours ago</div>
-                            </div>
-                            <div style="font-size:13px;line-height:1.4;">Started working on the initial wireframes. Will have first draft ready by tomorrow. Focusing on mobile-first approach.</div>
-                        </div>
-                        <div style="padding:var(--global-spacing-3);background:rgba(255,255,255,.8);border-radius:var(--global-radius-md);border:1px solid rgba(0,0,0,.05);">
-                            <div style="display:flex;align-items:center;gap:var(--global-spacing-2);margin-bottom:var(--global-spacing-2);">
-                                <div class="task-assignee">M</div>
-                                <div style="font-size:12px;font-weight:600;">Mike Chen</div>
-                                <div style="font-size:10px;color:var(--color-text-muted);">1 day ago</div>
-                            </div>
-                            <div style="font-size:13px;line-height:1.4;">Task created and assigned to Sarah. Please coordinate with the development team for technical requirements and constraints.</div>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label for="newComment">Add Comment</label>
-                        <textarea id="newComment" placeholder="Add your comment or update..."></textarea>
-                    </div>
-                    <button class="btn btn-primary">
-                        <span class="button-content">💬 Post Comment</span>
-                    </button>
-                </div>
+            <button class="btn btn-primary" onclick="openModal('workspace-setup')">
+              <div class="button-content">
+                <span>🚀</span>
+                Start Setup
+              </div>
+            </button>
+          </div>
+          
+          <div class="g3">
+            <div class="card">
+              <div class="stat-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">📋</div>
+              <div class="stat-lbl">Setup Progress</div>
+              <div class="stat-val">0/4</div>
+              <div class="stat-hint">Complete setup steps</div>
+              <div class="progress" style="margin-top: 12px;">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
             </div>
             
-            <div class="detail-sidebar">
-                <div class="card">
-                    <div class="card-title">📊 Task Properties</div>
-                    <div class="info-row">
-                        <div class="info-label">Assignee</div>
-                        <div class="info-value">👩 Sarah Johnson</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Due Date</div>
-                        <div class="info-value">📅 Oct 30, 2024</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Priority</div>
-                        <div class="info-value"><span class="badge badge-info">High</span></div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Created</div>
-                        <div class="info-value">Oct 26, 2024</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">Updated</div>
-                        <div class="info-value">Oct 27, 2024</div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-title">⚡ Actions</div>
-                    <div style="display:flex;flex-direction:column;gap:var(--global-spacing-2);">
-                        <button class="btn btn-secondary" style="width:100%;">
-                            <span class="button-content">✏️ Edit Task</span>
-                        </button>
-                        <button class="btn btn-secondary" style="width:100%;">
-                            <span class="button-content">📋 Duplicate</span>
-                        </button>
-                        <button class="btn btn-secondary" style="width:100%;">
-                            <span class="button-content">🔄 Move to Column</span>
-                        </button>
-                        <button class="btn btn-secondary" style="width:100%;color:var(--global-color-red-500);">
-                            <span class="button-content">🗑️ Delete Task</span>
-                        </button>
-                    </div>
-                </div>
+            <div class="card">
+              <div class="stat-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">👥</div>
+              <div class="stat-lbl">Team Members</div>
+              <div class="stat-val">1</div>
+              <div class="stat-hint">Invite your team</div>
             </div>
+            
+            <div class="card">
+              <div class="stat-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">⚡</div>
+              <div class="stat-lbl">Quick Start</div>
+              <div class="stat-val">Ready</div>
+              <div class="stat-hint">Create your first task</div>
+            </div>
+          </div>
+          
+          <div class="g2">
+            <div class="card">
+              <h3 class="card-title">Platform Benefits</h3>
+              <div class="li">
+                <div class="li-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">✓</div>
+                <div>
+                  <div class="li-title">Increase Productivity</div>
+                  <div class="li-sub">Teams report 40% faster task completion</div>
+                </div>
+              </div>
+              <div class="li">
+                <div class="li-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">📊</div>
+                <div>
+                  <div class="li-title">Better Visibility</div>
+                  <div class="li-sub">Real-time insights into team performance</div>
+                </div>
+              </div>
+              <div class="li">
+                <div class="li-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">🔄</div>
+                <div>
+                  <div class="li-title">Seamless Integration</div>
+                  <div class="li-sub">Connect with 50+ popular tools</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <h3 class="card-title">Success Stories</h3>
+              <div class="li">
+                <div class="li-ico" style="background: var(--gradient-brand); color: #fff;">🏢</div>
+                <div>
+                  <div class="li-title">TechCorp Inc.</div>
+                  <div class="li-sub">"Reduced project delivery time by 35% using TaskFlow Pro's sprint management features."</div>
+                </div>
+              </div>
+              <div class="li">
+                <div class="li-ico" style="background: var(--gradient-brand); color: #fff;">🚀</div>
+                <div>
+                  <div class="li-title">StartupXYZ</div>
+                  <div class="li-sub">"Perfect for our agile workflow. The analytics helped us optimize our processes."</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
-    
-    <!-- Settings Screen [type: settings] -->
-    <div id="settings" class="page" style="display:none;">
-        <div class="detail-header">
-            <button class="back-btn" onclick="goBackFromSettings()" aria-label="Back to previous screen">
-                <span>← Back</span>
-            </button>
+        
+        <!-- TASK DASHBOARD -->
+        <div id="tasks" class="page">
+          <div class="ph">
             <div>
-                <div class="ph-title">⚙️ Settings</div>
-                <div class="ph-sub">Configure preferences and system settings</div>
+              <h1 class="ph-title">My Tasks</h1>
+              <p class="ph-sub">Manage your personal tasks and assignments</p>
             </div>
-        </div>
-        
-        <div class="settings-section">
-            <div class="settings-title">👥 Team Management</div>
-            <div class="card">
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Team member notifications</div>
-                        <div class="toggle-hint">Notify team when tasks are assigned or updated</div>
-                    </div>
-                    <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Auto-assignment</div>
-                        <div class="toggle-hint">Automatically assign tasks based on workload</div>
-                    </div>
-                    <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="settings-section">
-            <div class="settings-title">📋 Board Preferences</div>
-            <div class="card">
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Compact card view</div>
-                        <div class="toggle-hint">Show more tasks by reducing card size</div>
-                    </div>
-                    <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Show task numbers</div>
-                        <div class="toggle-hint">Display task ID numbers on cards</div>
-                    </div>
-                    <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="settings-section">
-            <div class="settings-title">♿ Accessibility</div>
-            <div class="card">
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Screen Reader support</div>
-                        <div class="toggle-hint">Enhanced announcements for screen readers</div>
-                    </div>
-                    <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">High Contrast mode</div>
-                        <div class="toggle-hint">Increase contrast for better visibility</div>
-                    </div>
-                    <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Keyboard navigation</div>
-                        <div class="toggle-hint">Enhanced keyboard shortcuts and navigation</div>
-                    </div>
-                    <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="settings-section">
-            <div class="settings-title">🔗 Integration Settings</div>
-            <div class="card">
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Slack notifications</div>
-                        <div class="toggle-hint">Send updates to connected Slack channels</div>
-                    </div>
-                    <div class="toggle-wrapper" onclick="toggleSwitch(this)" role="switch" aria-checked="false" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Email sync</div>
-                        <div class="toggle-hint">Sync task updates via email</div>
-                    </div>
-                    <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="settings-section">
-            <div class="settings-title">🔒 Security and Privacy</div>
-            <div class="card">
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Two-factor authentication</div>
-                        <div class="toggle-hint">Require 2FA for account access</div>
-                    </div>
-                    <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-                <div class="toggle-row">
-                    <div>
-                        <div class="toggle-lbl">Activity logging</div>
-                        <div class="toggle-hint">Log user actions for audit purposes</div>
-                    </div>
-                    <div class="toggle-wrapper on" onclick="toggleSwitch(this)" role="switch" aria-checked="true" tabindex="0">
-                        <div class="toggle-slider"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div style="display:flex;gap:var(--global-spacing-3);justify-content:flex-end;margin-top:var(--global-spacing-5);">
-            <button class="btn btn-secondary" onclick="resetSettings()">
-                <span class="button-content">🔄 Reset to Defaults</span>
+            <button class="btn btn-primary" onclick="openModal('task-creation')">
+              <div class="button-content">
+                <span>➕</span>
+                Create Task
+              </div>
             </button>
-            <button class="btn btn-primary" onclick="saveSettings()">
-                <span class="button-content">💾 Save Settings</span>
-            </button>
+          </div>
+          
+          <div class="tabs" role="tablist">
+            <button class="tab active" role="tab" aria-selected="true" tabindex="0" onclick="switchTab(this, 'tasks', 'active')" onkeydown="tabKey(event, this)">Active (3)</button>
+            <button class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(this, 'tasks', 'completed')" onkeydown="tabKey(event, this)">Completed (12)</button>
+            <button class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(this, 'tasks', 'overdue')" onkeydown="tabKey(event, this)">Overdue (1)</button>
+          </div>
+          
+          <div id="tasks-active">
+            <div class="li">
+              <div class="li-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">📝</div>
+              <div style="flex: 1;">
+                <div class="li-title">Update project documentation</div>
+                <div class="li-sub">Due: Tomorrow • Priority: High • Project: Website Redesign</div>
+              </div>
+              <div class="li-acts">
+                <span class="badge badge-warning">High Priority</span>
+                <button class="btn btn-sm btn-secondary">Edit</button>
+              </div>
+            </div>
+            
+            <div class="li">
+              <div class="li-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">🔍</div>
+              <div style="flex: 1;">
+                <div class="li-title">Review team performance metrics</div>
+                <div class="li-sub">Due: Friday • Priority: Medium • Project: Q4 Planning</div>
+              </div>
+              <div class="li-acts">
+                <span class="badge badge-info">Medium Priority</span>
+                <button class="btn btn-sm btn-secondary">Edit</button>
+              </div>
+            </div>
+            
+            <div class="li">
+              <div class="li-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">📞</div>
+              <div style="flex: 1;">
+                <div class="li-title">Schedule client meeting</div>
+                <div class="li-sub">Due: Next week • Priority: Low • Project: Client Onboarding</div>
+              </div>
+              <div class="li-acts">
+                <span class="badge badge-neutral">Low Priority</span>
+                <button class="btn btn-sm btn-secondary">Edit</button>
+              </div>
+            </div>
+          </div>
+          
+          <div id="tasks-completed" style="display: none;">
+            <div class="li">
+              <div class="li-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">✅</div>
+              <div style="flex: 1;">
+                <div class="li-title">Complete user research analysis</div>
+                <div class="li-sub">Completed: Yesterday • Project: User Experience Study</div>
+              </div>
+              <div class="li-acts">
+                <span class="badge badge-success dot">Completed</span>
+              </div>
+            </div>
+          </div>
+          
+          <div id="tasks-overdue" style="display: none;">
+            <div class="li">
+              <div class="li-ico" style="background: var(--red-bg); color: var(--global-color-red-500);">⚠️</div>
+              <div style="flex: 1;">
+                <div class="li-title">Submit quarterly report</div>
+                <div class="li-sub">Due: 2 days ago • Priority: High • Project: Q3 Review</div>
+              </div>
+              <div class="li-acts">
+                <span class="badge badge-danger">Overdue</span>
+                <button class="btn btn-sm btn-danger">Urgent</button>
+              </div>
+            </div>
+          </div>
         </div>
+        
+        <!-- TEAM MANAGEMENT -->
+        <div id="team" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Team Management</h1>
+              <p class="ph-sub">Monitor team performance and manage workloads</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('task-assignment')">
+              <div class="button-content">
+                <span>👥</span>
+                Assign Task
+              </div>
+            </button>
+          </div>
+          
+          <div class="g3">
+            <div class="card">
+              <div class="stat-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">👥</div>
+              <div class="stat-lbl">Team Members</div>
+              <div class="stat-val">8</div>
+              <div class="stat-hint">Active members</div>
+            </div>
+            
+            <div class="card">
+              <div class="stat-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">📊</div>
+              <div class="stat-lbl">Team Velocity</div>
+              <div class="stat-val">42</div>
+              <div class="stat-hint">Tasks/week average</div>
+            </div>
+            
+            <div class="card">
+              <div class="stat-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">⚡</div>
+              <div class="stat-lbl">Active Tasks</div>
+              <div class="stat-val">23</div>
+              <div class="stat-hint">In progress</div>
+            </div>
+          </div>
+          
+          <div class="g2">
+            <div class="card">
+              <h3 class="card-title">Team Performance</h3>
+              <div class="li">
+                <div class="li-ico" style="background: var(--gradient-brand); color: #fff;">SJ</div>
+                <div style="flex: 1;">
+                  <div class="li-title">Sarah Johnson</div>
+                  <div class="li-sub">5 active tasks • 92% completion rate • Available</div>
+                </div>
+                <div class="li-acts">
+                  <span class="badge badge-success dot">Available</span>
+                  <button class="btn btn-sm btn-secondary">View</button>
+                </div>
+              </div>
+              
+              <div class="li">
+                <div class="li-ico" style="background: var(--gradient-brand); color: #fff;">MK</div>
+                <div style="flex: 1;">
+                  <div class="li-title">Mike Kumar</div>
+                  <div class="li-sub">3 active tasks • 88% completion rate • Busy</div>
+                </div>
+                <div class="li-acts">
+                  <span class="badge badge-warning dot">Busy</span>
+                  <button class="btn btn-sm btn-secondary">View</button>
+                </div>
+              </div>
+              
+              <div class="li">
+                <div class="li-ico" style="background: var(--gradient-brand); color: #fff;">AL</div>
+                <div style="flex: 1;">
+                  <div class="li-title">Anna Lee</div>
+                  <div class="li-sub">7 active tasks • 95% completion rate • Available</div>
+                </div>
+                <div class="li-acts">
+                  <span class="badge badge-success dot">Available</span>
+                  <button class="btn btn-sm btn-secondary">View</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <h3 class="card-title">Workload Distribution</h3>
+              <div class="chart-container">
+                📊 Workload Chart<br>
+                <small>Visual representation of team workload distribution</small>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- SPRINT BOARD -->
+        <div id="sprint" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Sprint Board</h1>
+              <p class="ph-sub">Manage your agile sprints and track progress</p>
+            </div>
+            <button class="btn btn-primary">
+              <div class="button-content">
+                <span>🏃</span>
+                Start Sprint
+              </div>
+            </button>
+          </div>
+          
+          <div class="kanban">
+            <div class="kanban-col">
+              <div class="kanban-header">
+                <div class="kanban-title">Backlog</div>
+                <div class="kanban-count">5</div>
+              </div>
+              <div class="kanban-items">
+                <div class="kanban-card">
+                  <div class="kanban-card-title">User authentication system</div>
+                  <div class="kanban-card-meta">
+                    <span class="badge badge-info">8 pts</span>
+                    <span>SJ</span>
+                  </div>
+                </div>
+                <div class="kanban-card">
+                  <div class="kanban-card-title">Database optimization</div>
+                  <div class="kanban-card-meta">
+                    <span class="badge badge-warning">13 pts</span>
+                    <span>MK</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-col">
+              <div class="kanban-header">
+                <div class="kanban-title">In Progress</div>
+                <div class="kanban-count">3</div>
+              </div>
+              <div class="kanban-items">
+                <div class="kanban-card">
+                  <div class="kanban-card-title">API endpoint development</div>
+                  <div class="kanban-card-meta">
+                    <span class="badge badge-info">5 pts</span>
+                    <span>AL</span>
+                  </div>
+                </div>
+                <div class="kanban-card">
+                  <div class="kanban-card-title">UI component library</div>
+                  <div class="kanban-card-meta">
+                    <span class="badge badge-success">3 pts</span>
+                    <span>SJ</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-col">
+              <div class="kanban-header">
+                <div class="kanban-title">Review</div>
+                <div class="kanban-count">2</div>
+              </div>
+              <div class="kanban-items">
+                <div class="kanban-card">
+                  <div class="kanban-card-title">Payment integration</div>
+                  <div class="kanban-card-meta">
+                    <span class="badge badge-warning">8 pts</span>
+                    <span>MK</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="kanban-col">
+              <div class="kanban-header">
+                <div class="kanban-title">Done</div>
+                <div class="kanban-count">7</div>
+              </div>
+              <div class="kanban-items">
+                <div class="kanban-card">
+                  <div class="kanban-card-title">Project setup</div>
+                  <div class="kanban-card-meta">
+                    <span class="badge badge-success">2 pts</span>
+                    <span>Team</span>
+                  </div>
+                </div>
+                <div class="kanban-card">
+                  <div class="kanban-card-title">Requirements analysis</div>
+                  <div class="kanban-card-meta">
+                    <span class="badge badge-success">5 pts</span>
+                    <span>SJ</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- ANALYTICS DASHBOARD -->
+        <div id="analytics" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Analytics Dashboard</h1>
+              <p class="ph-sub">Performance insights and trend analysis</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('report-generator')">
+              <div class="button-content">
+                <span>📊</span>
+                Generate Report
+              </div>
+            </button>
+          </div>
+          
+          <div class="g3">
+            <div class="card">
+              <div class="stat-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">📈</div>
+              <div class="stat-lbl">Productivity Score</div>
+              <div class="stat-val">87%</div>
+              <div class="stat-hint">↑ 12% from last month</div>
+            </div>
+            
+            <div class="card">
+              <div class="stat-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">⏱️</div>
+              <div class="stat-lbl">Avg. Task Time</div>
+              <div class="stat-val">2.3h</div>
+              <div class="stat-hint">↓ 0.5h from last month</div>
+            </div>
+            
+            <div class="card">
+              <div class="stat-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">✅</div>
+              <div class="stat-lbl">Completion Rate</div>
+              <div class="stat-val">94%</div>
+              <div class="stat-hint">↑ 3% from last month</div>
+            </div>
+          </div>
+          
+          <div class="g2">
+            <div class="card">
+              <h3 class="card-title">Performance Trends</h3>
+              <div class="chart-container">
+                📈 Performance Chart<br>
+                <small>Team productivity over the last 6 months</small>
+              </div>
+            </div>
+            
+            <div class="card">
+              <h3 class="card-title">Task Distribution</h3>
+              <div class="chart-container">
+                🥧 Distribution Chart<br>
+                <small>Task breakdown by priority and status</small>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3 class="card-title">Recent Insights</h3>
+            <div class="li">
+              <div class="li-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">💡</div>
+              <div>
+                <div class="li-title">Peak Productivity Hours</div>
+                <div class="li-sub">Your team is most productive between 10 AM - 12 PM and 2 PM - 4 PM</div>
+              </div>
+            </div>
+            <div class="li">
+              <div class="li-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">🎯</div>
+              <div>
+                <div class="li-title">Sprint Velocity Improvement</div>
+                <div class="li-sub">Team velocity has increased by 15% over the last 3 sprints</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- LIVE MONITORING -->
+        <div id="monitoring" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Live Monitoring</h1>
+              <p class="ph-sub">Real-time team activity and performance alerts</p>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('alert-config')">
+              <div class="button-content">
+                <span>🚨</span>
+                Set Alert
+              </div>
+            </button>
+          </div>
+          
+          <div class="g3">
+            <div class="card">
+              <div class="stat-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">👥</div>
+              <div class="stat-lbl">Online Now</div>
+              <div class="stat-val">6/8</div>
+              <div class="stat-hint">Team members active</div>
+            </div>
+            
+            <div class="card">
+              <div class="stat-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">⚡</div>
+              <div class="stat-lbl">Active Tasks</div>
+              <div class="stat-val">15</div>
+              <div class="stat-hint">Currently in progress</div>
+            </div>
+            
+            <div class="card">
+              <div class="stat-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">🚨</div>
+              <div class="stat-lbl">Active Alerts</div>
+              <div class="stat-val">2</div>
+              <div class="stat-hint">Require attention</div>
+            </div>
+          </div>
+          
+          <div class="g2">
+            <div class="card">
+              <h3 class="card-title">Live Activity Feed</h3>
+              <div class="li">
+                <div class="li-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">✅</div>
+                <div>
+                  <div class="li-title">Sarah completed "API Documentation"</div>
+                  <div class="li-sub">2 minutes ago</div>
+                </div>
+              </div>
+              <div class="li">
+                <div class="li-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">🔄</div>
+                <div>
+                  <div class="li-title">Mike moved "Database Setup" to Review</div>
+                  <div class="li-sub">5 minutes ago</div>
+                </div>
+              </div>
+              <div class="li">
+                <div class="li-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">💬</div>
+                <div>
+                  <div class="li-title">Anna commented on "UI Design"</div>
+                  <div class="li-sub">8 minutes ago</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <h3 class="card-title">Current Alerts</h3>
+              <div class="li">
+                <div class="li-ico" style="background: var(--red-bg); color: var(--global-color-red-500);">⚠️</div>
+                <div>
+                  <div class="li-title">Deadline Risk: Project Alpha</div>
+                  <div class="li-sub">3 tasks at risk of missing deadline</div>
+                </div>
+                <div class="li-acts">
+                  <button class="btn btn-sm btn-danger">Review</button>
+                </div>
+              </div>
+              <div class="li">
+                <div class="li-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">⚖️</div>
+                <div>
+                  <div class="li-title">Workload Imbalance</div>
+                  <div class="li-sub">Mike has 2x more tasks than average</div>
+                </div>
+                <div class="li-acts">
+                  <button class="btn btn-sm btn-secondary">Balance</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- SETTINGS -->
+        <div id="settings" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Settings</h1>
+              <p class="ph-sub">Customize your account and team preferences</p>
+            </div>
+            <button class="btn btn-primary">
+              <div class="button-content">
+                <span>💾</span>
+                Save Changes
+              </div>
+            </button>
+          </div>
+          
+          <div class="tabs" role="tablist">
+            <button class="tab active" role="tab" aria-selected="true" tabindex="0" onclick="switchTab(this, 'settings', 'profile')" onkeydown="tabKey(event, this)">Profile</button>
+            <button class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(this, 'settings', 'team')" onkeydown="tabKey(event, this)">Team</button>
+            <button class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(this, 'settings', 'integrations')" onkeydown="tabKey(event, this)">Integrations</button>
+            <button class="tab" role="tab" aria-selected="false" tabindex="-1" onclick="switchTab(this, 'settings', 'accessibility')" onkeydown="tabKey(event, this)">Accessibility</button>
+          </div>
+          
+          <div id="settings-profile">
+            <div class="g2">
+              <div class="card">
+                <h3 class="card-title">Personal Information</h3>
+                <div class="field">
+                  <label for="fullname">Full Name</label>
+                  <input type="text" id="fullname" value="Sarah Johnson">
+                </div>
+                <div class="field">
+                  <label for="email">Email Address</label>
+                  <input type="email" id="email" value="sarah.johnson@company.com">
+                </div>
+                <div class="field">
+                  <label for="timezone">Time Zone</label>
+                  <select id="timezone">
+                    <option>UTC-8 (Pacific Time)</option>
+                    <option>UTC-5 (Eastern Time)</option>
+                    <option>UTC+0 (GMT)</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div class="card">
+                <h3 class="card-title">Notification Preferences</h3>
+                <div class="toggle-row">
+                  <div>
+                    <div class="toggle-lbl">Email Notifications</div>
+                    <div class="toggle-hint">Receive updates via email</div>
+                  </div>
+                  <div class="ava-toggle-container">
+                    <div class="toggle-wrapper on" onclick="toggleSwitch(this)">
+                      <div class="toggle-slider"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="toggle-row">
+                  <div>
+                    <div class="toggle-lbl">Push Notifications</div>
+                    <div class="toggle-hint">Browser notifications for urgent items</div>
+                  </div>
+                  <div class="ava-toggle-container">
+                    <div class="toggle-wrapper" onclick="toggleSwitch(this)">
+                      <div class="toggle-slider"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="toggle-row">
+                  <div>
+                    <div class="toggle-lbl">Weekly Summary</div>
+                    <div class="toggle-hint">Weekly performance digest</div>
+                  </div>
+                  <div class="ava-toggle-container">
+                    <div class="toggle-wrapper on" onclick="toggleSwitch(this)">
+                      <div class="toggle-slider"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div id="settings-team" style="display: none;">
+            <div class="card">
+              <h3 class="card-title">Team Management</h3>
+              <div class="li">
+                <div class="li-ico" style="background: var(--gradient-brand); color: #fff;">SJ</div>
+                <div style="flex: 1;">
+                  <div class="li-title">Sarah Johnson</div>
+                  <div class="li-sub">Admin • sarah.johnson@company.com</div>
+                </div>
+                <div class="li-acts">
+                  <span class="badge badge-brand">Admin</span>
+                </div>
+              </div>
+              <div class="li">
+                <div class="li-ico" style="background: var(--gradient-brand); color: #fff;">MK</div>
+                <div style="flex: 1;">
+                  <div class="li-title">Mike Kumar</div>
+                  <div class="li-sub">Member • mike.kumar@company.com</div>
+                </div>
+                <div class="li-acts">
+                  <span class="badge badge-neutral">Member</span>
+                  <button class="btn btn-sm btn-secondary">Edit</button>
+                </div>
+              </div>
+              <button class="btn btn-primary" onclick="openModal('team-invitation')" style="margin-top: 16px;">
+                <div class="button-content">
+                  <span>➕</span>
+                  Invite Team Member
+                </div>
+              </button>
+            </div>
+          </div>
+          
+          <div id="settings-integrations" style="display: none;">
+            <div class="g2">
+              <div class="card">
+                <h3 class="card-title">Available Integrations</h3>
+                <div class="li">
+                  <div class="li-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">📧</div>
+                  <div style="flex: 1;">
+                    <div class="li-title">Slack</div>
+                    <div class="li-sub">Team communication and notifications</div>
+                  </div>
+                  <div class="li-acts">
+                    <span class="badge badge-success dot">Connected</span>
+                  </div>
+                </div>
+                <div class="li">
+                  <div class="li-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">📅</div>
+                  <div style="flex: 1;">
+                    <div class="li-title">Google Calendar</div>
+                    <div class="li-sub">Sync deadlines and meetings</div>
+                  </div>
+                  <div class="li-acts">
+                    <button class="btn btn-sm btn-secondary">Connect</button>
+                  </div>
+                </div>
+                <div class="li">
+                  <div class="li-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">🐙</div>
+                  <div style="flex: 1;">
+                    <div class="li-title">GitHub</div>
+                    <div class="li-sub">Link code commits to tasks</div>
+                  </div>
+                  <div class="li-acts">
+                    <button class="btn btn-sm btn-secondary">Connect</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card">
+                <h3 class="card-title">API Configuration</h3>
+                <div class="field">
+                  <label for="api-key">API Key</label>
+                  <input type="password" id="api-key" value="••••••••••••••••" readonly>
+                </div>
+                <div class="field">
+                  <label for="webhook-url">Webhook URL</label>
+                  <input type="url" id="webhook-url" placeholder="https://your-app.com/webhook">
+                </div>
+                <button class="btn btn-secondary">Generate New Key</button>
+              </div>
+            </div>
+          </div>
+          
+          <div id="settings-accessibility" style="display: none;">
+            <div class="card">
+              <h3 class="card-title">Accessibility Options</h3>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-lbl">High Contrast Mode</div>
+                  <div class="toggle-hint">Increase contrast for better visibility</div>
+                </div>
+                <div class="ava-toggle-container">
+                  <div class="toggle-wrapper" onclick="toggleSwitch(this)">
+                    <div class="toggle-slider"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-lbl">Screen Reader Support</div>
+                  <div class="toggle-hint">Enhanced compatibility with screen readers</div>
+                </div>
+                <div class="ava-toggle-container">
+                  <div class="toggle-wrapper on" onclick="toggleSwitch(this)">
+                    <div class="toggle-slider"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="toggle-row">
+                <div>
+                  <div class="toggle-lbl">Keyboard Navigation</div>
+                  <div class="toggle-hint">Enhanced keyboard shortcuts and navigation</div>
+                </div>
+                <div class="ava-toggle-container">
+                  <div class="toggle-wrapper on" onclick="toggleSwitch(this)">
+                    <div class="toggle-slider"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="font-size">Font Size</label>
+                <select id="font-size">
+                  <option>Small</option>
+                  <option selected>Medium</option>
+                  <option>Large</option>
+                  <option>Extra Large</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- QUICK SETUP -->
+        <div id="setup" class="page">
+          <div class="ph">
+            <div>
+              <h1 class="ph-title">Quick Setup</h1>
+              <p class="ph-sub">Get started quickly with essential configurations</p>
+            </div>
+            <button class="btn btn-primary">
+              <div class="button-content">
+                <span>✅</span>
+                Complete Setup
+              </div>
+            </button>
+          </div>
+          
+          <div class="g3">
+            <div class="card">
+              <div class="stat-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">👤</div>
+              <div class="stat-lbl">Profile Setup</div>
+              <div class="stat-val">✓</div>
+              <div class="stat-hint">Completed</div>
+            </div>
+            
+            <div class="card">
+              <div class="stat-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">👥</div>
+              <div class="stat-lbl">Team Invitation</div>
+              <div class="stat-val">⏳</div>
+              <div class="stat-hint">Pending</div>
+            </div>
+            
+            <div class="card">
+              <div class="stat-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">🔗</div>
+              <div class="stat-lbl">Integrations</div>
+              <div class="stat-val">⏳</div>
+              <div class="stat-hint">Optional</div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3 class="card-title">Setup Progress</h3>
+            <div class="progress" style="margin-bottom: 16px;">
+              <div class="progress-bar" style="width: 33%;"></div>
+            </div>
+            <p style="color: var(--color-text-muted); font-size: 13px; margin-bottom: 24px;">1 of 3 steps completed</p>
+            
+            <div class="li">
+              <div class="li-ico" style="background: var(--green-bg); color: var(--global-color-green-500);">✅</div>
+              <div>
+                <div class="li-title">Profile Information</div>
+                <div class="li-sub">Basic profile setup completed</div>
+              </div>
+            </div>
+            
+            <div class="li">
+              <div class="li-ico" style="background: var(--amber-bg); color: var(--global-color-yellow-500);">👥</div>
+              <div style="flex: 1;">
+                <div class="li-title">Invite Team Members</div>
+                <div class="li-sub">Add your team to start collaborating</div>
+              </div>
+              <div class="li-acts">
+                <button class="btn btn-sm btn-primary" onclick="openModal('team-invitation')">Invite</button>
+              </div>
+            </div>
+            
+            <div class="li">
+              <div class="li-ico" style="background: var(--blue-bg); color: var(--global-color-blue-500);">🔗</div>
+              <div style="flex: 1;">
+                <div class="li-title">Connect Integrations</div>
+                <div class="li-sub">Link your favorite tools (optional)</div>
+              </div>
+              <div class="li-acts">
+                <button class="btn btn-sm btn-secondary">Setup</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- MODALS -->
+  <!-- Workspace Setup Modal -->
+  <div id="workspace-setup" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Workspace Setup</h2>
+        <button class="modal-close" onclick="closeModal('workspace-setup')" aria-label="Close modal">✕</button>
+      </div>
+      
+      <div class="field">
+        <label for="workspace-name">Workspace Name</label>
+        <input type="text" id="workspace-name" placeholder="My Company Workspace">
+      </div>
+      
+      <div class="field">
+        <label for="team-size">Team Size</label>
+        <select id="team-size">
+          <option>1-5 members</option>
+          <option>6-20 members</option>
+          <option>21-50 members</option>
+          <option>50+ members</option>
+        </select>
+      </div>
+      
+      <div class="field">
+        <label for="use-case">Primary Use Case</label>
+        <select id="use-case">
+          <option>Project Management</option>
+          <option>Personal Tasks</option>
+          <option>Team Collaboration</option>
+          <option>Agile Development</option>
+        </select>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('workspace-setup')">Skip for Now</button>
+        <button class="btn btn-primary" onclick="closeModal('workspace-setup'); nav(document.querySelector('[onclick*=tasks]'), 'tasks');">Continue</button>
+      </div>
     </div>
+  </div>
+  
+  <!-- Task Creation Modal -->
+  <div id="task-creation" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Create New Task</h2>
+        <button class="modal-close" onclick="closeModal('task-creation')" aria-label="Close modal">✕</button>
+      </div>
+      
+      <div class="field">
+        <label for="task-title">Task Title *</label>
+        <input type="text" id="task-title" placeholder="Enter task title" required>
+      </div>
+      
+      <div class="field">
+        <label for="task-description">Description</label>
+        <textarea id="task-description" placeholder="Describe the task details..."></textarea>
+      </div>
+      
+      <div class="g2">
+        <div class="field">
+          <label for="task-priority">Priority</label>
+          <select id="task-priority">
+            <option>Low</option>
+            <option selected>Medium</option>
+            <option>High</option>
+          </select>
+        </div>
+        
+        <div class="field">
+          <label for="task-due">Due Date</label>
+          <input type="date" id="task-due">
+        </div>
+      </div>
+      
+      <div class="field">
+        <label for="task-assignee">Assignee</label>
+        <select id="task-assignee">
+          <option selected>Sarah Johnson (Me)</option>
+          <option>Mike Kumar</option>
+          <option>Anna Lee</option>
+        </select>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('task-creation')">Cancel</button>
+        <button class="btn btn-primary" onclick="closeModal('task-creation')">Create Task</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Task Assignment Modal -->
+  <div id="task-assignment" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Assign Task</h2>
+        <button class="modal-close" onclick="closeModal('task-assignment')" aria-label="Close modal">✕</button>
+      </div>
+      
+      <div class="field">
+        <label for="assign-task">Select Task</label>
+        <select id="assign-task">
+          <option>Update project documentation</option>
+          <option>Review team performance metrics</option>
+          <option>Schedule client meeting</option>
+        </select>
+      </div>
+      
+      <div class="field">
+        <label for="assign-to">Assign To</label>
+        <select id="assign-to">
+          <option>Mike Kumar (3 active tasks)</option>
+          <option>Anna Lee (7 active tasks)</option>
+          <option>David Chen (2 active tasks)</option>
+        </select>
+      </div>
+      
+      <div class="field">
+        <label for="assign-reason">Reason for Assignment</label>
+        <textarea id="assign-reason" placeholder="Optional: Explain why this task is being reassigned..."></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('task-assignment')">Cancel</button>
+        <button class="btn btn-primary" onclick="closeModal('task-assignment')">Assign Task</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Report Generator Modal -->
+  <div id="report-generator" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Generate Report</h2>
+        <button class="modal-close" onclick="closeModal('report-generator')" aria-label="Close modal">✕</button>
+      </div>
+      
+      <div class="field">
+        <label for="report-template">Report Template</label>
+        <select id="report-template">
+          <option>Executive Summary</option>
+          <option>Detailed Analysis</option>
+          <option>Team Performance</option>
+          <option>Sprint Report</option>
+        </select>
+      </div>
+      
+      <div class="g2">
+        <div class="field">
+          <label for="report-start">Start Date</label>
+          <input type="date" id="report-start">
+        </div>
+        
+        <div class="field">
+          <label for="report-end">End Date</label>
+          <input type="date" id="report-end">
+        </div>
+      </div>
+      
+      <div class="field">
+        <label for="report-format">Output Format</label>
+        <select id="report-format">
+          <option>PDF</option>
+          <option>Excel</option>
+          <option>PowerPoint</option>
+        </select>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('report-generator')">Cancel</button>
+        <button class="btn btn-primary" onclick="closeModal('report-generator')">Generate Report</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Alert Configuration Modal -->
+  <div id="alert-config" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Configure Alert</h2>
+        <button class="modal-close" onclick="closeModal('alert-config')" aria-label="Close modal">✕</button>
+      </div>
+      
+      <div class="field">
+        <label for="alert-type">Alert Type</label>
+        <select id="alert-type">
+          <option>Deadline Risk</option>
+          <option>Workload Imbalance</option>
+          <option>Quality Issues</option>
+          <option>Team Availability</option>
+        </select>
+      </div>
+      
+      <div class="field">
+        <label for="alert-threshold">Threshold</label>
+        <input type="range" id="alert-threshold" min="1" max="10" value="5">
+        <small style="color: var(--color-text-muted);">Sensitivity: Medium</small>
+      </div>
+      
+      <div class="field">
+        <label>Notification Methods</label>
+        <div class="toggle-row">
+          <div class="toggle-lbl">Email Notifications</div>
+          <div class="ava-toggle-container">
+            <div class="toggle-wrapper on" onclick="toggleSwitch(this)">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-lbl">In-App Notifications</div>
+          <div class="ava-toggle-container">
+            <div class="toggle-wrapper on" onclick="toggleSwitch(this)">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('alert-config')">Cancel</button>
+        <button class="btn btn-primary" onclick="closeModal('alert-config')">Save Alert</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Team Invitation Modal -->
+  <div id="team-invitation" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Invite Team Members</h2>
+        <button class="modal-close" onclick="closeModal('team-invitation')" aria-label="Close modal">✕</button>
+      </div>
+      
+      <div class="field">
+        <label for="invite-emails">Email Addresses</label>
+        <textarea id="invite-emails" placeholder="Enter email addresses separated by commas or new lines..."></textarea>
+      </div>
+      
+      <div class="field">
+        <label for="invite-role">Default Role</label>
+        <select id="invite-role">
+          <option>Member</option>
+          <option>Admin</option>
+          <option>Viewer</option>
+        </select>
+      </div>
+      
+      <div class="field">
+        <label for="invite-message">Personal Message (Optional)</label>
+        <textarea id="invite-message" placeholder="Add a personal message to the invitation..."></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('team-invitation')">Save for Later</button>
+        <button class="btn btn-primary" onclick="closeModal('team-invitation')">Send Invitations</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Toggle switch functionality
+    function toggleSwitch(el) {
+      el.classList.toggle('on');
+      el.setAttribute('aria-checked', el.classList.contains('on'));
+    }
     
-    <script>
-        // Navigation functions
-        function nav(el, id) {
-            // Hide all pages
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            // Show selected page
-            const page = document.getElementById(id);
-            if (page) page.classList.add('active');
-            // Update navigation
-            document.querySelectorAll('.nav-list li').forEach(li => li.classList.remove('active'));
-            el.classList.add('active');
-        }
-        
-        // Keyboard navigation for menu items
-        function navKey(event, el, id) {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                nav(el, id);
-                return;
-            }
-            const items = Array.from(el.closest('ul').querySelectorAll('[role="menuitem"]'));
-            const i = items.indexOf(el);
-            if (event.key === 'ArrowDown') {
-                event.preventDefault();
-                items[Math.min(i + 1, items.length - 1)].focus();
-            }
-            if (event.key === 'ArrowUp') {
-                event.preventDefault();
-                items[Math.max(i - 1, 0)].focus();
-            }
-        }
-        
-        // Modal functions
-        function showAddTaskModal() {
-            document.getElementById('addTaskModal').classList.add('active');
-            document.getElementById('taskTitle').focus();
-        }
-        
-        function closeAddTaskModal() {
-            document.getElementById('addTaskModal').classList.remove('active');
-        }
-        
-        function showTeamAssignModal() {
-            document.getElementById('teamAssignModal').classList.add('active');
-        }
-        
-        function closeTeamAssignModal() {
-            document.getElementById('teamAssignModal').classList.remove('active');
-        }
-        
-        function showReportConfigModal() {
-            document.getElementById('reportConfigModal').classList.add('active');
-            document.getElementById('reportName').focus();
-        }
-        
-        function closeReportConfigModal() {
-            document.getElementById('reportConfigModal').classList.remove('active');
-        }
-        
-        function showWorkflowRulesModal() {
-            document.getElementById('workflowRulesModal').classList.add('active');
-        }
-        
-        function closeWorkflowRulesModal() {
-            document.getElementById('workflowRulesModal').classList.remove('active');
-        }
-        
-        // Detail view functions
-        function showTaskDetail(taskId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById('taskDetail').style.display = 'block';
-        }
-        
-        function goBackToBoard() {
-            document.getElementById('taskDetail').style.display = 'none';
-            document.getElementById('kanban').classList.add('active');
-        }
-        
-        // Settings functions
-        function showSettings() {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById('settings').style.display = 'block';
-        }
-        
-        function goBackFromSettings() {
-            document.getElementById('settings').style.display = 'none';
-            document.getElementById('kanban').classList.add('active');
-        }
-        
-        // Toggle switch function
-        function toggleSwitch(el) {
-            el.classList.toggle('on');
-            el.setAttribute('aria-checked', el.classList.contains('on'));
-        }
-        
-        // Form submission functions
-        function submitTask(event) {
-            event.preventDefault();
-            // Simulate task creation
-            alert('✅ Task created successfully!');
-            closeAddTaskModal();
-        }
-        
-        function generateReport(event) {
-            event.preventDefault();
-            // Simulate report generation
-            alert('📊 Report generated successfully!');
-            closeReportConfigModal();
-        }
-        
-        // Placeholder functions for other interactions
-        function showNotifications() { alert('🔔 Notifications panel would open here'); }
-        function confirmAssignment() { alert('✅ Team assignment confirmed'); closeTeamAssignModal(); }
-        function saveConfiguration() { alert('💾 Configuration saved successfully'); }
-        function saveWorkflowRules() { alert('⚙️ Workflow rules saved'); closeWorkflowRulesModal(); }
-        function saveSettings() { alert('💾 Settings saved successfully'); }
-        function resetSettings() { alert('🔄 Settings reset to defaults'); }
-        function showDetailedAnalytics() { alert('📊 Detailed analytics view would open'); }
-        function selectTemplate(type) { alert('📋 Template selected: ' + type); }
-        function loadTemplate(type) { alert('📐 Template loaded: ' + type); }
-        
-        // Close modals on escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
-                    modal.classList.remove('active');
-                });
-            }
+    // Navigation functionality
+    function navKey(e, el, id) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        nav(el, id);
+        return;
+      }
+      
+      var items = Array.from(el.closest('ul').querySelectorAll('[role="menuitem"]'));
+      var i = items.indexOf(el);
+      
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        var next = items[Math.min(i + 1, items.length - 1)];
+        next.focus();
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        var prev = items[Math.max(i - 1, 0)];
+        prev.focus();
+      }
+      if (e.key === 'Home') {
+        e.preventDefault();
+        items[0].focus();
+      }
+      if (e.key === 'End') {
+        e.preventDefault();
+        items[items.length - 1].focus();
+      }
+    }
+    
+    // Tab navigation functionality
+    function tabKey(e, el) {
+      var tabs = Array.from(el.closest('[role="tablist"]').querySelectorAll('[role="tab"]'));
+      var i = tabs.indexOf(el);
+      
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        var n = tabs[(i + 1) % tabs.length];
+        n.focus();
+        n.click();
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        var p = tabs[(i - 1 + tabs.length) % tabs.length];
+        p.focus();
+        p.click();
+      }
+      if (e.key === 'Home') {
+        e.preventDefault();
+        tabs[0].focus();
+        tabs[0].click();
+      }
+      if (e.key === 'End') {
+        e.preventDefault();
+        tabs[tabs.length - 1].focus();
+        tabs[tabs.length - 1].click();
+      }
+    }
+    
+    var pages = ['dashboard', 'tasks', 'team', 'sprint', 'analytics', 'monitoring', 'settings', 'setup'];
+    
+    function nav(el, id) {
+      // Hide all pages
+      pages.forEach(p => {
+        var pg = document.getElementById(p);
+        if (pg) pg.classList.remove('active');
+      });
+      
+      // Show target page
+      var pg = document.getElementById(id);
+      if (pg) pg.classList.add('active');
+      
+      // Update navigation active state
+      document.querySelectorAll('.nav-list li').forEach(n => {
+        n.classList.remove('active');
+        n.setAttribute('tabindex', '-1');
+      });
+      el.classList.add('active');
+      el.setAttribute('tabindex', '0');
+    }
+    
+    function switchTab(el, prefix, id) {
+      var tablist = el.closest('[role="tablist"]');
+      tablist.querySelectorAll('[role="tab"]').forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+        t.setAttribute('tabindex', '-1');
+      });
+      
+      el.classList.add('active');
+      el.setAttribute('aria-selected', 'true');
+      el.setAttribute('tabindex', '0');
+      
+      document.querySelectorAll('[id^="' + prefix + '-"]').forEach(p => p.style.display = 'none');
+      document.getElementById(prefix + '-' + id).style.display = 'block';
+    }
+    
+    // Modal functionality
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+          modal.classList.remove('active');
         });
-        
-        // Close modals on backdrop click
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(event) {
-                if (event.target === overlay) {
-                    overlay.classList.remove('active');
-                }
-            });
-        });
-    </script>
+        document.body.style.overflow = '';
+      }
+    });
+    
+    // Close modal on backdrop click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          overlay.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
