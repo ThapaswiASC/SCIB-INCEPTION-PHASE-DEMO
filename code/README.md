@@ -1,21 +1,25 @@
 # MyProject - SCIB Inception Phase Demo
 
-A comprehensive Spring Boot application implementing task management and Kanban board functionality with robust input validation and error handling.
-
 ## Overview
 
-This project implements three main features:
+This is a Spring Boot application that implements a task management system with Kanban board functionality. The application provides RESTful APIs for creating, updating, and managing tasks with support for drag-and-drop operations across Kanban columns.
 
-1. **Kanban Board Operations (DEMO-222)**: Drag-and-drop task management with status transitions and column statistics
-2. **High-Performance Task Management (DEMO-757)**: Support for up to 10,000 tasks per user with optimized performance
-3. **Input Validation (DEMO-759)**: Comprehensive input validation with special character support and graceful error handling
+## Features
+
+- **Task Management**: Create, read, update, and delete tasks
+- **Bulk Operations**: Create multiple tasks in a single request
+- **User Task Management**: Retrieve tasks by user with pagination
+- **Kanban Board**: Drag-and-drop task status updates with column statistics
+- **Input Validation**: Comprehensive validation for all input data
+- **Error Handling**: Structured error responses with detailed messages
+- **Performance Optimized**: Supports up to 10,000 tasks per user
 
 ## Technology Stack
 
 - **Java**: 21
 - **Spring Boot**: 3.5.9
-- **Build Tool**: Maven
 - **Database**: H2 (in-memory)
+- **Build Tool**: Maven
 - **Testing**: JUnit Jupiter
 - **Code Coverage**: JaCoCo
 
@@ -27,109 +31,60 @@ code/
 ├── src/
 │   └── main/
 │       ├── java/com/myproject/
-│       │   ├── controllers/          # REST API endpoints
-│       │   │   ├── TaskController.java
-│       │   │   ├── ColumnController.java
-│       │   │   └── ValidationController.java
+│       │   ├── controllers/          # REST API controllers
 │       │   ├── models/
 │       │   │   ├── dtos/            # Data Transfer Objects
-│       │   │   ├── entities/        # Domain entities
-│       │   │   └── datastores/      # In-memory data storage
+│       │   │   ├── entities/        # JPA entities
+│       │   │   └── datastores/      # Repository interfaces
 │       │   ├── services/
-│       │   │   ├── interfaces/      # Service contracts
+│       │   │   ├── interfaces/      # Service interfaces
 │       │   │   └── impl/            # Service implementations
 │       │   ├── config/              # Configuration classes
 │       │   ├── exceptions/          # Custom exceptions
+│       │   ├── utils/               # Utility classes
 │       │   └── Application.java     # Main application class
 │       └── resources/
 │           └── application.properties
-└── .github/workflows/build.yml      # CI/CD pipeline
+└── .github/workflows/build.yml      # CI/CD workflow
 ```
 
 ## API Endpoints
 
-### Kanban Board Operations
-
-- `PUT /api/v1/tasks/{taskId}/status` - Update task status
-- `GET /api/v1/tasks/{taskId}` - Get task details
-- `GET /api/v1/columns/{columnId}/stats` - Get column statistics
-- `PUT /api/v1/columns/bulk-update` - Bulk update column counts
-
 ### Task Management
 
 - `POST /api/v1/tasks` - Create a new task
-- `GET /api/v1/users/{userId}/tasks` - Get user tasks (paginated)
-- `GET /api/v1/users/{userId}/tasks/count` - Get task count for user
-- `PUT /api/v1/tasks/{taskId}/update` - Update task
-- `DELETE /api/v1/tasks/{taskId}/delete` - Delete task
+- `GET /api/v1/tasks` - List all tasks
+- `GET /api/v1/tasks/{id}` - Get task by ID
+- `PUT /api/v1/tasks/{id}` - Update task
+- `DELETE /api/v1/tasks/{id}` - Delete task
 - `POST /api/v1/tasks/bulk` - Bulk create tasks
 
-### Input Validation
+### User Tasks
 
-- `POST /api/tasks` - Create task with validation
-- `POST /api/tasks/validate` - Validate task input without creating
+- `GET /api/v1/users/{userId}/tasks` - Get user tasks (paginated)
+- `GET /api/v1/users/{userId}/tasks/count` - Get user task count
 
-## Features
+### Kanban Board
 
-### 1. Kanban Board Management
+- `PUT /api/v1/tasks/{taskId}/status` - Update task status
+- `GET /api/v1/columns/{columnId}/stats` - Get column statistics
+- `PUT /api/v1/columns/bulk-update` - Bulk update column counts
 
-- Drag-and-drop task status updates
-- Column statistics tracking
-- Atomic bulk column count updates
-- Status transition validation
-
-### 2. Task Management
-
-- Support for 10,000+ tasks per user
-- Paginated task retrieval
-- Bulk task creation
-- Task count tracking
-- Optimistic locking for concurrent operations
-
-### 3. Input Validation
-
-- Comprehensive field validation
-- Special character support (UTF-8)
-- XSS prevention through input sanitization
-- Character limit enforcement (255 for title, 10,000 for description)
-- Whitespace handling
-
-## Configuration
-
-### Application Properties
-
-```properties
-spring.application.name=myproject
-server.port=8080
-server.servlet.context-path=/api
-
-# H2 Database
-spring.datasource.url=jdbc:h2:mem:testdb
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
-```
-
-### CORS Configuration
-
-- Allowed Origin: `http://localhost:4200`
-- Credentials: Enabled
-- All headers and methods allowed
-
-## Building and Running
+## Getting Started
 
 ### Prerequisites
 
-- JDK 21
-- Maven 3.6+
+- Java 21 or higher
+- Maven 3.6 or higher
 
-### Build
+### Building the Application
 
 ```bash
 cd code
 mvn clean install
 ```
 
-### Run
+### Running the Application
 
 ```bash
 mvn spring-boot:run
@@ -137,129 +92,107 @@ mvn spring-boot:run
 
 The application will start on `http://localhost:8080/api`
 
-### Access H2 Console
-
-Navigate to `http://localhost:8080/api/h2-console`
-
-- JDBC URL: `jdbc:h2:mem:testdb`
-- Username: `sa`
-- Password: (leave empty)
-
-## Testing
-
-### Run Tests
+### Running Tests
 
 ```bash
 mvn test
 ```
 
-### Generate Coverage Report
+### Generating Code Coverage Report
 
 ```bash
 mvn jacoco:report
 ```
 
-Coverage report will be available at `target/site/jacoco/index.html`
+The coverage report will be available at `target/site/jacoco/index.html`
 
-## CI/CD Pipeline
+## Configuration
 
-The project includes a GitHub Actions workflow that:
+The application can be configured through `application.properties`:
 
-1. Checks out the code
-2. Sets up JDK 21
-3. Builds the project with Maven
-4. Generates JaCoCo coverage report
-5. Uploads test results and coverage reports as artifacts
+```properties
+spring.application.name=myproject
+server.port=8080
+server.servlet.context-path=/api
 
-### Trigger Workflow
+# Database Configuration
+spring.datasource.url=jdbc:h2:mem:testdb
+spring.datasource.driver-class-name=org.h2.Driver
 
-The workflow can be manually triggered via GitHub Actions UI (workflow_dispatch).
+# Logging
+logging.level.root=INFO
+logging.level.com.myproject=DEBUG
+```
+
+## Validation Rules
+
+### Task Creation
+
+- **Title**: Required, 1-255 characters, cannot be only whitespace
+- **Description**: Optional, max 10,000 characters
+- **User ID**: Required, must be positive
+- **Priority**: Optional, valid values: LOW, MEDIUM, HIGH, URGENT
+- **Task Limit**: Maximum 10,000 tasks per user
+
+### Status Transitions
+
+- `PENDING/TO_DO` → `IN_PROGRESS`
+- `IN_PROGRESS` → `DONE/COMPLETED` or back to `TO_DO`
+- `DONE/COMPLETED` → `IN_PROGRESS`
 
 ## Error Handling
 
-The application provides comprehensive error handling with structured error responses:
+The application provides structured error responses:
 
 ```json
 {
   "timestamp": "2024-01-01T10:00:00",
   "traceId": "uuid",
-  "errorCode": "ERROR_CODE",
-  "message": "Error description",
-  "details": ["Additional error details"]
+  "errorCode": "VALIDATION_ERROR",
+  "message": "Validation failed",
+  "details": ["Title is required"]
 }
 ```
 
 ### Error Codes
 
+- `VALIDATION_ERROR` - Input validation failed
 - `TASK_NOT_FOUND` - Task does not exist
-- `COLUMN_NOT_FOUND` - Column does not exist
-- `USER_NOT_FOUND` - User does not exist
-- `INVALID_STATUS_TRANSITION` - Invalid task status change
-- `TASK_LIMIT_EXCEEDED` - User has reached maximum task limit
-- `INVALID_INPUT` - Input validation failed
-- `VALIDATION_ERROR` - Bean validation failed
-
-## Data Storage
-
-The application uses in-memory data stores for:
-
-- **Tasks**: Concurrent hash map with atomic ID generation
-- **Columns**: Pre-initialized with default Kanban columns (To Do, In Progress, Done)
-- **Users**: Pre-initialized with a test user
-
-This design allows the application to run without external database dependencies while maintaining data consistency.
-
-## Performance Considerations
-
-- Connection pooling with HikariCP
-- Paginated queries for large datasets
-- Optimistic locking for concurrent updates
-- Efficient in-memory data structures
-- Response time target: < 200ms for 95% of requests
+- `TASK_LIMIT_EXCEEDED` - User has reached task limit
+- `INVALID_STATUS_TRANSITION` - Invalid status change
+- `INVALID_INPUT` - Invalid input data
 
 ## Security
 
-- CSRF protection disabled for API endpoints
-- Stateless session management
-- Input sanitization to prevent XSS attacks
-- All endpoints currently permit all (authentication can be enabled)
+- CORS enabled for `http://localhost:4200`
+- All endpoints under `/api/v1/**` are publicly accessible
+- H2 console available at `/api/h2-console`
 
-## Validation Rules
+## Database
 
-### Task Title
-- Required
-- 1-255 characters
-- Cannot be empty or whitespace only
-- Special characters allowed
+The application uses H2 in-memory database. The database is automatically created on startup and destroyed on shutdown.
 
-### Task Description
-- Optional
-- Maximum 10,000 characters
-- Special characters allowed
+### Accessing H2 Console
 
-### Task Priority
-- Required
-- Values: LOW, MEDIUM, HIGH, URGENT
+1. Navigate to `http://localhost:8080/api/h2-console`
+2. Use the following connection details:
+   - JDBC URL: `jdbc:h2:mem:testdb`
+   - Username: `sa`
+   - Password: (leave empty)
 
-### Task Status
-- Required
-- Values: PENDING, IN_PROGRESS, COMPLETED, CANCELLED (for validated tasks)
-- Values: TO_DO, IN_PROGRESS, DONE (for Kanban tasks)
+## CI/CD
 
-## Future Enhancements
+The project includes a GitHub Actions workflow for automated builds:
 
-- Database persistence (PostgreSQL/MySQL)
-- JWT-based authentication
-- WebSocket support for real-time updates
-- Redis caching
-- Internationalization (i18n)
-- Advanced search and filtering
-- Task assignment and collaboration features
+- Triggered manually via `workflow_dispatch`
+- Builds with Maven
+- Generates JaCoCo coverage reports
+- Uploads test results and coverage reports as artifacts
 
 ## License
 
 This project is part of the SCIB Inception Phase Demo.
 
-## Contact
+## Support
 
-For questions or issues, please contact the development team.
+For issues and questions, please refer to the project documentation or contact the development team.
