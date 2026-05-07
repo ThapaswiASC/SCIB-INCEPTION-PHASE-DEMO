@@ -11,6 +11,7 @@ import com.myproject.services.interfaces.ColumnService;
 import com.myproject.services.interfaces.TaskService;
 import com.myproject.services.interfaces.ValidationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -117,10 +118,13 @@ public class TaskServiceImpl implements TaskService {
     }
     
     @Override
-    public PagedTaskResponse getUserTasks(Long userId, int page, int size) {
+    public PagedTaskResponse getUserTasks(Long userId, Pageable pageable) {
         // Validate user exists
         userDataStore.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(userId));
+        
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
         
         List<Task> tasks = taskDataStore.findByUserIdPaginated(userId, page, size);
         Long totalElements = taskDataStore.countByUserId(userId);
