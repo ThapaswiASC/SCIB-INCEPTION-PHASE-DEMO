@@ -1,19 +1,27 @@
 {
-  "executive_summary": "Maven build failed due to a compilation error in TaskManagementController.java. The controller is calling getUserTasks() with a Pageable parameter, but the TaskService interface expects two int parameters (page and size). This is a method signature mismatch that requires updating either the service interface to accept Pageable or the controller to extract page/size from Pageable.",
+  "executive_summary": "Build failed with 2 compilation errors. The TaskController has a method signature mismatch when calling TaskService.getUserTasks(), passing primitive int parameters instead of a Pageable object. Additionally, TaskStatus enum illegally attempts to override the final name() method from java.lang.Enum. Both errors require code refactoring to align with Spring Data pagination patterns and Java enum constraints.",
   "attempt_number": 3,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-759",
   "log_file": "logs/build_failure_attempt-3.log",
-  "errors_found": 1,
+  "errors_found": 2,
   "errors": [
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/controllers/TaskManagementController.java",
-      "line": 50,
-      "message": "method getUserTasks cannot be applied to given types; required: Long,int,int found: Long,Pageable",
-      "root_cause": "The TaskManagementController is calling taskService.getUserTasks() with parameters (Long userId, Pageable pageable), but the TaskService interface defines getUserTasks() with signature (Long userId, int page, int size). This is a method signature mismatch between the controller and service interface.",
-      "fix_recommendation": "Update TaskService.getUserTasks() method signature to accept Pageable instead of separate int parameters: 'Page<TaskDTO> getUserTasks(Long userId, Pageable pageable)'. Then update the implementation class TaskServiceImpl to match this signature and use pageable.getPageNumber() and pageable.getPageSize() internally."
+      "file": "code/src/main/java/com/myproject/controllers/TaskController.java",
+      "line": 45,
+      "message": "Method getUserTasks cannot be applied: required (Long,Pageable), found (Long,int,int)",
+      "root_cause": "The controller is calling TaskService.getUserTasks() with two int parameters (page, size) but the service interface signature expects a Pageable object as the second parameter.",
+      "fix_recommendation": "Update TaskController.java line 45 to create a Pageable object using PageRequest.of(page, size) and pass it to getUserTasks(userId, pageable) instead of passing raw int values."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/main/java/com/myproject/models/dtos/TaskStatus.java",
+      "line": 11,
+      "message": "name() in TaskStatus cannot override name() in java.lang.Enum - overridden method is final",
+      "root_cause": "The TaskStatus enum declares a name() method which attempts to override the final name() method inherited from java.lang.Enum. Final methods cannot be overridden in Java.",
+      "fix_recommendation": "Remove or rename the name() method in TaskStatus.java. If custom naming is needed, use a different method name such as getDisplayName() or getStatusName() instead of overriding the built-in name() method."
     }
   ],
-  "summary": "1 error found"
+  "summary": "2 errors found"
 }
