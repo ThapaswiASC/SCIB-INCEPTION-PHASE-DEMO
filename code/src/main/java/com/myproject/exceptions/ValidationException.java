@@ -4,20 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ValidationException extends RuntimeException {
-
-    private final List<String> errors;
+    private final List<String> validationErrors;
 
     public ValidationException(String message) {
         super(message);
-        this.errors = new ArrayList<>();
+        this.validationErrors = new ArrayList<>();
     }
 
-    public ValidationException(String message, List<String> errors) {
+    public ValidationException(String message, List<String> validationErrors) {
         super(message);
-        this.errors = errors != null ? errors : new ArrayList<>();
+        this.validationErrors = validationErrors != null ? validationErrors : new ArrayList<>();
     }
 
-    public List<String> getErrors() {
-        return errors;
+    public List<String> getValidationErrors() {
+        return validationErrors;
     }
 }
