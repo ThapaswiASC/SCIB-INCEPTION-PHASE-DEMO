@@ -1,0 +1,27 @@
+{
+  "executive_summary": "Maven build failed with 2 test errors in GlobalExceptionHandlerTest. Both failures are caused by NullPointerException when attempting to invoke getParameterIndex() on a null MethodParameter object. The test methods are trying to handle MethodArgumentNotValidException but the exception object is not properly initialized with a valid MethodParameter, causing the handler to fail when trying to access parameter information.",
+  "attempt_number": 1,
+  "repo": "SCIB-INCEPTION-PHASE-DEMO",
+  "branch": "feature/DEMO-760",
+  "log_file": "logs/build_failure_attempt-1.log",
+  "errors_found": 2,
+  "errors": [
+    {
+      "type": "TEST_FAILURE",
+      "file": "src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
+      "line": 155,
+      "message": "NullPointerException: Cannot invoke getParameterIndex() because parameter is null",
+      "root_cause": "The test creates a MethodArgumentNotValidException without properly initializing the MethodParameter field. When GlobalExceptionHandler.handleMethodArgumentNotValid() calls exception.getMessage(), it internally tries to access this.parameter.getParameterIndex(), but this.parameter is null.",
+      "fix_recommendation": "In GlobalExceptionHandlerTest.handleMethodArgumentNotValid_ReturnsBadRequest(), create a valid MethodParameter object before constructing MethodArgumentNotValidException. Use: MethodParameter parameter = new MethodParameter(TaskController.class.getMethod("createTask", TaskCreateRequest.class), 0); Then pass this parameter when creating the exception."
+    },
+    {
+      "type": "TEST_FAILURE",
+      "file": "src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
+      "line": 176,
+      "message": "NullPointerException: Cannot invoke getParameterIndex() because parameter is null",
+      "root_cause": "Same as the first error - the test creates a MethodArgumentNotValidException without properly initializing the MethodParameter field, causing a NullPointerException when the handler tries to access parameter information.",
+      "fix_recommendation": "In GlobalExceptionHandlerTest.handleMethodArgumentNotValid_WithSingleError_ReturnsBadRequest(), create a valid MethodParameter object before constructing MethodArgumentNotValidException. Use: MethodParameter parameter = new MethodParameter(TaskController.class.getMethod("createTask", TaskCreateRequest.class), 0); Then pass this parameter when creating the exception."
+    }
+  ],
+  "summary": "2 errors found"
+}
