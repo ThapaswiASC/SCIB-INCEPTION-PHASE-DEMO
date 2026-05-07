@@ -24,4 +24,6 @@ public interface TaskService {
     UpdateTaskStatusResponse updateTaskStatus(String taskId, UpdateTaskStatusRequest request);
 
     TaskDetailsResponse getTaskDetails(String taskId);
+
+    BulkTaskResponse bulkCreateTasks(List<TaskCreateRequest> requests);
 }

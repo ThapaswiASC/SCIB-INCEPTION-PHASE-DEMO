@@ -8,6 +8,8 @@ import com.myproject.models.datastores.TaskRepository;
 import com.myproject.models.dtos.*;
 import com.myproject.models.entities.Task;
 import com.myproject.services.interfaces.TaskService;
+import com.myproject.utils.TaskMapper;
+import com.myproject.utils.ValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,32 +42,26 @@ public class TaskServiceImpl implements TaskService {
         }
 
         // Create task entity
-        Task task = new Task();
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setUserId(request.getUserId());
-        task.setPriority(request.getPriority());
-        task.setDueDate(request.getDueDate());
-        task.setStatus("PENDING");
+        Task task = TaskMapper.toEntity(request);
 
         // Save task
         Task savedTask = taskRepository.save(task);
 
-        return mapToResponse(savedTask);
+        return TaskMapper.toResponse(savedTask);
     }
 
     @Override
     public TaskResponse getTaskById(Long id) {
         Task task = taskRepository.findById(id)
             .orElseThrow(() -> new TaskNotFoundException(id));
-        return mapToResponse(task);
+        return TaskMapper.toResponse(task);
     }
 
     @Override
     public List<TaskResponse> getAllTasks() {
         return taskRepository.findAll()
             .stream()
-            .map(this::mapToResponse)
+            .map(TaskMapper::toResponse)
             .collect(Collectors.toList());
     }
 
@@ -75,12 +72,12 @@ public class TaskServiceImpl implements TaskService {
 
         // Update fields if provided
         if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
-            validateTitle(request.getTitle());
+            ValidationUtils.validateTitle(request.getTitle());
             task.setTitle(request.getTitle());
         }
 
         if (request.getDescription() != null) {
-            validateDescription(request.getDescription());
+            ValidationUtils.validateDescription(request.getDescription());
             task.setDescription(request.getDescription());
         }
 
@@ -93,7 +90,7 @@ public class TaskServiceImpl implements TaskService {
         }
 
         Task updatedTask = taskRepository.save(task);
-        return mapToResponse(updatedTask);
+        return TaskMapper.toResponse(updatedTask);
     }
 
     @Override
@@ -110,7 +107,7 @@ public class TaskServiceImpl implements TaskService {
 
         List<TaskResponse> content = taskPage.getContent()
             .stream()
-            .map(this::mapToResponse)
+            .map(TaskMapper::toResponse)
             .collect(Collectors.toList());
 
         return new PagedTaskResponse(
@@ -163,26 +160,33 @@ public class TaskServiceImpl implements TaskService {
         );
     }
 
+    @Override
+    public BulkTaskResponse bulkCreateTasks(List<TaskCreateRequest> requests) {
+        List<TaskResponse> createdTasks = new ArrayList<>();
+        List<BulkTaskResponse.BulkError> errors = new ArrayList<>();
+        int successCount = 0;
+        int failureCount = 0;
+
+        for (int i = 0; i < requests.size(); i++) {
+            try {
+                TaskCreateRequest request = requests.get(i);
+                TaskResponse response = createTask(request);
+                createdTasks.add(response);
+                successCount++;
+            } catch (Exception e) {
+                errors.add(new BulkTaskResponse.BulkError(i, e.getMessage()));
+                failureCount++;
+            }
+        }
+
+        return new BulkTaskResponse(successCount, failureCount, createdTasks, errors);
+    }
+
     // Helper methods
     private void validateTaskInput(TaskCreateRequest request) {
-        validateTitle(request.getTitle());
+        ValidationUtils.validateTitle(request.getTitle());
         if (request.getDescription() != null) {
-            validateDescription(request.getDescription());
-        }
-    }
-
-    private void validateTitle(String title) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new InvalidInputException("Title cannot be empty or contain only whitespace");
-        }
-        if (title.length() > 255) {
-            throw new InvalidInputException("Title cannot exceed 255 characters");
-        }
-    }
-
-    private void validateDescription(String description) {
-        if (description != null && description.length() > 10000) {
-            throw new InvalidInputException("Description cannot exceed 10000 characters");
+            ValidationUtils.validateDescription(request.getDescription());
         }
     }
 
@@ -211,18 +215,5 @@ public class TaskServiceImpl implements TaskService {
         if (!isValidTransition) {
             throw new InvalidStatusTransitionException(fromStatus, toStatus);
         }
-    }
-
-    private TaskResponse mapToResponse(Task task) {
-        return new TaskResponse(
-            task.getId(),
-            task.getTitle(),
-            task.getDescription(),
-            task.getUserId(),
-            task.getStatus(),
-            task.getPriority(),
-            task.getCreatedAt(),
-            task.getUpdatedAt()
-        );
     }
 }
