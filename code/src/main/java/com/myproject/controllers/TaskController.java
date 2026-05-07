@@ -67,6 +67,13 @@ public class TaskController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/tasks/bulk")
+    public ResponseEntity<BulkTaskResponse> bulkCreateTasks(
+            @Valid @RequestBody List<TaskCreateRequest> requests) {
+        BulkTaskResponse response = taskService.bulkCreateTasks(requests);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @PutMapping("/tasks/{taskId}/status")
     public ResponseEntity<UpdateTaskStatusResponse> updateTaskStatus(
             @PathVariable String taskId,
@@ -75,10 +82,9 @@ public class TaskController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/tasks/bulk")
-    public ResponseEntity<BulkTaskResponse> bulkCreateTasks(
-            @Valid @RequestBody List<TaskCreateRequest> requests) {
-        BulkTaskResponse response = taskService.bulkCreateTasks(requests);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @GetMapping("/tasks/{taskId}")
+    public ResponseEntity<TaskDetailsResponse> getTaskDetails(@PathVariable String taskId) {
+        TaskDetailsResponse response = taskService.getTaskDetails(taskId);
+        return ResponseEntity.ok(response);
     }
 }
