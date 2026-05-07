@@ -1,11 +1,11 @@
 package com.myproject.services.interfaces;
 
-import com.myproject.models.dtos.TaskCreateRequestValidated;
-import com.myproject.models.dtos.ValidationResponse;
+import com.myproject.models.dtos.TaskCreateRequest;
+import com.myproject.models.dtos.TaskUpdateRequest;
 
 public interface ValidationService {
-    ValidationResponse validate(TaskCreateRequestValidated request);
-    void validateTitle(String title);
-    void validateDescription(String description);
-    String sanitizeInput(String input);
+    void validateTaskInput(TaskCreateRequest request);
+    void validateTaskUpdate(TaskUpdateRequest request);
+    void validateTaskLimit(Long userId);
+    void validateStatusTransition(String oldStatus, String newStatus);
 }
