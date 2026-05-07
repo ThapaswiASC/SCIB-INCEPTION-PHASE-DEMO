@@ -2,504 +2,492 @@
 
 ## Experience Overview
 
-**User Type:** Digital Product Users
-**Experience Context:** Task Management and Productivity Platform
-**Experience Goal:** Enable users to efficiently organize, track, and complete their work tasks while collaborating with team members
+**Experience Context**: Digital Healthcare Platform - Patient Appointment Management
+
+**Primary User**: Patients seeking medical care and appointment management
+
+**Experience Scope**: This documentation covers the complete patient journey from initial awareness through appointment completion, focusing on appointment booking, management, and healthcare service discovery.
 
 ---
 
-## Scenario 1: New User Onboarding and First Task Creation
+## Scenario 1: New Patient Appointment Booking
 
-**Scenario Context:**
-Sarah, a project manager at a growing startup, has just signed up for the task management platform after her team outgrew their current solution. She needs to quickly understand the platform's capabilities and create her first project with tasks to evaluate if it meets her team's needs.
+**Scenario Description**: 
+Sarah, a 28-year-old working professional, has been experiencing persistent headaches for the past week. She's new to the city and doesn't have a regular doctor. She needs to find a qualified healthcare provider and book an appointment as quickly as possible while ensuring the doctor accepts her insurance.
 
-### Workflow Variation 1A: Guided Onboarding Flow
+### Workflow Variation 1A: Symptom-Guided Booking
 
-**User Goal:** Successfully set up account, understand core features, and create first meaningful project with tasks
-**Business Goal:** Increase user activation rate, reduce time-to-value, and demonstrate platform capabilities to drive subscription conversion
-
-#### Screen Flow:
-
-**1.0 Welcome Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation after account creation
-- NAVBAR PRESENCE: Yes
-- Page Goal: Orient new users and provide clear next steps for getting started
-- Screen Description:
-  1. Welcome message with user's name and company
-  2. Progress indicator showing onboarding steps (0/4 completed)
-  3. "Start Setup" CTA button prominently displayed
-  4. Quick access to help resources and support
-  5. Skip option for experienced users
-- Design Problems:
-  - HMW reduce cognitive load for new users while showing platform value?
-  - HMW accommodate both novice and experienced users in the same flow?
-  - HMW build confidence that the setup process won't be overwhelming?
-- Design Opportunities:
-  - What if we could personalize the onboarding based on company size and industry?
-  - What if we showed real-time examples of how similar companies use the platform?
-  - What if we provided estimated time commitments for each setup step?
-
-**Pu.1 Account Setup Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Start Setup" CTA button on Welcome Dashboard
-- NAVBAR PRESENCE: No
-- Page Goal: Collect essential user and company information to personalize experience
-- Screen Description:
-  1. Multi-step form with progress indicator
-  2. Company details (name, size, industry)
-  3. Role and responsibilities selection
-  4. Team size and collaboration needs
-  5. Integration preferences (calendar, email, etc.)
-- Design Problems:
-  - HMW collect necessary information without creating form fatigue?
-  - HMW make the setup feel valuable rather than burdensome?
-  - HMW handle users who don't know all the information requested?
-- Design Opportunities:
-  - What if we could pre-populate some fields based on email domain?
-  - What if we explained how each piece of information improves their experience?
-  - What if we allowed users to skip sections and return later?
-
-**2.0 Project Creation Workspace [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item after setup completion
-- NAVBAR PRESENCE: Yes
-- Page Goal: Enable users to create their first project with guided assistance
-- Screen Description:
-  1. Project template gallery with industry-specific options
-  2. Blank project creation option
-  3. Import from existing tools option
-  4. Interactive tutorial overlay highlighting key features
-  5. Sample project preview with realistic data
-- Design Problems:
-  - HMW help users choose the right project structure for their needs?
-  - HMW demonstrate advanced features without overwhelming beginners?
-  - HMW encourage exploration while maintaining focus on core tasks?
-- Design Opportunities:
-  - What if we could recommend templates based on their setup responses?
-  - What if we showed success stories from similar users?
-  - What if we provided a "practice mode" with sample data?
-
-**Pu.2 Template Selection Modal [type: modal]**
-- HOW IT IS REACHED: Clicking template option in Project Creation Workspace
-- NAVBAR PRESENCE: No
-- Page Goal: Help users select appropriate project template and customize it
-- Screen Description:
-  1. Template categories with visual previews
-  2. Template details with feature highlights
-  3. Customization options for selected template
-  4. Preview of resulting project structure
-  5. "Create Project" confirmation button
-- Design Problems:
-  - HMW help users understand template differences quickly?
-  - HMW prevent choice paralysis with too many options?
-  - HMW ensure templates match user's actual workflow needs?
-- Design Opportunities:
-  - What if templates included video demonstrations?
-  - What if we showed which templates are most popular for their industry?
-  - What if users could combine elements from multiple templates?
-
-**3.0 Task Management Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item after project creation
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive view of tasks and enable efficient task management
-- Screen Description:
-  1. Task list with multiple view options (list, board, calendar)
-  2. Quick task creation input field
-  3. Filter and sort controls
-  4. Progress indicators and analytics widgets
-  5. Team member activity feed
-  6. Upcoming deadlines and priority alerts
-- Design Problems:
-  - HMW present complex task information without visual clutter?
-  - HMW accommodate different user preferences for task organization?
-  - HMW ensure important tasks don't get overlooked?
-- Design Opportunities:
-  - What if the dashboard could adapt its layout based on user behavior?
-  - What if we could predict which tasks users want to see first?
-  - What if we provided smart suggestions for task prioritization?
-
-**3.0-D Task Detail View [type: detail]**
-- HOW IT IS REACHED: Clicking on any task card in Task Management Dashboard
-- NAVBAR PRESENCE: No
-- Page Goal: Provide comprehensive task information and enable detailed task management
-- Screen Description:
-  1. Task title and description with rich text editing
-  2. Assignee, due date, and priority settings
-  3. Subtask creation and management
-  4. File attachments and comments section
-  5. Task history and activity log
-  6. Related tasks and dependencies
-- Design Problems:
-  - HMW organize detailed task information for quick scanning?
-  - HMW facilitate collaboration without cluttering the interface?
-  - HMW make task relationships and dependencies clear?
-- Design Opportunities:
-  - What if we could auto-suggest relevant team members for assignment?
-  - What if we showed task impact on overall project timeline?
-  - What if we provided templates for common task types?
-
-### Workflow Variation 1B: Self-Guided Exploration Flow
-
-**User Goal:** Explore platform capabilities independently and set up workspace according to personal preferences
-**Business Goal:** Accommodate experienced users while capturing usage data to improve guided onboarding
+**User Goal**: Find the right specialist based on symptoms and book an appointment efficiently
+**Business Goal**: Increase patient acquisition through guided discovery and reduce appointment no-shows through better doctor-patient matching
 
 #### Screen Flow:
 
-**1.1 Quick Start Dashboard [type: primary]**
-- HOW IT IS REACHED: Selecting "Skip Guided Setup" option
+**1.0 Homepage [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide immediate access to core features with minimal friction
+- Page Goal: Build trust and guide patients toward appropriate care pathways
 - Screen Description:
-  1. Simplified interface with essential actions prominently displayed
-  2. "Create Project" and "Invite Team" quick actions
-  3. Feature discovery sidebar with expandable sections
-  4. Recent activity placeholder with sample content
-  5. Settings and customization access
+  1. Patient can start symptom assessment to find appropriate specialists
+  2. Patient can search for doctors by name, specialty, or condition
+  3. Patient can view featured healthcare services and packages
+  4. Patient can access educational health content
+  5. Patient can view patient testimonials and success stories
+  6. Patient can access emergency care information
 - Design Problems:
-  - HMW provide enough guidance without being prescriptive?
-  - HMW ensure users don't miss important setup steps?
-  - HMW capture user preferences for future personalization?
+  - HMW help patients who are unsure about their condition find the right care?
+  - HMW build immediate trust for first-time visitors?
+  - HMW reduce cognitive load while presenting multiple service options?
 - Design Opportunities:
-  - What if we tracked user exploration patterns to improve onboarding?
-  - What if we provided contextual tips based on user actions?
-  - What if we offered to resume guided setup at any point?
+  - What if we could provide AI-powered symptom triage?
+  - What if we showed real-time doctor availability?
+  - What if we could match patients with doctors based on communication style preferences?
 
-**Navigation Structure:** 1.0 Welcome Dashboard | 2.0 Project Creation Workspace | 3.0 Task Management Dashboard
+**Pu.1 Symptom Assessment Modal [type: modal]**
+- HOW IT IS REACHED: Click "Find Right Doctor" CTA button on Homepage
+- NAVBAR PRESENCE: No
+- Page Goal: Collect symptom information to recommend appropriate specialists
+- Screen Description:
+  1. Multi-step symptom questionnaire with progressive disclosure
+  2. Visual body map for symptom location selection
+  3. Severity and duration assessment
+  4. Previous medical history relevant to symptoms
+  5. Insurance and location preferences
+- Design Problems:
+  - HMW make medical questionnaires feel approachable and non-intimidating?
+  - HMW ensure accurate symptom capture without overwhelming users?
+  - HMW maintain user privacy while collecting sensitive health information?
+- Design Opportunities:
+  - What if we used conversational UI to make the assessment feel more natural?
+  - What if we provided educational tooltips for medical terms?
+  - What if we could save partial assessments for later completion?
 
-**User Journey Flow:**
-1.0 Welcome Dashboard → [click Start Setup] → Pu.1 Account Setup Modal → [complete setup] → 2.0 Project Creation Workspace → [select template] → Pu.2 Template Selection Modal → [create project] → 3.0 Task Management Dashboard → [click task] → 3.0-D Task Detail View
+**2.0 Doctor Search Results [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item or completion of symptom assessment
+- NAVBAR PRESENCE: Yes
+- Page Goal: Present relevant doctors with sufficient information for informed decision-making
+- Screen Description:
+  1. Filtered list of doctors based on symptom assessment or search criteria
+  2. Doctor profiles with photos, specialties, ratings, and availability
+  3. Insurance acceptance indicators
+  4. Distance and location information
+  5. Advanced filtering options (gender, language, experience, etc.)
+  6. Map view toggle for location-based selection
+- Design Problems:
+  - HMW help patients compare doctors effectively without information overload?
+  - HMW communicate doctor quality and expertise clearly?
+  - HMW handle cases where no doctors match specific criteria?
+- Design Opportunities:
+  - What if we could show doctor communication styles and patient feedback themes?
+  - What if we provided video introductions from doctors?
+  - What if we could predict appointment availability based on historical data?
+
+**2.0-D Doctor Profile Detail [type: detail]**
+- HOW IT IS REACHED: Click on doctor card from Search Results
+- NAVBAR PRESENCE: No
+- Page Goal: Provide comprehensive doctor information to support booking decision
+- Screen Description:
+  1. Detailed doctor biography and credentials
+  2. Specialties and areas of expertise
+  3. Patient reviews and ratings breakdown
+  4. Available appointment slots calendar view
+  5. Office locations and contact information
+  6. Insurance plans accepted
+  7. Telemedicine availability
+- Design Problems:
+  - HMW present extensive doctor information in a scannable format?
+  - HMW help patients understand doctor qualifications and expertise?
+  - HMW make appointment booking feel seamless from the profile page?
+- Design Opportunities:
+  - What if we could show doctor's approach to patient care?
+  - What if we provided virtual office tours?
+  - What if we could match patient preferences with doctor characteristics?
+
+**Pu.2 Appointment Booking Modal [type: modal]**
+- HOW IT IS REACHED: Click "Book Appointment" CTA button on Doctor Profile
+- NAVBAR PRESENCE: No
+- Page Goal: Capture appointment details and patient information efficiently
+- Screen Description:
+  1. Available time slot selection with real-time updates
+  2. Appointment type selection (consultation, follow-up, procedure)
+  3. Patient information form (new patient registration)
+  4. Insurance information and verification
+  5. Reason for visit and symptom summary
+  6. Appointment confirmation and calendar integration
+- Design Problems:
+  - HMW minimize form abandonment during the booking process?
+  - HMW handle insurance verification without delaying booking?
+  - HMW accommodate urgent vs. routine appointment needs?
+- Design Opportunities:
+  - What if we could pre-fill information from the symptom assessment?
+  - What if we provided estimated wait times for different appointment types?
+  - What if we could offer flexible scheduling options for working patients?
+
+**3.0 Appointment Confirmation [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item or successful booking completion
+- NAVBAR PRESENCE: Yes
+- Page Goal: Confirm appointment details and prepare patient for visit
+- Screen Description:
+  1. Appointment summary with date, time, and doctor information
+  2. Pre-visit preparation instructions
+  3. Required documents and insurance card reminders
+  4. Office location with directions and parking information
+  5. Telemedicine setup instructions (if applicable)
+  6. Appointment modification options
+- Design Problems:
+  - HMW ensure patients have all necessary information for their visit?
+  - HMW reduce appointment no-shows through better preparation?
+  - HMW handle last-minute changes or cancellations gracefully?
+- Design Opportunities:
+  - What if we could send personalized preparation checklists?
+  - What if we provided virtual waiting room access?
+  - What if we could integrate with patient's calendar and reminder systems?
+
+### Workflow Variation 1B: Direct Doctor Search
+
+**User Goal**: Quickly find and book with a specific doctor or specialty without assessment
+**Business Goal**: Accommodate patients with clear preferences while capturing valuable search data
+
+#### Screen Flow:
+
+**1.0 Homepage [type: primary]**
+- Same as Variation 1A
+
+**2.0 Doctor Search Results [type: primary]**
+- HOW IT IS REACHED: Direct search from Homepage search bar
+- NAVBAR PRESENCE: Yes
+- Page Goal: Present search results efficiently for targeted queries
+- Screen Description:
+  1. Search results based on name, specialty, or condition keywords
+  2. Quick filters for availability, location, and insurance
+  3. Sort options by relevance, rating, distance, or availability
+  4. "Refine Search" option to access symptom assessment
+  5. Save search functionality for future reference
+- Design Problems:
+  - HMW handle broad search terms that return too many results?
+  - HMW guide patients who search for conditions rather than specialties?
+  - HMW balance search speed with result accuracy?
+- Design Opportunities:
+  - What if we could suggest related specialties for ambiguous searches?
+  - What if we provided search result explanations ("Showing cardiologists because...")
+  - What if we could learn from search patterns to improve suggestions?
+
+**Navigation Structure**: 1.0 Homepage | 2.0 Find Doctors | 3.0 My Appointments
+
+**User Journey Flow**: 
+1.0 Homepage → [click "Find Right Doctor"] → Pu.1 Symptom Assessment Modal → [complete assessment] → 2.0 Doctor Search Results → [click doctor card] → 2.0-D Doctor Profile Detail → [click "Book Appointment"] → Pu.2 Appointment Booking Modal → [submit booking] → 3.0 Appointment Confirmation
 
 ---
 
-## Scenario 2: Team Collaboration and Project Management
+## Scenario 2: Existing Patient Appointment Management
 
-**Scenario Context:**
-Mike, a team lead with 6 direct reports, needs to coordinate a complex product launch involving multiple departments. He must assign tasks, track progress, facilitate communication, and ensure deadlines are met while maintaining visibility into team workload and blockers.
+**Scenario Description**: 
+Michael, a 45-year-old patient with diabetes, has been seeing Dr. Johnson for regular check-ups. He needs to reschedule his upcoming appointment due to a work conflict and wants to review his appointment history to prepare for his next visit.
 
-### Workflow Variation 2A: Manager-Centric Coordination Flow
+### Workflow Variation 2A: Appointment Rescheduling
 
-**User Goal:** Efficiently coordinate team activities, maintain project visibility, and ensure successful project delivery
-**Business Goal:** Demonstrate collaboration features, increase team adoption, and showcase value for management users
-
-#### Screen Flow:
-
-**4.0 Team Overview Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive team performance and workload visibility
-- Screen Description:
-  1. Team member cards with current workload indicators
-  2. Project timeline with milestone markers
-  3. Capacity planning visualization
-  4. Bottleneck and blocker alerts
-  5. Team performance metrics and trends
-  6. Quick assignment and reassignment controls
-- Design Problems:
-  - HMW present complex team data in an actionable format?
-  - HMW help managers identify and resolve bottlenecks quickly?
-  - HMW balance team oversight with individual autonomy?
-- Design Opportunities:
-  - What if we could predict potential delays based on current progress?
-  - What if we provided automated workload balancing suggestions?
-  - What if we integrated with calendar systems to show availability?
-
-**4.0-D Team Member Detail [type: detail]**
-- HOW IT IS REACHED: Clicking on team member card in Team Overview Dashboard
-- NAVBAR PRESENCE: No
-- Page Goal: Provide detailed view of individual team member's work and performance
-- Screen Description:
-  1. Individual workload breakdown and capacity utilization
-  2. Current and upcoming task assignments
-  3. Performance metrics and completion rates
-  4. Skill tags and expertise areas
-  5. Communication preferences and availability
-  6. Recent activity and contribution history
-- Design Problems:
-  - HMW present individual performance data sensitively?
-  - HMW help managers make informed assignment decisions?
-  - HMW respect privacy while providing necessary oversight?
-- Design Opportunities:
-  - What if we could suggest optimal task assignments based on skills and workload?
-  - What if we provided coaching insights based on performance patterns?
-  - What if we facilitated peer recognition and feedback?
-
-**Pu.3 Bulk Task Assignment Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Assign Tasks" CTA button in Team Overview Dashboard
-- NAVBAR PRESENCE: No
-- Page Goal: Enable efficient assignment of multiple tasks to team members
-- Screen Description:
-  1. Task selection interface with filtering options
-  2. Team member selection with workload indicators
-  3. Assignment criteria and constraints
-  4. Preview of assignment impact on workloads
-  5. Batch assignment confirmation and notification options
-- Design Problems:
-  - HMW make bulk operations intuitive and error-free?
-  - HMW ensure fair workload distribution?
-  - HMW provide adequate context for assignment decisions?
-- Design Opportunities:
-  - What if we could auto-suggest optimal assignments?
-  - What if we showed the impact of assignments on project timeline?
-  - What if we provided templates for common assignment patterns?
-
-### Workflow Variation 2B: Collaborative Planning Flow
-
-**User Goal:** Facilitate team input in project planning and task distribution
-**Business Goal:** Increase team engagement and buy-in while demonstrating collaborative features
+**User Goal**: Quickly reschedule an existing appointment with minimal disruption
+**Business Goal**: Reduce appointment cancellations and optimize schedule utilization
 
 #### Screen Flow:
 
-**5.0 Collaborative Planning Board [type: primary]**
+**4.0 My Appointments Dashboard [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Enable real-time collaborative project planning and task organization
+- Page Goal: Provide comprehensive view of all patient appointments and health activities
 - Screen Description:
-  1. Interactive planning board with drag-and-drop functionality
-  2. Real-time collaboration indicators showing active participants
-  3. Voting and prioritization tools
-  4. Comment and discussion threads on planning items
-  5. Timeline and dependency visualization
-  6. Export options for finalized plans
+  1. Upcoming appointments with quick action buttons
+  2. Past appointment history with visit summaries
+  3. Appointment reminders and notifications
+  4. Quick reschedule and cancel options
+  5. Doctor contact information and office details
+  6. Integration with calendar applications
 - Design Problems:
-  - HMW facilitate productive group planning sessions?
-  - HMW manage conflicting opinions and priorities?
-  - HMW ensure all team members can contribute effectively?
+  - HMW make appointment management feel effortless for regular patients?
+  - HMW provide appropriate context for appointment preparation?
+  - HMW handle complex scheduling scenarios (recurring appointments, multiple doctors)?
 - Design Opportunities:
-  - What if we could facilitate asynchronous planning across time zones?
-  - What if we provided structured facilitation guides for planning sessions?
-  - What if we could capture and analyze team decision-making patterns?
+  - What if we could predict optimal appointment times based on patient history?
+  - What if we provided personalized health reminders between visits?
+  - What if we could suggest appointment types based on health conditions?
 
-**Navigation Structure:** 4.0 Team Overview Dashboard | 5.0 Collaborative Planning Board
+**Pu.3 Reschedule Appointment Modal [type: modal]**
+- HOW IT IS REACHED: Click "Reschedule" button on appointment card
+- NAVBAR PRESENCE: No
+- Page Goal: Enable quick appointment rescheduling with minimal friction
+- Screen Description:
+  1. Current appointment details for reference
+  2. Available alternative time slots
+  3. Reason for rescheduling (optional feedback)
+  4. Impact assessment (urgency, follow-up timing)
+  5. Confirmation of new appointment details
+- Design Problems:
+  - HMW minimize the steps required to reschedule?
+  - HMW ensure patients don't delay necessary care when rescheduling?
+  - HMW handle cases where no suitable alternatives are available?
+- Design Opportunities:
+  - What if we could offer automatic rescheduling based on preferences?
+  - What if we provided waitlist options for preferred times?
+  - What if we could suggest telemedicine alternatives when in-person slots are limited?
 
-**User Journey Flow:**
-4.0 Team Overview Dashboard → [click team member] → 4.0-D Team Member Detail → [return to overview] → [click Assign Tasks] → Pu.3 Bulk Task Assignment Modal → [complete assignments] → 5.0 Collaborative Planning Board
+### Workflow Variation 2B: Appointment History Review
+
+**User Goal**: Access past appointment information and health records for continuity of care
+**Business Goal**: Improve patient engagement and health outcomes through accessible health history
+
+#### Screen Flow:
+
+**4.0 My Appointments Dashboard [type: primary]**
+- Same as Variation 2A with emphasis on history section
+
+**4.0-D Appointment History Detail [type: detail]**
+- HOW IT IS REACHED: Click on past appointment from dashboard
+- NAVBAR PRESENCE: No
+- Page Goal: Provide detailed visit information and health tracking
+- Screen Description:
+  1. Visit summary and doctor notes (patient-appropriate)
+  2. Prescribed medications and instructions
+  3. Test results and lab values
+  4. Follow-up recommendations and next steps
+  5. Downloadable visit summary
+  6. Related health resources and educational materials
+- Design Problems:
+  - HMW present medical information in patient-friendly language?
+  - HMW help patients track health progress over time?
+  - HMW ensure sensitive information is appropriately secured?
+- Design Opportunities:
+  - What if we could visualize health trends and improvements?
+  - What if we provided personalized health insights based on visit history?
+  - What if we could connect patients with relevant support communities?
+
+**Navigation Structure**: 1.0 Homepage | 2.0 Find Doctors | 4.0 My Appointments | 5.0 Health Records
+
+**User Journey Flow**: 
+4.0 My Appointments Dashboard → [click "Reschedule" on appointment] → Pu.3 Reschedule Appointment Modal → [select new time] → 4.0 My Appointments Dashboard (updated)
 
 ---
 
-## Scenario 3: Individual Productivity and Task Execution
+## Scenario 3: Emergency Care Access
 
-**Scenario Context:**
-Jenna, a marketing specialist, needs to manage her daily tasks efficiently while staying aligned with team priorities. She works on multiple projects simultaneously and needs to track her progress, manage deadlines, and communicate updates to stakeholders.
+**Scenario Description**: 
+Emily, a 32-year-old mother, needs urgent medical attention for her 5-year-old child who has developed a high fever and rash. She needs to quickly determine if this requires emergency room care or if urgent care is sufficient, and find the nearest available facility.
 
-### Workflow Variation 3A: Focus-Driven Individual Workflow
+### Workflow Variation 3A: Emergency Triage and Facility Finder
 
-**User Goal:** Maintain focus and productivity while managing multiple responsibilities and deadlines
-**Business Goal:** Demonstrate individual productivity features and encourage daily platform engagement
+**User Goal**: Quickly assess urgency level and find appropriate immediate care
+**Business Goal**: Direct patients to appropriate care levels to optimize resource utilization and patient outcomes
 
 #### Screen Flow:
 
-**6.0 Personal Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
+**6.0 Emergency Care Hub [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item or emergency banner
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide personalized task management and productivity insights
+- Page Goal: Provide immediate access to emergency resources and triage
 - Screen Description:
-  1. Today's priority tasks with time estimates
-  2. Progress tracking and completion celebrations
-  3. Focus time blocks and calendar integration
-  4. Distraction management and notification controls
-  5. Personal productivity metrics and trends
-  6. Quick capture for new tasks and ideas
+  1. Emergency triage questionnaire for symptom assessment
+  2. Nearest emergency rooms with wait times
+  3. Urgent care centers with availability
+  4. Telemedicine emergency consultation options
+  5. Emergency contact numbers and poison control
+  6. First aid guidance and symptom checker
 - Design Problems:
-  - HMW help users maintain focus while staying responsive to team needs?
-  - HMW provide motivation without creating pressure?
-  - HMW accommodate different working styles and preferences?
+  - HMW help patients make critical care decisions under stress?
+  - HMW ensure life-threatening conditions are identified quickly?
+  - HMW provide accurate wait time information for emergency facilities?
 - Design Opportunities:
-  - What if we could learn user's peak productivity times and suggest optimal scheduling?
-  - What if we provided personalized productivity coaching based on patterns?
-  - What if we could integrate with wellness and break reminder systems?
+  - What if we could provide real-time emergency department capacity?
+  - What if we offered video triage with emergency nurses?
+  - What if we could coordinate with emergency services for severe cases?
 
-**Pu.4 Focus Mode Activation [type: modal]**
-- HOW IT IS REACHED: Clicking "Enter Focus Mode" CTA button in Personal Dashboard
+**Pu.4 Emergency Triage Assessment [type: modal]**
+- HOW IT IS REACHED: Click "Assess Symptoms" CTA button on Emergency Care Hub
 - NAVBAR PRESENCE: No
-- Page Goal: Configure distraction-free work environment for deep focus
+- Page Goal: Rapidly assess symptom severity and recommend appropriate care level
 - Screen Description:
-  1. Focus session duration selection
-  2. Task selection for focus session
-  3. Notification and interruption settings
-  4. Background and ambient sound options
-  5. Break reminder configuration
-  6. Focus session goals and success metrics
+  1. Rapid symptom assessment with clear severity indicators
+  2. Age-specific questions for pediatric cases
+  3. Immediate recommendations (call 911, ER, urgent care, schedule appointment)
+  4. Facility recommendations based on assessment results
+  5. Direct calling/navigation options to recommended facilities
 - Design Problems:
-  - HMW balance focus with necessary responsiveness?
-  - HMW accommodate urgent interruptions appropriately?
-  - HMW make focus sessions feel rewarding rather than isolating?
+  - HMW ensure accurate triage without replacing medical judgment?
+  - HMW handle liability concerns while providing helpful guidance?
+  - HMW make emergency assessments accessible under stress?
 - Design Opportunities:
-  - What if we could coordinate focus times across team members?
-  - What if we provided focus session analytics to optimize productivity?
-  - What if we could suggest optimal focus session lengths based on task types?
+  - What if we could connect directly with emergency medical services?
+  - What if we provided real-time guidance while waiting for care?
+  - What if we could alert emergency contacts automatically?
 
-### Workflow Variation 3B: Communication-Integrated Workflow
-
-**User Goal:** Stay productive while maintaining strong communication and collaboration with team
-**Business Goal:** Showcase communication features and demonstrate platform's role as collaboration hub
-
-#### Screen Flow:
-
-**7.0 Integrated Workspace [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Combine task management with communication and collaboration tools
+**6.0-D Emergency Facility Details [type: detail]**
+- HOW IT IS REACHED: Click on facility from Emergency Care Hub or triage results
+- NAVBAR PRESENCE: No
+- Page Goal: Provide essential facility information for emergency visits
 - Screen Description:
-  1. Split view with tasks on left and communication on right
-  2. Context-aware messaging tied to specific tasks and projects
-  3. Real-time collaboration indicators and presence status
-  4. Integrated file sharing and co-editing capabilities
-  5. Meeting and call integration with task context
-  6. Activity feed with intelligent filtering and prioritization
+  1. Current wait times and capacity status
+  2. Facility location with GPS navigation
+  3. Services available and specialties
+  4. Insurance acceptance and payment options
+  5. What to bring and preparation instructions
+  6. Direct contact numbers and check-in options
 - Design Problems:
-  - HMW prevent communication from becoming a distraction?
-  - HMW ensure important messages don't get lost in activity streams?
-  - HMW maintain context between tasks and related communications?
+  - HMW provide accurate real-time information during emergencies?
+  - HMW help patients prepare for emergency visits efficiently?
+  - HMW handle situations where recommended facilities are at capacity?
 - Design Opportunities:
-  - What if we could automatically surface relevant communications for current tasks?
-  - What if we provided smart summaries of missed conversations?
-  - What if we could suggest optimal communication channels based on context?
+  - What if we could pre-register patients for emergency visits?
+  - What if we provided estimated treatment timelines?
+  - What if we could coordinate with patient's regular healthcare providers?
 
-**Navigation Structure:** 6.0 Personal Dashboard | 7.0 Integrated Workspace
+**Navigation Structure**: 1.0 Homepage | 2.0 Find Doctors | 4.0 My Appointments | 6.0 Emergency Care
 
-**User Journey Flow:**
-6.0 Personal Dashboard → [click Enter Focus Mode] → Pu.4 Focus Mode Activation → [configure and start] → 6.0 Personal Dashboard (focus mode active) → [switch to] → 7.0 Integrated Workspace
+**User Journey Flow**: 
+6.0 Emergency Care Hub → [click "Assess Symptoms"] → Pu.4 Emergency Triage Assessment → [complete assessment] → 6.0-D Emergency Facility Details → [navigate to facility]
 
 ---
 
-## Scenario 4: Reporting and Analytics
+## Scenario 4: Telemedicine Consultation
 
-**Scenario Context:**
-Alex, a department director, needs to prepare monthly performance reports for executive leadership. They require comprehensive analytics on team productivity, project outcomes, and resource utilization to make data-driven decisions and demonstrate departmental value.
+**Scenario Description**: 
+David, a 38-year-old software engineer working remotely, has been experiencing back pain from poor ergonomics. He wants to consult with a doctor but prefers a virtual appointment due to his busy schedule and current work-from-home situation.
 
-### Workflow Variation 4A: Executive Reporting Flow
+### Workflow Variation 4A: Virtual Consultation Booking and Conduct
 
-**User Goal:** Generate comprehensive, accurate reports that demonstrate team performance and inform strategic decisions
-**Business Goal:** Showcase analytics capabilities and demonstrate platform value for leadership users
+**User Goal**: Access medical consultation conveniently without office visits
+**Business Goal**: Expand service accessibility and reduce overhead costs while maintaining care quality
 
 #### Screen Flow:
 
-**8.0 Analytics Dashboard [type: primary]**
+**7.0 Telemedicine Hub [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive performance analytics and reporting capabilities
+- Page Goal: Showcase telemedicine capabilities and guide patients to virtual care
 - Screen Description:
-  1. Key performance indicators with trend analysis
-  2. Customizable dashboard widgets and layouts
-  3. Report generation tools with template options
-  4. Data export and sharing capabilities
-  5. Comparative analysis across teams and time periods
-  6. Predictive insights and recommendations
+  1. Available telemedicine services and specialties
+  2. Technology requirements and setup instructions
+  3. Insurance coverage for virtual visits
+  4. Immediate consultation availability
+  5. Scheduled appointment options
+  6. Patient testimonials for virtual care
 - Design Problems:
-  - HMW present complex data in easily digestible formats?
-  - HMW ensure reports tell compelling stories rather than just showing numbers?
-  - HMW accommodate different stakeholder information needs?
+  - HMW help patients understand when telemedicine is appropriate?
+  - HMW ensure patients have necessary technology for virtual visits?
+  - HMW build confidence in virtual care quality?
 - Design Opportunities:
-  - What if we could automatically generate narrative insights from data?
-  - What if we provided industry benchmarking and competitive analysis?
-  - What if we could predict future performance based on current trends?
+  - What if we could provide technology testing before appointments?
+  - What if we offered hybrid care models combining virtual and in-person visits?
+  - What if we could integrate with wearable devices for remote monitoring?
 
-**Pu.5 Report Builder Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Create Report" CTA button in Analytics Dashboard
+**Pu.5 Virtual Consultation Setup [type: modal]**
+- HOW IT IS REACHED: Click "Start Virtual Consultation" CTA button
 - NAVBAR PRESENCE: No
-- Page Goal: Enable creation of customized reports for specific audiences and purposes
+- Page Goal: Prepare patient and technology for successful virtual appointment
 - Screen Description:
-  1. Report template selection with preview options
-  2. Data source and metric selection interface
-  3. Visualization type and formatting controls
-  4. Audience and sharing configuration
-  5. Automated report scheduling options
-  6. Report preview and refinement tools
+  1. Camera and microphone testing interface
+  2. Internet connection quality assessment
+  3. Virtual waiting room access
+  4. Document upload for medical records
+  5. Insurance verification for telemedicine coverage
+  6. Consent forms for virtual care
 - Design Problems:
-  - HMW make report creation accessible to non-technical users?
-  - HMW ensure reports include relevant context and interpretation?
-  - HMW prevent information overload in generated reports?
+  - HMW ensure technical issues don't prevent access to care?
+  - HMW make virtual consultations feel as personal as in-person visits?
+  - HMW handle privacy and security concerns for virtual visits?
 - Design Opportunities:
-  - What if we could suggest report structures based on audience type?
-  - What if we provided automated insights and recommendations within reports?
-  - What if we could learn from successful reports to improve templates?
+  - What if we could provide technical support during consultations?
+  - What if we offered multiple communication channels (video, chat, phone)?
+  - What if we could record consultations for patient reference (with consent)?
 
-### Workflow Variation 4B: Real-Time Monitoring Flow
-
-**User Goal:** Monitor ongoing performance and identify issues requiring immediate attention
-**Business Goal:** Demonstrate real-time capabilities and proactive management features
-
-#### Screen Flow:
-
-**9.0 Live Monitoring Center [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide real-time visibility into team and project performance
+**7.0-D Virtual Consultation Room [type: detail]**
+- HOW IT IS REACHED: Join consultation from appointment confirmation or virtual waiting room
+- NAVBAR PRESENCE: No
+- Page Goal: Facilitate effective doctor-patient communication in virtual environment
 - Screen Description:
-  1. Live performance metrics with automatic updates
-  2. Alert and notification management system
-  3. Drill-down capabilities for detailed investigation
-  4. Quick action buttons for common interventions
-  5. Historical comparison and trend analysis
-  6. Escalation and communication tools
+  1. Video call interface with doctor
+  2. Screen sharing capabilities for reviewing documents
+  3. Digital prescription and treatment plan sharing
+  4. Chat functionality for notes and links
+  5. Recording controls (if enabled)
+  6. Follow-up scheduling integration
 - Design Problems:
-  - HMW present real-time data without creating information overload?
-  - HMW help users distinguish between normal fluctuations and concerning trends?
-  - HMW enable quick response to identified issues?
+  - HMW ensure virtual consultations are as effective as in-person visits?
+  - HMW handle technical difficulties during consultations?
+  - HMW maintain patient privacy in virtual environments?
 - Design Opportunities:
-  - What if we could provide predictive alerts before problems become critical?
-  - What if we could suggest specific interventions based on identified patterns?
-  - What if we could automatically escalate issues based on severity and impact?
+  - What if we could integrate diagnostic tools for remote examinations?
+  - What if we provided real-time language translation for diverse patients?
+  - What if we could connect with specialists for immediate second opinions?
 
-**Navigation Structure:** 8.0 Analytics Dashboard | 9.0 Live Monitoring Center
+**Navigation Structure**: 1.0 Homepage | 2.0 Find Doctors | 4.0 My Appointments | 6.0 Emergency Care | 7.0 Telemedicine
 
-**User Journey Flow:**
-8.0 Analytics Dashboard → [click Create Report] → Pu.5 Report Builder Modal → [configure and generate] → 8.0 Analytics Dashboard (with new report) → [switch to] → 9.0 Live Monitoring Center
+**User Journey Flow**: 
+7.0 Telemedicine Hub → [click "Start Virtual Consultation"] → Pu.5 Virtual Consultation Setup → [complete setup] → 7.0-D Virtual Consultation Room → [complete consultation] → 4.0 My Appointments Dashboard (updated with visit summary)
 
 ---
 
-## Universal Screens
+## Error States and Edge Cases
 
-**10.0 Settings [type: settings]**
-- HOW IT IS REACHED: Clicking settings icon in navigation header
+**Er.1 No Available Appointments [type: state]**
+- Condition of: Doctor Search Results or Appointment Booking
+- Screen Description: Waitlist signup, alternative doctor suggestions, telemedicine options
+- Design Problems: HMW help patients when their preferred doctor isn't available?
+- Design Opportunities: What if we could predict appointment availability and suggest optimal booking times?
+
+**Er.2 Insurance Verification Failed [type: state]**
+- Condition of: Appointment Booking Modal
+- Screen Description: Alternative payment options, insurance troubleshooting, customer service contact
+- Design Problems: HMW prevent insurance issues from blocking necessary care?
+- Design Opportunities: What if we could provide real-time insurance verification and alternative coverage options?
+
+**Er.3 Technical Issues During Telemedicine [type: state]**
+- Condition of: Virtual Consultation Room
+- Screen Description: Technical support options, alternative communication methods, rescheduling options
+- Design Problems: HMW ensure technical problems don't interrupt medical care?
+- Design Opportunities: What if we could automatically switch to phone consultation when video fails?
+
+**Er.4 Emergency Assessment Inconclusive [type: state]**
+- Condition of: Emergency Triage Assessment
+- Screen Description: Direct emergency service contact, nurse hotline, immediate facility recommendations
+- Design Problems: HMW handle ambiguous symptoms that could be serious?
+- Design Opportunities: What if we could connect with emergency medical professionals for real-time guidance?
+
+---
+
+## Settings and Preferences
+
+**8.0 Settings [type: settings]**
+- HOW IT IS REACHED: Settings icon in navigation header
 - NAVBAR PRESENCE: No
-- Page Goal: Provide comprehensive configuration options for personalizing user experience
+- Page Goal: Centralize all user preferences and accessibility options
 - Screen Description:
-  1. **Account Settings Section:**
-     - Profile information and avatar
-     - Password and security settings
-     - Email and communication preferences
-  2. **Notification Settings Section:**
-     - Push notification toggles by category
-     - Email digest frequency settings
-     - Do not disturb scheduling
-  3. **Accessibility Settings Section:**
+  1. **Notification Preferences**
+     - Appointment reminders (email, SMS, push)
+     - Health tips and educational content
+     - Emergency alerts and health advisories
+     - Marketing communications opt-in/out
+  
+  2. **Accessibility Options**
      - Screen reader compatibility toggle
      - High contrast mode toggle
-     - Font size and display preferences
-     - Keyboard navigation settings
-  4. **Integration Settings Section:**
-     - Connected apps and services
-     - Calendar synchronization options
-     - Third-party tool connections
-  5. **Privacy Settings Section:**
+     - Font size adjustment
+     - Motor accessibility features
+     - Language and translation preferences
+  
+  3. **Privacy and Security**
      - Data sharing preferences
-     - Analytics and tracking controls
-     - Account deletion options
-- Design Problems:
-  - HMW organize numerous settings without overwhelming users?
-  - HMW help users understand the impact of different setting choices?
-  - HMW ensure accessibility settings are discoverable and effective?
-- Design Opportunities:
-  - What if we could provide smart defaults based on user behavior?
-  - What if we offered guided setup for complex integrations?
-  - What if we provided explanations for how settings improve user experience?
-
-**Er.1 Network Error State [type: state]**
-- Page Goal: Gracefully handle connectivity issues while maintaining user confidence
-- Screen Description:
-  1. Clear error message with friendly tone
-  2. Suggested troubleshooting steps
-  3. Offline mode capabilities where applicable
-  4. Retry mechanisms with progress indicators
-  5. Contact support options for persistent issues
-
-**Er.2 Empty Project State [type: state]**
-- Page Goal: Guide users toward productive actions when no content exists
-- Screen Description:
-  1. Encouraging message about getting started
-  2. Quick action buttons for common first steps
-  3. Template suggestions and examples
-  4. Tutorial or help resource links
-  5. Import options from other tools
+     - Two-factor authentication setup
+     - Login activity monitoring
+     - Health data export options
+  
+  4. **Communication Preferences**
+     - Preferred contact methods
+     - Emergency contact information
+     - Healthcare proxy settings
+     - Telemedicine preferences
+  
+  5. **Account Management**
+     - Profile information updates
+     - Insurance information management
+     - Payment methods and billing
+     - Account deactivation options
 
 ---
 
@@ -507,13 +495,13 @@ Alex, a department director, needs to prepare monthly performance reports for ex
 
 **Keyboard Navigation:**
 - All primary screens support full keyboard navigation with logical tab order
-- Skip links provided to main content areas on each screen
+- Skip links provided for main content areas on each screen
 - Modal dialogs trap focus and return to trigger element on close
-- Custom keyboard shortcuts available for power users (configurable in Settings)
+- Search functionality accessible via keyboard shortcuts (Ctrl+K)
 
 **ARIA Labels and Landmarks:**
-- Navigation regions clearly marked with role="navigation"
-- Main content areas use role="main" landmark
+- Navigation regions clearly labeled with role="navigation"
+- Main content areas marked with role="main"
 - Form sections grouped with fieldset and legend elements
 - Dynamic content changes announced via aria-live regions
 - Interactive elements have descriptive aria-labels
@@ -521,66 +509,92 @@ Alex, a department director, needs to prepare monthly performance reports for ex
 **Screen Reader Announcements:**
 - Page title changes announced when navigating between screens
 - Form validation errors announced immediately
-- Progress updates during multi-step processes
-- Status changes for tasks and projects
-- New notifications and messages
+- Appointment booking confirmations announced
+- Emergency triage results announced with appropriate urgency
+- Loading states and progress indicators announced
 
 **High Contrast Mode:**
-- Toggled via Settings screen under Accessibility Settings
+- Toggled via Settings screen under Accessibility Options
 - Applies as CSS class site-wide affecting all screens
-- Maintains sufficient color contrast ratios (4.5:1 minimum)
-- Preserves visual hierarchy and information architecture
+- Maintains WCAG AA contrast ratios (4.5:1 for normal text, 3:1 for large text)
+- Preserves essential visual information in high contrast mode
 
 **Focus Indicators:**
-- Visible focus rings on all interactive elements
-- High contrast focus indicators that work in both light and dark modes
-- Focus indicators scale appropriately across different screen sizes
-- Custom focus styles for complex interactive components
+- Visible focus indicators on all interactive elements
+- 2px solid border with high contrast color
+- Focus indicators never removed or hidden
+- Custom focus styles for complex components maintain visibility
 
 **Minimum Touch Targets:**
-- All interactive elements maintain 44px minimum touch target size
+- All interactive elements minimum 44px touch target
 - Adequate spacing between adjacent interactive elements
-- Touch targets extend beyond visual boundaries where necessary
+- Mobile-optimized button sizes and spacing
+- Gesture alternatives provided for complex interactions
 
 ---
 
 ## VIEWPORT BEHAVIOUR
 
 **Desktop (1024px+):**
-- Full sidebar navigation with expanded labels
-- Multi-column layouts for dashboard screens
-- Hover states and tooltips for enhanced discoverability
-- Keyboard shortcuts displayed in context menus
-- Advanced filtering and sorting controls visible by default
+- Full sidebar navigation with expanded menu items
+- Multi-column layouts for content-heavy screens
+- Hover states and tooltips for enhanced interactivity
+- Advanced filtering and sorting options visible
+- Picture-in-picture support for telemedicine consultations
 
 **Tablet (768px–1023px):**
-- Collapsible sidebar navigation with icon-only mode
-- Responsive grid layouts that stack appropriately
-- Touch-optimized interaction patterns
-- Swipe gestures for navigation between related screens
-- Contextual action buttons sized for touch interaction
+- Collapsible sidebar navigation with icons and labels
+- Responsive grid layouts adapting to available space
+- Touch-optimized interactive elements
+- Simplified filtering with expandable sections
+- Full-screen telemedicine consultations
 
 **Mobile (320px–767px):**
-- Bottom navigation bar replaces sidebar
+- Bottom navigation bar for primary screens
 - Single-column layouts with vertical scrolling
-- Pull-to-refresh functionality on list screens
-- Thumb-friendly navigation and interaction zones
-- Simplified interfaces with progressive disclosure
-- Modal sheets replace traditional modal dialogs
+- Swipe gestures for navigation between related screens
+- Simplified forms with progressive disclosure
+- Mobile-optimized appointment booking flow
+- Emergency features prominently accessible
+- One-handed operation considerations for all interactions
 
-**Cross-Viewport Considerations:**
-- Consistent information architecture across all breakpoints
-- Responsive typography that maintains readability
-- Flexible grid systems that adapt to available space
+**Responsive Breakpoint Considerations:**
+- Fluid typography scaling between breakpoints
 - Progressive enhancement for advanced features
-- Consistent interaction patterns adapted for input method
+- Touch-first design principles on all screen sizes
+- Performance optimization for mobile networks
+- Offline functionality for critical features (appointment viewing, emergency contacts)
 
 ---
 
-## Summary
+## Implementation Notes
 
-This comprehensive user workflow documentation covers four primary user scenarios with multiple workflow variations, demonstrating systematic user-centered design that balances user needs with business objectives. The documentation includes detailed screen specifications, accessibility considerations, and responsive design guidelines to ensure scalability across different user groups and devices.
+**Data Integration Requirements:**
+- Real-time appointment availability from practice management systems
+- Insurance verification API integration
+- Electronic health record (EHR) connectivity
+- Emergency department capacity feeds
+- Telemedicine platform integration
 
-Each scenario addresses distinct user goals while maintaining consistency in interaction patterns and information architecture. The systematic approach to screen classification and navigation structure ensures that the resulting wireframes will be coherent and user-friendly.
+**Performance Considerations:**
+- Critical path optimization for emergency scenarios
+- Progressive loading for appointment search results
+- Offline caching for essential patient information
+- Image optimization for doctor profiles and facility photos
+- CDN implementation for global accessibility
 
-The accessibility and viewport behavior sections provide implementation guidance that ensures the platform will be inclusive and functional across diverse user needs and device capabilities.
+**Security and Compliance:**
+- HIPAA compliance for all patient data handling
+- End-to-end encryption for telemedicine consultations
+- Audit logging for all patient data access
+- Secure authentication and session management
+- Regular security assessments and penetration testing
+
+**Analytics and Optimization:**
+- User journey tracking for conversion optimization
+- A/B testing framework for booking flow improvements
+- Patient satisfaction surveys integrated into post-visit flows
+- Performance monitoring for all critical user paths
+- Accessibility compliance monitoring and reporting
+
+This comprehensive user workflow documentation provides a systematic approach to healthcare platform design that balances user needs with business objectives while ensuring accessibility and scalability across all patient touchpoints and scenarios.
