@@ -1,5 +1,5 @@
 {
-  "executive_summary": "Maven compilation failed with 26 type incompatibility errors. A custom Column class in com.myproject.models.entities conflicts with the JPA @Column annotation, causing the compiler to interpret field annotations as the wrong type. All entity classes (Column, Task, User, BoardColumn) are affected. Fix requires renaming the custom Column class or using fully qualified JPA annotation names.",
+  "executive_summary": "The Maven build failed during compilation due to a method signature mismatch in TaskManagementController. The controller is calling getUserTasks() with a Pageable parameter, but the TaskService interface expects three separate parameters (Long userId, int page, int size). This is a compilation error that prevents the build from completing.",
   "attempt_number": 1,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-759",
@@ -8,12 +8,12 @@
   "errors": [
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/entities",
-      "line": null,
-      "message": "26 errors: com.myproject.models.entities.Column cannot be converted to java.lang.annotation.Annotation across Column.java, Task.java, User.java, BoardColumn.java",
-      "root_cause": "A custom class named 'Column' exists in the entities package, creating a naming conflict with the JPA @Column annotation. The compiler resolves 'Column' to the custom class instead of javax.persistence.Column annotation, causing type incompatibility errors on all entity field declarations.",
-      "fix_recommendation": "Rename the custom Column class to a non-conflicting name (e.g., ColumnEntity, BoardColumnEntity, or TaskColumn). Alternatively, use fully qualified annotation names (@javax.persistence.Column) in all entity classes, though renaming is the cleaner solution."
+      "file": "code/src/main/java/com/myproject/controllers/TaskManagementController.java",
+      "line": 50,
+      "message": "method getUserTasks cannot be applied to given types: required Long,int,int but found Long,Pageable",
+      "root_cause": "The TaskManagementController is calling taskService.getUserTasks() with a Pageable parameter, but the TaskService interface defines getUserTasks(Long userId, int page, int size) expecting three separate parameters instead of a Pageable object.",
+      "fix_recommendation": "Update TaskManagementController.java line 50 to extract page and size from the Pageable parameter and pass them as separate arguments: taskService.getUserTasks(userId, pageable.getPageNumber(), pageable.getPageSize()). Alternatively, update the TaskService interface to accept a Pageable parameter instead of separate int parameters."
     }
   ],
-  "summary": "1 grouped compilation error affecting 26 locations across 4 entity files"
+  "summary": "1 error found"
 }
