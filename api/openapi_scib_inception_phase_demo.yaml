@@ -9,9 +9,9 @@ servers:
 paths:
   /api/v1/tasks/{taskId}/status:
     put:
-      operationId: DEMO-222_UpdateTaskStatus_PUT
+      operationId: DEMO-222UpdateTaskStatusPUT
       summary: Update Task Status
-      description: Updates the status of a task when dragged from one column to another in the Kanban board
+      description: Updates task status when dragged from one column to another in Kanban board
       tags:
         - Kanban Board
       parameters:
@@ -48,7 +48,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /api/v1/tasks/{taskId}:
     get:
-      operationId: DEMO-222_GetTaskDetails_GET
+      operationId: DEMO-222GetTaskDetailsGET
       summary: Get Task Details
       description: Retrieves detailed information about a specific task
       tags:
@@ -75,7 +75,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /api/v1/columns/{columnId}/stats:
     get:
-      operationId: DEMO-222_GetColumnStatistics_GET
+      operationId: DEMO-222GetColumnStatisticsGET
       summary: Get Column Statistics
       description: Retrieves statistics for a specific column including task count
       tags:
@@ -102,7 +102,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /api/v1/columns/bulk-update:
     put:
-      operationId: DEMO-222_BulkUpdateColumnCounts_PUT
+      operationId: DEMO-222BulkUpdateColumnCountsPUT
       summary: Bulk Update Column Counts
       description: Updates task counts for multiple columns atomically
       tags:
@@ -128,9 +128,9 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /api/v1/tasks:
     post:
-      operationId: DEMO-757_CreateTask_POST
+      operationId: DEMO-757CreateTaskPOST
       summary: Create Task
-      description: Creates a new task in the task management system
+      description: Creates a new task for a user
       tags:
         - Task Management
       requestBody:
@@ -152,11 +152,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+    get:
+      operationId: DEMO-759ListTasksGET
+      summary: List Tasks
+      description: Retrieves a list of all tasks
+      tags:
+        - Task Management
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
   /api/v1/users/{userId}/tasks:
     get:
-      operationId: DEMO-757_GetUserTasks_GET
+      operationId: DEMO-757GetUserTasksGET
       summary: Get User Tasks
-      description: Retrieves paginated list of tasks for a specific user
+      description: Retrieves paginated tasks for a specific user
       tags:
         - Task Management
       parameters:
@@ -166,7 +181,7 @@ paths:
           schema:
             type: integer
             format: int64
-          description: Unique identifier of the user
+          description: User identifier
         - name: page
           in: query
           schema:
@@ -194,9 +209,9 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /api/v1/users/{userId}/tasks/count:
     get:
-      operationId: DEMO-757_GetTaskCount_GET
+      operationId: DEMO-757GetTaskCountGET
       summary: Get Task Count
-      description: Retrieves the total count of tasks for a specific user
+      description: Retrieves the total number of tasks for a user
       tags:
         - Task Management
       parameters:
@@ -206,7 +221,7 @@ paths:
           schema:
             type: integer
             format: int64
-          description: Unique identifier of the user
+          description: User identifier
       responses:
         '200':
           description: Task count retrieved successfully
@@ -220,21 +235,48 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/tasks/{taskId}/update:
-    put:
-      operationId: DEMO-757_UpdateTask_PUT
-      summary: Update Task
-      description: Updates an existing task
+  /api/v1/tasks/{id}:
+    get:
+      operationId: DEMO-759GetTaskGET
+      summary: Get Task
+      description: Retrieves a specific task by ID
       tags:
         - Task Management
       parameters:
-        - name: taskId
+        - name: id
           in: path
           required: true
           schema:
             type: integer
             format: int64
-          description: Unique identifier of the task
+          description: Task identifier
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      operationId: DEMO-759UpdateTaskPUT
+      summary: Update Task
+      description: Updates an existing task
+      tags:
+        - Task Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: Task identifier
       requestBody:
         required: true
         content:
@@ -248,27 +290,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Task not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/tasks/{taskId}/delete:
     delete:
-      operationId: DEMO-757_DeleteTask_DELETE
+      operationId: DEMO-757DeleteTaskDELETE
       summary: Delete Task
-      description: Deletes a task from the system
+      description: Deletes a specific task
       tags:
         - Task Management
       parameters:
-        - name: taskId
+        - name: id
           in: path
           required: true
           schema:
             type: integer
             format: int64
-          description: Unique identifier of the task
+          description: Task identifier
       responses:
         '204':
           description: Task deleted successfully
@@ -280,7 +327,7 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
   /api/v1/tasks/bulk:
     post:
-      operationId: DEMO-757_BulkCreateTasks_POST
+      operationId: DEMO-757BulkCreateTasksPOST
       summary: Bulk Create Tasks
       description: Creates multiple tasks in a single operation
       tags:
@@ -306,58 +353,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/tasks:
-    post:
-      operationId: DEMO-759_CreateTask_POST
-      summary: Create Task with Input Validation
-      description: Creates a new task with comprehensive input validation and error handling
-      tags:
-        - Input Validation
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TaskCreateRequestValidated'
-      responses:
-        '201':
-          description: Task created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskResponse'
-        '400':
-          description: Validation error or invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /api/tasks/validate:
-    post:
-      operationId: DEMO-759_ValidateTaskInput_POST
-      summary: Validate Task Input
-      description: Validates task input data without creating the task
-      tags:
-        - Input Validation
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TaskCreateRequestValidated'
-      responses:
-        '200':
-          description: Validation successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationResponse'
-        '400':
-          description: Validation failed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     UpdateTaskStatusRequest:
@@ -372,7 +367,7 @@ components:
             - TO_DO
             - IN_PROGRESS
             - DONE
-          description: New status of the task
+          description: New status for the task
         columnId:
           type: string
           description: Target column identifier
@@ -381,10 +376,10 @@ components:
       properties:
         taskId:
           type: string
-          description: Unique identifier of the task
+          description: Task identifier
         status:
           type: string
-          description: Updated status of the task
+          description: Updated task status
         updatedAt:
           type: string
           format: date-time
@@ -394,13 +389,17 @@ components:
       properties:
         taskId:
           type: string
-          description: Unique identifier of the task
+          description: Task identifier
         title:
           type: string
-          description: Title of the task
+          description: Task title
         status:
           type: string
-          description: Current status of the task
+          enum:
+            - TO_DO
+            - IN_PROGRESS
+            - DONE
+          description: Current task status
         columnId:
           type: string
           description: Current column identifier
@@ -409,7 +408,7 @@ components:
       properties:
         columnId:
           type: string
-          description: Unique identifier of the column
+          description: Column identifier
         taskCount:
           type: integer
           description: Number of tasks in the column
@@ -426,13 +425,16 @@ components:
           type: array
           items:
             type: object
+            required:
+              - columnId
+              - increment
             properties:
               columnId:
                 type: string
                 description: Column identifier
               increment:
                 type: integer
-                description: Increment value (positive or negative)
+                description: Value to increment/decrement task count
     BulkUpdateColumnCountsResponse:
       type: object
       properties:
@@ -449,7 +451,6 @@ components:
       required:
         - title
         - userId
-        - priority
       properties:
         title:
           type: string
@@ -458,13 +459,37 @@ components:
           description: Task title
         description:
           type: string
-          maxLength: 2000
+          maxLength: 10000
           description: Task description
         userId:
           type: integer
           format: int64
           minimum: 1
           description: User identifier
+        priority:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+            - URGENT
+          description: Task priority level
+        dueDate:
+          type: string
+          format: date-time
+          description: Task due date
+    TaskUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Task title
+        description:
+          type: string
+          maxLength: 10000
+          description: Task description
         priority:
           type: string
           enum:
@@ -496,9 +521,19 @@ components:
           description: User identifier
         status:
           type: string
+          enum:
+            - PENDING
+            - IN_PROGRESS
+            - COMPLETED
+            - CANCELLED
           description: Task status
         priority:
           type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+            - URGENT
           description: Task priority
         createdAt:
           type: string
@@ -527,7 +562,7 @@ components:
           description: Current page number
         pageSize:
           type: integer
-          description: Page size
+          description: Number of items per page
     TaskCountResponse:
       type: object
       properties:
@@ -538,25 +573,7 @@ components:
         taskCount:
           type: integer
           format: int64
-          description: Total task count
-    TaskUpdateRequest:
-      type: object
-      properties:
-        title:
-          type: string
-          minLength: 1
-          maxLength: 255
-          description: Task title
-        description:
-          type: string
-          maxLength: 2000
-          description: Task description
-        status:
-          type: string
-          description: Task status
-        priority:
-          type: string
-          description: Task priority
+          description: Total number of tasks
     BulkTaskResponse:
       type: object
       properties:
@@ -573,57 +590,14 @@ components:
         errors:
           type: array
           items:
-            type: string
-          description: List of error messages
-    TaskCreateRequestValidated:
-      type: object
-      required:
-        - title
-        - priority
-        - status
-      properties:
-        title:
-          type: string
-          minLength: 1
-          maxLength: 255
-          pattern: '^(?!\s*$).+'
-          description: Task title (cannot be empty or whitespace only)
-        description:
-          type: string
-          maxLength: 10000
-          description: Task description
-        priority:
-          type: string
-          enum:
-            - LOW
-            - MEDIUM
-            - HIGH
-            - URGENT
-          description: Task priority
-        status:
-          type: string
-          enum:
-            - PENDING
-            - IN_PROGRESS
-            - COMPLETED
-            - CANCELLED
-          description: Task status
-    ValidationResponse:
-      type: object
-      properties:
-        valid:
-          type: boolean
-          description: Validation result
-        errors:
-          type: array
-          items:
-            type: string
-          description: List of validation errors
-        warnings:
-          type: array
-          items:
-            type: string
-          description: List of validation warnings
+            type: object
+            properties:
+              index:
+                type: integer
+                description: Index of failed task in request
+              error:
+                type: string
+                description: Error message
     ErrorResponse:
       type: object
       properties:
@@ -644,7 +618,7 @@ components:
           type: array
           items:
             type: string
-          description: Detailed error information
+          description: Additional error details
   securitySchemes:
     bearerAuth:
       type: http
