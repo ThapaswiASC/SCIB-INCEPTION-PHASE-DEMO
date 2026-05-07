@@ -1,62 +1,85 @@
 package com.myproject.models.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class BulkTaskResponse {
+
     private Integer successCount;
     private Integer failureCount;
     private List<TaskResponse> createdTasks;
-    private List<String> errors;
-    private Integer totalCreated;
-    private List<BulkTaskError> failures;
-    
+    private List<BulkError> errors;
+
+    // Constructors
+    public BulkTaskResponse() {}
+
+    public BulkTaskResponse(Integer successCount, Integer failureCount, 
+                           List<TaskResponse> createdTasks, List<BulkError> errors) {
+        this.successCount = successCount;
+        this.failureCount = failureCount;
+        this.createdTasks = createdTasks;
+        this.errors = errors;
+    }
+
+    // Getters and Setters
     public Integer getSuccessCount() {
-        return this.successCount != null ? this.successCount : (this.totalCreated != null ? this.totalCreated : 0);
+        return successCount;
     }
-    
+
+    public void setSuccessCount(Integer successCount) {
+        this.successCount = successCount;
+    }
+
     public Integer getFailureCount() {
-        return this.failureCount != null ? this.failureCount : (this.failures != null ? this.failures.size() : 0);
+        return failureCount;
     }
-    
-    public List<String> getErrors() {
-        return this.errors;
+
+    public void setFailureCount(Integer failureCount) {
+        this.failureCount = failureCount;
     }
-    
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class BulkTaskError {
+
+    public List<TaskResponse> getCreatedTasks() {
+        return createdTasks;
+    }
+
+    public void setCreatedTasks(List<TaskResponse> createdTasks) {
+        this.createdTasks = createdTasks;
+    }
+
+    public List<BulkError> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(List<BulkError> errors) {
+        this.errors = errors;
+    }
+
+    public static class BulkError {
         private Integer index;
-        private String message;
-        private Long taskId;
         private String error;
-        
-        public String getMessage() {
-            return this.message != null ? this.message : this.error;
+
+        // Constructors
+        public BulkError() {}
+
+        public BulkError(Integer index, String error) {
+            this.index = index;
+            this.error = error;
         }
-    }
-    
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class FailureInfo {
-        private Integer index;
-        private String error;
-        private String message;
-        
+
+        // Getters and Setters
+        public Integer getIndex() {
+            return index;
+        }
+
+        public void setIndex(Integer index) {
+            this.index = index;
+        }
+
         public String getError() {
-            return this.error != null ? this.error : this.message;
+            return error;
+        }
+
+        public void setError(String error) {
+            this.error = error;
         }
     }
 }
