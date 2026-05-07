@@ -1,8 +1,11 @@
 package com.myproject.exceptions;
 
+import com.myproject.controllers.TaskController;
 import com.myproject.models.dtos.ErrorResponse;
+import com.myproject.models.dtos.TaskCreateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -144,13 +147,16 @@ class GlobalExceptionHandlerTest {
     // ========== METHOD ARGUMENT NOT VALID EXCEPTION TESTS ==========
 
     @Test
-    void handleMethodArgumentNotValid_ReturnsBadRequest() {
+    void handleMethodArgumentNotValid_ReturnsBadRequest() throws Exception {
         BindingResult bindingResult = mock(BindingResult.class);
         FieldError fieldError1 = new FieldError("taskCreateRequest", "title", "Title is required");
         FieldError fieldError2 = new FieldError("taskCreateRequest", "description", "Description is required");
         when(bindingResult.getFieldErrors()).thenReturn(Arrays.asList(fieldError1, fieldError2));
 
-        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(null, bindingResult);
+        MethodParameter parameter = new MethodParameter(
+            TaskController.class.getMethod("createTask", TaskCreateRequest.class), 0
+        );
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(parameter, bindingResult);
 
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleMethodArgumentNotValid(exception);
 
@@ -166,12 +172,15 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleMethodArgumentNotValid_WithSingleError_ReturnsBadRequest() {
+    void handleMethodArgumentNotValid_WithSingleError_ReturnsBadRequest() throws Exception {
         BindingResult bindingResult = mock(BindingResult.class);
         FieldError fieldError = new FieldError("taskCreateRequest", "title", "Title is required");
         when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError));
 
-        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(null, bindingResult);
+        MethodParameter parameter = new MethodParameter(
+            TaskController.class.getMethod("createTask", TaskCreateRequest.class), 0
+        );
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(parameter, bindingResult);
 
         ResponseEntity<ErrorResponse> response = exceptionHandler.handleMethodArgumentNotValid(exception);
 
