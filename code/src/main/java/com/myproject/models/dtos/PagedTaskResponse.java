@@ -1,55 +1,65 @@
 package com.myproject.models.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class PagedTaskResponse {
+
     private List<TaskResponse> content;
     private Long totalElements;
     private Integer totalPages;
     private Integer currentPage;
     private Integer pageSize;
-    private Integer page;
-    private Integer size;
-    private Integer number;
-    private Boolean last;
-    
-    public void setPage(Integer page) {
-        this.page = page;
-        this.currentPage = page;
-        this.number = page;
+
+    // Constructors
+    public PagedTaskResponse() {}
+
+    public PagedTaskResponse(List<TaskResponse> content, Long totalElements, Integer totalPages, 
+                            Integer currentPage, Integer pageSize) {
+        this.content = content;
+        this.totalElements = totalElements;
+        this.totalPages = totalPages;
+        this.currentPage = currentPage;
+        this.pageSize = pageSize;
     }
-    
-    public void setSize(Integer size) {
-        this.size = size;
-        this.pageSize = size;
+
+    // Getters and Setters
+    public List<TaskResponse> getContent() {
+        return content;
     }
-    
-    public void setLast(Boolean last) {
-        this.last = last;
+
+    public void setContent(List<TaskResponse> content) {
+        this.content = content;
     }
-    
-    public Integer getPage() {
-        return this.page != null ? this.page : this.currentPage;
+
+    public Long getTotalElements() {
+        return totalElements;
     }
-    
-    public Integer getSize() {
-        return this.size != null ? this.size : this.pageSize;
+
+    public void setTotalElements(Long totalElements) {
+        this.totalElements = totalElements;
     }
-    
-    public Integer getNumber() {
-        return this.number != null ? this.number : this.currentPage;
+
+    public Integer getTotalPages() {
+        return totalPages;
     }
-    
-    public Boolean getLast() {
-        return this.last;
+
+    public void setTotalPages(Integer totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    public Integer getCurrentPage() {
+        return currentPage;
+    }
+
+    public void setCurrentPage(Integer currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    public Integer getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(Integer pageSize) {
+        this.pageSize = pageSize;
     }
 }
