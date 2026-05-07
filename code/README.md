@@ -1,0 +1,240 @@
+# Task Management System
+
+## Overview
+
+This is a Spring Boot application for managing tasks with comprehensive error handling. The system provides RESTful APIs for creating, reading, updating, and deleting tasks with proper validation and error responses.
+
+## Features
+
+- **Task Management**: Create, read, update, and delete tasks
+- **Status Tracking**: Track task status (PENDING, IN_PROGRESS, COMPLETED, CANCELLED)
+- **Comprehensive Error Handling**: Proper error responses for various failure scenarios
+- **Validation**: Input validation with detailed error messages
+- **Retry Mechanism**: Automatic retry for transient failures
+- **In-Memory Storage**: Uses in-memory data store (can be replaced with database)
+
+## Technology Stack
+
+- **Java**: 21
+- **Spring Boot**: 3.5.9
+- **Build Tool**: Maven
+- **Testing**: JUnit Jupiter
+- **Code Coverage**: JaCoCo
+
+## Project Structure
+
+```
+code/
+├── pom.xml
+├── src/
+│   └── main/
+│       ├── java/com/myproject/
+│       │   ├── controllers/          # REST controllers
+│       │   ├── models/
+│       │   │   ├── dtos/            # Data Transfer Objects
+│       │   │   ├── entities/        # Domain entities
+│       │   │   └── datastores/      # Data access layer
+│       │   ├── services/
+│       │   │   ├── interfaces/      # Service interfaces
+│       │   │   └── impl/            # Service implementations
+│       │   ├── config/              # Configuration classes
+│       │   ├── exceptions/          # Custom exceptions
+│       │   ├── utils/               # Utility classes
+│       │   └── Application.java     # Main application class
+│       └── resources/
+│           └── application.properties
+```
+
+## API Endpoints
+
+### Base URL
+```
+http://localhost:8080/api
+```
+
+### Endpoints
+
+#### Create Task
+- **Method**: POST
+- **Path**: `/tasks`
+- **Request Body**:
+```json
+{
+  "title": "Complete project documentation",
+  "description": "Write comprehensive documentation for the task management system"
+}
+```
+- **Response**: 201 Created
+```json
+{
+  "id": 1,
+  "title": "Complete project documentation",
+  "description": "Write comprehensive documentation for the task management system",
+  "status": "PENDING",
+  "createdAt": "2024-01-15T10:30:00",
+  "updatedAt": null
+}
+```
+
+#### Get Task
+- **Method**: GET
+- **Path**: `/tasks/{id}`
+- **Response**: 200 OK
+
+#### Update Task
+- **Method**: PUT
+- **Path**: `/tasks/{id}`
+- **Request Body**:
+```json
+{
+  "title": "Complete project documentation",
+  "description": "Write comprehensive documentation for the task management system",
+  "status": "IN_PROGRESS"
+}
+```
+- **Response**: 200 OK
+
+#### Delete Task
+- **Method**: DELETE
+- **Path**: `/tasks/{id}`
+- **Response**: 204 No Content
+
+#### Get All Tasks
+- **Method**: GET
+- **Path**: `/tasks`
+- **Query Parameters**: `status` (optional)
+- **Response**: 200 OK
+
+## Error Responses
+
+The API returns structured error responses:
+
+```json
+{
+  "errorCode": "VALIDATION_ERROR",
+  "message": "Validation failed for one or more fields",
+  "timestamp": 1705319400000,
+  "details": [
+    "Title is required",
+    "Description must be between 1 and 1000 characters"
+  ]
+}
+```
+
+### Error Codes
+
+- `VALIDATION_ERROR` (400): Input validation failed
+- `NOT_FOUND` (404): Resource not found
+- `REQUEST_TIMEOUT` (408): Request timed out
+- `INTERNAL_SERVER_ERROR` (500): Unexpected server error
+- `SERVICE_UNAVAILABLE` (503): Service temporarily unavailable
+
+## Building the Project
+
+### Prerequisites
+- Java 21
+- Maven 3.6+
+
+### Build Commands
+
+```bash
+# Clean and build
+mvn clean install
+
+# Build without tests
+mvn clean install -DskipTests
+
+# Run tests
+mvn test
+
+# Generate coverage report
+mvn jacoco:report
+```
+
+## Running the Application
+
+```bash
+# Run with Maven
+mvn spring-boot:run
+
+# Run JAR file
+java -jar target/myproject-1.0.0.jar
+```
+
+The application will start on `http://localhost:8080`
+
+## Configuration
+
+Key configuration properties in `application.properties`:
+
+```properties
+spring.application.name=myproject
+server.port=8080
+server.servlet.context-path=/api
+logging.level.root=INFO
+logging.level.com.myproject=DEBUG
+spring.retry.max-attempts=3
+spring.retry.backoff.delay=1000
+```
+
+## Validation Rules
+
+### Task Creation
+- **Title**: Required, 1-200 characters
+- **Description**: Required, 1-1000 characters
+
+### Task Update
+- **Title**: Required, 1-200 characters
+- **Description**: Required, 1-1000 characters
+- **Status**: Required, must be one of: PENDING, IN_PROGRESS, COMPLETED, CANCELLED
+
+## CORS Configuration
+
+CORS is configured to allow:
+- **Origin**: `http://localhost:4200`
+- **Methods**: GET, POST, PUT, DELETE, PATCH, OPTIONS
+- **Headers**: All
+- **Credentials**: Enabled
+
+## Retry Mechanism
+
+The application implements automatic retry for transient failures:
+- **Max Attempts**: 3
+- **Backoff Delay**: 1000ms
+- **Applicable Operations**: Create, Update, Delete
+
+## Testing
+
+Test files are generated by a separate test generation agent.
+
+### Coverage Report
+
+After running tests, view the coverage report at:
+```
+target/site/jacoco/index.html
+```
+
+## CI/CD
+
+The project includes a GitHub Actions workflow for automated builds:
+- **Workflow File**: `.github/workflows/build.yml`
+- **Trigger**: Manual (workflow_dispatch)
+- **Steps**: Checkout, Build, Test, Coverage Report
+
+## Future Enhancements
+
+- Database integration (PostgreSQL)
+- JWT authentication
+- Role-based authorization
+- Task assignment and collaboration
+- Task filtering and search
+- Pagination support
+- Audit logging
+
+## License
+
+This project is part of the SCIB Inception Phase Demo.
+
+## Contact
+
+For questions or issues, please refer to the project documentation or contact the development team.
