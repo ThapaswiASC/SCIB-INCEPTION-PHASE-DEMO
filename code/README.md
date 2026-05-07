@@ -2,16 +2,17 @@
 
 ## Overview
 
-This is a Spring Boot application for managing tasks with comprehensive error handling. The system provides RESTful APIs for creating, reading, updating, and deleting tasks with proper validation and error responses.
+This is a Spring Boot application for task management with comprehensive error handling. The system provides RESTful APIs for creating, reading, updating, and deleting tasks with robust error handling for database connection failures, timeouts, and validation errors.
 
 ## Features
 
 - **Task Management**: Create, read, update, and delete tasks
-- **Status Tracking**: Track task status (PENDING, IN_PROGRESS, COMPLETED, CANCELLED)
-- **Comprehensive Error Handling**: Proper error responses for various failure scenarios
-- **Validation**: Input validation with detailed error messages
+- **Comprehensive Error Handling**: Handles database errors, timeouts, and validation errors
+- **Input Preservation**: Preserves user input during error scenarios for retry
+- **In-Memory Data Store**: Uses in-memory storage for demonstration (easily replaceable with database)
 - **Retry Mechanism**: Automatic retry for transient failures
-- **In-Memory Storage**: Uses in-memory data store (can be replaced with database)
+- **Validation**: Input validation with detailed error messages
+- **CORS Support**: Configured for frontend integration
 
 ## Technology Stack
 
@@ -29,7 +30,7 @@ code/
 ├── src/
 │   └── main/
 │       ├── java/com/myproject/
-│       │   ├── controllers/          # REST controllers
+│       │   ├── controllers/          # REST API controllers
 │       │   ├── models/
 │       │   │   ├── dtos/            # Data Transfer Objects
 │       │   │   ├── entities/        # Domain entities
@@ -38,203 +39,154 @@ code/
 │       │   │   ├── interfaces/      # Service interfaces
 │       │   │   └── impl/            # Service implementations
 │       │   ├── config/              # Configuration classes
-│       │   ├── exceptions/          # Custom exceptions
-│       │   ├── utils/               # Utility classes
+│       │   ├── exceptions/          # Custom exceptions and handlers
 │       │   └── Application.java     # Main application class
 │       └── resources/
 │           └── application.properties
+└── .github/workflows/build.yml      # CI/CD workflow
 ```
 
 ## API Endpoints
 
-### Base URL
-```
-http://localhost:8080/api
-```
-
-### Endpoints
-
-#### Create Task
+### Create Task
 - **Method**: POST
-- **Path**: `/tasks`
+- **Path**: `/api/tasks`
 - **Request Body**:
 ```json
 {
   "title": "Complete project documentation",
-  "description": "Write comprehensive documentation for the task management system"
+  "description": "Write comprehensive documentation",
+  "priority": "HIGH",
+  "dueDate": "2024-12-31T23:59:59Z"
 }
 ```
 - **Response**: 201 Created
-```json
-{
-  "id": 1,
-  "title": "Complete project documentation",
-  "description": "Write comprehensive documentation for the task management system",
-  "status": "PENDING",
-  "createdAt": "2024-01-15T10:30:00",
-  "updatedAt": null
-}
-```
 
-#### Get Task
+### Get Task
 - **Method**: GET
-- **Path**: `/tasks/{id}`
+- **Path**: `/api/tasks/{id}`
 - **Response**: 200 OK
 
-#### Update Task
+### Update Task
 - **Method**: PUT
-- **Path**: `/tasks/{id}`
+- **Path**: `/api/tasks/{id}`
 - **Request Body**:
 ```json
 {
-  "title": "Complete project documentation",
-  "description": "Write comprehensive documentation for the task management system",
-  "status": "IN_PROGRESS"
+  "title": "Updated title",
+  "status": "IN_PROGRESS",
+  "priority": "MEDIUM"
 }
 ```
 - **Response**: 200 OK
 
-#### Delete Task
+### Delete Task
 - **Method**: DELETE
-- **Path**: `/tasks/{id}`
+- **Path**: `/api/tasks/{id}`
 - **Response**: 204 No Content
 
-#### Get All Tasks
-- **Method**: GET
-- **Path**: `/tasks`
-- **Query Parameters**: `status` (optional)
-- **Response**: 200 OK
+## Error Handling
 
-## Error Responses
+The application provides comprehensive error handling with the following error codes:
 
-The API returns structured error responses:
+- **SERVICE_UNAVAILABLE** (503): Database connection failure
+- **REQUEST_TIMEOUT** (408): Operation timeout
+- **VALIDATION_ERROR** (400): Input validation failure
+- **NOT_FOUND** (404): Resource not found
+- **INTERNAL_SERVER_ERROR** (500): Unexpected server error
 
+### Error Response Format
 ```json
 {
-  "errorCode": "VALIDATION_ERROR",
-  "message": "Validation failed for one or more fields",
-  "timestamp": 1705319400000,
+  "code": "SERVICE_UNAVAILABLE",
+  "message": "Service temporarily unavailable, please try again later",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "preservedInput": { ... },
   "details": [
-    "Title is required",
-    "Description must be between 1 and 1000 characters"
+    "Database connection failed",
+    "Retry after 30 seconds"
   ]
 }
 ```
 
-### Error Codes
-
-- `VALIDATION_ERROR` (400): Input validation failed
-- `NOT_FOUND` (404): Resource not found
-- `REQUEST_TIMEOUT` (408): Request timed out
-- `INTERNAL_SERVER_ERROR` (500): Unexpected server error
-- `SERVICE_UNAVAILABLE` (503): Service temporarily unavailable
-
-## Building the Project
+## Building and Running
 
 ### Prerequisites
 - Java 21
 - Maven 3.6+
 
-### Build Commands
-
+### Build
 ```bash
-# Clean and build
+cd code
 mvn clean install
+```
 
-# Build without tests
-mvn clean install -DskipTests
+### Run
+```bash
+mvn spring-boot:run
+```
 
-# Run tests
+The application will start on `http://localhost:8080/api`
+
+### Run Tests
+```bash
 mvn test
+```
 
-# Generate coverage report
+### Generate Coverage Report
+```bash
 mvn jacoco:report
 ```
 
-## Running the Application
-
-```bash
-# Run with Maven
-mvn spring-boot:run
-
-# Run JAR file
-java -jar target/myproject-1.0.0.jar
-```
-
-The application will start on `http://localhost:8080`
+Coverage report will be available at `target/site/jacoco/index.html`
 
 ## Configuration
 
 Key configuration properties in `application.properties`:
 
 ```properties
+# Application
 spring.application.name=myproject
 server.port=8080
 server.servlet.context-path=/api
+
+# Logging
 logging.level.root=INFO
 logging.level.com.myproject=DEBUG
-spring.retry.max-attempts=3
-spring.retry.backoff.delay=1000
-```
 
-## Validation Rules
-
-### Task Creation
-- **Title**: Required, 1-200 characters
-- **Description**: Required, 1-1000 characters
-
-### Task Update
-- **Title**: Required, 1-200 characters
-- **Description**: Required, 1-1000 characters
-- **Status**: Required, must be one of: PENDING, IN_PROGRESS, COMPLETED, CANCELLED
-
-## CORS Configuration
-
-CORS is configured to allow:
-- **Origin**: `http://localhost:4200`
-- **Methods**: GET, POST, PUT, DELETE, PATCH, OPTIONS
-- **Headers**: All
-- **Credentials**: Enabled
-
-## Retry Mechanism
-
-The application implements automatic retry for transient failures:
-- **Max Attempts**: 3
-- **Backoff Delay**: 1000ms
-- **Applicable Operations**: Create, Update, Delete
-
-## Testing
-
-Test files are generated by a separate test generation agent.
-
-### Coverage Report
-
-After running tests, view the coverage report at:
-```
-target/site/jacoco/index.html
+# Error Handling
+app.error.retry.max-attempts=3
+app.error.retry.delay=1000
+app.error.preserve-input=true
 ```
 
 ## CI/CD
 
-The project includes a GitHub Actions workflow for automated builds:
-- **Workflow File**: `.github/workflows/build.yml`
-- **Trigger**: Manual (workflow_dispatch)
-- **Steps**: Checkout, Build, Test, Coverage Report
+The project includes a GitHub Actions workflow (`.github/workflows/build.yml`) that:
+- Builds the application
+- Runs tests
+- Generates code coverage reports
+- Uploads artifacts
 
-## Future Enhancements
+## Development Notes
 
-- Database integration (PostgreSQL)
-- JWT authentication
-- Role-based authorization
-- Task assignment and collaboration
-- Task filtering and search
-- Pagination support
-- Audit logging
+### Data Storage
+The application uses an in-memory data store by default. To integrate with a database:
+1. Add database dependency to `pom.xml`
+2. Implement database-backed version of `TaskDataStore`
+3. Update configuration in `application.properties`
+
+### Adding New Features
+1. Define DTOs in `models/dtos`
+2. Create service interface in `services/interfaces`
+3. Implement service in `services/impl`
+4. Add controller endpoint in `controllers`
+5. Add appropriate exception handling
 
 ## License
 
-This project is part of the SCIB Inception Phase Demo.
+This project is for demonstration purposes.
 
 ## Contact
 
-For questions or issues, please refer to the project documentation or contact the development team.
+For questions or issues, please contact the development team.
