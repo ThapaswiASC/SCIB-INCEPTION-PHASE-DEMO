@@ -1,6 +1,6 @@
 package com.myproject.services.impl;
 
-import com.myproject.exceptions.TaskNotFoundException;
+import com.myproject.exceptions.ColumnNotFoundException;
 import com.myproject.models.datastores.ColumnRepository;
 import com.myproject.models.dtos.BulkUpdateColumnCountsRequest;
 import com.myproject.models.dtos.BulkUpdateColumnCountsResponse;
@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,13 +24,14 @@ public class ColumnServiceImpl implements ColumnService {
     @Override
     public ColumnStatsResponse getColumnStats(String columnId) {
         Column column = columnRepository.findById(columnId)
-            .orElseThrow(() -> new TaskNotFoundException("Column not found with ID: " + columnId));
+            .orElseThrow(() -> new ColumnNotFoundException(columnId));
 
-        return new ColumnStatsResponse(
-            column.getId(),
-            column.getTaskCount(),
-            column.getLastUpdated()
-        );
+        ColumnStatsResponse response = new ColumnStatsResponse();
+        response.setColumnId(column.getId());
+        response.setTaskCount(column.getTaskCount());
+        response.setLastUpdated(column.getLastUpdated());
+
+        return response;
     }
 
     @Override
@@ -39,17 +39,19 @@ public class ColumnServiceImpl implements ColumnService {
         List<String> updatedColumns = new ArrayList<>();
 
         for (BulkUpdateColumnCountsRequest.ColumnUpdate update : request.getUpdates()) {
-            Column column = columnRepository.findById(update.getColumnId())
-                .orElseGet(() -> createDefaultColumn(update.getColumnId()));
-
-            column.setTaskCount(column.getTaskCount() + update.getIncrement());
-            column.setLastUpdated(LocalDateTime.now());
-            columnRepository.save(column);
-
-            updatedColumns.add(update.getColumnId());
+            try {
+                columnRepository.incrementTaskCount(update.getColumnId(), update.getIncrement());
+                updatedColumns.add(update.getColumnId());
+            } catch (Exception e) {
+                // Log error but continue processing other updates
+            }
         }
 
-        return new BulkUpdateColumnCountsResponse(true, updatedColumns);
+        BulkUpdateColumnCountsResponse response = new BulkUpdateColumnCountsResponse();
+        response.setSuccess(!updatedColumns.isEmpty());
+        response.setUpdatedColumns(updatedColumns);
+
+        return response;
     }
 
     @Override
@@ -57,21 +59,8 @@ public class ColumnServiceImpl implements ColumnService {
         if (oldColumnId != null && !oldColumnId.isEmpty()) {
             columnRepository.incrementTaskCount(oldColumnId, -1);
         }
-
         if (newColumnId != null && !newColumnId.isEmpty()) {
-            Column column = columnRepository.findById(newColumnId)
-                .orElseGet(() -> createDefaultColumn(newColumnId));
-            column.setTaskCount(column.getTaskCount() + 1);
-            columnRepository.save(column);
+            columnRepository.incrementTaskCount(newColumnId, 1);
         }
-    }
-
-    private Column createDefaultColumn(String columnId) {
-        Column column = new Column();
-        column.setId(columnId);
-        column.setName(columnId);
-        column.setTaskCount(0);
-        column.setLastUpdated(LocalDateTime.now());
-        return columnRepository.save(column);
     }
 }
