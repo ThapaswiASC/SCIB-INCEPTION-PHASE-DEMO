@@ -1,5 +1,6 @@
 package com.myproject.models.datastores;
 
+import com.myproject.models.dtos.TaskStatus;
 import com.myproject.models.entities.Task;
 import org.springframework.stereotype.Component;
 
@@ -7,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Component
 public class InMemoryTaskDataStore implements TaskDataStore {
@@ -43,5 +45,12 @@ public class InMemoryTaskDataStore implements TaskDataStore {
     @Override
     public boolean existsById(Long id) {
         return taskStore.containsKey(id);
+    }
+
+    @Override
+    public List<Task> findByStatus(TaskStatus status) {
+        return taskStore.values().stream()
+                .filter(task -> task.getStatus() == status)
+                .collect(Collectors.toList());
     }
 }

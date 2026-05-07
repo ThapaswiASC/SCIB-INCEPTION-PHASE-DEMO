@@ -207,40 +207,26 @@ class TaskServiceImplTest {
 
     @Test
     void deleteTask_WithExistingId_DeletesSuccessfully() {
-        when(taskDataStore.findById(1L)).thenReturn(Optional.of(task));
-        when(taskDataStore.deleteById(1L)).thenReturn(true);
+        when(taskDataStore.existsById(1L)).thenReturn(true);
+        doNothing().when(taskDataStore).deleteById(1L);
 
         assertDoesNotThrow(() -> taskService.deleteTask(1L));
 
-        verify(taskDataStore, times(1)).findById(1L);
+        verify(taskDataStore, times(1)).existsById(1L);
         verify(taskDataStore, times(1)).deleteById(1L);
     }
 
     @Test
     void deleteTask_WithNonExistentId_ThrowsTaskNotFoundException() {
-        when(taskDataStore.findById(999L)).thenReturn(Optional.empty());
+        when(taskDataStore.existsById(999L)).thenReturn(false);
 
         assertThrows(
             TaskNotFoundException.class,
             () -> taskService.deleteTask(999L)
         );
 
-        verify(taskDataStore, times(1)).findById(999L);
+        verify(taskDataStore, times(1)).existsById(999L);
         verify(taskDataStore, never()).deleteById(any(Long.class));
-    }
-
-    @Test
-    void deleteTask_WhenDeleteFails_ThrowsRuntimeException() {
-        when(taskDataStore.findById(1L)).thenReturn(Optional.of(task));
-        when(taskDataStore.deleteById(1L)).thenReturn(false);
-
-        assertThrows(
-            RuntimeException.class,
-            () -> taskService.deleteTask(1L)
-        );
-
-        verify(taskDataStore, times(1)).findById(1L);
-        verify(taskDataStore, times(1)).deleteById(1L);
     }
 
     // ========== GET TASKS BY STATUS TESTS ==========

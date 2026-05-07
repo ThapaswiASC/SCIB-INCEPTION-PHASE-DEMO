@@ -1,5 +1,6 @@
 package com.myproject.models.datastores;
 
+import com.myproject.models.dtos.TaskStatus;
 import com.myproject.models.entities.Task;
 import java.util.List;
 import java.util.Optional;
@@ -10,4 +11,5 @@ public interface TaskDataStore {
     List<Task> findAll();
     void deleteById(Long id);
     boolean existsById(Long id);
+    List<Task> findByStatus(TaskStatus status);
 }

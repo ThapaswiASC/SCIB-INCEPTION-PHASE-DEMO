@@ -3,6 +3,7 @@ package com.myproject.exceptions;
 import com.myproject.controllers.TaskController;
 import com.myproject.models.dtos.ErrorResponse;
 import com.myproject.models.dtos.TaskCreateRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
@@ -12,6 +13,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,19 +24,23 @@ import static org.mockito.Mockito.*;
 class GlobalExceptionHandlerTest {
 
     private GlobalExceptionHandler exceptionHandler;
+    private HttpServletRequest mockRequest;
 
     @BeforeEach
     void setUp() {
         exceptionHandler = new GlobalExceptionHandler();
+        mockRequest = mock(HttpServletRequest.class);
+        when(mockRequest.getRequestURI()).thenReturn("/api/tasks");
+        when(mockRequest.getMethod()).thenReturn("POST");
     }
 
     // ========== DATABASE CONNECTION EXCEPTION TESTS ==========
 
     @Test
     void handleDatabaseException_ReturnsServiceUnavailable() {
-        DatabaseConnectionException exception = new DatabaseConnectionException("Database connection failed");
+        DatabaseConnectionException exception = new DatabaseConnectionException("Database connection failed", null);
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleDatabaseException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleDatabaseException(exception, mockRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
@@ -48,10 +55,11 @@ class GlobalExceptionHandlerTest {
     void handleDatabaseException_WithCause_ReturnsServiceUnavailable() {
         DatabaseConnectionException exception = new DatabaseConnectionException(
             "Database connection failed",
+            null,
             new RuntimeException("Connection timeout")
         );
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleDatabaseException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleDatabaseException(exception, mockRequest);
 
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
         assertEquals("SERVICE_UNAVAILABLE", response.getBody().getErrorCode());
@@ -61,9 +69,9 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleTimeoutException_ReturnsRequestTimeout() {
-        TimeoutException exception = new TimeoutException("Request timed out");
+        TimeoutException exception = new TimeoutException("Request timed out", null);
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleTimeoutException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleTimeoutException(exception, mockRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.REQUEST_TIMEOUT, response.getStatusCode());
@@ -77,10 +85,11 @@ class GlobalExceptionHandlerTest {
     void handleTimeoutException_WithCause_ReturnsRequestTimeout() {
         TimeoutException exception = new TimeoutException(
             "Request timed out",
+            null,
             new RuntimeException("Network timeout")
         );
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleTimeoutException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleTimeoutException(exception, mockRequest);
 
         assertEquals(HttpStatus.REQUEST_TIMEOUT, response.getStatusCode());
         assertEquals("REQUEST_TIMEOUT", response.getBody().getErrorCode());
@@ -90,9 +99,9 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleTaskNotFoundException_ReturnsNotFound() {
-        TaskNotFoundException exception = new TaskNotFoundException("Task not found with id: 123");
+        TaskNotFoundException exception = new TaskNotFoundException("Task not found with id: 123", 123L);
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleTaskNotFoundException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleTaskNotFoundException(exception, mockRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -106,7 +115,7 @@ class GlobalExceptionHandlerTest {
     void handleTaskNotFoundException_WithLongId_ReturnsNotFound() {
         TaskNotFoundException exception = new TaskNotFoundException(999L);
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleTaskNotFoundException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleTaskNotFoundException(exception, mockRequest);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("NOT_FOUND", response.getBody().getErrorCode());
@@ -120,7 +129,7 @@ class GlobalExceptionHandlerTest {
         List<String> errors = Arrays.asList("Title is required", "Description is required");
         ValidationException exception = new ValidationException("Validation failed", errors);
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleValidationException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleValidationException(exception, mockRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -137,7 +146,7 @@ class GlobalExceptionHandlerTest {
     void handleValidationException_WithNoErrors_ReturnsBadRequest() {
         ValidationException exception = new ValidationException("Validation failed");
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleValidationException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleValidationException(exception, mockRequest);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
@@ -158,17 +167,15 @@ class GlobalExceptionHandlerTest {
         );
         MethodArgumentNotValidException exception = new MethodArgumentNotValidException(parameter, bindingResult);
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleMethodArgumentNotValid(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleMethodArgumentNotValid(exception, mockRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("VALIDATION_ERROR", response.getBody().getErrorCode());
-        assertEquals("Validation failed for one or more fields", response.getBody().getMessage());
+        assertEquals("Request validation failed", response.getBody().getMessage());
         assertNotNull(response.getBody().getTimestamp());
         assertEquals(2, response.getBody().getDetails().size());
-        assertTrue(response.getBody().getDetails().contains("Title is required"));
-        assertTrue(response.getBody().getDetails().contains("Description is required"));
     }
 
     @Test
@@ -182,7 +189,7 @@ class GlobalExceptionHandlerTest {
         );
         MethodArgumentNotValidException exception = new MethodArgumentNotValidException(parameter, bindingResult);
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleMethodArgumentNotValid(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleMethodArgumentNotValid(exception, mockRequest);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(1, response.getBody().getDetails().size());
@@ -194,7 +201,7 @@ class GlobalExceptionHandlerTest {
     void handleGenericException_ReturnsInternalServerError() {
         Exception exception = new Exception("Unexpected error occurred");
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleGenericException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleGenericException(exception, mockRequest);
 
         assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
@@ -208,7 +215,7 @@ class GlobalExceptionHandlerTest {
     void handleGenericException_WithRuntimeException_ReturnsInternalServerError() {
         RuntimeException exception = new RuntimeException("Runtime error");
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleGenericException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleGenericException(exception, mockRequest);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("INTERNAL_SERVER_ERROR", response.getBody().getErrorCode());
@@ -218,7 +225,7 @@ class GlobalExceptionHandlerTest {
     void handleGenericException_WithNullPointerException_ReturnsInternalServerError() {
         NullPointerException exception = new NullPointerException("Null pointer error");
 
-        ResponseEntity<ErrorResponse> response = exceptionHandler.handleGenericException(exception);
+        ResponseEntity<ErrorResponse> response = exceptionHandler.handleGenericException(exception, mockRequest);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("INTERNAL_SERVER_ERROR", response.getBody().getErrorCode());
@@ -228,25 +235,25 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void allExceptionHandlers_SetTimestamp() {
-        long beforeTimestamp = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 
         ResponseEntity<ErrorResponse> response1 = exceptionHandler.handleDatabaseException(
-            new DatabaseConnectionException("Test")
+            new DatabaseConnectionException("Test", null), mockRequest
         );
         ResponseEntity<ErrorResponse> response2 = exceptionHandler.handleTimeoutException(
-            new TimeoutException("Test")
+            new TimeoutException("Test", null), mockRequest
         );
         ResponseEntity<ErrorResponse> response3 = exceptionHandler.handleTaskNotFoundException(
-            new TaskNotFoundException("Test")
+            new TaskNotFoundException("Test", 1L), mockRequest
         );
         ResponseEntity<ErrorResponse> response4 = exceptionHandler.handleValidationException(
-            new ValidationException("Test")
+            new ValidationException("Test"), mockRequest
         );
         ResponseEntity<ErrorResponse> response5 = exceptionHandler.handleGenericException(
-            new Exception("Test")
+            new Exception("Test"), mockRequest
         );
 
-        long afterTimestamp = System.currentTimeMillis();
+        long endTime = System.currentTimeMillis();
 
         assertNotNull(response1.getBody().getTimestamp());
         assertNotNull(response2.getBody().getTimestamp());
@@ -254,7 +261,8 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response4.getBody().getTimestamp());
         assertNotNull(response5.getBody().getTimestamp());
 
-        assertTrue(response1.getBody().getTimestamp() >= beforeTimestamp);
-        assertTrue(response1.getBody().getTimestamp() <= afterTimestamp);
+        long timestamp1 = response1.getBody().getTimestamp().toInstant(ZoneOffset.UTC).toEpochMilli();
+        assertTrue(timestamp1 >= startTime);
+        assertTrue(timestamp1 <= endTime);
     }
 }

@@ -153,20 +153,17 @@ class InMemoryTaskDataStoreTest {
     // ========== DELETE BY ID TESTS ==========
 
     @Test
-    void deleteById_ExistingTask_ReturnsTrue() {
+    void deleteById_ExistingTask_DeletesSuccessfully() {
         Task savedTask = dataStore.save(task1);
 
-        boolean deleted = dataStore.deleteById(savedTask.getId());
+        dataStore.deleteById(savedTask.getId());
 
-        assertTrue(deleted);
         assertFalse(dataStore.findById(savedTask.getId()).isPresent());
     }
 
     @Test
-    void deleteById_NonExistentTask_ReturnsFalse() {
-        boolean deleted = dataStore.deleteById(999L);
-
-        assertFalse(deleted);
+    void deleteById_NonExistentTask_DoesNotThrowException() {
+        assertDoesNotThrow(() -> dataStore.deleteById(999L));
     }
 
     @Test
@@ -239,8 +236,7 @@ class InMemoryTaskDataStoreTest {
         assertEquals("Updated Title", updated.getTitle());
 
         // Delete
-        boolean deleted = dataStore.deleteById(savedTask.getId());
-        assertTrue(deleted);
+        dataStore.deleteById(savedTask.getId());
         assertFalse(dataStore.findById(savedTask.getId()).isPresent());
     }
 }
