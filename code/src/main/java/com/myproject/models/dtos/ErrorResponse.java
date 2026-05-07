@@ -4,33 +4,27 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class ErrorResponse {
-
     private LocalDateTime timestamp;
     private String traceId;
     private String errorCode;
     private String message;
     private List<String> details;
 
-    // Constructors
     public ErrorResponse() {
-        this.timestamp = LocalDateTime.now();
     }
 
-    public ErrorResponse(String errorCode, String message) {
-        this.timestamp = LocalDateTime.now();
-        this.errorCode = errorCode;
-        this.message = message;
+    private ErrorResponse(Builder builder) {
+        this.timestamp = builder.timestamp;
+        this.traceId = builder.traceId;
+        this.errorCode = builder.errorCode;
+        this.message = builder.message;
+        this.details = builder.details;
     }
 
-    public ErrorResponse(LocalDateTime timestamp, String traceId, String errorCode, String message, List<String> details) {
-        this.timestamp = timestamp;
-        this.traceId = traceId;
-        this.errorCode = errorCode;
-        this.message = message;
-        this.details = details;
+    public static Builder builder() {
+        return new Builder();
     }
 
-    // Getters and Setters
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
@@ -69,5 +63,42 @@ public class ErrorResponse {
 
     public void setDetails(List<String> details) {
         this.details = details;
+    }
+
+    public static class Builder {
+        private LocalDateTime timestamp;
+        private String traceId;
+        private String errorCode;
+        private String message;
+        private List<String> details;
+
+        public Builder timestamp(LocalDateTime timestamp) {
+            this.timestamp = timestamp;
+            return this;
+        }
+
+        public Builder traceId(String traceId) {
+            this.traceId = traceId;
+            return this;
+        }
+
+        public Builder errorCode(String errorCode) {
+            this.errorCode = errorCode;
+            return this;
+        }
+
+        public Builder message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public Builder details(List<String> details) {
+            this.details = details;
+            return this;
+        }
+
+        public ErrorResponse build() {
+            return new ErrorResponse(this);
+        }
     }
 }

@@ -3,7 +3,6 @@ package com.myproject.models.dtos;
 import java.time.LocalDateTime;
 
 public class TaskResponse {
-
     private Long id;
     private String title;
     private String description;
@@ -13,22 +12,6 @@ public class TaskResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Constructors
-    public TaskResponse() {}
-
-    public TaskResponse(Long id, String title, String description, Long userId, String status, 
-                       String priority, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.userId = userId;
-        this.status = status;
-        this.priority = priority;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
-    // Getters and Setters
     public Long getId() {
         return id;
     }
