@@ -3,26 +3,12 @@ package com.myproject.models.dtos;
 import java.util.List;
 
 public class PagedTaskResponse {
-
     private List<TaskResponse> content;
     private Long totalElements;
     private Integer totalPages;
     private Integer currentPage;
     private Integer pageSize;
 
-    // Constructors
-    public PagedTaskResponse() {}
-
-    public PagedTaskResponse(List<TaskResponse> content, Long totalElements, Integer totalPages, 
-                            Integer currentPage, Integer pageSize) {
-        this.content = content;
-        this.totalElements = totalElements;
-        this.totalPages = totalPages;
-        this.currentPage = currentPage;
-        this.pageSize = pageSize;
-    }
-
-    // Getters and Setters
     public List<TaskResponse> getContent() {
         return content;
     }

@@ -1,23 +1,11 @@
 package com.myproject.models.dtos;
 
 public class TaskDetailsResponse {
-
     private String taskId;
     private String title;
     private String status;
     private String columnId;
 
-    // Constructors
-    public TaskDetailsResponse() {}
-
-    public TaskDetailsResponse(String taskId, String title, String status, String columnId) {
-        this.taskId = taskId;
-        this.title = title;
-        this.status = status;
-        this.columnId = columnId;
-    }
-
-    // Getters and Setters
     public String getTaskId() {
         return taskId;
     }

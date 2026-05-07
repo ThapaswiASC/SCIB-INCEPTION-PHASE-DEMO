@@ -1,23 +1,13 @@
 package com.myproject.models.dtos;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class BulkUpdateColumnCountsRequest {
-
-    @NotNull
-    @Valid
+    
+    @NotNull(message = "Updates list is required")
     private List<ColumnUpdate> updates;
 
-    // Constructors
-    public BulkUpdateColumnCountsRequest() {}
-
-    public BulkUpdateColumnCountsRequest(List<ColumnUpdate> updates) {
-        this.updates = updates;
-    }
-
-    // Getters and Setters
     public List<ColumnUpdate> getUpdates() {
         return updates;
     }
@@ -27,21 +17,9 @@ public class BulkUpdateColumnCountsRequest {
     }
 
     public static class ColumnUpdate {
-        @NotNull
         private String columnId;
-
-        @NotNull
         private Integer increment;
 
-        // Constructors
-        public ColumnUpdate() {}
-
-        public ColumnUpdate(String columnId, Integer increment) {
-            this.columnId = columnId;
-            this.increment = increment;
-        }
-
-        // Getters and Setters
         public String getColumnId() {
             return columnId;
         }

@@ -3,24 +3,11 @@ package com.myproject.models.dtos;
 import java.util.List;
 
 public class BulkTaskResponse {
-
     private Integer successCount;
     private Integer failureCount;
     private List<TaskResponse> createdTasks;
     private List<BulkError> errors;
 
-    // Constructors
-    public BulkTaskResponse() {}
-
-    public BulkTaskResponse(Integer successCount, Integer failureCount, 
-                           List<TaskResponse> createdTasks, List<BulkError> errors) {
-        this.successCount = successCount;
-        this.failureCount = failureCount;
-        this.createdTasks = createdTasks;
-        this.errors = errors;
-    }
-
-    // Getters and Setters
     public Integer getSuccessCount() {
         return successCount;
     }
@@ -55,17 +42,8 @@ public class BulkTaskResponse {
 
     public static class BulkError {
         private Integer index;
-        private String error;
+        private String message;
 
-        // Constructors
-        public BulkError() {}
-
-        public BulkError(Integer index, String error) {
-            this.index = index;
-            this.error = error;
-        }
-
-        // Getters and Setters
         public Integer getIndex() {
             return index;
         }
@@ -74,12 +52,12 @@ public class BulkTaskResponse {
             this.index = index;
         }
 
-        public String getError() {
-            return error;
+        public String getMessage() {
+            return message;
         }
 
-        public void setError(String error) {
-            this.error = error;
+        public void setMessage(String message) {
+            this.message = message;
         }
     }
 }
