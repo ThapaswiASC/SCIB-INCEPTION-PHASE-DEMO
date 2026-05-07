@@ -48,22 +48,29 @@ class TaskControllerTest {
     void setUp() {
         validCreateRequest = new TaskCreateRequest(
             "Complete project documentation",
-            "Write comprehensive documentation for the task management system"
+            "Write comprehensive documentation for the task management system",
+            Priority.HIGH,
+            LocalDateTime.now().plusDays(7)
         );
 
         validUpdateRequest = new TaskUpdateRequest(
             "Complete project documentation",
             "Write comprehensive documentation for the task management system",
-            TaskStatus.IN_PROGRESS
+            Priority.HIGH,
+            TaskStatus.IN_PROGRESS,
+            LocalDateTime.now().plusDays(7)
         );
 
         taskResponse = new TaskResponse(
             1L,
             "Complete project documentation",
             "Write comprehensive documentation for the task management system",
+            Priority.HIGH,
             TaskStatus.PENDING,
             LocalDateTime.of(2024, 1, 15, 10, 30, 0),
-            null
+            LocalDateTime.of(2024, 1, 15, 10, 30, 0),
+            LocalDateTime.now().plusDays(7),
+            1L
         );
     }
 
@@ -81,21 +88,20 @@ class TaskControllerTest {
             .andExpect(jsonPath("$.title").value("Complete project documentation"))
             .andExpect(jsonPath("$.description").value("Write comprehensive documentation for the task management system"))
             .andExpect(jsonPath("$.status").value("PENDING"))
-            .andExpect(jsonPath("$.createdAt").exists())
-            .andExpect(jsonPath("$.updatedAt").doesNotExist());
+            .andExpect(jsonPath("$.createdAt").exists());
 
         verify(taskService, times(1)).createTask(any(TaskCreateRequest.class));
     }
 
     @Test
     void createTask_WithBlankTitle_ReturnsBadRequest() throws Exception {
-        TaskCreateRequest invalidRequest = new TaskCreateRequest("", "Valid description");
+        TaskCreateRequest invalidRequest = new TaskCreateRequest("", "Valid description", Priority.HIGH, LocalDateTime.now().plusDays(1));
 
         mockMvc.perform(post("/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"))
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
             .andExpect(jsonPath("$.message").exists());
 
         verify(taskService, never()).createTask(any(TaskCreateRequest.class));
@@ -103,13 +109,13 @@ class TaskControllerTest {
 
     @Test
     void createTask_WithNullTitle_ReturnsBadRequest() throws Exception {
-        TaskCreateRequest invalidRequest = new TaskCreateRequest(null, "Valid description");
+        TaskCreateRequest invalidRequest = new TaskCreateRequest(null, "Valid description", Priority.HIGH, LocalDateTime.now().plusDays(1));
 
         mockMvc.perform(post("/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 
         verify(taskService, never()).createTask(any(TaskCreateRequest.class));
     }
@@ -117,26 +123,26 @@ class TaskControllerTest {
     @Test
     void createTask_WithTitleTooLong_ReturnsBadRequest() throws Exception {
         String longTitle = "a".repeat(201);
-        TaskCreateRequest invalidRequest = new TaskCreateRequest(longTitle, "Valid description");
+        TaskCreateRequest invalidRequest = new TaskCreateRequest(longTitle, "Valid description", Priority.HIGH, LocalDateTime.now().plusDays(1));
 
         mockMvc.perform(post("/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 
         verify(taskService, never()).createTask(any(TaskCreateRequest.class));
     }
 
     @Test
     void createTask_WithBlankDescription_ReturnsBadRequest() throws Exception {
-        TaskCreateRequest invalidRequest = new TaskCreateRequest("Valid title", "");
+        TaskCreateRequest invalidRequest = new TaskCreateRequest("Valid title", "", Priority.HIGH, LocalDateTime.now().plusDays(1));
 
         mockMvc.perform(post("/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 
         verify(taskService, never()).createTask(any(TaskCreateRequest.class));
     }
@@ -144,13 +150,13 @@ class TaskControllerTest {
     @Test
     void createTask_WithDescriptionTooLong_ReturnsBadRequest() throws Exception {
         String longDescription = "a".repeat(1001);
-        TaskCreateRequest invalidRequest = new TaskCreateRequest("Valid title", longDescription);
+        TaskCreateRequest invalidRequest = new TaskCreateRequest("Valid title", longDescription, Priority.HIGH, LocalDateTime.now().plusDays(1));
 
         mockMvc.perform(post("/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 
         verify(taskService, never()).createTask(any(TaskCreateRequest.class));
     }
@@ -165,7 +171,7 @@ class TaskControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validCreateRequest)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"))
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
             .andExpect(jsonPath("$.message").value("Validation failed"))
             .andExpect(jsonPath("$.details", hasSize(2)));
     }
@@ -192,7 +198,7 @@ class TaskControllerTest {
 
         mockMvc.perform(get("/tasks/999"))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.errorCode").value("NOT_FOUND"))
+            .andExpect(jsonPath("$.code").value("NOT_FOUND"))
             .andExpect(jsonPath("$.message").value("Task not found with id: 999"));
     }
 
@@ -204,9 +210,12 @@ class TaskControllerTest {
             1L,
             "Complete project documentation",
             "Write comprehensive documentation for the task management system",
+            Priority.HIGH,
             TaskStatus.IN_PROGRESS,
             LocalDateTime.of(2024, 1, 15, 10, 30, 0),
-            LocalDateTime.of(2024, 1, 15, 14, 30, 0)
+            LocalDateTime.of(2024, 1, 15, 14, 30, 0),
+            LocalDateTime.now().plusDays(7),
+            1L
         );
 
         when(taskService.updateTask(eq(1L), any(TaskUpdateRequest.class))).thenReturn(updatedResponse);
@@ -231,31 +240,31 @@ class TaskControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(validUpdateRequest)))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.errorCode").value("NOT_FOUND"));
+            .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
 
     @Test
     void updateTask_WithBlankTitle_ReturnsBadRequest() throws Exception {
-        TaskUpdateRequest invalidRequest = new TaskUpdateRequest("", "Valid description", TaskStatus.IN_PROGRESS);
+        TaskUpdateRequest invalidRequest = new TaskUpdateRequest("", "Valid description", Priority.HIGH, TaskStatus.IN_PROGRESS, LocalDateTime.now().plusDays(1));
 
         mockMvc.perform(put("/tasks/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 
         verify(taskService, never()).updateTask(any(Long.class), any(TaskUpdateRequest.class));
     }
 
     @Test
     void updateTask_WithNullStatus_ReturnsBadRequest() throws Exception {
-        TaskUpdateRequest invalidRequest = new TaskUpdateRequest("Valid title", "Valid description", null);
+        TaskUpdateRequest invalidRequest = new TaskUpdateRequest("Valid title", "Valid description", Priority.HIGH, null, LocalDateTime.now().plusDays(1));
 
         mockMvc.perform(put("/tasks/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
             .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
+            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
 
         verify(taskService, never()).updateTask(any(Long.class), any(TaskUpdateRequest.class));
     }
@@ -278,15 +287,15 @@ class TaskControllerTest {
 
         mockMvc.perform(delete("/tasks/999"))
             .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.errorCode").value("NOT_FOUND"));
+            .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
 
     // ========== GET ALL TASKS TESTS ==========
 
     @Test
     void getAllTasks_WithNoFilter_ReturnsAllTasks() throws Exception {
-        TaskResponse task1 = new TaskResponse(1L, "Task 1", "Description 1", TaskStatus.PENDING, LocalDateTime.now(), null);
-        TaskResponse task2 = new TaskResponse(2L, "Task 2", "Description 2", TaskStatus.IN_PROGRESS, LocalDateTime.now(), null);
+        TaskResponse task1 = new TaskResponse(1L, "Task 1", "Description 1", Priority.HIGH, TaskStatus.PENDING, LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now().plusDays(1), 1L);
+        TaskResponse task2 = new TaskResponse(2L, "Task 2", "Description 2", Priority.MEDIUM, TaskStatus.IN_PROGRESS, LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now().plusDays(2), 1L);
         List<TaskResponse> tasks = Arrays.asList(task1, task2);
 
         when(taskService.getAllTasks()).thenReturn(tasks);
@@ -303,7 +312,7 @@ class TaskControllerTest {
 
     @Test
     void getAllTasks_WithStatusFilter_ReturnsFilteredTasks() throws Exception {
-        TaskResponse task1 = new TaskResponse(1L, "Task 1", "Description 1", TaskStatus.PENDING, LocalDateTime.now(), null);
+        TaskResponse task1 = new TaskResponse(1L, "Task 1", "Description 1", Priority.HIGH, TaskStatus.PENDING, LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now().plusDays(1), 1L);
         List<TaskResponse> tasks = Collections.singletonList(task1);
 
         when(taskService.getTasksByStatus(TaskStatus.PENDING)).thenReturn(tasks);
