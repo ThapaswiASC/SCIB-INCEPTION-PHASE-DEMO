@@ -2,17 +2,16 @@
 
 ## Overview
 
-This is a Spring Boot application that implements a task management system with Kanban board functionality. The application provides RESTful APIs for creating, updating, and managing tasks with support for drag-and-drop operations across Kanban columns.
+This is a Spring Boot application implementing a task management system with Kanban board functionality. The application provides RESTful APIs for managing tasks, columns, and user operations with comprehensive input validation and error handling.
 
 ## Features
 
 - **Task Management**: Create, read, update, and delete tasks
-- **Bulk Operations**: Create multiple tasks in a single request
-- **User Task Management**: Retrieve tasks by user with pagination
-- **Kanban Board**: Drag-and-drop task status updates with column statistics
-- **Input Validation**: Comprehensive validation for all input data
-- **Error Handling**: Structured error responses with detailed messages
-- **Performance Optimized**: Supports up to 10,000 tasks per user
+- **Kanban Board**: Drag-and-drop task status updates with column management
+- **Input Validation**: Robust validation for malformed or unexpected input data
+- **Bulk Operations**: Support for bulk task creation and column updates
+- **Pagination**: Efficient pagination for large task lists
+- **Performance Optimized**: Supports up to 10,000 tasks per user with 200ms response time target
 
 ## Technology Stack
 
@@ -20,7 +19,7 @@ This is a Spring Boot application that implements a task management system with 
 - **Spring Boot**: 3.5.9
 - **Database**: H2 (in-memory)
 - **Build Tool**: Maven
-- **Testing**: JUnit Jupiter
+- **Testing**: JUnit Jupiter, Spring Boot Test
 - **Code Coverage**: JaCoCo
 
 ## Project Structure
@@ -61,7 +60,7 @@ code/
 
 ### User Tasks
 
-- `GET /api/v1/users/{userId}/tasks` - Get user tasks (paginated)
+- `GET /api/v1/users/{userId}/tasks` - Get paginated user tasks
 - `GET /api/v1/users/{userId}/tasks/count` - Get user task count
 
 ### Kanban Board
@@ -70,21 +69,21 @@ code/
 - `GET /api/v1/columns/{columnId}/stats` - Get column statistics
 - `PUT /api/v1/columns/bulk-update` - Bulk update column counts
 
-## Getting Started
+## Building and Running
 
 ### Prerequisites
 
-- Java 21 or higher
-- Maven 3.6 or higher
+- Java 21
+- Maven 3.6+
 
-### Building the Application
+### Build
 
 ```bash
 cd code
 mvn clean install
 ```
 
-### Running the Application
+### Run
 
 ```bash
 mvn spring-boot:run
@@ -92,102 +91,88 @@ mvn spring-boot:run
 
 The application will start on `http://localhost:8080/api`
 
-### Running Tests
+### H2 Console
+
+Access the H2 database console at: `http://localhost:8080/api/h2-console`
+
+- JDBC URL: `jdbc:h2:mem:testdb`
+- Username: `sa`
+- Password: `password`
+
+## Testing
 
 ```bash
 mvn test
 ```
 
-### Generating Code Coverage Report
+### Code Coverage
 
 ```bash
 mvn jacoco:report
 ```
 
-The coverage report will be available at `target/site/jacoco/index.html`
+Coverage reports are generated in `target/site/jacoco/`
 
 ## Configuration
 
-The application can be configured through `application.properties`:
+Key configuration properties in `application.properties`:
 
 ```properties
-spring.application.name=myproject
+# Server Configuration
 server.port=8080
 server.servlet.context-path=/api
 
-# Database Configuration
-spring.datasource.url=jdbc:h2:mem:testdb
-spring.datasource.driver-class-name=org.h2.Driver
+# Task Limits
+app.task.max-per-user=10000
+app.task.creation-timeout=200ms
 
-# Logging
-logging.level.root=INFO
-logging.level.com.myproject=DEBUG
+# Validation
+validation.title.max-length=255
+validation.description.max-length=10000
 ```
 
-## Validation Rules
+## Input Validation
 
-### Task Creation
+The application handles various types of malformed input:
 
-- **Title**: Required, 1-255 characters, cannot be only whitespace
-- **Description**: Optional, max 10,000 characters
-- **User ID**: Required, must be positive
-- **Priority**: Optional, valid values: LOW, MEDIUM, HIGH, URGENT
-- **Task Limit**: Maximum 10,000 tasks per user
-
-### Status Transitions
-
-- `PENDING/TO_DO` → `IN_PROGRESS`
-- `IN_PROGRESS` → `DONE/COMPLETED` or back to `TO_DO`
-- `DONE/COMPLETED` → `IN_PROGRESS`
+- **Null values**: Proper null checks and error messages
+- **Whitespace-only strings**: Trimmed and validated
+- **Special characters**: UTF-8 encoding support
+- **Length constraints**: Title (1-255 chars), Description (max 10000 chars)
+- **Task limits**: Maximum 10,000 tasks per user
 
 ## Error Handling
 
-The application provides structured error responses:
+Standardized error responses with:
 
-```json
-{
-  "timestamp": "2024-01-01T10:00:00",
-  "traceId": "uuid",
-  "errorCode": "VALIDATION_ERROR",
-  "message": "Validation failed",
-  "details": ["Title is required"]
-}
-```
+- Timestamp
+- Trace ID for debugging
+- Error code
+- Human-readable message
+- Detailed validation errors (when applicable)
 
-### Error Codes
+## Performance Considerations
 
-- `VALIDATION_ERROR` - Input validation failed
-- `TASK_NOT_FOUND` - Task does not exist
-- `TASK_LIMIT_EXCEEDED` - User has reached task limit
-- `INVALID_STATUS_TRANSITION` - Invalid status change
-- `INVALID_INPUT` - Invalid input data
+- Database indexing on frequently queried fields
+- Optimistic locking for concurrent operations
+- Pagination for large result sets
+- Efficient bulk operations
+- Connection pooling with HikariCP
 
 ## Security
 
-- CORS enabled for `http://localhost:4200`
-- All endpoints under `/api/v1/**` are publicly accessible
-- H2 console available at `/api/h2-console`
-
-## Database
-
-The application uses H2 in-memory database. The database is automatically created on startup and destroyed on shutdown.
-
-### Accessing H2 Console
-
-1. Navigate to `http://localhost:8080/api/h2-console`
-2. Use the following connection details:
-   - JDBC URL: `jdbc:h2:mem:testdb`
-   - Username: `sa`
-   - Password: (leave empty)
+- CORS configuration for frontend integration
+- Input sanitization to prevent injection attacks
+- JWT-ready security configuration (currently permissive for development)
 
 ## CI/CD
 
-The project includes a GitHub Actions workflow for automated builds:
+GitHub Actions workflow for:
 
-- Triggered manually via `workflow_dispatch`
-- Builds with Maven
-- Generates JaCoCo coverage reports
-- Uploads test results and coverage reports as artifacts
+- Building with Maven
+- Running tests
+- Generating code coverage reports
+- Uploading artifacts
 
 ## License
 
