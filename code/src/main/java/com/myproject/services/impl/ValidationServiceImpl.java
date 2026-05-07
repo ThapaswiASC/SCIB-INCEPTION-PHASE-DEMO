@@ -1,81 +1,118 @@
 package com.myproject.services.impl;
 
 import com.myproject.exceptions.InvalidInputException;
-import com.myproject.models.dtos.TaskCreateRequestValidated;
-import com.myproject.models.dtos.ValidationResponse;
+import com.myproject.exceptions.InvalidStatusTransitionException;
+import com.myproject.exceptions.TaskLimitExceededException;
+import com.myproject.models.datastores.TaskRepository;
+import com.myproject.models.dtos.TaskCreateRequest;
+import com.myproject.models.dtos.TaskUpdateRequest;
 import com.myproject.services.interfaces.ValidationService;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
 public class ValidationServiceImpl implements ValidationService {
-    
-    private static final int MAX_TITLE_LENGTH = 255;
-    private static final int MAX_DESCRIPTION_LENGTH = 10000;
-    
+
+    @Autowired
+    private TaskRepository taskRepository;
+
+    @Value("${app.task.max-per-user:10000}")
+    private int maxTasksPerUser;
+
+    private static final List<String> VALID_STATUSES = Arrays.asList(
+        "PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED", "TO_DO", "DONE"
+    );
+
+    private static final List<String> VALID_PRIORITIES = Arrays.asList(
+        "LOW", "MEDIUM", "HIGH", "URGENT"
+    );
+
     @Override
-    public ValidationResponse validate(TaskCreateRequestValidated request) {
-        List<String> errors = new ArrayList<>();
-        List<String> warnings = new ArrayList<>();
-        
-        // Validate title
-        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
-            errors.add("Title is required and cannot be empty or whitespace only");
-        } else if (request.getTitle().length() > MAX_TITLE_LENGTH) {
-            errors.add("Title cannot exceed " + MAX_TITLE_LENGTH + " characters");
+    public void validateTaskInput(TaskCreateRequest request) {
+        if (request.getTitle() == null || StringUtils.isBlank(request.getTitle())) {
+            throw new InvalidInputException("Title cannot be empty or contain only whitespace");
         }
-        
-        // Validate description
-        if (request.getDescription() != null && request.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
-            errors.add("Description cannot exceed " + MAX_DESCRIPTION_LENGTH + " characters");
+
+        if (request.getTitle().trim().isEmpty()) {
+            throw new InvalidInputException("Title cannot be empty or contain only whitespace");
         }
-        
-        // Validate priority
-        if (request.getPriority() == null) {
-            errors.add("Priority is required");
+
+        if (request.getDescription() != null && request.getDescription().length() > 10000) {
+            throw new InvalidInputException("Description exceeds maximum length of 10000 characters");
         }
-        
-        // Validate status
-        if (request.getStatus() == null) {
-            errors.add("Status is required");
-        }
-        
-        return ValidationResponse.builder()
-            .valid(errors.isEmpty())
-            .errors(errors)
-            .warnings(warnings)
-            .build();
-    }
-    
-    @Override
-    public void validateTitle(String title) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new InvalidInputException("Title is required and cannot be empty or whitespace only");
-        }
-        if (title.length() > MAX_TITLE_LENGTH) {
-            throw new InvalidInputException("Title cannot exceed " + MAX_TITLE_LENGTH + " characters");
+
+        if (request.getPriority() != null && !VALID_PRIORITIES.contains(request.getPriority())) {
+            throw new InvalidInputException("Invalid priority. Must be one of: " + String.join(", ", VALID_PRIORITIES));
         }
     }
-    
+
     @Override
-    public void validateDescription(String description) {
-        if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
-            throw new InvalidInputException("Description cannot exceed " + MAX_DESCRIPTION_LENGTH + " characters");
+    public void validateTaskUpdate(TaskUpdateRequest request) {
+        if (request.getTitle() != null && StringUtils.isBlank(request.getTitle())) {
+            throw new InvalidInputException("Title cannot be empty or contain only whitespace");
+        }
+
+        if (request.getDescription() != null && request.getDescription().length() > 10000) {
+            throw new InvalidInputException("Description exceeds maximum length of 10000 characters");
+        }
+
+        if (request.getStatus() != null && !VALID_STATUSES.contains(request.getStatus())) {
+            throw new InvalidInputException("Invalid status. Must be one of: " + String.join(", ", VALID_STATUSES));
+        }
+
+        if (request.getPriority() != null && !VALID_PRIORITIES.contains(request.getPriority())) {
+            throw new InvalidInputException("Invalid priority. Must be one of: " + String.join(", ", VALID_PRIORITIES));
         }
     }
-    
+
     @Override
-    public String sanitizeInput(String input) {
-        if (input == null) {
-            return null;
+    public void validateTaskLimit(Long userId) {
+        Long taskCount = taskRepository.countTasksByUserId(userId);
+        if (taskCount >= maxTasksPerUser) {
+            throw new TaskLimitExceededException(
+                String.format("User has reached maximum task limit of %d tasks", maxTasksPerUser)
+            );
         }
-        // Remove potential XSS threats while preserving special characters
-        return input.replaceAll("<script>", "")
-                   .replaceAll("</script>", "")
-                   .replaceAll("<iframe>", "")
-                   .replaceAll("</iframe>", "")
-                   .trim();
+    }
+
+    @Override
+    public void validateStatusTransition(String oldStatus, String newStatus) {
+        if (oldStatus == null || newStatus == null) {
+            return;
+        }
+
+        // Define valid transitions
+        boolean isValidTransition = false;
+        
+        switch (oldStatus) {
+            case "TO_DO":
+            case "PENDING":
+                isValidTransition = newStatus.equals("IN_PROGRESS");
+                break;
+            case "IN_PROGRESS":
+                isValidTransition = newStatus.equals("DONE") || 
+                                  newStatus.equals("COMPLETED") || 
+                                  newStatus.equals("TO_DO") ||
+                                  newStatus.equals("PENDING");
+                break;
+            case "DONE":
+            case "COMPLETED":
+                isValidTransition = newStatus.equals("IN_PROGRESS");
+                break;
+            case "CANCELLED":
+                isValidTransition = newStatus.equals("PENDING") || newStatus.equals("TO_DO");
+                break;
+            default:
+                isValidTransition = true;
+        }
+
+        if (!isValidTransition) {
+            throw new InvalidStatusTransitionException(oldStatus, newStatus);
+        }
     }
 }
