@@ -14,14 +14,8 @@ import lombok.NoArgsConstructor;
 public class UpdateTaskStatusRequest {
     
     @NotNull(message = "Status is required")
-    private TaskStatus status;
+    private String status;
     
     @NotBlank(message = "Column ID is required")
     private String columnId;
-    
-    public enum TaskStatus {
-        TO_DO,
-        IN_PROGRESS,
-        DONE
-    }
 }
