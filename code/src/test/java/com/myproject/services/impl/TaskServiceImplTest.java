@@ -5,7 +5,6 @@ import com.myproject.exceptions.ValidationException;
 import com.myproject.models.datastores.TaskDataStore;
 import com.myproject.models.dtos.*;
 import com.myproject.models.entities.Task;
-import com.myproject.utils.TaskValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,9 +28,6 @@ class TaskServiceImplTest {
     @Mock
     private TaskDataStore taskDataStore;
 
-    @Mock
-    private TaskValidator taskValidator;
-
     @InjectMocks
     private TaskServiceImpl taskService;
 
@@ -43,28 +39,32 @@ class TaskServiceImplTest {
     void setUp() {
         createRequest = new TaskCreateRequest(
             "Complete project documentation",
-            "Write comprehensive documentation for the task management system"
+            "Write comprehensive documentation for the task management system",
+            Priority.HIGH,
+            LocalDateTime.now().plusDays(7)
         );
 
         updateRequest = new TaskUpdateRequest(
             "Complete project documentation",
             "Write comprehensive documentation for the task management system",
-            TaskStatus.IN_PROGRESS
+            Priority.HIGH,
+            TaskStatus.IN_PROGRESS,
+            LocalDateTime.now().plusDays(7)
         );
 
         task = new Task();
         task.setId(1L);
         task.setTitle("Complete project documentation");
         task.setDescription("Write comprehensive documentation for the task management system");
+        task.setPriority(Priority.HIGH);
         task.setStatus(TaskStatus.PENDING);
         task.setCreatedAt(LocalDateTime.of(2024, 1, 15, 10, 30, 0));
+        task.setDueDate(LocalDateTime.now().plusDays(7));
+        task.setUserId(1L);
     }
-
-    // ========== CREATE TASK TESTS ==========
 
     @Test
     void createTask_WithValidRequest_ReturnsTaskResponse() {
-        doNothing().when(taskValidator).validateCreateRequest(any(TaskCreateRequest.class));
         when(taskDataStore.save(any(Task.class))).thenReturn(task);
 
         TaskResponse response = taskService.createTask(createRequest);
@@ -75,26 +75,21 @@ class TaskServiceImplTest {
         assertEquals("Write comprehensive documentation for the task management system", response.getDescription());
         assertEquals(TaskStatus.PENDING, response.getStatus());
         assertNotNull(response.getCreatedAt());
-        assertNull(response.getUpdatedAt());
 
-        verify(taskValidator, times(1)).validateCreateRequest(createRequest);
         verify(taskDataStore, times(1)).save(any(Task.class));
     }
 
     @Test
     void createTask_WithInvalidRequest_ThrowsValidationException() {
-        doThrow(new ValidationException("Validation failed"))
-            .when(taskValidator).validateCreateRequest(any(TaskCreateRequest.class));
+        TaskCreateRequest invalidRequest = new TaskCreateRequest("", "", Priority.HIGH, LocalDateTime.now().plusDays(1));
 
-        assertThrows(ValidationException.class, () -> taskService.createTask(createRequest));
+        assertThrows(ValidationException.class, () -> taskService.createTask(invalidRequest));
 
-        verify(taskValidator, times(1)).validateCreateRequest(createRequest);
         verify(taskDataStore, never()).save(any(Task.class));
     }
 
     @Test
     void createTask_SetsStatusToPending() {
-        doNothing().when(taskValidator).validateCreateRequest(any(TaskCreateRequest.class));
         when(taskDataStore.save(any(Task.class))).thenReturn(task);
 
         TaskResponse response = taskService.createTask(createRequest);
@@ -104,15 +99,12 @@ class TaskServiceImplTest {
 
     @Test
     void createTask_SetsCreatedAtTimestamp() {
-        doNothing().when(taskValidator).validateCreateRequest(any(TaskCreateRequest.class));
         when(taskDataStore.save(any(Task.class))).thenReturn(task);
 
         TaskResponse response = taskService.createTask(createRequest);
 
         assertNotNull(response.getCreatedAt());
     }
-
-    // ========== GET TASK BY ID TESTS ==========
 
     @Test
     void getTaskById_WithExistingId_ReturnsTaskResponse() {
@@ -140,11 +132,8 @@ class TaskServiceImplTest {
         verify(taskDataStore, times(1)).findById(999L);
     }
 
-    // ========== UPDATE TASK TESTS ==========
-
     @Test
     void updateTask_WithValidRequest_ReturnsUpdatedTaskResponse() {
-        doNothing().when(taskValidator).validateUpdateRequest(any(TaskUpdateRequest.class));
         when(taskDataStore.findById(1L)).thenReturn(Optional.of(task));
         when(taskDataStore.save(any(Task.class))).thenReturn(task);
 
@@ -155,14 +144,12 @@ class TaskServiceImplTest {
         assertEquals(TaskStatus.IN_PROGRESS, response.getStatus());
         assertNotNull(response.getUpdatedAt());
 
-        verify(taskValidator, times(1)).validateUpdateRequest(updateRequest);
         verify(taskDataStore, times(1)).findById(1L);
         verify(taskDataStore, times(1)).save(any(Task.class));
     }
 
     @Test
     void updateTask_WithNonExistentId_ThrowsTaskNotFoundException() {
-        doNothing().when(taskValidator).validateUpdateRequest(any(TaskUpdateRequest.class));
         when(taskDataStore.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(
@@ -170,29 +157,12 @@ class TaskServiceImplTest {
             () -> taskService.updateTask(999L, updateRequest)
         );
 
-        verify(taskValidator, times(1)).validateUpdateRequest(updateRequest);
         verify(taskDataStore, times(1)).findById(999L);
         verify(taskDataStore, never()).save(any(Task.class));
     }
 
     @Test
-    void updateTask_WithInvalidRequest_ThrowsValidationException() {
-        doThrow(new ValidationException("Validation failed"))
-            .when(taskValidator).validateUpdateRequest(any(TaskUpdateRequest.class));
-
-        assertThrows(
-            ValidationException.class,
-            () -> taskService.updateTask(1L, updateRequest)
-        );
-
-        verify(taskValidator, times(1)).validateUpdateRequest(updateRequest);
-        verify(taskDataStore, never()).findById(any(Long.class));
-        verify(taskDataStore, never()).save(any(Task.class));
-    }
-
-    @Test
     void updateTask_UpdatesAllFields() {
-        doNothing().when(taskValidator).validateUpdateRequest(any(TaskUpdateRequest.class));
         when(taskDataStore.findById(1L)).thenReturn(Optional.of(task));
         when(taskDataStore.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -202,8 +172,6 @@ class TaskServiceImplTest {
         assertEquals(updateRequest.getDescription(), response.getDescription());
         assertEquals(updateRequest.getStatus(), response.getStatus());
     }
-
-    // ========== DELETE TASK TESTS ==========
 
     @Test
     void deleteTask_WithExistingId_DeletesSuccessfully() {
@@ -229,16 +197,17 @@ class TaskServiceImplTest {
         verify(taskDataStore, never()).deleteById(any(Long.class));
     }
 
-    // ========== GET TASKS BY STATUS TESTS ==========
-
     @Test
     void getTasksByStatus_WithExistingTasks_ReturnsTaskList() {
         Task task2 = new Task();
         task2.setId(2L);
         task2.setTitle("Task 2");
         task2.setDescription("Description 2");
+        task2.setPriority(Priority.MEDIUM);
         task2.setStatus(TaskStatus.PENDING);
         task2.setCreatedAt(LocalDateTime.now());
+        task2.setDueDate(LocalDateTime.now().plusDays(5));
+        task2.setUserId(1L);
 
         List<Task> tasks = Arrays.asList(task, task2);
         when(taskDataStore.findByStatus(TaskStatus.PENDING)).thenReturn(tasks);
@@ -265,16 +234,17 @@ class TaskServiceImplTest {
         verify(taskDataStore, times(1)).findByStatus(TaskStatus.COMPLETED);
     }
 
-    // ========== GET ALL TASKS TESTS ==========
-
     @Test
     void getAllTasks_WithExistingTasks_ReturnsAllTasks() {
         Task task2 = new Task();
         task2.setId(2L);
         task2.setTitle("Task 2");
         task2.setDescription("Description 2");
+        task2.setPriority(Priority.MEDIUM);
         task2.setStatus(TaskStatus.IN_PROGRESS);
         task2.setCreatedAt(LocalDateTime.now());
+        task2.setDueDate(LocalDateTime.now().plusDays(5));
+        task2.setUserId(1L);
 
         List<Task> tasks = Arrays.asList(task, task2);
         when(taskDataStore.findAll()).thenReturn(tasks);

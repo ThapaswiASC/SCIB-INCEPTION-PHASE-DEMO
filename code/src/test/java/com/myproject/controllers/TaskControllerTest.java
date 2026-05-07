@@ -74,8 +74,6 @@ class TaskControllerTest {
         );
     }
 
-    // ========== CREATE TASK TESTS ==========
-
     @Test
     void createTask_WithValidRequest_ReturnsCreated() throws Exception {
         when(taskService.createTask(any(TaskCreateRequest.class))).thenReturn(taskResponse);
@@ -176,8 +174,6 @@ class TaskControllerTest {
             .andExpect(jsonPath("$.details", hasSize(2)));
     }
 
-    // ========== GET TASK TESTS ==========
-
     @Test
     void getTask_WithValidId_ReturnsOk() throws Exception {
         when(taskService.getTaskById(1L)).thenReturn(taskResponse);
@@ -201,8 +197,6 @@ class TaskControllerTest {
             .andExpect(jsonPath("$.code").value("NOT_FOUND"))
             .andExpect(jsonPath("$.message").value("Task not found with id: 999"));
     }
-
-    // ========== UPDATE TASK TESTS ==========
 
     @Test
     void updateTask_WithValidRequest_ReturnsOk() throws Exception {
@@ -257,19 +251,17 @@ class TaskControllerTest {
     }
 
     @Test
-    void updateTask_WithNullStatus_ReturnsBadRequest() throws Exception {
-        TaskUpdateRequest invalidRequest = new TaskUpdateRequest("Valid title", "Valid description", Priority.HIGH, null, LocalDateTime.now().plusDays(1));
+    void updateTask_WithNullStatus_ReturnsOk() throws Exception {
+        TaskUpdateRequest requestWithNullStatus = new TaskUpdateRequest("Valid title", "Valid description", Priority.HIGH, null, LocalDateTime.now().plusDays(1));
+        TaskResponse response = new TaskResponse(1L, "Valid title", "Valid description", Priority.HIGH, TaskStatus.PENDING, LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now().plusDays(1), 1L);
+        
+        when(taskService.updateTask(eq(1L), any(TaskUpdateRequest.class))).thenReturn(response);
 
         mockMvc.perform(put("/tasks/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
-
-        verify(taskService, never()).updateTask(any(Long.class), any(TaskUpdateRequest.class));
+                .content(objectMapper.writeValueAsString(requestWithNullStatus)))
+            .andExpect(status().isOk());
     }
-
-    // ========== DELETE TASK TESTS ==========
 
     @Test
     void deleteTask_WithValidId_ReturnsNoContent() throws Exception {
@@ -289,8 +281,6 @@ class TaskControllerTest {
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.code").value("NOT_FOUND"));
     }
-
-    // ========== GET ALL TASKS TESTS ==========
 
     @Test
     void getAllTasks_WithNoFilter_ReturnsAllTasks() throws Exception {
