@@ -11,7 +11,7 @@ paths:
     post:
       operationId: DEMO-760CreateTaskPOST
       summary: Create a new task
-      description: Creates a new task with error handling for database connection failures, timeouts, and unexpected server errors
+      description: Creates a new task with comprehensive error handling for database and timeout issues
       tags:
         - Tasks
       requestBody:
@@ -33,6 +33,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '408':
           description: Request timeout
           content:
@@ -51,11 +57,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
   /api/tasks/{id}:
     get:
       operationId: DEMO-760GetTaskGET
       summary: Get task by ID
-      description: Retrieves a task by its unique identifier
+      description: Retrieves a specific task by its ID
       tags:
         - Tasks
       parameters:
@@ -73,14 +81,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskResponse'
-        '404':
-          description: Task not found
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '408':
-          description: Request timeout
+        '404':
+          description: Task not found
           content:
             application/json:
               schema:
@@ -97,10 +105,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
     put:
       operationId: DEMO-760UpdateTaskPUT
       summary: Update task
-      description: Updates an existing task with new information
+      description: Updates an existing task
       tags:
         - Tasks
       parameters:
@@ -130,6 +140,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Task not found
           content:
@@ -154,10 +170,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
     delete:
       operationId: DEMO-760DeleteTaskDELETE
       summary: Delete task
-      description: Deletes a task by its unique identifier
+      description: Deletes a task by ID
       tags:
         - Tasks
       parameters:
@@ -171,14 +189,14 @@ paths:
       responses:
         '204':
           description: Task deleted successfully
-        '404':
-          description: Task not found
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '408':
-          description: Request timeout
+        '404':
+          description: Task not found
           content:
             application/json:
               schema:
@@ -195,45 +213,62 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
 components:
   schemas:
     TaskCreateRequest:
       type: object
       required:
         - title
-        - description
+        - priority
       properties:
         title:
           type: string
           minLength: 1
-          maxLength: 200
+          maxLength: 100
           description: Task title
           example: Complete project documentation
         description:
           type: string
-          minLength: 1
-          maxLength: 1000
+          maxLength: 500
           description: Task description
-          example: Write comprehensive documentation for the task management system
+          example: Write comprehensive documentation for the new feature
+        priority:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+          description: Task priority level
+          example: HIGH
+        dueDate:
+          type: string
+          format: date-time
+          description: Task due date (must be in the future)
+          example: '2024-12-31T23:59:59Z'
     TaskUpdateRequest:
       type: object
-      required:
-        - title
-        - description
-        - status
       properties:
         title:
           type: string
           minLength: 1
-          maxLength: 200
+          maxLength: 100
           description: Task title
-          example: Complete project documentation
+          example: Updated task title
         description:
           type: string
-          minLength: 1
-          maxLength: 1000
+          maxLength: 500
           description: Task description
-          example: Write comprehensive documentation for the task management system
+          example: Updated task description
+        priority:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+          description: Task priority level
+          example: MEDIUM
         status:
           type: string
           enum:
@@ -243,13 +278,18 @@ components:
             - CANCELLED
           description: Task status
           example: IN_PROGRESS
+        dueDate:
+          type: string
+          format: date-time
+          description: Task due date
+          example: '2024-12-31T23:59:59Z'
     TaskResponse:
       type: object
       properties:
         id:
           type: integer
           format: int64
-          description: Task unique identifier
+          description: Task ID
           example: 1
         title:
           type: string
@@ -258,7 +298,15 @@ components:
         description:
           type: string
           description: Task description
-          example: Write comprehensive documentation for the task management system
+          example: Write comprehensive documentation for the new feature
+        priority:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+          description: Task priority level
+          example: HIGH
         status:
           type: string
           enum:
@@ -272,37 +320,54 @@ components:
           type: string
           format: date-time
           description: Task creation timestamp
-          example: 2024-01-15T10:30:00Z
+          example: '2024-01-15T10:30:00Z'
         updatedAt:
           type: string
           format: date-time
           description: Task last update timestamp
-          example: 2024-01-15T14:45:00Z
+          example: '2024-01-15T10:30:00Z'
+        dueDate:
+          type: string
+          format: date-time
+          description: Task due date
+          example: '2024-12-31T23:59:59Z'
+        userId:
+          type: integer
+          format: int64
+          description: ID of the user who created the task
+          example: 123
     ErrorResponse:
       type: object
       required:
-        - errorCode
+        - code
         - message
         - timestamp
       properties:
-        errorCode:
+        code:
           type: string
-          description: Error code identifier
-          example: SERVICE_UNAVAILABLE
+          description: Error code
           enum:
             - SERVICE_UNAVAILABLE
             - REQUEST_TIMEOUT
             - VALIDATION_ERROR
+            - UNAUTHORIZED
+            - FORBIDDEN
+            - NOT_FOUND
             - INTERNAL_SERVER_ERROR
+          example: SERVICE_UNAVAILABLE
         message:
           type: string
           description: Human-readable error message
           example: Service temporarily unavailable, please try again later
         timestamp:
-          type: integer
-          format: int64
-          description: Error timestamp in milliseconds
-          example: 1705319400000
+          type: string
+          format: date-time
+          description: Error timestamp
+          example: '2024-01-15T10:30:00Z'
+        preservedInput:
+          type: object
+          description: Original user input preserved for retry
+          additionalProperties: true
         details:
           type: array
           description: Additional error details
@@ -310,7 +375,7 @@ components:
             type: string
           example:
             - Database connection failed
-            - Retry attempt 1 of 3
+            - Retry after 30 seconds
     SuccessResponse:
       type: object
       properties:
@@ -319,15 +384,69 @@ components:
           description: Success message
           example: Operation completed successfully
         timestamp:
-          type: integer
-          format: int64
-          description: Response timestamp in milliseconds
-          example: 1705319400000
+          type: string
+          format: date-time
+          description: Response timestamp
+          example: '2024-01-15T10:30:00Z'
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT-based authentication
-security:
-  - bearerAuth: []
+      description: JWT-based authentication with 24-hour token expiry
+  responses:
+    UnauthorizedError:
+      description: Authentication token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenError:
+      description: User does not have permission to perform this operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Requested resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TimeoutError:
+      description: Request timed out
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailableError:
+      description: Service temporarily unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  parameters:
+    TaskIdParam:
+      name: id
+      in: path
+      required: true
+      description: Unique identifier of the task
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+tags:
+  - name: Tasks
+    description: Task management operations with comprehensive error handling
