@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -118,6 +119,24 @@ public class TaskServiceImpl implements TaskService {
         }
         taskDataStore.deleteById(id);
         logger.info("Task deleted successfully with id: {}", id);
+    }
+
+    @Override
+    public List<TaskResponse> getAllTasks() {
+        logger.info("Fetching all tasks");
+        List<Task> tasks = taskDataStore.findAll();
+        return tasks.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TaskResponse> getTasksByStatus(TaskStatus status) {
+        logger.info("Fetching tasks with status: {}", status);
+        List<Task> tasks = taskDataStore.findByStatus(status);
+        return tasks.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     private void validateTaskRequest(TaskCreateRequest request) {
