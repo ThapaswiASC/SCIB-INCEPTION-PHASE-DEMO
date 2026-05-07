@@ -1,27 +1,107 @@
 {
-  "executive_summary": "Maven build failed with 2 test errors in GlobalExceptionHandlerTest. Both failures are caused by NullPointerException when attempting to invoke getParameterIndex() on a null MethodParameter object. The test methods are trying to handle MethodArgumentNotValidException but the exception object is not properly initialized with a valid MethodParameter, causing the handler to fail when trying to access parameter information.",
+  "executive_summary": "Maven test compilation failed with 100 errors due to constructor and method signature mismatches across DTOs, services, and exception handlers. The primary root cause is that test code expects different constructor signatures and methods than what the production code provides. Fixes require updating either the DTO/service signatures to match test expectations or updating test code to use correct signatures.",
   "attempt_number": 1,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-760",
   "log_file": "logs/build_failure_attempt-1.log",
-  "errors_found": 2,
+  "errors_found": 12,
   "errors": [
     {
-      "type": "TEST_FAILURE",
-      "file": "src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
-      "line": 155,
-      "message": "NullPointerException: Cannot invoke getParameterIndex() because parameter is null",
-      "root_cause": "The test creates a MethodArgumentNotValidException without properly initializing the MethodParameter field. When GlobalExceptionHandler.handleMethodArgumentNotValid() calls exception.getMessage(), it internally tries to access this.parameter.getParameterIndex(), but this.parameter is null.",
-      "fix_recommendation": "In GlobalExceptionHandlerTest.handleMethodArgumentNotValid_ReturnsBadRequest(), create a valid MethodParameter object before constructing MethodArgumentNotValidException. Use: MethodParameter parameter = new MethodParameter(TaskController.class.getMethod("createTask", TaskCreateRequest.class), 0); Then pass this parameter when creating the exception."
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 49,
+      "message": "no suitable constructor found for TaskCreateRequest(String,String)",
+      "root_cause": "TaskCreateRequest constructor expects 4 parameters (title, description, priority, dueDate) but tests are calling it with only 2 parameters (title, description)",
+      "fix_recommendation": "Update TaskCreateRequest constructor calls in tests to include Priority and LocalDateTime parameters, or add a 2-parameter constructor overload to TaskCreateRequest class"
     },
     {
-      "type": "TEST_FAILURE",
-      "file": "src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
-      "line": 176,
-      "message": "NullPointerException: Cannot invoke getParameterIndex() because parameter is null",
-      "root_cause": "Same as the first error - the test creates a MethodArgumentNotValidException without properly initializing the MethodParameter field, causing a NullPointerException when the handler tries to access parameter information.",
-      "fix_recommendation": "In GlobalExceptionHandlerTest.handleMethodArgumentNotValid_WithSingleError_ReturnsBadRequest(), create a valid MethodParameter object before constructing MethodArgumentNotValidException. Use: MethodParameter parameter = new MethodParameter(TaskController.class.getMethod("createTask", TaskCreateRequest.class), 0); Then pass this parameter when creating the exception."
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 54,
+      "message": "no suitable constructor found for TaskUpdateRequest(String,String,TaskStatus)",
+      "root_cause": "TaskUpdateRequest constructor expects 5 parameters (title, description, priority, status, dueDate) but tests are calling it with only 3 parameters",
+      "fix_recommendation": "Update TaskUpdateRequest constructor calls in tests to include Priority and LocalDateTime parameters, or add a 3-parameter constructor overload to TaskUpdateRequest class"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 60,
+      "message": "no suitable constructor found for TaskResponse(long,String,String,TaskStatus,LocalDateTime,<nulltype>)",
+      "root_cause": "TaskResponse constructor expects 9 parameters but tests are calling it with 6 parameters. Missing parameters: createdAt, updatedAt, and userId",
+      "fix_recommendation": "Update TaskResponse constructor calls in tests to include all 9 required parameters (id, title, description, priority, status, dueDate, createdAt, updatedAt, userId)"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 292,
+      "message": "cannot find symbol: method getAllTasks()",
+      "root_cause": "TaskService interface does not define getAllTasks() method but tests are calling it",
+      "fix_recommendation": "Add getAllTasks() method to TaskService interface and implement it in TaskServiceImpl, or update tests to use the correct method name if it exists with a different signature"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 301,
+      "message": "cannot find symbol: method getTasksByStatus(TaskStatus)",
+      "root_cause": "TaskService interface does not define getTasksByStatus(TaskStatus) method but tests are calling it",
+      "fix_recommendation": "Add getTasksByStatus(TaskStatus) method to TaskService interface and implement it in TaskServiceImpl"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
+      "line": 34,
+      "message": "no suitable constructor found for DatabaseConnectionException(String)",
+      "root_cause": "DatabaseConnectionException constructor expects 2 or 3 parameters (message, context, [throwable]) but tests are calling it with only 1 parameter (message)",
+      "fix_recommendation": "Update DatabaseConnectionException constructor calls in tests to include the context parameter, or add a single-parameter constructor overload to DatabaseConnectionException class"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
+      "line": 36,
+      "message": "method handleDatabaseException cannot be applied to given types; required: DatabaseConnectionException,HttpServletRequest",
+      "root_cause": "GlobalExceptionHandler.handleDatabaseException() expects 2 parameters (exception, request) but tests are calling it with only 1 parameter (exception)",
+      "fix_recommendation": "Update all exception handler method calls in tests to include HttpServletRequest parameter, or modify exception handler methods to make HttpServletRequest optional"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
+      "line": 41,
+      "message": "cannot find symbol: method getErrorCode()",
+      "root_cause": "ErrorResponse class does not define getErrorCode() method but tests are calling it",
+      "fix_recommendation": "Add getErrorCode() method to ErrorResponse class or update tests to use the correct field accessor method"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
+      "line": 93,
+      "message": "incompatible types: String cannot be converted to Long",
+      "root_cause": "TaskNotFoundException constructor expects Long type for task ID but tests are passing String",
+      "fix_recommendation": "Update TaskNotFoundException constructor calls in tests to pass Long.valueOf() or change the test to use Long type directly"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
+      "line": 130,
+      "message": "cannot find symbol: method findByStatus(TaskStatus)",
+      "root_cause": "InMemoryTaskDataStore does not define findByStatus(TaskStatus) method but tests are calling it",
+      "fix_recommendation": "Add findByStatus(TaskStatus) method to TaskDataStore interface and implement it in InMemoryTaskDataStore class"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
+      "line": 159,
+      "message": "incompatible types: void cannot be converted to boolean",
+      "root_cause": "Test is trying to assign void return type to boolean variable. The delete method likely returns void instead of boolean",
+      "fix_recommendation": "Change delete method in TaskDataStore to return boolean indicating success/failure, or update tests to not expect a return value from delete operations"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/utils/TaskValidatorTest.java",
+      "line": 53,
+      "message": "cannot find symbol: method getErrors()",
+      "root_cause": "ValidationException class does not define getErrors() method but tests are calling it",
+      "fix_recommendation": "Add getErrors() method to ValidationException class to return the list of validation errors, or update tests to use the correct method to access validation errors"
     }
   ],
-  "summary": "2 errors found"
+  "summary": "12 grouped compilation errors found across test files"
 }
