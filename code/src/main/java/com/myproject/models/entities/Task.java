@@ -1,6 +1,8 @@
 package com.myproject.models.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Entity
@@ -10,51 +12,41 @@ import java.time.LocalDateTime;
     @Index(name = "idx_status", columnList = "status")
 })
 public class Task {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
+    
     @Column(name = "title", nullable = false, length = 255)
+    @NotNull
+    @Size(max = 255)
     private String title;
-
+    
     @Column(name = "description", length = 10000)
+    @Size(max = 10000)
     private String description;
-
+    
     @Column(name = "user_id", nullable = false)
+    @NotNull
     private Long userId;
-
+    
     @Column(name = "status", length = 50)
     private String status;
-
-    @Column(name = "priority", length = 50)
+    
+    @Column(name = "priority", length = 20)
     private String priority;
-
+    
     @Column(name = "column_id", length = 100)
     private String columnId;
-
-    @Column(name = "due_date")
-    private LocalDateTime dueDate;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
+    
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
-
+    
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
+    
     @Version
     private Long version;
-
-    // Constructors
-    public Task() {}
-
-    public Task(String title, String description, Long userId, String status, String priority) {
-        this.title = title;
-        this.description = description;
-        this.userId = userId;
-        this.status = status;
-        this.priority = priority;
-    }
 
     @PrePersist
     protected void onCreate() {
@@ -70,7 +62,6 @@ public class Task {
         updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -125,14 +116,6 @@ public class Task {
 
     public void setColumnId(String columnId) {
         this.columnId = columnId;
-    }
-
-    public LocalDateTime getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDateTime dueDate) {
-        this.dueDate = dueDate;
     }
 
     public LocalDateTime getCreatedAt() {

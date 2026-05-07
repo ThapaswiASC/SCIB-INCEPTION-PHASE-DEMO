@@ -6,37 +6,24 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "columns")
 public class Column {
-
+    
     @Id
-    @Column(name = "id", length = 100)
     private String id;
-
-    @Column(name = "name", nullable = false, length = 255)
+    
+    @Column(name = "name", nullable = false)
     private String name;
-
-    @Column(name = "board_id", length = 100)
+    
+    @Column(name = "board_id")
     private String boardId;
-
-    @Column(name = "task_count", nullable = false)
+    
+    @Column(name = "task_count")
     private Integer taskCount = 0;
-
+    
     @Column(name = "position")
     private Integer position;
-
+    
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;
-
-    // Constructors
-    public Column() {}
-
-    public Column(String id, String name, String boardId, Integer taskCount, Integer position) {
-        this.id = id;
-        this.name = name;
-        this.boardId = boardId;
-        this.taskCount = taskCount;
-        this.position = position;
-        this.lastUpdated = LocalDateTime.now();
-    }
 
     @PrePersist
     @PreUpdate
@@ -44,7 +31,6 @@ public class Column {
         lastUpdated = LocalDateTime.now();
     }
 
-    // Getters and Setters
     public String getId() {
         return id;
     }
