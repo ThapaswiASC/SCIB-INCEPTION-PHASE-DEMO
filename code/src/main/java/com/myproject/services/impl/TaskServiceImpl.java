@@ -1,130 +1,182 @@
 package com.myproject.services.impl;
 
+import com.myproject.exceptions.DatabaseConnectionException;
 import com.myproject.exceptions.TaskNotFoundException;
+import com.myproject.exceptions.TimeoutException;
+import com.myproject.exceptions.ValidationException;
 import com.myproject.models.datastores.TaskDataStore;
 import com.myproject.models.dtos.*;
 import com.myproject.models.entities.Task;
 import com.myproject.services.interfaces.TaskService;
-import com.myproject.utils.TaskValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TaskServiceImpl implements TaskService {
 
     private static final Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
 
-    private final TaskDataStore taskDataStore;
-    private final TaskValidator taskValidator;
-
     @Autowired
-    public TaskServiceImpl(TaskDataStore taskDataStore, TaskValidator taskValidator) {
-        this.taskDataStore = taskDataStore;
-        this.taskValidator = taskValidator;
-    }
+    private TaskDataStore taskDataStore;
 
     @Override
-    @Retryable(maxAttempts = 3)
+    @Retryable(
+        retryFor = {DatabaseConnectionException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000)
+    )
     public TaskResponse createTask(TaskCreateRequest request) {
-        logger.debug("Creating task with title: {}", request.getTitle());
-        
-        // Validate input
-        taskValidator.validateCreateRequest(request);
-        
-        // Create task entity
-        Task task = new Task();
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setStatus(TaskStatus.PENDING);
-        task.setCreatedAt(LocalDateTime.now());
-        
-        // Save to datastore
-        Task savedTask = taskDataStore.save(task);
-        
-        logger.info("Task created successfully with id: {}", savedTask.getId());
-        return TaskResponse.from(savedTask);
+        try {
+            logger.info("Creating task with title: {}", request.getTitle());
+            
+            // Validate input
+            validateTaskRequest(request);
+            
+            // Create task entity
+            Task task = mapToEntity(request);
+            
+            // Save task
+            Task savedTask = saveWithRetry(task, request);
+            
+            logger.info("Task created successfully with id: {}", savedTask.getId());
+            return mapToResponse(savedTask);
+            
+        } catch (DatabaseConnectionException | TimeoutException ex) {
+            logger.error("Error creating task: {}", ex.getMessage());
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unexpected error during task creation", ex);
+            throw new DatabaseConnectionException("Unexpected error during task creation", request, ex);
+        }
     }
 
     @Override
     public TaskResponse getTaskById(Long id) {
-        logger.debug("Fetching task with id: {}", id);
-        
+        logger.info("Fetching task with id: {}", id);
         Task task = taskDataStore.findById(id)
                 .orElseThrow(() -> new TaskNotFoundException(id));
-        
-        return TaskResponse.from(task);
+        return mapToResponse(task);
     }
 
     @Override
-    @Retryable(maxAttempts = 3)
+    @Retryable(
+        retryFor = {DatabaseConnectionException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000)
+    )
     public TaskResponse updateTask(Long id, TaskUpdateRequest request) {
-        logger.debug("Updating task with id: {}", id);
-        
-        // Validate input
-        taskValidator.validateUpdateRequest(request);
-        
-        // Find existing task
-        Task task = taskDataStore.findById(id)
-                .orElseThrow(() -> new TaskNotFoundException(id));
-        
-        // Update task fields
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setStatus(request.getStatus());
-        task.setUpdatedAt(LocalDateTime.now());
-        
-        // Save updated task
-        Task updatedTask = taskDataStore.save(task);
-        
-        logger.info("Task updated successfully with id: {}", updatedTask.getId());
-        return TaskResponse.from(updatedTask);
+        try {
+            logger.info("Updating task with id: {}", id);
+            
+            Task existingTask = taskDataStore.findById(id)
+                    .orElseThrow(() -> new TaskNotFoundException(id));
+            
+            // Update fields if provided
+            if (request.getTitle() != null) {
+                existingTask.setTitle(request.getTitle());
+            }
+            if (request.getDescription() != null) {
+                existingTask.setDescription(request.getDescription());
+            }
+            if (request.getPriority() != null) {
+                existingTask.setPriority(request.getPriority());
+            }
+            if (request.getStatus() != null) {
+                existingTask.setStatus(request.getStatus());
+            }
+            if (request.getDueDate() != null) {
+                existingTask.setDueDate(request.getDueDate());
+            }
+            
+            existingTask.setUpdatedAt(LocalDateTime.now());
+            
+            Task updatedTask = taskDataStore.save(existingTask);
+            logger.info("Task updated successfully with id: {}", updatedTask.getId());
+            return mapToResponse(updatedTask);
+            
+        } catch (TaskNotFoundException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Error updating task", ex);
+            throw new DatabaseConnectionException("Error updating task", request, ex);
+        }
     }
 
     @Override
-    @Retryable(maxAttempts = 3)
     public void deleteTask(Long id) {
-        logger.debug("Deleting task with id: {}", id);
-        
-        // Check if task exists
-        if (!taskDataStore.findById(id).isPresent()) {
+        logger.info("Deleting task with id: {}", id);
+        if (!taskDataStore.existsById(id)) {
             throw new TaskNotFoundException(id);
         }
+        taskDataStore.deleteById(id);
+        logger.info("Task deleted successfully with id: {}", id);
+    }
+
+    private void validateTaskRequest(TaskCreateRequest request) {
+        List<String> errors = new ArrayList<>();
         
-        // Delete task
-        boolean deleted = taskDataStore.deleteById(id);
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+            errors.add("Title is required");
+        } else if (request.getTitle().length() > 100) {
+            errors.add("Title must not exceed 100 characters");
+        }
         
-        if (deleted) {
-            logger.info("Task deleted successfully with id: {}", id);
-        } else {
-            logger.error("Failed to delete task with id: {}", id);
-            throw new RuntimeException("Failed to delete task");
+        if (request.getDescription() != null && request.getDescription().length() > 500) {
+            errors.add("Description must not exceed 500 characters");
+        }
+        
+        if (request.getPriority() == null) {
+            errors.add("Priority is required");
+        }
+        
+        if (request.getDueDate() != null && request.getDueDate().isBefore(LocalDateTime.now())) {
+            errors.add("Due date must be in the future");
+        }
+        
+        if (!errors.isEmpty()) {
+            throw new ValidationException("Validation failed", errors);
         }
     }
 
-    @Override
-    public List<TaskResponse> getTasksByStatus(TaskStatus status) {
-        logger.debug("Fetching tasks with status: {}", status);
-        
-        List<Task> tasks = taskDataStore.findByStatus(status);
-        return tasks.stream()
-                .map(TaskResponse::from)
-                .collect(Collectors.toList());
+    private Task saveWithRetry(Task task, TaskCreateRequest originalRequest) {
+        try {
+            return taskDataStore.save(task);
+        } catch (Exception ex) {
+            logger.error("Error saving task to datastore", ex);
+            throw new DatabaseConnectionException("Database operation failed", originalRequest, ex);
+        }
     }
 
-    @Override
-    public List<TaskResponse> getAllTasks() {
-        logger.debug("Fetching all tasks");
-        
-        List<Task> tasks = taskDataStore.findAll();
-        return tasks.stream()
-                .map(TaskResponse::from)
-                .collect(Collectors.toList());
+    private Task mapToEntity(TaskCreateRequest request) {
+        Task task = new Task();
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        task.setPriority(request.getPriority());
+        task.setDueDate(request.getDueDate());
+        task.setStatus(TaskStatus.PENDING);
+        task.setUserId(1L); // Default user ID for demo
+        return task;
+    }
+
+    private TaskResponse mapToResponse(Task task) {
+        return new TaskResponse(
+                task.getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getPriority(),
+                task.getStatus(),
+                task.getCreatedAt(),
+                task.getUpdatedAt(),
+                task.getDueDate(),
+                task.getUserId()
+        );
     }
 }
