@@ -21,4 +21,8 @@ public class TaskResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long version;
+    
+    public void setVersion(Long version) {
+        this.version = version;
+    }
 }
