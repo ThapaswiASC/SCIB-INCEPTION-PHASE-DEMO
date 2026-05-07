@@ -1,24 +1,31 @@
 package com.myproject.models.dtos;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
 
 public class TaskCreateRequest {
 
     @NotBlank(message = "Title is required")
-    @Size(min = 1, max = 200, message = "Title must be between 1 and 200 characters")
+    @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters")
     private String title;
 
-    @NotBlank(message = "Description is required")
-    @Size(min = 1, max = 1000, message = "Description must be between 1 and 1000 characters")
+    @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
+
+    @NotNull(message = "Priority is required")
+    private Priority priority;
+
+    @Future(message = "Due date must be in the future")
+    private LocalDateTime dueDate;
 
     public TaskCreateRequest() {
     }
 
-    public TaskCreateRequest(String title, String description) {
+    public TaskCreateRequest(String title, String description, Priority priority, LocalDateTime dueDate) {
         this.title = title;
         this.description = description;
+        this.priority = priority;
+        this.dueDate = dueDate;
     }
 
     public String getTitle() {
@@ -35,5 +42,21 @@ public class TaskCreateRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
+    public LocalDateTime getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDateTime dueDate) {
+        this.dueDate = dueDate;
     }
 }

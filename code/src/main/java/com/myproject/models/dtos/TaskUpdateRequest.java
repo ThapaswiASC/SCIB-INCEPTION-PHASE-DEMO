@@ -1,29 +1,31 @@
 package com.myproject.models.dtos;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.time.LocalDateTime;
 
 public class TaskUpdateRequest {
 
-    @NotBlank(message = "Title is required")
-    @Size(min = 1, max = 200, message = "Title must be between 1 and 200 characters")
+    @Size(min = 1, max = 100, message = "Title must be between 1 and 100 characters")
     private String title;
 
-    @NotBlank(message = "Description is required")
-    @Size(min = 1, max = 1000, message = "Description must be between 1 and 1000 characters")
+    @Size(max = 500, message = "Description must not exceed 500 characters")
     private String description;
 
-    @NotNull(message = "Status is required")
+    private Priority priority;
+
     private TaskStatus status;
+
+    private LocalDateTime dueDate;
 
     public TaskUpdateRequest() {
     }
 
-    public TaskUpdateRequest(String title, String description, TaskStatus status) {
+    public TaskUpdateRequest(String title, String description, Priority priority, TaskStatus status, LocalDateTime dueDate) {
         this.title = title;
         this.description = description;
+        this.priority = priority;
         this.status = status;
+        this.dueDate = dueDate;
     }
 
     public String getTitle() {
@@ -42,11 +44,27 @@ public class TaskUpdateRequest {
         this.description = description;
     }
 
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
     public TaskStatus getStatus() {
         return status;
     }
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public LocalDateTime getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDateTime dueDate) {
+        this.dueDate = dueDate;
     }
 }

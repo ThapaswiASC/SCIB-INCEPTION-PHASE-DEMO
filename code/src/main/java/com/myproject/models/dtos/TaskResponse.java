@@ -1,7 +1,5 @@
 package com.myproject.models.dtos;
 
-import com.myproject.models.entities.Task;
-
 import java.time.LocalDateTime;
 
 public class TaskResponse {
@@ -9,31 +7,27 @@ public class TaskResponse {
     private Long id;
     private String title;
     private String description;
+    private Priority priority;
     private TaskStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime dueDate;
+    private Long userId;
 
     public TaskResponse() {
     }
 
-    public TaskResponse(Long id, String title, String description, TaskStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public TaskResponse(Long id, String title, String description, Priority priority, TaskStatus status,
+                       LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime dueDate, Long userId) {
         this.id = id;
         this.title = title;
         this.description = description;
+        this.priority = priority;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    public static TaskResponse from(Task task) {
-        return new TaskResponse(
-            task.getId(),
-            task.getTitle(),
-            task.getDescription(),
-            task.getStatus(),
-            task.getCreatedAt(),
-            task.getUpdatedAt()
-        );
+        this.dueDate = dueDate;
+        this.userId = userId;
     }
 
     public Long getId() {
@@ -60,6 +54,14 @@ public class TaskResponse {
         this.description = description;
     }
 
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
     public TaskStatus getStatus() {
         return status;
     }
@@ -82,5 +84,21 @@ public class TaskResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public LocalDateTime getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDateTime dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }
