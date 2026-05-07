@@ -9,22 +9,17 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
-
-    @Query("SELECT t FROM Task t WHERE t.userId = :userId")
-    Page<Task> findByUserId(@Param("userId") Long userId, Pageable pageable);
-
+    
     @Query("SELECT COUNT(t) FROM Task t WHERE t.userId = :userId")
-    Long countByUserId(@Param("userId") Long userId);
-
-    @Query("SELECT t FROM Task t WHERE t.columnId = :columnId")
-    List<Task> findByColumnId(@Param("columnId") String columnId);
-
-    @Query("SELECT t FROM Task t WHERE t.id = :taskId")
-    Optional<Task> findTaskById(@Param("taskId") Long taskId);
-
-    List<Task> findByTitleContainingIgnoreCase(String title);
+    Long countTasksByUserId(@Param("userId") Long userId);
+    
+    Page<Task> findByUserId(Long userId, Pageable pageable);
+    
+    List<Task> findByColumnId(String columnId);
+    
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.columnId = :columnId")
+    Long countByColumnId(@Param("columnId") String columnId);
 }

@@ -7,14 +7,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface ColumnRepository extends JpaRepository<Column, String> {
-
+    
     @Modifying
     @Query("UPDATE Column c SET c.taskCount = c.taskCount + :increment WHERE c.id = :columnId")
     int incrementTaskCount(@Param("columnId") String columnId, @Param("increment") int increment);
-
-    Optional<Column> findById(String columnId);
+    
+    List<Column> findByBoardIdOrderByPosition(String boardId);
 }
