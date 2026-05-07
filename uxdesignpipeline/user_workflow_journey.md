@@ -1,502 +1,473 @@
-# Youth Account Management - User Workflow Journey
+# User Workflow Journey Documentation
 
 ## Experience Overview
 
-Parents and guardians need to manage their children's financial education through digital banking tools. This experience encompasses fund allocation, spending oversight, limit management, and activity monitoring to teach financial responsibility while maintaining parental control.
+**User Type**: Healthcare Patient  
+**Experience Context**: Digital Healthcare Platform - Patient Journey from Symptom Assessment to Treatment
+
+This documentation outlines comprehensive user workflows for a digital healthcare platform, focusing on patient experiences from initial symptom assessment through appointment booking and management.
 
 ---
 
-## Scenario 1: Parent Accessing and Managing Youth Account Dashboard
+## Scenario 1: New Patient Symptom Assessment and Doctor Discovery
 
-**Context:** Sarah, a working mother of a 16-year-old daughter, wants to check her daughter's account balance and recent spending activity during her lunch break to ensure her daughter is managing money responsibly.
+**Context**: Sarah, a 28-year-old working professional, has been experiencing persistent headaches for 3 days. She's never used the platform before and wants to understand her symptoms and find appropriate medical care quickly and efficiently.
 
-**User Goal:** Quickly access comprehensive youth account information to monitor financial activity and make informed decisions about fund allocation.
+### Workflow Variation 1A: Guided Symptom Assessment Path
 
-**Business Goal:** Increase parent engagement with youth banking services and build trust through transparent account management tools.
+**User Goal**: Help Sarah identify potential causes of her symptoms and connect her with appropriate medical professionals based on her assessment results.
 
-### Workflow Variation A: Quick Dashboard Review
+**Business Goal**: Convert new users into engaged patients while building trust through accurate symptom assessment and seamless doctor matching.
 
-**Screens:**
+#### Screen Flow:
 
-**1.0 Youth Account Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item "Youth Accounts"
+**1.0 Homepage [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive overview of youth account status and enable quick management actions
+- Page Goal: Build credibility and guide new patients toward symptom assessment
 - Screen Description:
-  1. Display current youth account balance prominently
-  2. Show recent transaction summary (last 5 transactions)
-  3. Display active spending limits and usage
-  4. Provide quick action buttons for fund transfer and limit management
-  5. Show account holder information and account status
-  6. Display spending analytics (weekly/monthly trends)
+  1. Patient can start a symptom assessment with prominent CTA
+  2. Patient can search for doctors by specialty or condition
+  3. Patient can view platform benefits and testimonials
+  4. Patient can access emergency care information
+  5. Patient can view health packages and preventive care options
 - Design Problems:
-  - HMW present complex financial data in a scannable format for busy parents?
-  - HMW balance detailed information with quick actionability?
-  - HMW communicate spending patterns without overwhelming the parent?
+  - HMW help patients quickly determine if they need immediate care vs. routine consultation?
+  - HMW build trust with first-time users who may be anxious about their symptoms?
+  - HMW communicate the platform's medical credibility without overwhelming users?
 - Design Opportunities:
-  - What if the dashboard could predict when funds might run low?
-  - What if we could show spending categorization to help parents understand habits?
-  - What if parents could set up automated fund transfers based on balance thresholds?
+  - What if we could provide immediate triage guidance based on symptom severity?
+  - What if we offered a virtual health assistant to guide nervous first-time users?
+  - What if we could show real-time doctor availability for urgent cases?
 
-**Pu.1 Fund Transfer Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Add Funds" CTA button on dashboard
+**Pu.1 Symptom Assessment Modal [type: modal]**
+- HOW IT IS REACHED: Click "Start Symptom Assessment" CTA button on Homepage
 - NAVBAR PRESENCE: No
-- Page Goal: Enable quick and secure fund transfer from parent to youth account
+- Page Goal: Collect accurate symptom information to provide relevant doctor recommendations
 - Screen Description:
-  1. Source account selector with available balances
-  2. Transfer amount input with validation
-  3. Transfer purpose/note field (optional)
-  4. Real-time balance preview after transfer
-  5. Confirmation step with transfer summary
+  1. Multi-step symptom questionnaire with body diagram
+  2. Severity and duration assessment
+  3. Medical history and current medications input
+  4. Urgency level determination
 - Design Problems:
-  - HMW prevent accidental large transfers while maintaining ease of use?
-  - HMW communicate transfer limits and validation errors clearly?
+  - HMW make medical questionnaires feel approachable rather than clinical?
+  - HMW ensure accuracy while keeping the assessment brief?
+  - HMW handle users who may not know medical terminology?
 - Design Opportunities:
-  - What if we could suggest transfer amounts based on spending patterns?
-  - What if parents could schedule recurring transfers?
+  - What if we used conversational UI to make the assessment feel more natural?
+  - What if we provided visual aids to help users describe symptoms accurately?
+  - What if we could detect urgency and fast-track critical cases?
 
-**1.1 Dashboard with Updated Balance [type: primary]**
-- HOW IT IS REACHED: Automatic return after successful fund transfer
+**2.0 Assessment Results & Doctor Recommendations [type: primary]**
+- HOW IT IS REACHED: Complete symptom assessment modal
 - NAVBAR PRESENCE: Yes
-- Page Goal: Confirm successful transfer and show updated account status
+- Page Goal: Present assessment insights and connect patient with appropriate specialists
 - Screen Description:
-  1. Updated youth account balance reflecting new transfer
-  2. Success notification with transfer details
-  3. Updated transaction history showing new transfer
-  4. Refreshed spending limit usage calculations
+  1. Symptom assessment summary with severity indicators
+  2. Recommended specialties and explanation
+  3. Curated list of available doctors with ratings and availability
+  4. Option to book immediate consultation or schedule appointment
+  5. Educational content about the condition
 - Design Problems:
-  - HMW ensure parents feel confident the transfer was successful?
+  - HMW present medical recommendations without causing alarm?
+  - HMW help patients choose between multiple qualified doctors?
+  - HMW balance urgency with informed decision-making?
 - Design Opportunities:
-  - What if we could show the impact of the transfer on spending runway?
+  - What if we could show doctor-patient compatibility scores?
+  - What if we provided video introductions from recommended doctors?
+  - What if we offered different consultation types (video, phone, in-person)?
 
-### Workflow Variation B: Detailed Account Analysis
-
-**Screens:**
-
-**1.0 Youth Account Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item "Youth Accounts"
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive overview with emphasis on detailed analytics
-- Screen Description:
-  1. Enhanced balance display with trend indicators
-  2. Expanded recent activity section (last 10 transactions)
-  3. Spending category breakdown chart
-  4. Monthly spending comparison
-  5. Goal tracking section (if savings goals are set)
-  6. Detailed spending limit status with time remaining
-- Design Problems:
-  - HMW present detailed analytics without creating cognitive overload?
-  - HMW help parents identify concerning spending patterns quickly?
-- Design Opportunities:
-  - What if we could provide personalized insights about spending behavior?
-  - What if parents could compare their child's spending to anonymized peer data?
-
-**1.0-D Transaction Detail View [type: detail]**
-- HOW IT IS REACHED: Clicking on any transaction row in the activity list
+**2.0-D Doctor Profile Detail [type: detail]**
+- HOW IT IS REACHED: Click on doctor card from Assessment Results screen
 - NAVBAR PRESENCE: No
-- Page Goal: Provide complete transaction context for parental review
+- Page Goal: Provide comprehensive doctor information to support booking decision
 - Screen Description:
-  1. Complete transaction details (merchant, location, time)
-  2. Transaction category and tags
-  3. Remaining balance after transaction
-  4. Option to flag transaction for discussion
-  5. Related transactions from same merchant
+  1. Doctor credentials, specializations, and experience
+  2. Patient reviews and ratings with detailed feedback
+  3. Available appointment slots with pricing
+  4. Doctor's approach to treatment and communication style
+  5. Clinic location and virtual consultation options
 - Design Problems:
-  - HMW provide sufficient detail without making the interface feel invasive?
+  - HMW help patients evaluate doctor quality beyond just ratings?
+  - HMW present scheduling options clearly for different consultation types?
+  - HMW address patient concerns about cost transparency?
 - Design Opportunities:
-  - What if parents could add private notes about transactions for future reference?
+  - What if we showed doctor response times and communication preferences?
+  - What if we provided treatment outcome statistics for the doctor's specialty?
+  - What if we offered patient testimonials specific to similar conditions?
 
-**NAVIGATION STRUCTURE:** 1.0 Youth Account Dashboard
+**Pu.2 Appointment Booking Modal [type: modal]**
+- HOW IT IS REACHED: Click "Book Appointment" CTA button on Doctor Profile Detail
+- NAVBAR PRESENCE: No
+- Page Goal: Complete appointment scheduling with all necessary information
+- Screen Description:
+  1. Available time slots with consultation type selection
+  2. Patient information form (if new user)
+  3. Insurance verification and payment options
+  4. Appointment preferences and special requirements
+  5. Confirmation and calendar integration
+- Design Problems:
+  - HMW streamline booking without sacrificing necessary information collection?
+  - HMW handle insurance verification smoothly?
+  - HMW accommodate patients with accessibility needs during booking?
+- Design Opportunities:
+  - What if we could auto-fill patient information from previous assessments?
+  - What if we provided real-time insurance coverage verification?
+  - What if we offered flexible rescheduling options upfront?
 
-**USER JOURNEY FLOW:**
-- Variation A: 1.0 Youth Account Dashboard → [click Add Funds] → Pu.1 Fund Transfer Modal → [submit] → 1.1 Dashboard with Updated Balance
-- Variation B: 1.0 Youth Account Dashboard → [click transaction] → 1.0-D Transaction Detail View → [back] → 1.0 Youth Account Dashboard
+### Workflow Variation 1B: Direct Doctor Search Path
+
+**User Goal**: Allow experienced patients to directly search and book with specific doctors or specialties without symptom assessment.
+
+**Business Goal**: Provide efficient booking for returning patients while capturing their specific needs for personalized care.
+
+#### Screen Flow:
+
+**1.0 Homepage [type: primary]**
+- Same as Variation 1A
+
+**3.0 Doctor Search & Discovery [type: primary]**
+- HOW IT IS REACHED: Click "Find a Doctor" navigation item or search CTA on Homepage
+- NAVBAR PRESENCE: Yes
+- Page Goal: Enable efficient doctor discovery through multiple search methods
+- Screen Description:
+  1. Advanced search filters (specialty, location, availability, insurance)
+  2. Doctor grid with key information and availability indicators
+  3. Map view for location-based search
+  4. Sorting options (rating, distance, availability, price)
+  5. Saved searches and doctor favorites for returning users
+- Design Problems:
+  - HMW help patients narrow down choices without overwhelming filter options?
+  - HMW present location and virtual options clearly?
+  - HMW accommodate different patient priorities (cost, convenience, expertise)?
+- Design Opportunities:
+  - What if we could learn patient preferences and suggest relevant filters?
+  - What if we showed real-time availability to reduce booking friction?
+  - What if we provided comparison tools for multiple doctors?
+
+**3.0-D Doctor Profile Detail [type: detail]**
+- Same as 2.0-D from Variation 1A
+
+**Pu.2 Appointment Booking Modal [type: modal]**
+- Same as Variation 1A
 
 ---
 
-## Scenario 2: Parent Setting Up Spending Controls and Limits
+## Scenario 2: Existing Patient Appointment Management
 
-**Context:** Mark, a father of twin 14-year-olds, wants to establish weekly spending limits for both children's accounts after noticing they spent their entire monthly allowance in the first week.
+**Context**: Michael, a 45-year-old patient with diabetes, has regular check-ups scheduled and needs to reschedule his upcoming appointment due to a work conflict. He's familiar with the platform and wants to manage this change quickly.
 
-**User Goal:** Configure appropriate spending controls that teach financial discipline while allowing reasonable flexibility for teenage needs.
+### Workflow Variation 2A: Dashboard-Centric Management
 
-**Business Goal:** Increase feature adoption of spending controls and reduce customer service calls related to overspending concerns.
+**User Goal**: Enable Michael to efficiently view, modify, and manage his appointments while accessing relevant health information.
 
-### Workflow Variation A: Simple Limit Configuration
+**Business Goal**: Increase patient engagement and reduce no-shows through proactive appointment management and health tracking.
 
-**Screens:**
+#### Screen Flow:
 
-**2.0 Spending Limits Management [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item "Spending Controls"
+**4.0 Patient Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item (default landing for logged-in users)
 - NAVBAR PRESENCE: Yes
-- Page Goal: Enable parents to configure and manage all spending-related controls in one location
+- Page Goal: Provide comprehensive overview of patient's health journey and immediate actions
 - Screen Description:
-  1. Current spending limit overview for all youth accounts
-  2. Quick limit adjustment controls (weekly/monthly toggles)
-  3. Limit usage visualization (progress bars)
-  4. Emergency override options
-  5. Notification preferences for limit breaches
-  6. Historical limit effectiveness analytics
+  1. Upcoming appointments with quick action buttons
+  2. Recent test results and health metrics
+  3. Medication reminders and refill status
+  4. Health goals progress and recommendations
+  5. Quick access to emergency contacts and urgent care
 - Design Problems:
-  - HMW help parents choose appropriate limit amounts for different age groups?
-  - HMW balance control with teaching financial independence?
+  - HMW prioritize information for patients with multiple health conditions?
+  - HMW make health data actionable rather than just informational?
+  - HMW balance comprehensive overview with quick task completion?
 - Design Opportunities:
-  - What if the system could recommend limits based on the child's age and spending history?
-  - What if parents could set different limits for different spending categories?
+  - What if we could predict which appointments patients are likely to miss?
+  - What if we provided personalized health insights based on appointment history?
+  - What if we integrated family member health information for caregivers?
 
-**Pu.2 Limit Configuration Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Edit Limits" CTA button
-- NAVBAR PRESENCE: No
-- Page Goal: Provide guided limit setting with contextual help
-- Screen Description:
-  1. Limit amount input with suggested ranges
-  2. Limit period selector (daily/weekly/monthly)
-  3. Category-specific limits (optional)
-  4. Override conditions configuration
-  5. Preview of how limits will affect current spending patterns
-- Design Problems:
-  - HMW prevent parents from setting unrealistic limits that frustrate children?
-- Design Opportunities:
-  - What if we could show the impact of different limit scenarios?
-
-### Workflow Variation B: Advanced Control Configuration
-
-**Screens:**
-
-**2.0 Spending Limits Management [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item "Spending Controls"
+**4.1 Appointment Management Section [type: primary]**
+- HOW IT IS REACHED: Scroll to appointments section on Patient Dashboard
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive spending control management with advanced features
+- Page Goal: Display appointment details with immediate management options
 - Screen Description:
-  1. Multi-account limit management interface
-  2. Category-based spending controls
-  3. Time-based restrictions (school hours, weekends)
-  4. Merchant category blocking/allowing
-  5. Graduated limit increases based on responsible spending
-  6. Family spending goals and challenges
+  1. Chronological list of upcoming appointments
+  2. Past appointment history with outcomes
+  3. Quick reschedule and cancel options
+  4. Appointment preparation checklists
+  5. Virtual consultation join links
 - Design Problems:
-  - HMW make advanced controls accessible without overwhelming less tech-savvy parents?
+  - HMW help patients prepare adequately for different types of appointments?
+  - HMW make rescheduling feel effortless while maintaining doctor availability?
+  - HMW communicate appointment importance for chronic condition management?
 - Design Opportunities:
-  - What if children could request temporary limit increases for special occasions?
+  - What if we could suggest optimal appointment times based on patient's health patterns?
+  - What if we provided pre-appointment health metric collection?
+  - What if we offered appointment outcome tracking for treatment effectiveness?
 
-**2.0-D Limit History and Analytics [type: detail]**
-- HOW IT IS REACHED: Clicking "View Limit History" link
+**Pu.3 Reschedule Appointment Modal [type: modal]**
+- HOW IT IS REACHED: Click "Reschedule" button on appointment card
 - NAVBAR PRESENCE: No
-- Page Goal: Show effectiveness of spending limits over time
+- Page Goal: Complete appointment rescheduling with minimal friction
 - Screen Description:
-  1. Historical limit changes and their impact
-  2. Spending pattern analysis before/after limit implementation
-  3. Limit breach incidents and resolutions
-  4. Recommendations for limit adjustments
+  1. Current appointment details and reason for change
+  2. Available alternative time slots with doctor availability
+  3. Impact assessment (e.g., treatment timeline effects)
+  4. Confirmation with calendar updates
+  5. Notification preferences for appointment reminders
 - Design Problems:
-  - HMW present historical data in a way that guides future decisions?
+  - HMW help patients understand the medical implications of rescheduling?
+  - HMW provide suitable alternatives without overwhelming choice?
+  - HMW maintain continuity of care for chronic conditions?
 - Design Opportunities:
-  - What if we could show correlation between limits and financial learning outcomes?
+  - What if we could automatically suggest the next best available slot?
+  - What if we provided rescheduling credits for frequent changes?
+  - What if we offered waitlist options for preferred times?
 
-**NAVIGATION STRUCTURE:** 2.0 Spending Limits Management
+### Workflow Variation 2B: Calendar-Centric Management
 
-**USER JOURNEY FLOW:**
-- Variation A: 2.0 Spending Limits Management → [click Edit Limits] → Pu.2 Limit Configuration Modal → [save] → 2.0 Spending Limits Management (updated)
-- Variation B: 2.0 Spending Limits Management → [click View Limit History] → 2.0-D Limit History and Analytics → [back] → 2.0 Spending Limits Management
+**User Goal**: Provide Michael with a visual calendar interface to manage multiple appointments and health activities.
+
+**Business Goal**: Improve appointment adherence through better scheduling visualization and integrated health planning.
+
+#### Screen Flow:
+
+**5.0 Health Calendar [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
+- NAVBAR PRESENCE: Yes
+- Page Goal: Visualize all health-related activities in a unified calendar interface
+- Screen Description:
+  1. Monthly/weekly calendar view with appointments, medications, and health activities
+  2. Color-coded categories (appointments, medications, exercise, symptoms)
+  3. Drag-and-drop rescheduling capabilities
+  4. Integration with personal calendar applications
+  5. Health milestone and goal tracking
+- Design Problems:
+  - HMW prevent calendar overload while showing comprehensive health information?
+  - HMW make medical appointments feel integrated with daily life?
+  - HMW accommodate patients with varying levels of digital literacy?
+- Design Opportunities:
+  - What if we could sync with wearable devices for automatic health activity logging?
+  - What if we provided calendar-based health pattern insights?
+  - What if we offered family calendar sharing for coordinated care?
+
+**Pu.4 Quick Appointment Actions Modal [type: modal]**
+- HOW IT IS REACHED: Click on appointment in Health Calendar
+- NAVBAR PRESENCE: No
+- Page Goal: Provide immediate appointment management options from calendar view
+- Screen Description:
+  1. Appointment summary with doctor and location details
+  2. Quick action buttons (reschedule, cancel, add to personal calendar)
+  3. Preparation checklist and required documents
+  4. Travel time and directions
+  5. Related health activities and medication timing
+- Design Problems:
+  - HMW provide comprehensive appointment context without leaving calendar view?
+  - HMW help patients coordinate appointment timing with other health activities?
+  - HMW ensure patients don't miss important preparation steps?
+- Design Opportunities:
+  - What if we could automatically calculate optimal appointment spacing?
+  - What if we provided location-based traffic and parking information?
+  - What if we offered appointment outcome prediction based on preparation completeness?
 
 ---
 
-## Scenario 3: Parent Reviewing Youth Spending Activity and Patterns
+## Scenario 3: Emergency Care Access and Triage
 
-**Context:** Jennifer, a single mother, receives a notification that her 17-year-old son has made several large purchases this week. She wants to review his spending activity to understand if this is concerning behavior or normal teenage spending.
+**Context**: Emma, a 35-year-old mother, notices her 8-year-old child has developed a high fever and rash. She's concerned about the severity and needs immediate guidance on whether to seek emergency care or schedule an urgent consultation.
 
-**User Goal:** Analyze spending patterns to make informed decisions about financial guidance and account management.
+### Workflow Variation 3A: Emergency Triage Assessment
 
-**Business Goal:** Provide insights that help parents feel confident in their oversight while encouraging continued use of youth banking services.
+**User Goal**: Help Emma quickly assess the urgency of her child's condition and connect her with appropriate immediate care options.
 
-### Workflow Variation A: Quick Activity Review
+**Business Goal**: Provide reliable emergency triage to build trust while directing patients to appropriate care levels, reducing unnecessary ER visits.
 
-**Screens:**
+#### Screen Flow:
 
-**3.0 Activity Monitor [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item "Activity Monitor"
+**6.0 Emergency Care Hub [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item or emergency banner on any screen
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive spending activity overview with filtering and analysis tools
+- Page Goal: Provide immediate access to emergency assessment and care options
 - Screen Description:
-  1. Transaction timeline with visual spending patterns
-  2. Filter controls (date range, amount, category, merchant)
-  3. Spending velocity indicators (unusual activity alerts)
-  4. Category breakdown with percentage changes
-  5. Comparison to previous periods
-  6. Export options for detailed analysis
+  1. Emergency triage questionnaire with severity indicators
+  2. Direct access to emergency hotlines and 911
+  3. Urgent care clinic locator with wait times
+  4. Virtual emergency consultation availability
+  5. Emergency contact information and medical history quick access
 - Design Problems:
-  - HMW help parents distinguish between normal and concerning spending patterns?
-  - HMW present transaction data without feeling like surveillance?
+  - HMW help parents make critical decisions under stress?
+  - HMW ensure medical accuracy while providing immediate guidance?
+  - HMW balance urgency with thorough assessment?
 - Design Opportunities:
-  - What if we could highlight transactions that deviate from normal patterns?
-  - What if parents could set up custom alerts for specific spending behaviors?
+  - What if we could provide real-time ER wait times and severity matching?
+  - What if we offered immediate video triage with emergency nurses?
+  - What if we could connect directly with pediatric specialists for child emergencies?
 
-**3.0-D Individual Transaction Analysis [type: detail]**
-- HOW IT IS REACHED: Clicking on any transaction in the activity timeline
+**Pu.5 Emergency Triage Assessment Modal [type: modal]**
+- HOW IT IS REACHED: Click "Start Emergency Assessment" CTA button on Emergency Care Hub
 - NAVBAR PRESENCE: No
-- Page Goal: Provide complete context for individual transactions
+- Page Goal: Rapidly assess symptom severity and provide immediate care recommendations
 - Screen Description:
-  1. Full transaction details with location and time context
-  2. Spending pattern analysis for this merchant/category
-  3. Balance impact and remaining funds visualization
-  4. Option to discuss transaction with youth
-  5. Similar transaction history
+  1. Rapid symptom assessment with visual severity scales
+  2. Age-specific questions for pediatric cases
+  3. Immediate red flag symptom detection
+  4. Real-time severity scoring with care recommendations
+  5. Direct connection to emergency services if needed
 - Design Problems:
-  - HMW provide detailed oversight without damaging parent-child trust?
+  - HMW ensure parents can accurately describe symptoms under stress?
+  - HMW provide clear guidance without replacing professional medical judgment?
+  - HMW handle liability concerns while providing helpful triage?
 - Design Opportunities:
-  - What if transactions could include photos or notes from the youth?
+  - What if we could use photo analysis for visible symptoms like rashes?
+  - What if we provided immediate connection to poison control for ingestion cases?
+  - What if we offered real-time vital sign monitoring guidance?
 
-### Workflow Variation B: Pattern Analysis and Insights
-
-**Screens:**
-
-**3.0 Activity Monitor [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item "Activity Monitor"
+**7.0 Emergency Care Recommendations [type: primary]**
+- HOW IT IS REACHED: Complete emergency triage assessment
 - NAVBAR PRESENCE: Yes
-- Page Goal: Focus on spending insights and pattern recognition
+- Page Goal: Provide clear, actionable care recommendations based on assessment
 - Screen Description:
-  1. AI-powered spending insights and recommendations
-  2. Behavioral pattern identification (impulse buying, saving streaks)
-  3. Peer comparison data (anonymized)
-  4. Financial milestone tracking
-  5. Predictive spending forecasts
-  6. Educational content recommendations based on spending patterns
+  1. Urgency level with clear next steps
+  2. Recommended care setting (ER, urgent care, telehealth)
+  3. Nearest appropriate facilities with directions and contact info
+  4. Symptom monitoring guidance while seeking care
+  5. Follow-up care recommendations
 - Design Problems:
-  - HMW provide meaningful insights without being judgmental about spending choices?
+  - HMW communicate urgency levels without causing panic or complacency?
+  - HMW help parents choose between multiple care options?
+  - HMW ensure continuity between emergency care and regular healthcare?
 - Design Opportunities:
-  - What if the system could suggest conversation starters for financial discussions?
+  - What if we could provide real-time updates on facility capacity?
+  - What if we offered direct admission coordination for serious cases?
+  - What if we provided family notification systems for emergency situations?
 
-**Pu.3 Spending Alert Configuration [type: modal]**
-- HOW IT IS REACHED: Clicking "Set Up Alerts" CTA button
+### Workflow Variation 3B: Immediate Virtual Consultation
+
+**User Goal**: Connect Emma with a healthcare provider immediately for real-time assessment and guidance.
+
+**Business Goal**: Provide immediate care access to reduce anxiety and ensure appropriate care level selection.
+
+#### Screen Flow:
+
+**6.0 Emergency Care Hub [type: primary]**
+- Same as Variation 3A
+
+**Pu.6 Immediate Consultation Request Modal [type: modal]**
+- HOW IT IS REACHED: Click "Connect Now" CTA button on Emergency Care Hub
 - NAVBAR PRESENCE: No
-- Page Goal: Allow parents to configure custom monitoring alerts
+- Page Goal: Facilitate immediate connection with available healthcare providers
 - Screen Description:
-  1. Alert threshold settings (amount, frequency, category)
-  2. Notification method preferences
-  3. Alert severity levels
-  4. Temporary alert suspension options
+  1. Brief symptom summary form
+  2. Available provider queue with estimated wait times
+  3. Insurance verification and emergency consultation fees
+  4. Technical setup check for video consultation
+  5. Emergency contact information collection
 - Design Problems:
-  - HMW help parents set appropriate alert thresholds that aren't too sensitive?
+  - HMW minimize wait time while ensuring quality provider matching?
+  - HMW handle technical issues during emergency consultations?
+  - HMW manage expectations for virtual vs. in-person emergency assessment?
 - Design Opportunities:
-  - What if alerts could include suggested responses or conversation guides?
+  - What if we could prioritize based on symptom severity automatically?
+  - What if we provided backup communication methods if video fails?
+  - What if we offered immediate nurse triage while waiting for doctor availability?
 
-**NAVIGATION STRUCTURE:** 3.0 Activity Monitor
-
-**USER JOURNEY FLOW:**
-- Variation A: 3.0 Activity Monitor → [click transaction] → 3.0-D Individual Transaction Analysis → [back] → 3.0 Activity Monitor
-- Variation B: 3.0 Activity Monitor → [click Set Up Alerts] → Pu.3 Spending Alert Configuration → [save] → 3.0 Activity Monitor (updated)
+**8.0 Virtual Emergency Consultation [type: primary]**
+- HOW IT IS REACHED: Provider accepts consultation request
+- NAVBAR PRESENCE: Yes
+- Page Goal: Conduct effective virtual emergency assessment and provide care guidance
+- Screen Description:
+  1. Video consultation interface with recording capabilities
+  2. Symptom documentation and photo sharing tools
+  3. Real-time prescription and referral generation
+  4. Care plan creation with follow-up scheduling
+  5. Emergency contact activation if needed
+- Design Problems:
+  - HMW ensure thorough assessment through virtual consultation?
+  - HMW document emergency consultations for continuity of care?
+  - HMW handle cases that require immediate in-person evaluation?
+- Design Opportunities:
+  - What if we could integrate with wearable devices for vital sign monitoring?
+  - What if we provided AI-assisted symptom analysis to support provider assessment?
+  - What if we offered immediate prescription delivery for urgent medications?
 
 ---
 
-## Scenario 4: Parent Handling Insufficient Funds and Transfer Errors
+## Navigation Structure (Sidebar/Navbar - Primary Screens Only):
 
-**Context:** David attempts to transfer $500 to his daughter's youth account for a school trip, but his checking account only has $300 available. He needs to understand the error and find alternative funding solutions quickly.
-
-**User Goal:** Resolve funding issues efficiently while understanding available options and maintaining the planned transfer timeline.
-
-**Business Goal:** Reduce transfer abandonment rates and guide users toward successful completion of funding transactions.
-
-### Workflow Variation A: Error Resolution with Alternative Sources
-
-**Screens:**
-
-**Er.1 Insufficient Funds Error State [type: state]**
-- HOW IT IS REACHED: Automatic display when transfer amount exceeds available balance
-- NAVBAR PRESENCE: No
-- Page Goal: Clearly communicate the error and provide immediate resolution options
-- Screen Description:
-  1. Clear error message explaining insufficient funds
-  2. Available balance display for selected source account
-  3. Alternative funding source suggestions
-  4. Option to modify transfer amount
-  5. Link to account funding options
-  6. Save transfer for later option
-- Design Problems:
-  - HMW communicate funding errors without causing embarrassment or frustration?
-  - HMW guide users toward successful resolution quickly?
-- Design Opportunities:
-  - What if we could suggest optimal transfer amounts based on available funds?
-  - What if users could set up automatic funding from other accounts?
-
-**Pu.4 Alternative Funding Sources Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "View Other Funding Options" from error state
-- NAVBAR PRESENCE: No
-- Page Goal: Present all available funding alternatives in one interface
-- Screen Description:
-  1. List of all eligible parent accounts with balances
-  2. External funding options (linked accounts, credit lines)
-  3. Partial transfer options with scheduling for remainder
-  4. Account funding shortcuts (external transfers)
-- Design Problems:
-  - HMW help parents choose the best funding source for their situation?
-- Design Opportunities:
-  - What if we could recommend the most cost-effective funding option?
-
-### Workflow Variation B: Scheduled Transfer Resolution
-
-**Screens:**
-
-**Er.1 Insufficient Funds Error State [type: state]**
-- HOW IT IS REACHED: Automatic display when transfer amount exceeds available balance
-- NAVBAR PRESENCE: No
-- Page Goal: Focus on scheduling and planning solutions for funding shortfalls
-- Screen Description:
-  1. Error explanation with timeline impact assessment
-  2. Scheduled transfer options based on expected deposits
-  3. Partial immediate transfer with remainder scheduling
-  4. Notification setup for when funds become available
-  5. Youth account impact preview (if transfer is delayed)
-- Design Problems:
-  - HMW help parents maintain their intended financial support timeline despite temporary shortfalls?
-- Design Opportunities:
-  - What if we could predict when sufficient funds will be available based on deposit patterns?
-
-**Pu.5 Transfer Scheduling Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Schedule Transfer" from error state
-- NAVBAR PRESENCE: No
-- Page Goal: Enable parents to plan future transfers when funds become available
-- Screen Description:
-  1. Calendar interface for selecting transfer date
-  2. Automatic transfer setup when balance threshold is met
-  3. Notification preferences for scheduled transfers
-  4. Option to modify or cancel scheduled transfers
-- Design Problems:
-  - HMW ensure scheduled transfers don't create future insufficient fund situations?
-- Design Opportunities:
-  - What if scheduled transfers could automatically adjust based on available funds?
-
-**NAVIGATION STRUCTURE:** N/A (Error states and modals only)
-
-**USER JOURNEY FLOW:**
-- Variation A: Er.1 Insufficient Funds Error State → [click View Other Funding Options] → Pu.4 Alternative Funding Sources Modal → [select source] → Return to transfer flow
-- Variation B: Er.1 Insufficient Funds Error State → [click Schedule Transfer] → Pu.5 Transfer Scheduling Modal → [schedule] → Confirmation of scheduled transfer
+1.0 Homepage | 2.0 Assessment Results & Doctor Recommendations | 3.0 Doctor Search & Discovery | 4.0 Patient Dashboard | 5.0 Health Calendar | 6.0 Emergency Care Hub | 7.0 Emergency Care Recommendations | 8.0 Virtual Emergency Consultation
 
 ---
 
-## Scenario 5: Parent Managing Multiple Youth Accounts
+## User Journey Flows:
 
-**Context:** Lisa has three children (ages 13, 15, and 17) with different financial needs and maturity levels. She needs to manage all three accounts efficiently while applying age-appropriate controls and funding strategies.
+### Scenario 1A Flow:
+1.0 Homepage → [click Start Symptom Assessment] → Pu.1 Symptom Assessment Modal → [complete assessment] → 2.0 Assessment Results & Doctor Recommendations → [click doctor card] → 2.0-D Doctor Profile Detail → [click Book Appointment] → Pu.2 Appointment Booking Modal → [submit] → 4.0 Patient Dashboard (confirmation state)
 
-**User Goal:** Efficiently manage multiple youth accounts with different requirements while maintaining individual attention to each child's financial development.
+### Scenario 1B Flow:
+1.0 Homepage → [click Find a Doctor] → 3.0 Doctor Search & Discovery → [click doctor card] → 3.0-D Doctor Profile Detail → [click Book Appointment] → Pu.2 Appointment Booking Modal → [submit] → 4.0 Patient Dashboard (confirmation state)
 
-**Business Goal:** Increase account retention and cross-selling opportunities by demonstrating value in managing multiple youth accounts.
+### Scenario 2A Flow:
+4.0 Patient Dashboard → [scroll to appointments] → 4.1 Appointment Management Section → [click Reschedule] → Pu.3 Reschedule Appointment Modal → [submit] → 4.0 Patient Dashboard (updated state)
 
-### Workflow Variation A: Unified Multi-Account Dashboard
+### Scenario 2B Flow:
+5.0 Health Calendar → [click appointment] → Pu.4 Quick Appointment Actions Modal → [click reschedule] → Pu.3 Reschedule Appointment Modal → [submit] → 5.0 Health Calendar (updated state)
 
-**Screens:**
+### Scenario 3A Flow:
+6.0 Emergency Care Hub → [click Start Emergency Assessment] → Pu.5 Emergency Triage Assessment Modal → [complete assessment] → 7.0 Emergency Care Recommendations → [select care option] → External care facility or return to dashboard
 
-**4.0 Multi-Account Overview [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item "All Youth Accounts"
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive overview of all youth accounts with comparative analysis
-- Screen Description:
-  1. Side-by-side account comparison cards
-  2. Combined spending analytics across all accounts
-  3. Bulk action capabilities (mass transfers, limit updates)
-  4. Individual account quick actions
-  5. Family spending goals and progress
-  6. Age-appropriate milestone tracking for each child
-- Design Problems:
-  - HMW present multiple accounts without creating overwhelming complexity?
-  - HMW enable efficient management while maintaining individual account focus?
-- Design Opportunities:
-  - What if we could show spending patterns that indicate sibling influence?
-  - What if parents could set up automatic rebalancing between accounts?
-
-**4.0-D Individual Account Deep Dive [type: detail]**
-- HOW IT IS REACHED: Clicking on any account card in the multi-account overview
-- NAVBAR PRESENCE: No
-- Page Goal: Provide focused management for individual youth account within multi-account context
-- Screen Description:
-  1. Individual account dashboard with full functionality
-  2. Sibling comparison context (when appropriate)
-  3. Age-specific recommendations and insights
-  4. Quick navigation to other sibling accounts
-  5. Account-specific goals and milestones
-- Design Problems:
-  - HMW maintain individual focus while leveraging multi-account insights?
-- Design Opportunities:
-  - What if we could suggest learning opportunities based on sibling successes?
-
-### Workflow Variation B: Account-by-Account Management
-
-**Screens:**
-
-**4.0 Multi-Account Overview [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item "All Youth Accounts"
-- NAVBAR PRESENCE: Yes
-- Page Goal: Facilitate sequential management of individual accounts with easy navigation
-- Screen Description:
-  1. Account selection interface with status indicators
-  2. Recent activity summary for each account
-  3. Priority alerts and action items per account
-  4. Quick account switching navigation
-  5. Bulk operations for common tasks
-- Design Problems:
-  - HMW help parents prioritize attention across multiple accounts?
-- Design Opportunities:
-  - What if we could suggest which accounts need attention most urgently?
-
-**Pu.6 Bulk Operations Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Bulk Actions" CTA button
-- NAVBAR PRESENCE: No
-- Page Goal: Enable efficient management of common tasks across multiple accounts
-- Screen Description:
-  1. Multi-account fund distribution interface
-  2. Bulk limit updates with individual overrides
-  3. Mass notification settings
-  4. Coordinated goal setting across accounts
-- Design Problems:
-  - HMW enable bulk operations while respecting individual account differences?
-- Design Opportunities:
-  - What if bulk operations could automatically adjust for age-appropriate differences?
-
-**NAVIGATION STRUCTURE:** 4.0 Multi-Account Overview
-
-**USER JOURNEY FLOW:**
-- Variation A: 4.0 Multi-Account Overview → [click account card] → 4.0-D Individual Account Deep Dive → [back] → 4.0 Multi-Account Overview
-- Variation B: 4.0 Multi-Account Overview → [click Bulk Actions] → Pu.6 Bulk Operations Modal → [execute] → 4.0 Multi-Account Overview (updated)
+### Scenario 3B Flow:
+6.0 Emergency Care Hub → [click Connect Now] → Pu.6 Immediate Consultation Request Modal → [submit] → 8.0 Virtual Emergency Consultation → [complete consultation] → 4.0 Patient Dashboard (with care plan)
 
 ---
 
-## Settings and Configuration
+## Settings Screen
 
-**5.0 Settings [type: settings]**
-- HOW IT IS REACHED: Clicking settings icon in navigation or user menu
+**9.0 Settings [type: settings]**
+- HOW IT IS REACHED: Click settings icon in navigation header
 - NAVBAR PRESENCE: No
-- Page Goal: Centralize all user preferences and system configuration options
+- Page Goal: Centralize all user preferences and accessibility options
 - Screen Description:
-  1. **Notification Preferences**
-     - Transaction alerts (amount thresholds, frequency)
-     - Limit breach notifications
-     - Account activity summaries
-     - Email vs. SMS vs. in-app preferences
-  2. **Display Options**
-     - Currency display format
-     - Date and time format preferences
-     - Dashboard layout customization
-     - Chart and graph preferences
-  3. **Security Settings**
-     - Two-factor authentication setup
-     - Login notification preferences
-     - Session timeout settings
-     - Trusted device management
-  4. **Accessibility Options**
-     - Screen reader compatibility toggle
-     - High contrast mode toggle
-     - Font size adjustment
-     - Motion reduction preferences
-  5. **Account Management**
-     - Profile information updates
-     - Linked account management
-     - Youth account permissions
-     - Data export and privacy controls
+  1. **Account Settings**: Profile information, password, security
+  2. **Notification Preferences**: Appointment reminders, health alerts, communication preferences
+  3. **Accessibility Options**: 
+     - Screen Reader Support (ON/OFF)
+     - High Contrast Mode (ON/OFF)
+     - Large Text Mode (ON/OFF)
+     - Motor Accessibility (Reduced Motion ON/OFF)
+     - Keyboard Navigation (Enhanced Focus ON/OFF)
+  4. **Privacy Settings**: Data sharing, family access, insurance information
+  5. **Display Preferences**: Theme selection, language, timezone
+  6. **Health Data Settings**: Wearable device integration, data export options
 - Design Problems:
-  - HMW organize diverse settings without creating a overwhelming interface?
-  - HMW ensure critical accessibility settings are discoverable?
+  - HMW organize extensive settings without overwhelming users?
+  - HMW make accessibility options discoverable for users who need them?
+  - HMW ensure privacy settings are clear and actionable?
 - Design Opportunities:
-  - What if settings could be automatically optimized based on usage patterns?
-  - What if we could provide guided setup for new users?
+  - What if we could auto-detect accessibility needs and suggest relevant settings?
+  - What if we provided settings recommendations based on user behavior?
+  - What if we offered family member settings management for caregivers?
+
+---
+
+## Error and Empty States
+
+**Er.1 No Internet Connection [type: state]**
+- Condition of any screen when network connectivity is lost
+- Shows offline capabilities and cached information
+- Provides clear reconnection guidance
+
+**Er.2 No Search Results [type: state]**
+- Condition of 3.0 Doctor Search & Discovery when no doctors match criteria
+- Suggests alternative search terms or expanded criteria
+- Offers to save search for future notifications
+
+**Er.3 No Appointments Scheduled [type: state]**
+- Condition of 4.0 Patient Dashboard when user has no upcoming appointments
+- Encourages preventive care scheduling
+- Provides quick access to doctor search and symptom assessment
+
+**Er.4 Emergency Services Unavailable [type: state]**
+- Condition of 6.0 Emergency Care Hub when virtual emergency services are at capacity
+- Provides alternative emergency resources and hotlines
+- Offers to queue user for next available provider
 
 ---
 
@@ -504,65 +475,71 @@ Parents and guardians need to manage their children's financial education throug
 
 **Keyboard Navigation:**
 - All primary screens support full keyboard navigation with logical tab order
-- Tab order follows visual hierarchy: header navigation → main content → sidebar → footer
-- Skip links provided for main content and navigation sections
+- Tab order: Header navigation → Main content → Action buttons → Footer
+- Skip links provided to main content on all screens
 - Modal dialogs trap focus and return to trigger element on close
 
 **ARIA Labels and Landmarks:**
-- Main navigation marked with role="navigation" and aria-label="Main navigation"
-- Content areas use appropriate landmark roles (main, aside, complementary)
-- Form controls have associated labels and error messages
-- Dynamic content updates announced via aria-live regions
-- Data tables include proper headers and scope attributes
+- Header: `role="banner"` with site navigation `role="navigation"`
+- Main content: `role="main"` with descriptive headings structure
+- Sidebar: `role="complementary"` for secondary navigation
+- Forms: Proper labeling with `aria-describedby` for help text and errors
+- Status updates: `aria-live="polite"` for appointment confirmations, `aria-live="assertive"` for emergency alerts
 
 **Screen Reader Announcements:**
-- Balance updates announced when funds are transferred
-- Error states announced immediately when validation fails
-- Success confirmations announced after completed actions
-- Loading states communicated during data fetching
-- Navigation changes announced when moving between screens
+- Page changes announced with new page title and primary heading
+- Form validation errors announced immediately
+- Loading states announced with progress indicators
+- Emergency triage results announced with urgency level
+- Appointment booking confirmations announced with key details
 
 **High Contrast Mode:**
-- Toggled via Settings screen under Accessibility Options
-- Applies as CSS class site-wide affecting all screens
-- Maintains minimum 4.5:1 contrast ratio for normal text
-- Maintains minimum 3:1 contrast ratio for large text and UI elements
+- Toggled via Settings screen (9.0 Settings → Accessibility Options)
+- Applies as CSS class `high-contrast` site-wide
+- Ensures 7:1 contrast ratio for all text and interactive elements
+- Maintains color coding for medical urgency with pattern alternatives
 
 **Focus Indicators:**
-- Visible focus indicators on all interactive elements
-- Focus indicators use 2px solid border with high contrast color
-- Focus indicators never rely solely on color changes
-- Custom focus styles for complex components like data tables
+- Visible focus rings on all interactive elements (3px solid outline)
+- Enhanced focus mode available in settings for motor accessibility
+- Focus indicators respect user's system preferences for reduced motion
 
 **Minimum Touch Targets:**
-- All interactive elements minimum 44px touch target
-- Adequate spacing between adjacent interactive elements
-- Applies to buttons, links, form controls, and custom interactive components
+- 44px minimum for all interactive elements across all screens
+- Increased spacing in mobile layouts for easier touch interaction
+- Swipe gestures available for calendar navigation and appointment management
 
 ---
 
 ## VIEWPORT BEHAVIOUR
 
 **Desktop (1024px+):**
-- Full sidebar navigation with expanded menu items
-- Multi-column layouts for dashboard cards and data tables
-- Hover states and tooltips for enhanced interaction
-- Side-by-side modal layouts for complex forms
+- Full sidebar navigation with expanded labels
+- Multi-column layouts for dashboard and search results
+- Hover states for enhanced interactivity
+- Picture-in-picture video consultations with full feature set
 
 **Tablet (768px–1023px):**
-- Collapsible sidebar navigation with icon + text labels
-- Responsive grid layouts that stack at narrower widths
-- Touch-optimized interaction targets and spacing
-- Modal dialogs adapt to available screen space
+- Collapsible sidebar navigation with icon + label
+- Two-column layouts adapt to single column for complex forms
+- Touch-optimized interaction patterns
+- Full-screen video consultations with floating controls
 
 **Mobile (320px–767px):**
-- Bottom navigation bar replaces sidebar
-- Single-column layouts with vertical card stacking
+- Bottom tab navigation replaces sidebar
+- Single-column layouts throughout
+- Swipe gestures for navigation and management tasks
+- Native mobile patterns for date/time selection
 - Full-screen modal presentations
-- Swipe gestures for navigation between related screens
-- Condensed data tables with horizontal scrolling or accordion patterns
-- Priority-based content showing most important information first
+- Optimized emergency access with prominent emergency button
+
+**Responsive Breakpoint Considerations:**
+- Emergency care access prioritized on mobile with persistent emergency button
+- Appointment cards stack vertically on mobile with swipe actions
+- Search filters collapse into expandable sections on smaller screens
+- Calendar view adapts from monthly to weekly to daily on progressively smaller screens
+- Video consultations optimize for portrait orientation on mobile devices
 
 ---
 
-*This workflow documentation serves as the foundation for wireframe generation and represents the complete user journey for youth account management functionality.*
+*This documentation serves as the foundation for wireframe generation and development implementation, ensuring consistent user experience across all touchpoints while maintaining accessibility and scalability standards.*
