@@ -36,6 +36,10 @@ public class ErrorResponse {
         return code;
     }
 
+    public String getErrorCode() {
+        return code;
+    }
+
     public void setCode(String code) {
         this.code = code;
     }
