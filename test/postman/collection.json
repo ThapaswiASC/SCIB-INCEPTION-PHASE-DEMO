@@ -1,0 +1,233 @@
+{
+  "info": {
+    "name": "Task Management System API",
+    "description": "Comprehensive API test collection for Task Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Task - Valid Request",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response has required fields', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('title');",
+              "    pm.expect(jsonData).to.have.property('description');",
+              "    pm.expect(jsonData).to.have.property('status');",
+              "    pm.expect(jsonData).to.have.property('createdAt');",
+              "});",
+              "",
+              "pm.test('Status is PENDING', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.eql('PENDING');",
+              "});",
+              "",
+              "if (pm.response.code === 201) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set('task_id', jsonData.id);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Complete project documentation\",\n  \"description\": \"Write comprehensive documentation for the task management system\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tasks",
+          "host": ["{{base_url}}"],
+          "path": ["tasks"]
+        }
+      }
+    },
+    {
+      "name": "Get Task - Valid ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response contains task details', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('id');",
+              "    pm.expect(jsonData).to.have.property('title');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tasks/{{task_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["tasks", "{{task_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Update Task - Valid Request",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Status updated to IN_PROGRESS', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.eql('IN_PROGRESS');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Complete project documentation\",\n  \"description\": \"Write comprehensive documentation for the task management system\",\n  \"status\": \"IN_PROGRESS\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tasks/{{task_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["tasks", "{{task_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Delete Task - Valid ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 204', function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tasks/{{task_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["tasks", "{{task_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Create Task - Missing Title",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 400', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Error code is VALIDATION_ERROR', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.errorCode).to.eql('VALIDATION_ERROR');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"Valid description\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/tasks",
+          "host": ["{{base_url}}"],
+          "path": ["tasks"]
+        }
+      }
+    },
+    {
+      "name": "Get Task - Non-Existent ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 404', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Error code is NOT_FOUND', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.errorCode).to.eql('NOT_FOUND');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tasks/999",
+          "host": ["{{base_url}}"],
+          "path": ["tasks", "999"]
+        }
+      }
+    }
+  ]
+}
