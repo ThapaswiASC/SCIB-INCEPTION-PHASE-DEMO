@@ -20,4 +20,5 @@ public class TaskResponse {
     private String priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long version;
 }
