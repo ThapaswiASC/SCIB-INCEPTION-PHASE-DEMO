@@ -1,30 +1,26 @@
 package com.myproject.utils;
 
-import com.myproject.exceptions.InvalidInputException;
+import org.apache.commons.lang3.StringUtils;
+
+import java.nio.charset.StandardCharsets;
 
 public class ValidationUtils {
 
-    private ValidationUtils() {
-        // Utility class
-    }
-
-    public static void validateTitle(String title) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new InvalidInputException("Title cannot be empty or contain only whitespace");
+    public static boolean isValidUTF8(String input) {
+        if (input == null) {
+            return true;
         }
-        if (title.length() > 255) {
-            throw new InvalidInputException("Title cannot exceed 255 characters");
-        }
-    }
-
-    public static void validateDescription(String description) {
-        if (description != null && description.length() > 10000) {
-            throw new InvalidInputException("Description cannot exceed 10000 characters");
+        try {
+            byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
+            String decoded = new String(bytes, StandardCharsets.UTF_8);
+            return input.equals(decoded);
+        } catch (Exception e) {
+            return false;
         }
     }
 
-    public static boolean isNullOrEmpty(String value) {
-        return value == null || value.trim().isEmpty();
+    public static boolean isBlankOrWhitespace(String input) {
+        return input == null || StringUtils.isBlank(input) || input.trim().isEmpty();
     }
 
     public static String sanitizeInput(String input) {
