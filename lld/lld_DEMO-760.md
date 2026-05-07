@@ -2,7 +2,7 @@
 
 ## 1. Objective
 
-This document outlines the implementation of comprehensive error handling mechanisms for task creation operations in a SpringBoot application. The system will provide clear, user-friendly feedback when database connection failures, timeouts, or unexpected server errors occur during task creation. The implementation ensures user input preservation and proper error logging for system monitoring and debugging purposes.
+This document outlines the low-level design for implementing comprehensive system error handling during task creation in a SpringBoot application. The system will provide clear feedback to users when database connection failures, timeouts, or unexpected server errors occur during task creation operations. The implementation ensures user input preservation and proper error logging for investigation while maintaining a robust and user-friendly experience.
 
 ## 2. SpringBoot Backend Details
 
@@ -13,9 +13,9 @@ This document outlines the implementation of comprehensive error handling mechan
 | Operation | Method | URL | Request Body | Response Body |
 |-----------|--------|-----|--------------|---------------|
 | Create Task | POST | /api/tasks | TaskCreateRequest | TaskResponse / ErrorResponse |
-| Get Task | GET | /api/tasks/{id} | None | TaskResponse / ErrorResponse |
+| Get Task | GET | /api/tasks/{id} | - | TaskResponse / ErrorResponse |
 | Update Task | PUT | /api/tasks/{id} | TaskUpdateRequest | TaskResponse / ErrorResponse |
-| Delete Task | DELETE | /api/tasks/{id} | None | SuccessResponse / ErrorResponse |
+| Delete Task | DELETE | /api/tasks/{id} | - | SuccessResponse / ErrorResponse |
 
 #### Controller Classes
 
@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
             "SERVICE_UNAVAILABLE",
             "Service temporarily unavailable, please try again later",
-            System.currentTimeMillis()
+            ex.getPreservedInput()
         );
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
@@ -45,17 +45,18 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(
             "REQUEST_TIMEOUT",
             "Request timed out, please try again",
-            System.currentTimeMillis()
+            ex.getPreservedInput()
         );
         return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(error);
     }
     
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        logger.error("Unexpected error occurred", ex);
         ErrorResponse error = new ErrorResponse(
             "INTERNAL_SERVER_ERROR",
             "An unexpected error occurred, please try again",
-            System.currentTimeMillis()
+            null
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
@@ -75,30 +76,37 @@ public class TaskService {
     private TaskRepository taskRepository;
     
     @Autowired
-    private TaskValidator taskValidator;
+    private ErrorHandlingService errorHandlingService;
     
-    @Retryable(value = {TransientDataAccessException.class}, maxAttempts = 3)
     public TaskResponse createTask(TaskCreateRequest request) {
         try {
             // Validate input
-            taskValidator.validateCreateRequest(request);
+            validateTaskRequest(request);
             
             // Create task entity
-            Task task = new Task();
-            task.setTitle(request.getTitle());
-            task.setDescription(request.getDescription());
-            task.setStatus(TaskStatus.PENDING);
-            task.setCreatedAt(LocalDateTime.now());
+            Task task = mapToEntity(request);
             
-            // Save to database with timeout handling
-            Task savedTask = taskRepository.save(task);
+            // Save with timeout handling
+            Task savedTask = saveWithRetry(task, request);
             
-            return TaskResponse.from(savedTask);
+            return mapToResponse(savedTask);
             
         } catch (DataAccessException ex) {
-            throw new DatabaseConnectionException("Database operation failed", ex);
+            throw new DatabaseConnectionException("Database connection failed", request);
         } catch (QueryTimeoutException ex) {
-            throw new TimeoutException("Database operation timed out", ex);
+            throw new TimeoutException("Storage operation timed out", request);
+        } catch (Exception ex) {
+            errorHandlingService.logError(ex, request);
+            throw new SystemException("Unexpected error during task creation", ex);
+        }
+    }
+    
+    private Task saveWithRetry(Task task, TaskCreateRequest originalRequest) {
+        try {
+            return taskRepository.save(task);
+        } catch (Exception ex) {
+            // Preserve original input for error response
+            throw new DatabaseOperationException(ex.getMessage(), originalRequest, ex);
         }
     }
 }
@@ -106,8 +114,8 @@ public class TaskService {
 
 #### Service Layer Architecture
 - TaskService: Core business logic for task operations
-- TaskValidator: Input validation and business rule enforcement
-- ErrorLoggingService: Centralized error logging and monitoring
+- ErrorHandlingService: Centralized error logging and handling
+- ValidationService: Input validation and business rule enforcement
 
 #### Dependency Injection Configuration
 
@@ -116,13 +124,13 @@ public class TaskService {
 public class ServiceConfiguration {
     
     @Bean
-    public TaskValidator taskValidator() {
-        return new TaskValidator();
+    public ErrorHandlingService errorHandlingService() {
+        return new ErrorHandlingService();
     }
     
     @Bean
-    public ErrorLoggingService errorLoggingService() {
-        return new ErrorLoggingService();
+    public ValidationService validationService() {
+        return new ValidationService();
     }
 }
 ```
@@ -131,9 +139,10 @@ public class ServiceConfiguration {
 
 | Field Name | Validation | Error Message | Annotation |
 |------------|------------|---------------|------------|
-| title | Not null, length 1-200 | Title is required and must be between 1-200 characters | @NotBlank @Size(min=1, max=200) |
-| description | Not null, length 1-1000 | Description is required and must be between 1-1000 characters | @NotBlank @Size(min=1, max=1000) |
-| status | Valid enum value | Invalid task status | @NotNull |
+| title | NotBlank, Size(1-100) | Title is required and must be between 1-100 characters | @NotBlank @Size(min=1, max=100) |
+| description | Size(max=500) | Description must not exceed 500 characters | @Size(max=500) |
+| priority | NotNull, Valid Enum | Priority must be specified (LOW, MEDIUM, HIGH) | @NotNull @ValidEnum |
+| dueDate | Future | Due date must be in the future | @Future |
 
 ### 2.3 Repository / Data Access Layer
 
@@ -141,33 +150,8 @@ public class ServiceConfiguration {
 
 | Entity | Fields | Constraints |
 |--------|--------|-------------|
-| Task | id (Long), title (String), description (String), status (TaskStatus), createdAt (LocalDateTime), updatedAt (LocalDateTime) | id: Primary Key, Auto-generated; title: Not null, max 200 chars; description: Not null, max 1000 chars |
-
-```java
-@Entity
-@Table(name = "tasks")
-public class Task {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false, length = 200)
-    private String title;
-    
-    @Column(nullable = false, length = 1000)
-    private String description;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private TaskStatus status;
-    
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-    
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-}
-```
+| Task | id (Long), title (String), description (String), priority (Priority), status (TaskStatus), createdAt (LocalDateTime), updatedAt (LocalDateTime), dueDate (LocalDateTime) | id: @Id @GeneratedValue, title: @NotBlank @Size(max=100), priority: @Enumerated |
+| ErrorLog | id (Long), errorType (String), errorMessage (String), stackTrace (String), userInput (String), timestamp (LocalDateTime) | id: @Id @GeneratedValue, errorType: @NotBlank |
 
 #### Repository Interfaces
 
@@ -178,15 +162,27 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT t FROM Task t WHERE t.status = :status")
     List<Task> findByStatus(@Param("status") TaskStatus status);
     
-    @Modifying
-    @Query("UPDATE Task t SET t.status = :status, t.updatedAt = :updatedAt WHERE t.id = :id")
-    int updateTaskStatus(@Param("id") Long id, @Param("status") TaskStatus status, @Param("updatedAt") LocalDateTime updatedAt);
+    @Query("SELECT t FROM Task t WHERE t.createdAt BETWEEN :startDate AND :endDate")
+    List<Task> findTasksCreatedBetween(@Param("startDate") LocalDateTime startDate, 
+                                      @Param("endDate") LocalDateTime endDate);
+}
+
+@Repository
+public interface ErrorLogRepository extends JpaRepository<ErrorLog, Long> {
+    
+    @Query("SELECT e FROM ErrorLog e WHERE e.errorType = :errorType AND e.timestamp >= :since")
+    List<ErrorLog> findRecentErrorsByType(@Param("errorType") String errorType, 
+                                         @Param("since") LocalDateTime since);
 }
 ```
 
 #### Custom Queries
-- findByStatus: Retrieve tasks by status
-- updateTaskStatus: Update task status with timestamp
+
+```java
+@Query(value = "SELECT * FROM tasks WHERE status = ?1 AND created_at > ?2 ORDER BY created_at DESC", 
+       nativeQuery = true)
+List<Task> findRecentTasksByStatus(String status, LocalDateTime since);
+```
 
 ### 2.4 Configuration
 
@@ -215,22 +211,51 @@ spring.jpa.properties.hibernate.jdbc.time_zone=UTC
 # Transaction Timeout
 spring.transaction.default-timeout=30
 
-# Retry Configuration
-spring.retry.max-attempts=3
-spring.retry.backoff.delay=1000
-
 # Logging Configuration
-logging.level.com.example.task=INFO
-logging.level.org.springframework.retry=DEBUG
+logging.level.com.taskapp.service=INFO
+logging.level.com.taskapp.exception=ERROR
+logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
+
+# Error Handling Configuration
+app.error.retry.max-attempts=3
+app.error.retry.delay=1000
+app.error.preserve-input=true
 ```
 
 #### Spring Configuration Classes
 
 ```java
 @Configuration
-@EnableRetry
 @EnableTransactionManagement
-public class ApplicationConfiguration {
+public class DatabaseConfiguration {
+    
+    @Bean
+    @Primary
+    public DataSource dataSource() {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(environment.getProperty("spring.datasource.url"));
+        config.setUsername(environment.getProperty("spring.datasource.username"));
+        config.setPassword(environment.getProperty("spring.datasource.password"));
+        config.setMaximumPoolSize(20);
+        config.setConnectionTimeout(30000);
+        return new HikariDataSource(config);
+    }
+    
+    @Bean
+    public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(emf);
+        transactionManager.setDefaultTimeout(30);
+        return transactionManager;
+    }
+}
+```
+
+#### Bean Definitions
+
+```java
+@Configuration
+public class ErrorHandlingConfiguration {
     
     @Bean
     public RetryTemplate retryTemplate() {
@@ -253,39 +278,105 @@ public class ApplicationConfiguration {
 
 #### Authentication Mechanism
 - JWT-based authentication for API access
-- Role-based authorization for task operations
+- Role-based access control (RBAC)
+- Session management for error context preservation
 
 #### Authorization Rules
 - USER role: Can create, read, update own tasks
 - ADMIN role: Can perform all operations on all tasks
+- Error logs accessible only to ADMIN role
 
 #### JWT / Token Handling
+
 ```java
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    // JWT validation and authentication logic
+    
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                  HttpServletResponse response, 
+                                  FilterChain filterChain) throws ServletException, IOException {
+        try {
+            String token = extractToken(request);
+            if (token != null && jwtUtil.validateToken(token)) {
+                Authentication auth = jwtUtil.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+        } catch (Exception ex) {
+            logger.error("Authentication error", ex);
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            return;
+        }
+        
+        filterChain.doFilter(request, response);
+    }
 }
 ```
 
 ### 2.6 Error Handling
 
 #### Global Exception Handler
-- Centralized exception handling using @RestControllerAdvice
-- Consistent error response format across all endpoints
-- Proper HTTP status code mapping
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    
+    @ExceptionHandler(DatabaseConnectionException.class)
+    public ResponseEntity<ErrorResponse> handleDatabaseException(DatabaseConnectionException ex, 
+                                                               HttpServletRequest request) {
+        logError(ex, request);
+        ErrorResponse error = ErrorResponse.builder()
+            .code("SERVICE_UNAVAILABLE")
+            .message("Service temporarily unavailable, please try again later")
+            .preservedInput(ex.getPreservedInput())
+            .timestamp(LocalDateTime.now())
+            .build();
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+    
+    @ExceptionHandler(TimeoutException.class)
+    public ResponseEntity<ErrorResponse> handleTimeoutException(TimeoutException ex, 
+                                                              HttpServletRequest request) {
+        logError(ex, request);
+        ErrorResponse error = ErrorResponse.builder()
+            .code("REQUEST_TIMEOUT")
+            .message("Request timed out, please try again")
+            .preservedInput(ex.getPreservedInput())
+            .timestamp(LocalDateTime.now())
+            .build();
+        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(error);
+    }
+}
+```
 
 #### Custom Exceptions
 
 ```java
 public class DatabaseConnectionException extends RuntimeException {
-    public DatabaseConnectionException(String message, Throwable cause) {
-        super(message, cause);
+    private final Object preservedInput;
+    
+    public DatabaseConnectionException(String message, Object preservedInput) {
+        super(message);
+        this.preservedInput = preservedInput;
+    }
+    
+    public Object getPreservedInput() {
+        return preservedInput;
     }
 }
 
 public class TimeoutException extends RuntimeException {
-    public TimeoutException(String message, Throwable cause) {
-        super(message, cause);
+    private final Object preservedInput;
+    
+    public TimeoutException(String message, Object preservedInput) {
+        super(message);
+        this.preservedInput = preservedInput;
+    }
+    
+    public Object getPreservedInput() {
+        return preservedInput;
     }
 }
 ```
@@ -297,6 +388,9 @@ public class TimeoutException extends RuntimeException {
 | DatabaseConnectionException | 503 Service Unavailable | SERVICE_UNAVAILABLE |
 | TimeoutException | 408 Request Timeout | REQUEST_TIMEOUT |
 | ValidationException | 400 Bad Request | VALIDATION_ERROR |
+| UnauthorizedException | 401 Unauthorized | UNAUTHORIZED |
+| ForbiddenException | 403 Forbidden | FORBIDDEN |
+| NotFoundException | 404 Not Found | NOT_FOUND |
 | Generic Exception | 500 Internal Server Error | INTERNAL_SERVER_ERROR |
 
 ## 3. Database Design
@@ -309,74 +403,84 @@ erDiagram
         BIGINT id PK
         VARCHAR title
         TEXT description
+        VARCHAR priority
         VARCHAR status
         TIMESTAMP created_at
         TIMESTAMP updated_at
+        TIMESTAMP due_date
+        BIGINT user_id FK
     }
+    
+    ERROR_LOG {
+        BIGINT id PK
+        VARCHAR error_type
+        TEXT error_message
+        TEXT stack_trace
+        TEXT user_input
+        TIMESTAMP timestamp
+        BIGINT user_id FK
+    }
+    
+    USER {
+        BIGINT id PK
+        VARCHAR username
+        VARCHAR email
+        VARCHAR role
+        TIMESTAMP created_at
+    }
+    
+    TASK ||--o{ ERROR_LOG : "may have errors"
+    USER ||--o{ TASK : "creates"
+    USER ||--o{ ERROR_LOG : "generates"
 ```
 
 ### Table Schema
 
 | Table | Columns | Data Types | Constraints |
 |-------|---------|------------|-------------|
-| tasks | id | BIGINT | PRIMARY KEY, AUTO_INCREMENT |
-| tasks | title | VARCHAR(200) | NOT NULL |
-| tasks | description | TEXT | NOT NULL |
-| tasks | status | VARCHAR(20) | NOT NULL, CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')) |
-| tasks | created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP |
-| tasks | updated_at | TIMESTAMP | NULL |
+| tasks | id, title, description, priority, status, created_at, updated_at, due_date, user_id | BIGINT, VARCHAR(100), TEXT, VARCHAR(20), VARCHAR(20), TIMESTAMP, TIMESTAMP, TIMESTAMP, BIGINT | PK(id), NOT NULL(title, priority, status), FK(user_id) |
+| error_logs | id, error_type, error_message, stack_trace, user_input, timestamp, user_id | BIGINT, VARCHAR(50), TEXT, TEXT, TEXT, TIMESTAMP, BIGINT | PK(id), NOT NULL(error_type, timestamp), FK(user_id) |
+| users | id, username, email, role, created_at | BIGINT, VARCHAR(50), VARCHAR(100), VARCHAR(20), TIMESTAMP | PK(id), UNIQUE(username, email), NOT NULL(username, email, role) |
 
 ### Database Validations
 
 ```sql
-CREATE TABLE tasks (
-    id BIGSERIAL PRIMARY KEY,
-    title VARCHAR(200) NOT NULL,
-    description TEXT NOT NULL,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP
-);
+-- Task table constraints
+ALTER TABLE tasks ADD CONSTRAINT chk_priority CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH'));
+ALTER TABLE tasks ADD CONSTRAINT chk_status CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'));
+ALTER TABLE tasks ADD CONSTRAINT chk_title_length CHECK (LENGTH(title) >= 1 AND LENGTH(title) <= 100);
+ALTER TABLE tasks ADD CONSTRAINT chk_due_date CHECK (due_date > created_at);
 
-CREATE INDEX idx_tasks_status ON tasks(status);
-CREATE INDEX idx_tasks_created_at ON tasks(created_at);
+-- Error log table constraints
+ALTER TABLE error_logs ADD CONSTRAINT chk_error_type CHECK (error_type IN ('DATABASE_ERROR', 'TIMEOUT_ERROR', 'VALIDATION_ERROR', 'SYSTEM_ERROR'));
+
+-- User table constraints
+ALTER TABLE users ADD CONSTRAINT chk_role CHECK (role IN ('USER', 'ADMIN'));
+ALTER TABLE users ADD CONSTRAINT chk_email_format CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
 ```
 
 ## 4. Non Functional Requirements
 
 ### Performance
-- Database connection pooling with HikariCP
-- Query timeout configuration (30 seconds)
-- Retry mechanism for transient failures (max 3 attempts)
-- Database indexing on frequently queried columns
-- Connection pool monitoring and metrics
+- **Response Time**: API endpoints must respond within 2 seconds under normal load
+- **Throughput**: System must handle 1000 concurrent task creation requests
+- **Database Connection Pool**: Maximum 20 connections, minimum 5 idle connections
+- **Query Timeout**: Database queries must complete within 30 seconds
+- **Retry Mechanism**: Maximum 3 retry attempts with 1-second delay between attempts
 
 ### Security
-- Input validation to prevent SQL injection
-- JWT token validation for API access
-- Role-based access control
-- Sensitive data encryption in logs
-- HTTPS enforcement for all API endpoints
+- **Authentication**: JWT-based authentication with 24-hour token expiry
+- **Authorization**: Role-based access control (RBAC)
+- **Input Validation**: All user inputs must be validated and sanitized
+- **Error Information**: Error messages must not expose sensitive system information
+- **Audit Logging**: All errors and system events must be logged for security monitoring
 
 ### Logging and Monitoring
-- Structured logging with correlation IDs
-- Error tracking and alerting
-- Database connection monitoring
-- Performance metrics collection
-- Health check endpoints for system monitoring
-
-```java
-@Component
-public class ErrorLoggingService {
-    
-    private static final Logger logger = LoggerFactory.getLogger(ErrorLoggingService.class);
-    
-    public void logError(String operation, Exception ex, String correlationId) {
-        logger.error("Operation: {}, CorrelationId: {}, Error: {}", 
-                    operation, correlationId, ex.getMessage(), ex);
-    }
-}
-```
+- **Error Logging**: All exceptions must be logged with full stack traces
+- **Performance Monitoring**: Response times and database connection metrics
+- **Health Checks**: Database connectivity and application health endpoints
+- **Log Retention**: Error logs retained for 90 days
+- **Alerting**: Critical errors trigger immediate notifications
 
 ## 5. Dependencies
 
@@ -402,8 +506,8 @@ public class ErrorLoggingService {
         <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.springframework.retry</groupId>
-        <artifactId>spring-retry</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     
     <!-- Database -->
@@ -423,12 +527,23 @@ public class ErrorLoggingService {
         <artifactId>jjwt-api</artifactId>
         <version>0.11.5</version>
     </dependency>
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-impl</artifactId>
+        <version>0.11.5</version>
+        <scope>runtime</scope>
+    </dependency>
+    
+    <!-- Retry -->
+    <dependency>
+        <groupId>org.springframework.retry</groupId>
+        <artifactId>spring-retry</artifactId>
+    </dependency>
     
     <!-- Logging -->
     <dependency>
-        <groupId>net.logstash.logback</groupId>
-        <artifactId>logstash-logback-encoder</artifactId>
-        <version>7.2</version>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
     </dependency>
     
     <!-- Testing -->
@@ -448,10 +563,12 @@ public class ErrorLoggingService {
 ## 6. Assumptions
 
 1. **Database Technology**: PostgreSQL is used as the primary database
-2. **Authentication**: JWT-based authentication is already implemented
-3. **Frontend Integration**: Frontend application can handle error responses and preserve user input
-4. **Monitoring**: Application monitoring infrastructure (e.g., Prometheus, Grafana) is available
-5. **Deployment**: Application is deployed in a containerized environment with proper health checks
-6. **Error Recovery**: Users are expected to retry operations after receiving error messages
-7. **Data Persistence**: Task data persistence requirements are met with standard ACID properties
-8. **Scalability**: Current design supports moderate load; horizontal scaling may require additional considerations
+2. **Authentication**: JWT-based authentication is already implemented in the system
+3. **Frontend Integration**: Frontend application can handle error responses with preserved input data
+4. **Network Infrastructure**: Load balancers and reverse proxies are configured to handle timeout scenarios
+5. **Monitoring Tools**: External monitoring tools (like Prometheus/Grafana) are available for metrics collection
+6. **Error Notification**: Email/SMS notification system is available for critical error alerts
+7. **User Session Management**: User sessions are maintained to preserve context during error scenarios
+8. **Database Migration**: Flyway or Liquibase is used for database schema management
+9. **Environment Configuration**: Different configurations exist for development, staging, and production environments
+10. **Backup Strategy**: Database backup and recovery procedures are in place for data protection
