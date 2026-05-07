@@ -21,6 +21,11 @@ public class TaskCreateRequest {
     public TaskCreateRequest() {
     }
 
+    public TaskCreateRequest(String title, String description) {
+        this.title = title;
+        this.description = description;
+    }
+
     public TaskCreateRequest(String title, String description, Priority priority, LocalDateTime dueDate) {
         this.title = title;
         this.description = description;

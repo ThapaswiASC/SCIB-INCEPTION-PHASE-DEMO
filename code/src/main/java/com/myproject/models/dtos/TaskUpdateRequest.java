@@ -20,6 +20,12 @@ public class TaskUpdateRequest {
     public TaskUpdateRequest() {
     }
 
+    public TaskUpdateRequest(String title, String description, TaskStatus status) {
+        this.title = title;
+        this.description = description;
+        this.status = status;
+    }
+
     public TaskUpdateRequest(String title, String description, Priority priority, TaskStatus status, LocalDateTime dueDate) {
         this.title = title;
         this.description = description;

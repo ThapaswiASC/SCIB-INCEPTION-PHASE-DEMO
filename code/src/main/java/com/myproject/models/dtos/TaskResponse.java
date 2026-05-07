@@ -17,6 +17,15 @@ public class TaskResponse {
     public TaskResponse() {
     }
 
+    public TaskResponse(Long id, String title, String description, TaskStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
     public TaskResponse(Long id, String title, String description, Priority priority, TaskStatus status,
                        LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime dueDate, Long userId) {
         this.id = id;
