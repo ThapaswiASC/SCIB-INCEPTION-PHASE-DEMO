@@ -53,6 +53,13 @@ public class InMemoryTaskDataStore implements TaskDataStore {
     }
 
     @Override
+    public Long countByUserId(Long userId) {
+        return tasks.values().stream()
+                .filter(task -> task.getUserId().equals(userId))
+                .count();
+    }
+
+    @Override
     public List<Task> findByStatus(String status) {
         return tasks.values().stream()
                 .filter(task -> status.equals(task.getStatus()))
@@ -64,13 +71,6 @@ public class InMemoryTaskDataStore implements TaskDataStore {
         return tasks.values().stream()
                 .filter(task -> columnId.equals(task.getColumnId()))
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public Long countByUserId(Long userId) {
-        return tasks.values().stream()
-                .filter(task -> task.getUserId().equals(userId))
-                .count();
     }
 
     @Override
