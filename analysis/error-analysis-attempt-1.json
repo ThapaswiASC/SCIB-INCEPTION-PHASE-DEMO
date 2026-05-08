@@ -1,5 +1,5 @@
 {
-  "executive_summary": "Maven compilation failed with 87 errors across multiple files. The root cause is missing Lombok annotations (@Builder, @Data, @Getter, @Setter) on entity and DTO classes, causing builder() methods and getter/setter methods to be unavailable. Additionally, there is a duplicate constructor definition and a missing abstract method implementation.",
+  "executive_summary": "Maven compilation failed with 87 errors across multiple files. The root cause is missing Lombok-generated methods (builders, getters, setters) in entity and DTO classes, indicating Lombok annotations are not being processed correctly during compilation. Additionally, there is a duplicate constructor definition and a missing interface method implementation.",
   "attempt_number": 1,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-222",
@@ -11,65 +11,65 @@
       "file": "code/src/main/java/com/myproject/exceptions/ColumnNotFoundException.java",
       "line": 9,
       "message": "constructor ColumnNotFoundException(String) is already defined",
-      "root_cause": "Duplicate constructor definition in ColumnNotFoundException class. The constructor with String parameter is defined twice.",
-      "fix_recommendation": "Remove one of the duplicate constructor definitions in ColumnNotFoundException.java at line 9. Keep only one constructor that accepts a String parameter."
+      "root_cause": "Duplicate constructor definition in ColumnNotFoundException class. The class likely has both an explicit constructor and a Lombok-generated constructor.",
+      "fix_recommendation": "Remove the duplicate constructor definition. If using Lombok @AllArgsConstructor or @RequiredArgsConstructor, remove the manually defined constructor."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/main/java/com/myproject/models/dtos/ErrorResponse.java",
       "line": null,
-      "message": "cannot find symbol: method builder()",
-      "root_cause": "ErrorResponse class is missing @Builder annotation from Lombok, causing builder() method to be unavailable. This affects 6 locations in GlobalExceptionHandler.java.",
-      "fix_recommendation": "Add @Builder and @Data annotations to ErrorResponse.java class. Ensure lombok dependency is present in pom.xml and annotation processing is enabled."
+      "message": "cannot find symbol: method builder() in ErrorResponse (6 occurrences in GlobalExceptionHandler)",
+      "root_cause": "Lombok @Builder annotation is not generating the builder() method for ErrorResponse DTO. This affects GlobalExceptionHandler at lines 26, 38, 50, 62, 79, and 92.",
+      "fix_recommendation": "Ensure @Builder annotation is present on ErrorResponse class. Verify Lombok is properly configured in pom.xml with annotation processing enabled. Add lombok-maven-plugin if missing."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/main/java/com/myproject/models/entities/Task.java",
       "line": null,
-      "message": "cannot find symbol: methods getId(), setId(), getStatus(), setStatus(), getUserId(), getCreatedAt(), setCreatedAt(), etc.",
-      "root_cause": "Task entity class is missing @Data or @Getter/@Setter annotations from Lombok. This causes 50+ compilation errors across InMemoryTaskDataStore, TaskDataStoreImpl, and TaskServiceImpl where these methods are called.",
-      "fix_recommendation": "Add @Data annotation (or @Getter and @Setter) to Task.java entity class. Also add @Builder annotation to enable builder pattern usage in TaskServiceImpl."
+      "message": "cannot find symbol: multiple getter/setter methods (getId, setId, getTitle, getStatus, getUserId, getCreatedAt, etc.)",
+      "root_cause": "Lombok @Data or @Getter/@Setter annotations are not generating accessor methods for Task entity. This causes 50+ compilation errors across InMemoryTaskDataStore, TaskDataStoreImpl, and TaskServiceImpl.",
+      "fix_recommendation": "Add @Data annotation to Task entity class or ensure @Getter and @Setter are present. Verify Lombok dependency is in pom.xml and annotation processing is enabled in maven-compiler-plugin configuration."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/main/java/com/myproject/models/datastores/InMemoryTaskDataStore.java",
       "line": 13,
-      "message": "InMemoryTaskDataStore is not abstract and does not override abstract method countByColumnId(String)",
-      "root_cause": "InMemoryTaskDataStore implements TaskDataStore interface but does not implement the required abstract method countByColumnId(String).",
-      "fix_recommendation": "Add the missing countByColumnId(String columnId) method implementation in InMemoryTaskDataStore.java. The method should count and return the number of tasks associated with the given columnId."
+      "message": "InMemoryTaskDataStore does not override abstract method countByColumnId(String)",
+      "root_cause": "InMemoryTaskDataStore implements TaskDataStore interface but is missing the countByColumnId method implementation.",
+      "fix_recommendation": "Add the missing countByColumnId(String columnId) method implementation to InMemoryTaskDataStore class. Return the count of tasks matching the given columnId."
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/ColumnTaskCountResponse.java",
+      "file": "code/src/main/java/com/myproject/models/dtos/TaskCreateRequest.java",
       "line": null,
-      "message": "cannot find symbol: method builder()",
-      "root_cause": "ColumnTaskCountResponse DTO is missing @Builder annotation, causing builder() method to be unavailable in ColumnServiceImpl.",
-      "fix_recommendation": "Add @Builder and @Data annotations to ColumnTaskCountResponse.java class."
+      "message": "cannot find symbol: multiple getter methods (getTitle, getDescription, getUserId, getPriority, getDueDate)",
+      "root_cause": "Lombok annotations not generating getter methods for TaskCreateRequest DTO. This affects TaskServiceImpl at multiple lines (102, 104, 108-113, 203).",
+      "fix_recommendation": "Add @Data or @Getter annotation to TaskCreateRequest class. Ensure Lombok is properly configured with annotation processing enabled."
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/TaskStatusUpdateRequest.java",
+      "file": "code/src/main/java/com/myproject/models/dtos/TaskUpdateRequest.java",
       "line": null,
-      "message": "cannot find symbol: methods getStatus(), getColumnId()",
-      "root_cause": "TaskStatusUpdateRequest DTO is missing @Data or @Getter annotation, causing getter methods to be unavailable in TaskServiceImpl.",
-      "fix_recommendation": "Add @Data annotation to TaskStatusUpdateRequest.java class to generate getter methods."
+      "message": "cannot find symbol: multiple getter methods (getTitle, getDescription, getStatus, getPriority, getDueDate)",
+      "root_cause": "Lombok annotations not generating getter methods for TaskUpdateRequest DTO. This affects TaskServiceImpl at lines 129-142.",
+      "fix_recommendation": "Add @Data or @Getter annotation to TaskUpdateRequest class. Ensure Lombok is properly configured with annotation processing enabled."
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/TaskStatusUpdateResponse.java",
+      "file": "code/src/main/java/com/myproject/models/dtos/",
       "line": null,
-      "message": "cannot find symbol: method builder()",
-      "root_cause": "TaskStatusUpdateResponse DTO is missing @Builder annotation, causing builder() method to be unavailable in TaskServiceImpl.",
-      "fix_recommendation": "Add @Builder and @Data annotations to TaskStatusUpdateResponse.java class."
+      "message": "cannot find symbol: method builder() in multiple response DTOs (TaskStatusUpdateResponse, TaskDetailsResponse, TaskSummary, ValidateTaskMoveResponse, PagedTaskResponse, TaskCountResponse, BulkTaskResponse, TaskResponse, ColumnTaskCountResponse)",
+      "root_cause": "Lombok @Builder annotation not generating builder() methods for multiple response DTO classes. This affects ColumnServiceImpl and TaskServiceImpl at multiple locations.",
+      "fix_recommendation": "Add @Builder annotation to all response DTO classes: TaskStatusUpdateResponse, TaskDetailsResponse, TaskSummary, ValidateTaskMoveResponse, PagedTaskResponse, TaskCountResponse, BulkTaskResponse, TaskResponse, and ColumnTaskCountResponse. Verify Lombok configuration."
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "Multiple DTO classes (TaskDetailsResponse, TaskSummary, ValidateTaskMoveRequest, ValidateTaskMoveResponse, TaskCreateRequest, TaskUpdateRequest, PagedTaskResponse, TaskCountResponse, BulkTaskResponse, TaskResponse)",
+      "file": "code/src/main/java/com/myproject/models/dtos/",
       "line": null,
-      "message": "cannot find symbol: method builder() or getter/setter methods",
-      "root_cause": "Multiple DTO classes are missing @Builder, @Data, @Getter, or @Setter annotations from Lombok. This causes 20+ compilation errors in TaskServiceImpl where these DTOs are used.",
-      "fix_recommendation": "Add @Builder and @Data annotations to all DTO classes: TaskDetailsResponse, TaskSummary, ValidateTaskMoveRequest, ValidateTaskMoveResponse, TaskCreateRequest, TaskUpdateRequest, PagedTaskResponse, TaskCountResponse, BulkTaskResponse, and TaskResponse. Verify lombok dependency is correctly configured in pom.xml."
+      "message": "cannot find symbol: multiple getter methods in request DTOs (TaskStatusUpdateRequest, ValidateTaskMoveRequest)",
+      "root_cause": "Lombok annotations not generating getter methods for TaskStatusUpdateRequest and ValidateTaskMoveRequest DTOs. This affects TaskServiceImpl at lines 35, 42, 86-87.",
+      "fix_recommendation": "Add @Data or @Getter annotation to TaskStatusUpdateRequest and ValidateTaskMoveRequest classes. Ensure Lombok is properly configured with annotation processing enabled."
     }
   ],
-  "summary": "8 error categories found affecting 87 compilation failures"
+  "summary": "8 grouped compilation errors found (87 individual errors total)"
 }
