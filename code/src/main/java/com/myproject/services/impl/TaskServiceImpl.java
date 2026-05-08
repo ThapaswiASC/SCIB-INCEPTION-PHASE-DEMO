@@ -1,141 +1,123 @@
 package com.myproject.services.impl;
 
-import com.myproject.exceptions.*;
+import com.myproject.exceptions.InvalidStatusTransitionException;
+import com.myproject.exceptions.TaskLimitExceededException;
+import com.myproject.exceptions.TaskNotFoundException;
 import com.myproject.models.datastores.TaskDataStore;
 import com.myproject.models.dtos.*;
 import com.myproject.models.entities.Task;
-import com.myproject.services.interfaces.ColumnService;
 import com.myproject.services.interfaces.TaskService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskServiceImpl implements TaskService {
 
-    private static final long MAX_TASKS_PER_USER = 10000L;
-    private static final List<String> VALID_TRANSITIONS = Arrays.asList(
-        "TO_DO->IN_PROGRESS",
-        "IN_PROGRESS->DONE",
-        "IN_PROGRESS->TO_DO",
-        "PENDING->IN_PROGRESS",
-        "IN_PROGRESS->COMPLETED",
-        "IN_PROGRESS->CANCELLED"
-    );
+    private static final Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
+    private static final int MAX_TASKS_PER_USER = 10000;
 
     @Autowired
     private TaskDataStore taskDataStore;
 
-    @Autowired
-    private ColumnService columnService;
-
     @Override
-    public UpdateTaskStatusResponse updateTaskStatus(String taskId, UpdateTaskStatusRequest request) {
+    public TaskStatusUpdateResponse updateTaskStatus(Long taskId, TaskStatusUpdateRequest request) {
         Task task = taskDataStore.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException(taskId));
 
-        String oldStatus = task.getStatus() != null ? task.getStatus().name() : "TO_DO";
-        String newStatus = request.getStatus().name();
-        String transition = oldStatus + "->" + newStatus;
+        String fromStatus = task.getStatus();
+        String toStatus = request.getStatus().name();
 
-        if (!VALID_TRANSITIONS.contains(transition)) {
-            throw new InvalidStatusTransitionException(oldStatus, newStatus);
+        if (!isValidTransition(fromStatus, toStatus)) {
+            throw new InvalidStatusTransitionException(fromStatus, toStatus);
         }
 
-        String oldColumnId = task.getColumnId();
-        task.setStatus(request.getStatus());
+        task.setStatus(toStatus);
         task.setColumnId(request.getColumnId());
         task.setUpdatedAt(LocalDateTime.now());
+        taskDataStore.save(task);
 
-        Task updatedTask = taskDataStore.save(task);
+        logger.info("Task {} status updated from {} to {}", taskId, fromStatus, toStatus);
 
-        if (oldColumnId != null && !oldColumnId.equals(request.getColumnId())) {
-            columnService.updateColumnCounts(oldColumnId, request.getColumnId());
-        }
-
-        UpdateTaskStatusResponse response = new UpdateTaskStatusResponse();
-        response.setTaskId(updatedTask.getId().toString());
-        response.setStatus(updatedTask.getStatus());
-        response.setUpdatedAt(updatedTask.getUpdatedAt());
-        return response;
+        return TaskStatusUpdateResponse.builder()
+                .taskId(task.getId())
+                .status(task.getStatus())
+                .updatedAt(task.getUpdatedAt())
+                .message("Task status updated successfully")
+                .build();
     }
 
     @Override
-    public TaskDetailsResponse getTaskDetails(String taskId) {
+    public TaskDetailsResponse getTaskById(Long taskId) {
         Task task = taskDataStore.findById(taskId)
                 .orElseThrow(() -> new TaskNotFoundException(taskId));
 
-        TaskDetailsResponse response = new TaskDetailsResponse();
-        response.setTaskId(task.getId().toString());
-        response.setTitle(task.getTitle());
-        response.setStatus(task.getStatus());
-        response.setColumnId(task.getColumnId());
-        return response;
+        return TaskDetailsResponse.builder()
+                .taskId(task.getId())
+                .title(task.getTitle())
+                .status(task.getStatus())
+                .assignee(task.getAssignee())
+                .createdAt(task.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    public List<TaskSummary> getTasksByStatus(String status) {
+        return taskDataStore.findByStatus(status).stream()
+                .map(task -> TaskSummary.builder()
+                        .taskId(task.getId())
+                        .title(task.getTitle())
+                        .status(task.getStatus())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ValidateTaskMoveResponse validateTaskMove(Long taskId, ValidateTaskMoveRequest request) {
+        taskDataStore.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException(taskId));
+
+        String fromStatus = request.getFromStatus().name();
+        String toStatus = request.getToStatus().name();
+        boolean valid = isValidTransition(fromStatus, toStatus);
+
+        String message = valid
+                ? "Move operation is valid"
+                : String.format("Cannot transition from %s to %s", fromStatus, toStatus);
+
+        return ValidateTaskMoveResponse.builder()
+                .valid(valid)
+                .message(message)
+                .build();
     }
 
     @Override
     public TaskResponse createTask(TaskCreateRequest request) {
         Long currentCount = taskDataStore.countByUserId(request.getUserId());
         if (currentCount >= MAX_TASKS_PER_USER) {
-            throw new TaskLimitExceededException(
-                String.format("User %d has reached the maximum task limit of %d", 
-                    request.getUserId(), MAX_TASKS_PER_USER)
-            );
+            throw new TaskLimitExceededException(request.getUserId(), MAX_TASKS_PER_USER);
         }
 
-        Task task = new Task();
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setUserId(request.getUserId());
-        task.setPriority(request.getPriority());
-        task.setStatus(TaskStatus.PENDING);
-        task.setDueDate(request.getDueDate());
+        Task task = Task.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .userId(request.getUserId())
+                .priority(request.getPriority().name())
+                .status("PENDING")
+                .dueDate(request.getDueDate())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
-        Task savedTask = taskDataStore.save(task);
-        return mapToTaskResponse(savedTask);
-    }
+        task = taskDataStore.save(task);
+        logger.info("Task created with ID: {}", task.getId());
 
-    @Override
-    public PagedTaskResponse getUserTasks(Long userId, int page, int size, String sort) {
-        if (size > 100) {
-            size = 100;
-        }
-
-        List<Task> tasks = taskDataStore.findByUserId(userId, page, size);
-        Long totalElements = taskDataStore.countByUserId(userId);
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-
-        PagedTaskResponse response = new PagedTaskResponse();
-        response.setContent(tasks.stream().map(this::mapToTaskResponse).toList());
-        response.setPage(page);
-        response.setSize(size);
-        response.setTotalElements(totalElements);
-        response.setTotalPages(totalPages);
-        response.setLast(page >= totalPages - 1);
-        return response;
-    }
-
-    @Override
-    public TaskCountResponse getTaskCount(Long userId) {
-        Long count = taskDataStore.countByUserId(userId);
-        if (count > MAX_TASKS_PER_USER) {
-            count = MAX_TASKS_PER_USER;
-        }
-
-        TaskCountResponse response = new TaskCountResponse();
-        response.setUserId(userId);
-        response.setTaskCount(count);
-        return response;
-    }
-
-    @Override
-    public TaskResponse getTaskById(Long taskId) {
-        Task task = taskDataStore.findById(taskId)
-                .orElseThrow(() -> new TaskNotFoundException(taskId));
         return mapToTaskResponse(task);
     }
 
@@ -151,18 +133,20 @@ public class TaskServiceImpl implements TaskService {
             task.setDescription(request.getDescription());
         }
         if (request.getStatus() != null) {
-            task.setStatus(request.getStatus());
+            task.setStatus(request.getStatus().name());
         }
         if (request.getPriority() != null) {
-            task.setPriority(request.getPriority());
+            task.setPriority(request.getPriority().name());
         }
         if (request.getDueDate() != null) {
             task.setDueDate(request.getDueDate());
         }
 
         task.setUpdatedAt(LocalDateTime.now());
-        Task updatedTask = taskDataStore.save(task);
-        return mapToTaskResponse(updatedTask);
+        task = taskDataStore.save(task);
+
+        logger.info("Task {} updated", taskId);
+        return mapToTaskResponse(task);
     }
 
     @Override
@@ -171,53 +155,82 @@ public class TaskServiceImpl implements TaskService {
             throw new TaskNotFoundException(taskId);
         }
         taskDataStore.deleteById(taskId);
+        logger.info("Task {} deleted", taskId);
+    }
+
+    @Override
+    public PagedTaskResponse getUserTasks(Long userId, int page, int size) {
+        List<Task> tasks = taskDataStore.findByUserId(userId, page, size);
+        Long totalElements = taskDataStore.countByUserId(userId);
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        List<TaskResponse> content = tasks.stream()
+                .map(this::mapToTaskResponse)
+                .collect(Collectors.toList());
+
+        return PagedTaskResponse.builder()
+                .content(content)
+                .page(page)
+                .size(size)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .build();
+    }
+
+    @Override
+    public TaskCountResponse getTaskCount(Long userId) {
+        Long count = taskDataStore.countByUserId(userId);
+        return TaskCountResponse.builder()
+                .userId(userId)
+                .taskCount(count)
+                .build();
     }
 
     @Override
     public BulkTaskResponse bulkCreateTasks(List<TaskCreateRequest> requests) {
         if (requests.size() > 100) {
-            throw new TaskLimitExceededException("Bulk creation limited to 100 tasks at a time");
+            throw new IllegalArgumentException("Cannot create more than 100 tasks at once");
         }
 
-        BulkTaskResponse response = new BulkTaskResponse();
-        List<TaskResponse> createdTasks = new ArrayList<>();
-        List<BulkTaskResponse.BulkTaskError> errors = new ArrayList<>();
-        int successCount = 0;
-        int failureCount = 0;
+        List<TaskResponse> successfulTasks = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
 
-        for (int i = 0; i < requests.size(); i++) {
+        for (TaskCreateRequest request : requests) {
             try {
-                TaskCreateRequest request = requests.get(i);
-                TaskResponse taskResponse = createTask(request);
-                createdTasks.add(taskResponse);
-                successCount++;
+                TaskResponse response = createTask(request);
+                successfulTasks.add(response);
             } catch (Exception e) {
-                BulkTaskResponse.BulkTaskError error = new BulkTaskResponse.BulkTaskError();
-                error.setIndex(i);
-                error.setMessage(e.getMessage());
-                errors.add(error);
-                failureCount++;
+                errors.add(String.format("Failed to create task '%s': %s", request.getTitle(), e.getMessage()));
             }
         }
 
-        response.setSuccessCount(successCount);
-        response.setFailureCount(failureCount);
-        response.setCreatedTasks(createdTasks);
-        response.setErrors(errors);
-        return response;
+        return BulkTaskResponse.builder()
+                .successCount(successfulTasks.size())
+                .failureCount(errors.size())
+                .tasks(successfulTasks)
+                .errors(errors)
+                .build();
+    }
+
+    private boolean isValidTransition(String fromStatus, String toStatus) {
+        if (fromStatus == null || toStatus == null) {
+            return false;
+        }
+        return (fromStatus.equals("IN_PROGRESS") && toStatus.equals("DONE"))
+                || (fromStatus.equals("TODO") && toStatus.equals("IN_PROGRESS"))
+                || (fromStatus.equals("DONE") && toStatus.equals("IN_PROGRESS"));
     }
 
     private TaskResponse mapToTaskResponse(Task task) {
-        TaskResponse response = new TaskResponse();
-        response.setId(task.getId());
-        response.setTitle(task.getTitle());
-        response.setDescription(task.getDescription());
-        response.setUserId(task.getUserId());
-        response.setStatus(task.getStatus());
-        response.setPriority(task.getPriority());
-        response.setCreatedAt(task.getCreatedAt());
-        response.setUpdatedAt(task.getUpdatedAt());
-        response.setVersion(task.getVersion());
-        return response;
+        return TaskResponse.builder()
+                .id(task.getId())
+                .title(task.getTitle())
+                .description(task.getDescription())
+                .userId(task.getUserId())
+                .status(task.getStatus())
+                .priority(task.getPriority())
+                .createdAt(task.getCreatedAt())
+                .updatedAt(task.getUpdatedAt())
+                .build();
     }
 }
