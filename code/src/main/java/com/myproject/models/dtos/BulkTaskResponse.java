@@ -1,69 +1,28 @@
 package com.myproject.models.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BulkTaskResponse {
+
+    @JsonProperty("successCount")
     private Integer successCount;
+
+    @JsonProperty("failureCount")
     private Integer failureCount;
-    private List<TaskResponse> createdTasks;
-    private List<BulkTaskError> errors;
 
-    public BulkTaskResponse() {
-    }
+    @JsonProperty("tasks")
+    private List<TaskResponse> tasks;
 
-    public Integer getSuccessCount() {
-        return successCount;
-    }
-
-    public void setSuccessCount(Integer successCount) {
-        this.successCount = successCount;
-    }
-
-    public Integer getFailureCount() {
-        return failureCount;
-    }
-
-    public void setFailureCount(Integer failureCount) {
-        this.failureCount = failureCount;
-    }
-
-    public List<TaskResponse> getCreatedTasks() {
-        return createdTasks;
-    }
-
-    public void setCreatedTasks(List<TaskResponse> createdTasks) {
-        this.createdTasks = createdTasks;
-    }
-
-    public List<BulkTaskError> getErrors() {
-        return errors;
-    }
-
-    public void setErrors(List<BulkTaskError> errors) {
-        this.errors = errors;
-    }
-
-    public static class BulkTaskError {
-        private Integer index;
-        private String message;
-
-        public BulkTaskError() {
-        }
-
-        public Integer getIndex() {
-            return index;
-        }
-
-        public void setIndex(Integer index) {
-            this.index = index;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public void setMessage(String message) {
-            this.message = message;
-        }
-    }
+    @JsonProperty("errors")
+    private List<String> errors;
 }

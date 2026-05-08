@@ -1,63 +1,31 @@
 package com.myproject.models.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PagedTaskResponse {
+
+    @JsonProperty("content")
     private List<TaskResponse> content;
+
+    @JsonProperty("page")
     private Integer page;
+
+    @JsonProperty("size")
     private Integer size;
+
+    @JsonProperty("totalElements")
     private Long totalElements;
+
+    @JsonProperty("totalPages")
     private Integer totalPages;
-    private Boolean last;
-
-    public PagedTaskResponse() {
-    }
-
-    public List<TaskResponse> getContent() {
-        return content;
-    }
-
-    public void setContent(List<TaskResponse> content) {
-        this.content = content;
-    }
-
-    public Integer getPage() {
-        return page;
-    }
-
-    public void setPage(Integer page) {
-        this.page = page;
-    }
-
-    public Integer getSize() {
-        return size;
-    }
-
-    public void setSize(Integer size) {
-        this.size = size;
-    }
-
-    public Long getTotalElements() {
-        return totalElements;
-    }
-
-    public void setTotalElements(Long totalElements) {
-        this.totalElements = totalElements;
-    }
-
-    public Integer getTotalPages() {
-        return totalPages;
-    }
-
-    public void setTotalPages(Integer totalPages) {
-        this.totalPages = totalPages;
-    }
-
-    public Boolean getLast() {
-        return last;
-    }
-
-    public void setLast(Boolean last) {
-        this.last = last;
-    }
 }
