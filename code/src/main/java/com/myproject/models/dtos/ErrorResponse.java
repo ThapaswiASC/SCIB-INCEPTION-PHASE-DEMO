@@ -1,55 +1,32 @@
 package com.myproject.models.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ErrorResponse {
+
+    @JsonProperty("timestamp")
     private LocalDateTime timestamp;
+
+    @JsonProperty("traceId")
     private String traceId;
+
+    @JsonProperty("errorCode")
     private String errorCode;
+
+    @JsonProperty("message")
     private String message;
+
+    @JsonProperty("details")
     private List<String> details;
-
-    public ErrorResponse() {
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getTraceId() {
-        return traceId;
-    }
-
-    public void setTraceId(String traceId) {
-        this.traceId = traceId;
-    }
-
-    public String getErrorCode() {
-        return errorCode;
-    }
-
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public List<String> getDetails() {
-        return details;
-    }
-
-    public void setDetails(List<String> details) {
-        this.details = details;
-    }
 }
