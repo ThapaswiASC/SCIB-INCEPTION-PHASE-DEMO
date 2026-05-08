@@ -2,7 +2,7 @@
 
 ## 1. Objective
 
-This document provides the low-level design for implementing drag and drop functionality in a Kanban board system. The system allows users to drag tasks from "In Progress" column to "Done" column, automatically updating task status and column counts. The implementation ensures cross-browser compatibility and real-time status synchronization across the application.
+This document outlines the SpringBoot backend implementation for enabling drag-and-drop functionality in a Kanban board system. The system allows users to move tasks from "In Progress" to "Done" status through drag-and-drop operations. The implementation ensures real-time status updates, task count management, and cross-browser compatibility for seamless user experience.
 
 ## 2. SpringBoot Backend Details
 
@@ -12,18 +12,19 @@ This document provides the low-level design for implementing drag and drop funct
 
 | Operation | Method | URL | Request Body | Response Body |
 |-----------|--------|-----|--------------|---------------|
-| Update Task Status | PUT | `/api/v1/tasks/{taskId}/status` | `{"status": "DONE", "columnId": "done-column"}` | `{"taskId": "123", "status": "DONE", "updatedAt": "2024-01-01T10:00:00Z"}` |
-| Get Task Details | GET | `/api/v1/tasks/{taskId}` | N/A | `{"taskId": "123", "title": "Task Title", "status": "IN_PROGRESS", "columnId": "in-progress"}` |
-| Get Column Statistics | GET | `/api/v1/columns/{columnId}/stats` | N/A | `{"columnId": "done", "taskCount": 5, "lastUpdated": "2024-01-01T10:00:00Z"}` |
-| Bulk Update Column Counts | PUT | `/api/v1/columns/bulk-update` | `{"updates": [{"columnId": "in-progress", "increment": -1}, {"columnId": "done", "increment": 1}]}` | `{"success": true, "updatedColumns": ["in-progress", "done"]}` |
+| Update Task Status | PUT | /api/v1/tasks/{taskId}/status | `{"status": "DONE", "columnId": "done-column"}` | `{"taskId": 123, "status": "DONE", "updatedAt": "2024-01-01T10:00:00Z", "message": "Task status updated successfully"}` |
+| Get Task Details | GET | /api/v1/tasks/{taskId} | N/A | `{"taskId": 123, "title": "Task Title", "status": "IN_PROGRESS", "assignee": "user@example.com", "createdAt": "2024-01-01T09:00:00Z"}` |
+| Get Column Tasks Count | GET | /api/v1/columns/{columnId}/count | N/A | `{"columnId": "in-progress", "taskCount": 5}` |
+| Get All Tasks by Status | GET | /api/v1/tasks?status={status} | N/A | `[{"taskId": 123, "title": "Task Title", "status": "IN_PROGRESS"}]` |
+| Validate Task Move | POST | /api/v1/tasks/{taskId}/validate-move | `{"fromStatus": "IN_PROGRESS", "toStatus": "DONE"}` | `{"valid": true, "message": "Move operation is valid"}` |
 
 #### Controller Classes
 
 | Class Name | Responsibility | Methods |
 |------------|----------------|----------|
-| `TaskController` | Handle task-related operations | `updateTaskStatus()`, `getTaskDetails()` |
-| `ColumnController` | Manage column statistics and operations | `getColumnStats()`, `bulkUpdateColumnCounts()` |
-| `KanbanBoardController` | Orchestrate board-level operations | `moveTask()`, `getBoardState()` |
+| TaskController | Handle task-related HTTP requests | updateTaskStatus(), getTaskById(), validateTaskMove() |
+| KanbanColumnController | Manage column operations and task counts | getColumnTaskCount(), getTasksByColumn() |
+| TaskStatusController | Handle status-specific operations | getTasksByStatus(), getAvailableStatuses() |
 
 #### Exception Handlers
 
@@ -43,10 +44,10 @@ public class KanbanExceptionHandler {
             .body(new ErrorResponse("INVALID_STATUS_TRANSITION", ex.getMessage()));
     }
     
-    @ExceptionHandler(ColumnNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleColumnNotFound(ColumnNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(new ErrorResponse("COLUMN_NOT_FOUND", ex.getMessage()));
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(ValidationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("VALIDATION_ERROR", ex.getMessage()));
     }
 }
 ```
@@ -64,31 +65,41 @@ public class TaskService {
     private TaskRepository taskRepository;
     
     @Autowired
-    private ColumnService columnService;
+    private TaskStatusHistoryService statusHistoryService;
     
     @Autowired
     private NotificationService notificationService;
     
-    public TaskDto moveTaskToColumn(Long taskId, String newStatus, String columnId) {
-        Task task = validateAndGetTask(taskId);
-        String oldStatus = task.getStatus();
-        String oldColumnId = task.getColumnId();
+    public TaskDto updateTaskStatus(Long taskId, TaskStatusUpdateRequest request) {
+        Task task = validateTaskExists(taskId);
+        validateStatusTransition(task.getStatus(), request.getStatus());
         
-        validateStatusTransition(oldStatus, newStatus);
-        
-        task.setStatus(newStatus);
-        task.setColumnId(columnId);
+        TaskStatus oldStatus = task.getStatus();
+        task.setStatus(request.getStatus());
         task.setUpdatedAt(LocalDateTime.now());
         
         Task updatedTask = taskRepository.save(task);
         
-        // Update column counts atomically
-        columnService.updateColumnCounts(oldColumnId, columnId);
+        // Record status history
+        statusHistoryService.recordStatusChange(taskId, oldStatus, request.getStatus());
         
-        // Send real-time notification
-        notificationService.notifyTaskMoved(updatedTask, oldStatus, newStatus);
+        // Send notification
+        notificationService.notifyStatusChange(updatedTask);
         
         return TaskMapper.toDto(updatedTask);
+    }
+    
+    private void validateStatusTransition(TaskStatus from, TaskStatus to) {
+        if (!isValidTransition(from, to)) {
+            throw new InvalidStatusTransitionException(
+                String.format("Cannot transition from %s to %s", from, to));
+        }
+    }
+    
+    private boolean isValidTransition(TaskStatus from, TaskStatus to) {
+        return (from == TaskStatus.IN_PROGRESS && to == TaskStatus.DONE) ||
+               (from == TaskStatus.TODO && to == TaskStatus.IN_PROGRESS) ||
+               (from == TaskStatus.DONE && to == TaskStatus.IN_PROGRESS);
     }
 }
 ```
@@ -96,9 +107,10 @@ public class TaskService {
 #### Service Layer Architecture
 
 - **TaskService**: Core business logic for task operations
-- **ColumnService**: Manages column statistics and validations
-- **NotificationService**: Handles real-time updates via WebSocket
-- **ValidationService**: Centralized validation logic
+- **KanbanColumnService**: Column-specific operations and task counting
+- **TaskStatusHistoryService**: Audit trail for status changes
+- **NotificationService**: Real-time notifications for status updates
+- **ValidationService**: Business rule validation
 
 #### Dependency Injection Configuration
 
@@ -107,14 +119,13 @@ public class TaskService {
 public class ServiceConfiguration {
     
     @Bean
-    @Primary
-    public TaskService taskService() {
-        return new TaskServiceImpl();
+    public TaskMapper taskMapper() {
+        return new TaskMapperImpl();
     }
     
     @Bean
-    public ColumnService columnService() {
-        return new ColumnServiceImpl();
+    public TaskValidator taskValidator() {
+        return new TaskValidator();
     }
 }
 ```
@@ -123,9 +134,11 @@ public class ServiceConfiguration {
 
 | Field Name | Validation | Error Message | Annotation |
 |------------|------------|---------------|------------|
-| taskId | Not null, positive | "Task ID must be a positive number" | `@NotNull @Positive` |
-| status | Valid enum value | "Status must be one of: TO_DO, IN_PROGRESS, DONE" | `@ValidTaskStatus` |
-| columnId | Not blank, valid format | "Column ID must be non-empty and valid" | `@NotBlank @ValidColumnId` |
+| taskId | Not null, Positive | "Task ID must be a positive number" | `@NotNull @Positive` |
+| status | Not null, Valid enum | "Status must be one of: TODO, IN_PROGRESS, DONE" | `@NotNull @ValidTaskStatus` |
+| columnId | Not blank, Max 50 chars | "Column ID cannot be blank and must be less than 50 characters" | `@NotBlank @Size(max=50)` |
+| title | Not blank, Max 255 chars | "Task title is required and must be less than 255 characters" | `@NotBlank @Size(max=255)` |
+| assignee | Valid email format | "Assignee must be a valid email address" | `@Email` |
 
 ### 2.3 Repository / Data Access Layer
 
@@ -133,9 +146,9 @@ public class ServiceConfiguration {
 
 | Entity | Fields | Constraints |
 |--------|--------|-------------|
-| `Task` | id, title, description, status, columnId, createdAt, updatedAt | id: Primary Key, status: Enum, columnId: Foreign Key |
-| `Column` | id, name, boardId, taskCount, position | id: Primary Key, boardId: Foreign Key, taskCount: Non-negative |
-| `Board` | id, name, createdBy, createdAt | id: Primary Key, createdBy: Foreign Key |
+| Task | id (Long), title (String), description (String), status (TaskStatus), assignee (String), createdAt (LocalDateTime), updatedAt (LocalDateTime), columnId (String) | id: Primary Key, Auto-generated; title: Not null, Max 255; status: Not null; createdAt: Not null |
+| TaskStatusHistory | id (Long), taskId (Long), fromStatus (TaskStatus), toStatus (TaskStatus), changedAt (LocalDateTime), changedBy (String) | id: Primary Key, Auto-generated; taskId: Foreign Key; changedAt: Not null |
+| KanbanColumn | id (String), name (String), position (Integer), maxTasks (Integer) | id: Primary Key; name: Not null, Max 100; position: Not null, Unique |
 
 #### Repository Interfaces
 
@@ -143,34 +156,45 @@ public class ServiceConfiguration {
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     
-    @Query("SELECT t FROM Task t WHERE t.columnId = :columnId")
-    List<Task> findByColumnId(@Param("columnId") String columnId);
+    List<Task> findByStatus(TaskStatus status);
+    
+    List<Task> findByColumnId(String columnId);
+    
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.status = :status")
+    Long countByStatus(@Param("status") TaskStatus status);
     
     @Query("SELECT COUNT(t) FROM Task t WHERE t.columnId = :columnId")
     Long countByColumnId(@Param("columnId") String columnId);
     
     @Modifying
-    @Query("UPDATE Task t SET t.status = :newStatus, t.columnId = :newColumnId, t.updatedAt = :updatedAt WHERE t.id = :taskId")
+    @Query("UPDATE Task t SET t.status = :newStatus, t.updatedAt = :updatedAt WHERE t.id = :taskId")
     int updateTaskStatus(@Param("taskId") Long taskId, 
-                        @Param("newStatus") String newStatus, 
-                        @Param("newColumnId") String newColumnId, 
+                        @Param("newStatus") TaskStatus newStatus, 
                         @Param("updatedAt") LocalDateTime updatedAt);
+}
+
+@Repository
+public interface TaskStatusHistoryRepository extends JpaRepository<TaskStatusHistory, Long> {
+    
+    List<TaskStatusHistory> findByTaskIdOrderByChangedAtDesc(Long taskId);
+    
+    @Query("SELECT h FROM TaskStatusHistory h WHERE h.taskId = :taskId AND h.changedAt >= :since")
+    List<TaskStatusHistory> findRecentStatusChanges(@Param("taskId") Long taskId, 
+                                                   @Param("since") LocalDateTime since);
 }
 ```
 
 #### Custom Queries
 
 ```java
-@Repository
-public interface ColumnRepository extends JpaRepository<Column, String> {
-    
-    @Modifying
-    @Query("UPDATE Column c SET c.taskCount = c.taskCount + :increment WHERE c.id = :columnId")
-    int incrementTaskCount(@Param("columnId") String columnId, @Param("increment") int increment);
-    
-    @Query("SELECT c FROM Column c WHERE c.boardId = :boardId ORDER BY c.position")
-    List<Column> findByBoardIdOrderByPosition(@Param("boardId") String boardId);
-}
+// Get tasks that can be moved to DONE status
+@Query("SELECT t FROM Task t WHERE t.status = 'IN_PROGRESS' AND t.assignee IS NOT NULL")
+List<Task> findTasksEligibleForCompletion();
+
+// Get column statistics
+@Query("SELECT new com.kanban.dto.ColumnStatsDto(t.columnId, COUNT(t), t.status) " +
+       "FROM Task t GROUP BY t.columnId, t.status")
+List<ColumnStatsDto> getColumnStatistics();
 ```
 
 ### 2.4 Configuration
@@ -179,53 +203,66 @@ public interface ColumnRepository extends JpaRepository<Column, String> {
 
 ```properties
 # Database Configuration
-spring.datasource.url=jdbc:postgresql://localhost:5432/kanban_db
-spring.datasource.username=${DB_USERNAME:kanban_user}
-spring.datasource.password=${DB_PASSWORD:kanban_pass}
-spring.jpa.hibernate.ddl-auto=validate
-spring.jpa.show-sql=false
+spring.datasource.url=jdbc:h2:mem:kanbandb
+spring.datasource.driver-class-name=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
 
-# WebSocket Configuration
-kanban.websocket.endpoint=/ws
-kanban.websocket.allowed-origins=http://localhost:3000,https://kanban.example.com
+# JPA Configuration
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=create-drop
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
 
-# Validation Configuration
-kanban.validation.max-tasks-per-column=100
-kanban.validation.allowed-status-transitions=TO_DO->IN_PROGRESS,IN_PROGRESS->DONE,IN_PROGRESS->TO_DO
+# Server Configuration
+server.port=8080
+server.servlet.context-path=/kanban-api
 
-# Performance Configuration
-spring.jpa.properties.hibernate.jdbc.batch_size=20
-spring.jpa.properties.hibernate.order_inserts=true
-spring.jpa.properties.hibernate.order_updates=true
+# Logging Configuration
+logging.level.com.kanban=DEBUG
+logging.level.org.springframework.web=INFO
+
+# CORS Configuration
+kanban.cors.allowed-origins=http://localhost:3000,http://localhost:4200
+kanban.cors.allowed-methods=GET,POST,PUT,DELETE,OPTIONS
+kanban.cors.allowed-headers=*
+
+# Task Configuration
+kanban.task.max-title-length=255
+kanban.task.max-description-length=1000
+kanban.task.default-status=TODO
 ```
 
 #### Spring Configuration Classes
 
 ```java
 @Configuration
-@EnableWebSocket
-public class WebSocketConfig implements WebSocketConfigurer {
+@EnableJpaRepositories(basePackages = "com.kanban.repository")
+@EntityScan(basePackages = "com.kanban.entity")
+public class DatabaseConfiguration {
     
-    @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new KanbanWebSocketHandler(), "/ws")
-                .setAllowedOrigins("*")
-                .withSockJS();
+    @Bean
+    public DataSource dataSource() {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:h2:mem:kanbandb");
+        config.setUsername("sa");
+        config.setPassword("");
+        config.setMaximumPoolSize(10);
+        return new HikariDataSource(config);
     }
 }
 
 @Configuration
-@EnableJpaRepositories(basePackages = "com.kanban.repository")
-public class DatabaseConfig {
+@EnableWebMvc
+public class WebConfiguration implements WebMvcConfigurer {
     
-    @Bean
-    @Primary
-    public DataSource dataSource() {
-        HikariConfig config = new HikariConfig();
-        config.setMaximumPoolSize(20);
-        config.setMinimumIdle(5);
-        config.setConnectionTimeout(30000);
-        return new HikariDataSource(config);
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+                .allowedOrigins("http://localhost:3000", "http://localhost:4200")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }
 ```
@@ -234,16 +271,24 @@ public class DatabaseConfig {
 
 ```java
 @Configuration
-public class KanbanBeanConfig {
+public class ApplicationConfiguration {
     
     @Bean
-    public TaskMapper taskMapper() {
-        return new TaskMapperImpl();
+    public ModelMapper modelMapper() {
+        ModelMapper mapper = new ModelMapper();
+        mapper.getConfiguration()
+              .setMatchingStrategy(MatchingStrategies.STRICT)
+              .setFieldMatchingEnabled(true)
+              .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE);
+        return mapper;
     }
     
     @Bean
-    public WebSocketSessionManager sessionManager() {
-        return new WebSocketSessionManager();
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        return mapper;
     }
 }
 ```
@@ -255,18 +300,19 @@ public class KanbanBeanConfig {
 ```java
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfiguration {
     
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
-            .authorizeHttpRequests(auth -> auth
+            .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/v1/tasks/**").authenticated()
                 .requestMatchers("/api/v1/columns/**").authenticated()
-                .requestMatchers("/ws/**").authenticated()
-                .anyRequest().permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
+                .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt());
+        
         return http.build();
     }
 }
@@ -274,9 +320,10 @@ public class SecurityConfig {
 
 #### Authorization Rules
 
-- Users can only modify tasks they own or have permission to edit
-- Board-level permissions control column operations
-- WebSocket connections require valid JWT tokens
+- Users can only update tasks assigned to them
+- Admin users can update any task
+- Read operations are allowed for all authenticated users
+- Task creation requires TASK_CREATE permission
 
 #### JWT Token Handling
 
@@ -288,11 +335,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, 
                                   HttpServletResponse response, 
                                   FilterChain filterChain) throws ServletException, IOException {
+        
         String token = extractTokenFromRequest(request);
         if (token != null && jwtTokenProvider.validateToken(token)) {
             Authentication auth = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
+        
         filterChain.doFilter(request, response);
     }
 }
@@ -306,24 +355,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 @ControllerAdvice
 public class GlobalExceptionHandler {
     
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(ValidationException ex) {
-        return ResponseEntity.badRequest()
-            .body(ErrorResponse.builder()
-                .code("VALIDATION_ERROR")
-                .message(ex.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build());
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTaskNotFound(TaskNotFoundException ex) {
+        ErrorResponse error = ErrorResponse.builder()
+            .code("TASK_NOT_FOUND")
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
     
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .body(ErrorResponse.builder()
-                .code("DATA_CONFLICT")
-                .message("Operation conflicts with existing data")
-                .timestamp(LocalDateTime.now())
-                .build());
+    @ExceptionHandler(InvalidStatusTransitionException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidTransition(InvalidStatusTransitionException ex) {
+        ErrorResponse error = ErrorResponse.builder()
+            .code("INVALID_STATUS_TRANSITION")
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
+        List<String> errors = ex.getBindingResult()
+            .getFieldErrors()
+            .stream()
+            .map(FieldError::getDefaultMessage)
+            .collect(Collectors.toList());
+            
+        ErrorResponse error = ErrorResponse.builder()
+            .code("VALIDATION_ERROR")
+            .message("Validation failed")
+            .details(errors)
+            .timestamp(LocalDateTime.now())
+            .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }
 ```
@@ -333,26 +399,26 @@ public class GlobalExceptionHandler {
 ```java
 public class TaskNotFoundException extends RuntimeException {
     public TaskNotFoundException(Long taskId) {
-        super("Task not found with ID: " + taskId);
+        super(String.format("Task with ID %d not found", taskId));
     }
 }
 
 public class InvalidStatusTransitionException extends RuntimeException {
-    public InvalidStatusTransitionException(String fromStatus, String toStatus) {
-        super(String.format("Invalid status transition from %s to %s", fromStatus, toStatus));
+    public InvalidStatusTransitionException(String message) {
+        super(message);
     }
 }
 ```
 
 #### HTTP Status Mapping
 
-| Exception Type | HTTP Status | Error Code |
-|----------------|-------------|------------|
+| Exception | HTTP Status | Error Code |
+|-----------|-------------|------------|
 | TaskNotFoundException | 404 NOT_FOUND | TASK_NOT_FOUND |
 | InvalidStatusTransitionException | 400 BAD_REQUEST | INVALID_STATUS_TRANSITION |
-| ColumnNotFoundException | 404 NOT_FOUND | COLUMN_NOT_FOUND |
 | ValidationException | 400 BAD_REQUEST | VALIDATION_ERROR |
-| DataIntegrityViolationException | 409 CONFLICT | DATA_CONFLICT |
+| AccessDeniedException | 403 FORBIDDEN | ACCESS_DENIED |
+| InternalServerError | 500 INTERNAL_SERVER_ERROR | INTERNAL_ERROR |
 
 ## 3. Database Design
 
@@ -360,107 +426,91 @@ public class InvalidStatusTransitionException extends RuntimeException {
 
 ```mermaid
 erDiagram
-    BOARD {
-        string id PK
-        string name
-        string created_by
-        datetime created_at
-    }
-    
-    COLUMN {
-        string id PK
-        string name
-        string board_id FK
-        int task_count
-        int position
-    }
-    
     TASK {
-        bigint id PK
-        string title
-        text description
-        string status
-        string column_id FK
-        datetime created_at
-        datetime updated_at
+        BIGINT id PK
+        VARCHAR title
+        TEXT description
+        VARCHAR status
+        VARCHAR assignee
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        VARCHAR column_id
     }
     
-    USER {
-        string id PK
-        string username
-        string email
-        datetime created_at
+    TASK_STATUS_HISTORY {
+        BIGINT id PK
+        BIGINT task_id FK
+        VARCHAR from_status
+        VARCHAR to_status
+        TIMESTAMP changed_at
+        VARCHAR changed_by
     }
     
-    BOARD ||--o{ COLUMN : contains
-    COLUMN ||--o{ TASK : holds
-    USER ||--o{ BOARD : creates
-    USER ||--o{ TASK : owns
+    KANBAN_COLUMN {
+        VARCHAR id PK
+        VARCHAR name
+        INTEGER position
+        INTEGER max_tasks
+    }
+    
+    TASK ||--o{ TASK_STATUS_HISTORY : "has history"
+    KANBAN_COLUMN ||--o{ TASK : "contains"
 ```
 
 ### Table Schema
 
 | Table | Columns | Data Types | Constraints |
 |-------|---------|------------|-------------|
-| `tasks` | id, title, description, status, column_id, created_at, updated_at | BIGINT, VARCHAR(255), TEXT, VARCHAR(50), VARCHAR(100), TIMESTAMP, TIMESTAMP | PK(id), FK(column_id), NOT NULL(title, status) |
-| `columns` | id, name, board_id, task_count, position | VARCHAR(100), VARCHAR(255), VARCHAR(100), INTEGER, INTEGER | PK(id), FK(board_id), NOT NULL(name), CHECK(task_count >= 0) |
-| `boards` | id, name, created_by, created_at | VARCHAR(100), VARCHAR(255), VARCHAR(100), TIMESTAMP | PK(id), FK(created_by), NOT NULL(name) |
-| `users` | id, username, email, created_at | VARCHAR(100), VARCHAR(100), VARCHAR(255), TIMESTAMP | PK(id), UNIQUE(username, email) |
+| task | id, title, description, status, assignee, created_at, updated_at, column_id | BIGINT, VARCHAR(255), TEXT, VARCHAR(20), VARCHAR(100), TIMESTAMP, TIMESTAMP, VARCHAR(50) | PK(id), NOT NULL(title, status, created_at), INDEX(status), INDEX(column_id) |
+| task_status_history | id, task_id, from_status, to_status, changed_at, changed_by | BIGINT, BIGINT, VARCHAR(20), VARCHAR(20), TIMESTAMP, VARCHAR(100) | PK(id), FK(task_id), NOT NULL(task_id, to_status, changed_at), INDEX(task_id, changed_at) |
+| kanban_column | id, name, position, max_tasks | VARCHAR(50), VARCHAR(100), INTEGER, INTEGER | PK(id), NOT NULL(name, position), UNIQUE(position) |
 
 ### Database Validations
 
-```sql
--- Task status validation
-ALTER TABLE tasks ADD CONSTRAINT chk_task_status 
-    CHECK (status IN ('TO_DO', 'IN_PROGRESS', 'DONE'));
-
--- Column task count validation
-ALTER TABLE columns ADD CONSTRAINT chk_task_count_positive 
-    CHECK (task_count >= 0);
-
--- Column position validation
-ALTER TABLE columns ADD CONSTRAINT chk_position_positive 
-    CHECK (position >= 0);
-
--- Unique column position per board
-ALTER TABLE columns ADD CONSTRAINT uk_board_position 
-    UNIQUE (board_id, position);
-```
+- Task status must be one of: TODO, IN_PROGRESS, DONE
+- Task title cannot be empty and must be less than 255 characters
+- Assignee must be a valid email format when provided
+- Column position must be unique and positive
+- Task creation timestamp must not be in the future
+- Status history changes must have valid from/to status combinations
 
 ## 4. Non Functional Requirements
 
 ### Performance
 
-- **Response Time**: API calls should complete within 200ms for 95% of requests
-- **Throughput**: Support 1000 concurrent drag-and-drop operations
-- **Database Optimization**: Use connection pooling with HikariCP (max 20 connections)
-- **Caching**: Implement Redis caching for frequently accessed board states
-- **Batch Operations**: Use batch updates for column count modifications
+- **Response Time**: API endpoints must respond within 200ms for 95% of requests
+- **Throughput**: System must handle 1000 concurrent drag-and-drop operations
+- **Database Optimization**: Use database indexes on frequently queried columns (status, column_id, created_at)
+- **Caching**: Implement Redis caching for task counts and column statistics
+- **Connection Pooling**: Configure HikariCP with optimal pool size (10-20 connections)
 
 ### Security
 
 - **Authentication**: JWT-based authentication with 1-hour token expiry
-- **Authorization**: Role-based access control (RBAC) for board operations
-- **Data Validation**: Server-side validation for all input parameters
-- **SQL Injection Prevention**: Use parameterized queries and JPA repositories
-- **CORS Configuration**: Restrict origins to authorized domains
+- **Authorization**: Role-based access control (USER, ADMIN roles)
+- **Input Validation**: Sanitize all input parameters to prevent SQL injection
+- **CORS**: Configure CORS to allow only trusted frontend domains
+- **Rate Limiting**: Implement rate limiting (100 requests per minute per user)
 
 ### Logging and Monitoring
 
+- **Application Logs**: Log all task status changes with user context
+- **Performance Metrics**: Monitor API response times and database query performance
+- **Error Tracking**: Comprehensive error logging with stack traces
+- **Audit Trail**: Maintain complete audit trail of all task modifications
+- **Health Checks**: Implement actuator endpoints for application health monitoring
+
 ```java
 @Component
-public class TaskAuditLogger {
+public class TaskStatusChangeLogger {
     
-    private static final Logger logger = LoggerFactory.getLogger(TaskAuditLogger.class);
+    private static final Logger logger = LoggerFactory.getLogger(TaskStatusChangeLogger.class);
     
-    public void logTaskStatusChange(Long taskId, String oldStatus, String newStatus, String userId) {
-        logger.info("Task status changed - TaskId: {}, OldStatus: {}, NewStatus: {}, UserId: {}", 
-                   taskId, oldStatus, newStatus, userId);
-    }
-    
-    public void logColumnCountUpdate(String columnId, int oldCount, int newCount) {
-        logger.info("Column count updated - ColumnId: {}, OldCount: {}, NewCount: {}", 
-                   columnId, oldCount, newCount);
+    @EventListener
+    public void handleTaskStatusChange(TaskStatusChangeEvent event) {
+        logger.info("Task status changed: taskId={}, fromStatus={}, toStatus={}, user={}, timestamp={}",
+                   event.getTaskId(), event.getFromStatus(), event.getToStatus(), 
+                   event.getChangedBy(), event.getTimestamp());
     }
 }
 ```
@@ -482,21 +532,25 @@ public class TaskAuditLogger {
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-websocket</artifactId>
+        <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-validation</artifactId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     
     <!-- Database -->
     <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
         <scope>runtime</scope>
     </dependency>
     <dependency>
@@ -504,27 +558,26 @@ public class TaskAuditLogger {
         <artifactId>HikariCP</artifactId>
     </dependency>
     
-    <!-- JWT -->
+    <!-- Mapping and Utilities -->
     <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-oauth2-resource-server</artifactId>
+        <groupId>org.modelmapper</groupId>
+        <artifactId>modelmapper</artifactId>
+        <version>3.1.1</version>
     </dependency>
     <dependency>
-        <groupId>org.springframework.security</groupId>
-        <artifactId>spring-security-oauth2-jose</artifactId>
-    </dependency>
-    
-    <!-- Caching -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-redis</artifactId>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <optional>true</optional>
     </dependency>
     
-    <!-- Mapping -->
+    <!-- JSON Processing -->
     <dependency>
-        <groupId>org.mapstruct</groupId>
-        <artifactId>mapstruct</artifactId>
-        <version>1.5.3.Final</version>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
     
     <!-- Testing -->
@@ -534,8 +587,13 @@ public class TaskAuditLogger {
         <scope>test</scope>
     </dependency>
     <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
         <groupId>org.testcontainers</groupId>
-        <artifactId>postgresql</artifactId>
+        <artifactId>junit-jupiter</artifactId>
         <scope>test</scope>
     </dependency>
 </dependencies>
@@ -543,13 +601,22 @@ public class TaskAuditLogger {
 
 ## 6. Assumptions
 
-1. **Browser Compatibility**: The frontend will handle cross-browser drag-and-drop compatibility using modern HTML5 APIs
-2. **Real-time Updates**: WebSocket connections are established for real-time board updates across multiple users
-3. **Task Ownership**: Tasks have associated user ownership for authorization purposes
-4. **Status Transitions**: Only specific status transitions are allowed (TO_DO → IN_PROGRESS → DONE, with rollback capability)
-5. **Column Limits**: Each column has a configurable maximum task limit to prevent performance issues
-6. **Concurrent Operations**: The system handles concurrent drag-and-drop operations using optimistic locking
-7. **Data Consistency**: Column task counts are maintained through database triggers and application-level validation
-8. **Session Management**: User sessions are managed through JWT tokens with appropriate expiry and refresh mechanisms
-9. **Error Recovery**: Failed drag-and-drop operations will automatically revert UI state and show appropriate error messages
-10. **Audit Trail**: All task movements are logged for audit and debugging purposes
+1. **Task Status Flow**: Tasks can only move from IN_PROGRESS to DONE status as per the requirement. Reverse transitions (DONE to IN_PROGRESS) are allowed for flexibility.
+
+2. **Authentication**: The system assumes JWT-based authentication is already implemented and tokens are provided in the Authorization header.
+
+3. **Database**: H2 in-memory database is used for development and testing. Production deployment would use PostgreSQL or MySQL.
+
+4. **Frontend Integration**: The frontend application will handle the drag-and-drop UI interactions and make appropriate API calls to update task status.
+
+5. **Real-time Updates**: Task count updates are handled synchronously. For high-volume scenarios, consider implementing asynchronous processing with message queues.
+
+6. **Browser Compatibility**: Cross-browser compatibility is primarily handled by the frontend application. The backend provides consistent REST APIs.
+
+7. **Concurrency**: Basic optimistic locking is assumed sufficient. For high-concurrency scenarios, implement pessimistic locking or event sourcing.
+
+8. **Data Validation**: All input validation is performed at the API layer with appropriate error responses for invalid data.
+
+9. **Audit Requirements**: Complete audit trail is maintained for all task status changes for compliance and debugging purposes.
+
+10. **Scalability**: The current design supports moderate load. For high-scale deployments, consider implementing caching, database sharding, and microservices architecture.
