@@ -11,18 +11,12 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Task {
+public class User {
 
     private Long id;
-    private String title;
-    private String description;
-    private Long userId;
-    private String status;
-    private String priority;
-    private String columnId;
-    private String assignee;
-    private LocalDateTime dueDate;
+    private String username;
+    private String email;
+    private Long taskCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private Long version;
 }
