@@ -1,0 +1,67 @@
+{
+  "executive_summary": "Maven compilation failed with 87 errors across multiple files. The primary root cause is missing Lombok-generated methods (getters/setters/builders) in entity and DTO classes. The @Data, @Builder, and @AllArgsConstructor annotations are not being processed, causing 'cannot find symbol' errors throughout the codebase. Additionally, there is a duplicate constructor definition in ColumnNotFoundException.",
+  "attempt_number": 2,
+  "repo": "SCIB-INCEPTION-PHASE-DEMO",
+  "branch": "feature/DEMO-222",
+  "log_file": "logs/build_failure_attempt-2.log",
+  "errors_found": 7,
+  "errors": [
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/main/java/com/myproject/exceptions/ColumnNotFoundException.java",
+      "line": 9,
+      "message": "constructor ColumnNotFoundException(String) is already defined",
+      "root_cause": "Duplicate constructor definition. The class likely has both an explicit constructor and a Lombok @AllArgsConstructor annotation generating the same constructor.",
+      "fix_recommendation": "Remove either the explicit constructor at line 9 or remove the @AllArgsConstructor annotation from the class to eliminate the duplicate."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/main/java/com/myproject/models/dtos/ErrorResponse.java",
+      "line": null,
+      "message": "cannot find symbol: method builder()",
+      "root_cause": "Lombok @Builder annotation is not generating the builder() method. This affects ErrorResponse class used in GlobalExceptionHandler at multiple locations (lines 26, 38, 50, 62, 79, 92).",
+      "fix_recommendation": "Ensure Lombok is properly configured in pom.xml with annotation processing enabled. Add lombok-maven-plugin or configure maven-compiler-plugin with annotationProcessorPaths including Lombok. Verify @Builder annotation is present on ErrorResponse class."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/main/java/com/myproject/models/entities/Task.java",
+      "line": null,
+      "message": "cannot find symbol: methods getId(), setId(), getTitle(), getStatus(), getUserId(), getCreatedAt(), getUpdatedAt(), setUpdatedAt(), etc.",
+      "root_cause": "Lombok @Data or @Getter/@Setter annotations are not generating accessor methods for Task entity. This causes cascading failures in InMemoryTaskDataStore, TaskDataStoreImpl, and TaskServiceImpl (45+ occurrences).",
+      "fix_recommendation": "Verify @Data annotation is present on Task entity class. Ensure Lombok annotation processing is enabled in maven-compiler-plugin configuration. Add <annotationProcessorPaths> with org.projectlombok:lombok dependency in the compiler plugin."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/main/java/com/myproject/models/datastores/InMemoryTaskDataStore.java",
+      "line": 13,
+      "message": "does not override abstract method countByColumnId(String) in TaskDataStore",
+      "root_cause": "InMemoryTaskDataStore does not implement the countByColumnId method required by the TaskDataStore interface.",
+      "fix_recommendation": "Add the missing countByColumnId(String columnId) method implementation to InMemoryTaskDataStore class. The method should count and return the number of tasks associated with the given columnId."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/main/java/com/myproject/models/dtos/",
+      "line": null,
+      "message": "cannot find symbol: method builder() in multiple DTO classes",
+      "root_cause": "Multiple DTO classes (ColumnTaskCountResponse, TaskStatusUpdateResponse, TaskDetailsResponse, TaskSummary, ValidateTaskMoveResponse, PagedTaskResponse, TaskCountResponse, BulkTaskResponse, TaskResponse) are missing builder() methods due to Lombok not processing @Builder annotations.",
+      "fix_recommendation": "Configure Lombok annotation processing globally in pom.xml. Add maven-compiler-plugin configuration with annotationProcessorPaths including lombok dependency. Ensure all DTO classes have @Builder annotation."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/main/java/com/myproject/models/dtos/",
+      "line": null,
+      "message": "cannot find symbol: getter methods in request DTOs",
+      "root_cause": "Request DTO classes (TaskStatusUpdateRequest, TaskCreateRequest, TaskUpdateRequest, ValidateTaskMoveRequest) are missing getter methods (getStatus, getColumnId, getUserId, getTitle, getDescription, getPriority, getDueDate, getFromStatus, getToStatus) due to Lombok @Data or @Getter not being processed.",
+      "fix_recommendation": "Ensure all request DTO classes have @Data or @Getter annotations. Verify Lombok annotation processing is enabled in the Maven build configuration."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/main/java/com/myproject/services/impl/TaskServiceImpl.java",
+      "line": 78,
+      "message": "incompatible types: inference variable T has incompatible bounds",
+      "root_cause": "Type inference failure when building TaskSummary objects, likely due to missing builder() method and incorrect generic type handling in the stream operation.",
+      "fix_recommendation": "Fix the Lombok configuration to generate builder() method for TaskSummary. Review the stream operation at line 78 to ensure proper type casting or explicit type parameters are provided."
+    }
+  ],
+  "summary": "7 error groups found (87 individual compilation errors)"
+}
