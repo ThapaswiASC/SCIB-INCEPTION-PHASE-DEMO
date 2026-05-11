@@ -2,462 +2,562 @@
 
 ## Experience Overview
 
-**User Type:** Digital Product Users
-**Experience Context:** Task Management and Productivity Platform
-**Experience Goal:** Enable users to efficiently organize, track, and complete their work tasks while collaborating with team members
+**User Type:** Digital Product Users  
+**Experience Context:** Task Management and Productivity Platform  
+**Business Domain:** SaaS Productivity Tools  
 
 ---
 
 ## Scenario 1: New User Onboarding and First Task Creation
 
-**Scenario Context:**
-Sarah, a project manager at a growing startup, has just signed up for the task management platform after her team outgrew their current solution. She needs to quickly understand the platform's capabilities and create her first project with tasks to evaluate if it meets her team's needs.
+**Scenario Description:**  
+Sarah, a project manager at a growing startup, has just signed up for the productivity platform after her team outgrew their current solution. She needs to quickly understand the platform's capabilities and create her first project with tasks to evaluate if it meets her team's needs before the trial period ends.
 
 ### Workflow Variation 1A: Guided Onboarding Flow
 
-**User Goal:** Successfully set up account, understand core features, and create first meaningful project with tasks
-**Business Goal:** Increase user activation rate and reduce time-to-value for new users
+**User Goal:** Successfully set up account, understand core features, and create first meaningful project with confidence  
+**Business Goal:** Increase trial-to-paid conversion by demonstrating value within first session and reducing time-to-first-value
 
 #### Screen Flow:
 
 **1.0 Welcome Dashboard [type: primary]**
 - HOW IT IS REACHED: Direct navigation after account creation
 - NAVBAR PRESENCE: Yes
-- Page Goal: Orient new users and provide clear next steps for getting started
+- Page Goal: Orient new users and provide clear next steps for platform setup
 - Screen Description:
   1. Welcome message with user's name and company
   2. Progress indicator showing onboarding steps (0/4 completed)
   3. "Start Setup" CTA button prominently displayed
-  4. Quick overview of platform benefits
-  5. Skip option for experienced users
+  4. Quick access to help resources and support chat
+  5. Skip onboarding option for experienced users
 - Design Problems:
-  - HMW reduce cognitive load for new users while showing platform value?
-  - HMW accommodate both novice and experienced users?
-  - HMW build confidence in the platform's capabilities immediately?
+  - HMW reduce cognitive load for users overwhelmed by new platform complexity?
+  - HMW communicate platform value without lengthy explanations?
+  - HMW accommodate both novice and experienced users in the same flow?
 - Design Opportunities:
-  - What if we could personalize the onboarding based on company size?
-  - What if we showed real-time examples from similar companies?
-  - What if we provided multiple onboarding paths based on user role?
+  - What if we could personalize onboarding based on company size and industry?
+  - What if we showed real-time examples from similar successful teams?
+  - What if we offered multiple onboarding paths based on user confidence level?
 
-**Pu.1 Account Setup Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Start Setup" button on Welcome Dashboard
+**Pu.1 Setup Wizard Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "Start Setup" CTA button on Welcome Dashboard
 - NAVBAR PRESENCE: No
-- Page Goal: Collect essential user and company information for personalization
+- Page Goal: Collect essential information to personalize the user experience
 - Screen Description:
-  1. Multi-step form with progress indicator
-  2. Company details (name, size, industry)
-  3. User role and responsibilities
-  4. Team size and collaboration needs
-  5. Integration preferences
+  1. Multi-step form with progress indicator (Step 1/4)
+  2. Team size selection with visual icons
+  3. Primary use case selection (Project Management, Task Tracking, Team Collaboration)
+  4. Integration preferences (Slack, Google Workspace, Microsoft 365)
+  5. "Continue" and "Skip for now" options
 - Design Problems:
-  - HMW minimize form abandonment during setup?
-  - HMW collect necessary data without overwhelming users?
-  - HMW validate information in real-time?
+  - HMW gather necessary data without creating form fatigue?
+  - HMW make setup feel valuable rather than burdensome?
+  - HMW handle users who want to explore before committing to setup?
 - Design Opportunities:
-  - What if we could auto-populate company data from email domain?
-  - What if we used progressive disclosure to reduce perceived complexity?
-  - What if we showed how each piece of information improves their experience?
+  - What if setup questions adapted based on previous answers?
+  - What if we showed immediate benefits of each integration option?
+  - What if we allowed partial setup completion and return later?
 
-**2.0 Project Creation Workspace [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar after setup completion
+**2.0 Project Creation Hub [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item or completion of setup wizard
 - NAVBAR PRESENCE: Yes
-- Page Goal: Enable users to create their first project with guided assistance
+- Page Goal: Enable users to create their first project with appropriate structure and confidence
 - Screen Description:
-  1. Project template gallery with industry-specific options
-  2. Blank project creation option
-  3. Import from existing tools option
-  4. Interactive tutorial overlay
-  5. Sample project preview
+  1. "Create New Project" prominent CTA with template options
+  2. Template gallery with industry-specific options (Marketing Campaign, Product Launch, etc.)
+  3. Recent projects section (empty state with encouraging message)
+  4. Quick start guide with 3-step process visualization
+  5. Import options from other tools (Trello, Asana, Monday.com)
 - Design Problems:
-  - HMW help users choose the right project structure?
-  - HMW demonstrate platform capabilities without overwhelming?
-  - HMW reduce time to first successful project creation?
+  - HMW help users choose appropriate project structure without analysis paralysis?
+  - HMW demonstrate platform capabilities through template selection?
+  - HMW handle users who prefer blank slate vs. structured templates?
 - Design Opportunities:
-  - What if we could suggest project templates based on setup information?
-  - What if we provided real-time collaboration during project creation?
-  - What if we showed success metrics from similar projects?
+  - What if templates included real project data examples?
+  - What if we recommended templates based on setup wizard responses?
+  - What if users could preview template outcomes before selection?
 
 **Pu.2 Project Template Selection Modal [type: modal]**
-- HOW IT IS REACHED: Clicking template option in Project Creation Workspace
+- HOW IT IS REACHED: Clicking "Create New Project" CTA button on Project Creation Hub
 - NAVBAR PRESENCE: No
-- Page Goal: Help users select appropriate project structure and customize it
+- Page Goal: Guide users to select appropriate project template that matches their needs
 - Screen Description:
-  1. Template categories (Marketing, Development, Operations, etc.)
-  2. Template preview with sample tasks and timeline
-  3. Customization options for selected template
-  4. Team member assignment preview
-  5. Estimated setup time indicator
+  1. Template categories with visual previews
+  2. "Start from scratch" option with blank template
+  3. Template details showing included task types and workflows
+  4. Estimated setup time for each template
+  5. "Use Template" and "Preview" options for each
 - Design Problems:
-  - HMW help users understand template differences quickly?
-  - HMW enable customization without losing template benefits?
-  - HMW show template value before commitment?
+  - HMW showcase template value without overwhelming choice?
+  - HMW help users understand template implications before commitment?
+  - HMW support users who need custom solutions not covered by templates?
 - Design Opportunities:
-  - What if templates could adapt based on team size automatically?
-  - What if we showed success rates for different templates?
-  - What if users could preview templates with their actual data?
+  - What if templates showed success metrics from other teams?
+  - What if we offered template customization during selection?
+  - What if users could combine elements from multiple templates?
 
-**3.0 Task Management Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar after project creation
+**3.0 Project Workspace [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item after project creation
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive view of all tasks with multiple organization options
+- Page Goal: Provide comprehensive project overview and task management capabilities
 - Screen Description:
-  1. Task list with filtering and sorting options
-  2. Kanban board view toggle
-  3. Calendar integration display
-  4. Team member workload indicators
-  5. Progress tracking widgets
-  6. Quick task creation button
+  1. Project header with title, description, and key metrics
+  2. Task board with columns (To Do, In Progress, Review, Complete)
+  3. "Add Task" CTA button in each column
+  4. Team member avatars with assignment indicators
+  5. Project timeline view toggle option
+  6. Filter and search functionality
 - Design Problems:
-  - HMW help users find the right tasks quickly in large projects?
-  - HMW balance detailed information with clean interface?
-  - HMW accommodate different work styles and preferences?
+  - HMW balance comprehensive functionality with clean, uncluttered interface?
+  - HMW help users understand task relationships and dependencies?
+  - HMW accommodate different work styles (board view vs. list view vs. timeline)?
 - Design Opportunities:
-  - What if the dashboard could learn user preferences over time?
-  - What if we provided AI-powered task prioritization suggestions?
-  - What if we could predict potential bottlenecks before they occur?
+  - What if the workspace adapted layout based on project type and team size?
+  - What if we provided intelligent task suggestions based on project template?
+  - What if real-time collaboration indicators showed team activity?
 
-**3.0-D Task Detail View [type: detail]**
-- HOW IT IS REACHED: Clicking on any task card in Task Management Dashboard
+**Pu.3 Task Creation Drawer [type: modal]**
+- HOW IT IS REACHED: Clicking "Add Task" CTA button in Project Workspace
 - NAVBAR PRESENCE: No
-- Page Goal: Provide comprehensive task information and enable detailed task management
+- Page Goal: Enable quick task creation with appropriate detail level for effective execution
 - Screen Description:
-  1. Task title and description with editing capabilities
-  2. Assignee information and change options
-  3. Due date and priority settings
-  4. Subtask creation and management
-  5. Comment thread and collaboration tools
-  6. File attachment area
-  7. Time tracking integration
-  8. Related tasks and dependencies
+  1. Task title input with auto-suggestions
+  2. Description field with rich text formatting
+  3. Assignee selection with team member search
+  4. Due date picker with calendar integration
+  5. Priority level selection (High, Medium, Low)
+  6. Tag system for categorization
+  7. "Create Task" and "Create & Add Another" options
 - Design Problems:
-  - HMW organize complex task information without overwhelming users?
-  - HMW facilitate collaboration without cluttering the interface?
-  - HMW make task editing efficient for power users?
+  - HMW capture necessary task details without slowing down task creation?
+  - HMW help users set realistic deadlines and appropriate priority levels?
+  - HMW handle bulk task creation efficiently?
 - Design Opportunities:
-  - What if we could suggest optimal task breakdown automatically?
-  - What if we provided context-aware collaboration suggestions?
-  - What if we could predict task completion time based on historical data?
+  - What if task templates auto-populated based on project type?
+  - What if we suggested assignees based on workload and expertise?
+  - What if due dates were intelligently suggested based on project timeline?
 
-### Workflow Variation 1B: Self-Service Quick Start
+#### Navigation Structure:
+1.0 Welcome Dashboard | 2.0 Project Creation Hub | 3.0 Project Workspace
 
-**User Goal:** Quickly create first project without guided assistance for experienced users
-**Business Goal:** Reduce onboarding friction for users familiar with task management tools
+#### User Journey Flow:
+1.0 Welcome Dashboard → [click Start Setup] → Pu.1 Setup Wizard Modal → [complete setup] → 2.0 Project Creation Hub → [click Create New Project] → Pu.2 Project Template Selection Modal → [select template] → 3.0 Project Workspace → [click Add Task] → Pu.3 Task Creation Drawer → [create task] → 3.0 Project Workspace (updated with new task)
+
+### Workflow Variation 1B: Express Onboarding Flow
+
+**User Goal:** Quickly access core functionality without extensive setup for immediate productivity  
+**Business Goal:** Reduce onboarding friction for users who prefer learning through exploration
 
 #### Screen Flow:
 
-**1.1 Express Setup Dashboard [type: primary]**
-- HOW IT IS REACHED: Selecting "Skip Guided Setup" on Welcome Dashboard
+**1.1 Quick Start Dashboard [type: primary]**
+- HOW IT IS REACHED: Selecting "Skip Setup" option from Welcome Dashboard
 - NAVBAR PRESENCE: Yes
-- Page Goal: Enable rapid project creation for experienced users
+- Page Goal: Provide immediate access to core features with contextual guidance
+- Screen Description:
+  1. Simplified interface with essential features highlighted
+  2. "Create First Project" prominent CTA
+  3. Interactive tutorial overlay (dismissible)
+  4. Help tooltips on key interface elements
+  5. "Complete Setup Later" reminder banner
+- Design Problems:
+  - HMW provide guidance without forcing structured onboarding?
+  - HMW ensure users don't miss critical setup steps that affect experience?
+  - HMW balance immediate access with long-term platform adoption?
+- Design Opportunities:
+  - What if we tracked user actions to suggest relevant setup steps?
+  - What if contextual help appeared based on user hesitation patterns?
+  - What if we gamified the completion of setup steps over time?
+
+**2.1 Blank Project Creation [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item from Quick Start Dashboard
+- NAVBAR PRESENCE: Yes
+- Page Goal: Enable rapid project creation with minimal friction
 - Screen Description:
   1. Streamlined project creation form
-  2. Import options from popular tools (Asana, Trello, Jira)
-  3. Quick team invitation interface
-  4. Essential settings configuration
-  5. Access to help resources if needed
+  2. Essential fields only (name, description, team members)
+  3. "Create Project" CTA with immediate workspace access
+  4. "Add More Details Later" option
+  5. Template suggestions sidebar (non-intrusive)
 - Design Problems:
-  - HMW provide speed without sacrificing important setup steps?
-  - HMW ensure users don't miss critical configuration options?
-  - HMW maintain data quality with minimal input validation?
+  - HMW capture minimum viable project information for functionality?
+  - HMW avoid overwhelming users who chose express path?
+  - HMW ensure project structure supports team collaboration?
 - Design Opportunities:
-  - What if we could detect user expertise level automatically?
-  - What if we provided smart defaults based on imported data?
-  - What if we offered progressive enhancement of features over time?
+  - What if we auto-suggested project structure based on title keywords?
+  - What if we offered progressive disclosure of advanced features?
+  - What if we learned from user behavior to improve future suggestions?
 
-**NAVIGATION STRUCTURE:**
-1.0 Welcome Dashboard | 2.0 Project Creation Workspace | 3.0 Task Management Dashboard
+#### Navigation Structure:
+1.1 Quick Start Dashboard | 2.1 Blank Project Creation | 3.0 Project Workspace
 
-**USER JOURNEY FLOW:**
-1.0 Welcome Dashboard → [click Start Setup] → Pu.1 Account Setup Modal → [complete setup] → 2.0 Project Creation Workspace → [select template] → Pu.2 Project Template Selection Modal → [confirm template] → 3.0 Task Management Dashboard → [click task] → 3.0-D Task Detail View
+#### User Journey Flow:
+1.0 Welcome Dashboard → [click Skip Setup] → 1.1 Quick Start Dashboard → [click Create First Project] → 2.1 Blank Project Creation → [create project] → 3.0 Project Workspace
 
 ---
 
-## Scenario 2: Team Collaboration and Task Assignment
+## Scenario 2: Existing User Managing Multiple Projects
 
-**Scenario Context:**
-Mike, a team lead, needs to assign tasks from a large project to different team members based on their skills and current workload. He wants to ensure balanced distribution and clear communication about expectations and deadlines.
+**Scenario Description:**  
+Mark, an experienced user who has been using the platform for 6 months, manages 5 active projects across different teams. He needs to efficiently monitor progress across all projects, identify bottlenecks, and reallocate resources to meet upcoming deadlines.
 
-### Workflow Variation 2A: Bulk Task Assignment Flow
+### Workflow Variation 2A: Dashboard-Centric Management
 
-**User Goal:** Efficiently assign multiple tasks to team members while considering workload and skills
-**Business Goal:** Improve team productivity and project completion rates through better task distribution
+**User Goal:** Gain comprehensive overview of all projects and make informed decisions about resource allocation  
+**Business Goal:** Increase user engagement and platform stickiness by providing valuable management insights
 
 #### Screen Flow:
 
-**4.0 Team Workload Dashboard [type: primary]**
+**4.0 Multi-Project Dashboard [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive view of team capacity and current assignments
+- Page Goal: Provide comprehensive overview of all projects with actionable insights
 - Screen Description:
-  1. Team member cards with current workload indicators
-  2. Skill matrix display for each team member
-  3. Availability calendar integration
-  4. Unassigned tasks queue
-  5. Workload balancing suggestions
-  6. Bulk assignment tools
+  1. Project cards with key metrics (progress %, overdue tasks, team utilization)
+  2. Cross-project timeline view with milestone indicators
+  3. Resource allocation chart showing team member workloads
+  4. Priority alerts for projects requiring attention
+  5. Quick action buttons (Add Task, Reassign, Update Status)
+  6. Filter options (by team, deadline, status, priority)
 - Design Problems:
-  - HMW visualize complex workload data in an understandable way?
-  - HMW help managers make fair assignment decisions?
-  - HMW prevent team member overload while maintaining productivity?
+  - HMW present complex multi-project data without overwhelming the user?
+  - HMW help users identify which projects need immediate attention?
+  - HMW enable quick actions without losing overview context?
 - Design Opportunities:
-  - What if we could predict optimal task assignments using AI?
-  - What if we provided real-time workload balancing recommendations?
-  - What if we could factor in team member preferences and career goals?
+  - What if AI could predict project risks based on historical patterns?
+  - What if we provided automated resource rebalancing suggestions?
+  - What if the dashboard adapted layout based on user's management style?
 
-**Pu.3 Bulk Assignment Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Bulk Assign" button on Team Workload Dashboard
+**4.0-D Project Detail View [type: detail]**
+- HOW IT IS REACHED: Clicking on project card in Multi-Project Dashboard
 - NAVBAR PRESENCE: No
-- Page Goal: Enable efficient assignment of multiple tasks with intelligent suggestions
+- Page Goal: Provide detailed project analysis with drill-down capabilities
 - Screen Description:
-  1. Task selection interface with filtering options
-  2. Team member selection with capacity indicators
-  3. Assignment suggestions based on skills and workload
-  4. Drag-and-drop assignment interface
-  5. Assignment preview with workload impact
-  6. Notification settings for assigned team members
+  1. Detailed project metrics and performance indicators
+  2. Task breakdown with bottleneck identification
+  3. Team performance analytics
+  4. Timeline view with critical path highlighting
+  5. Resource utilization graphs
+  6. "Back to Dashboard" navigation
 - Design Problems:
-  - HMW make bulk operations intuitive and error-free?
-  - HMW provide enough information for informed assignment decisions?
-  - HMW prevent accidental over-assignment?
+  - HMW provide detailed analysis without losing connection to other projects?
+  - HMW help users understand project health at a glance?
+  - HMW enable quick navigation between project details?
 - Design Opportunities:
-  - What if we could simulate different assignment scenarios?
-  - What if we provided assignment templates for recurring project types?
-  - What if we could learn from successful assignment patterns?
+  - What if we showed comparative analysis with similar projects?
+  - What if we provided predictive completion date modeling?
+  - What if we offered automated report generation for stakeholders?
 
-### Workflow Variation 2B: Individual Task Assignment Flow
+**Pu.4 Resource Reallocation Modal [type: modal]**
+- HOW IT IS REACHED: Clicking "Reassign" CTA button on Multi-Project Dashboard
+- NAVBAR PRESENCE: No
+- Page Goal: Enable efficient resource reallocation across projects
+- Screen Description:
+  1. Drag-and-drop interface for task reassignment
+  2. Team member capacity indicators
+  3. Impact analysis showing effects of changes
+  4. Conflict detection for scheduling overlaps
+  5. "Apply Changes" and "Preview Impact" options
+- Design Problems:
+  - HMW visualize complex resource dependencies clearly?
+  - HMW prevent resource conflicts during reallocation?
+  - HMW help users understand reallocation consequences?
+- Design Opportunities:
+  - What if we suggested optimal resource allocation automatically?
+  - What if we showed historical success rates for similar allocations?
+  - What if we provided real-time team member availability?
 
-**User Goal:** Carefully assign individual tasks with detailed context and requirements
-**Business Goal:** Ensure task clarity and reduce revision cycles through better initial assignment
+#### Navigation Structure:
+4.0 Multi-Project Dashboard | 3.0 Project Workspace
+
+#### User Journey Flow:
+4.0 Multi-Project Dashboard → [click project card] → 4.0-D Project Detail View → [click Reassign] → Pu.4 Resource Reallocation Modal → [apply changes] → 4.0 Multi-Project Dashboard (updated state)
+
+### Workflow Variation 2B: Project-Centric Management
+
+**User Goal:** Deep-dive into individual project management with cross-project awareness  
+**Business Goal:** Support different management styles while maintaining platform engagement
 
 #### Screen Flow:
 
-**4.1 Individual Assignment Workspace [type: primary]**
+**3.1 Enhanced Project Workspace [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Enable detailed task assignment with comprehensive context
+- Page Goal: Provide comprehensive single-project management with multi-project context
 - Screen Description:
-  1. Task detail panel with full description and requirements
-  2. Team member selection with detailed profiles
-  3. Assignment reasoning documentation
-  4. Deadline negotiation interface
-  5. Success criteria definition tools
-  6. Follow-up scheduling options
+  1. Enhanced project workspace with cross-project indicators
+  2. "Other Projects" sidebar showing status summaries
+  3. Resource sharing indicators for team members
+  4. Cross-project dependency warnings
+  5. Quick project switcher in header
 - Design Problems:
-  - HMW balance thoroughness with efficiency in task assignment?
-  - HMW ensure clear communication of expectations?
-  - HMW facilitate negotiation and agreement on task parameters?
+  - HMW maintain focus on current project while providing multi-project awareness?
+  - HMW help users understand cross-project impacts of decisions?
+  - HMW enable efficient project switching without losing context?
 - Design Opportunities:
-  - What if we could provide assignment impact predictions?
-  - What if we offered template-based assignment reasoning?
-  - What if we could track assignment success patterns for improvement?
+  - What if we showed real-time updates from other projects?
+  - What if we provided cross-project collaboration suggestions?
+  - What if we offered unified communication across all projects?
 
-**NAVIGATION STRUCTURE:**
-4.0 Team Workload Dashboard | 4.1 Individual Assignment Workspace
+#### Navigation Structure:
+3.1 Enhanced Project Workspace | 4.0 Multi-Project Dashboard
 
-**USER JOURNEY FLOW:**
-4.0 Team Workload Dashboard → [click Bulk Assign] → Pu.3 Bulk Assignment Modal → [complete assignments] → 4.0 Team Workload Dashboard (updated)
+#### User Journey Flow:
+3.1 Enhanced Project Workspace → [use project switcher] → 3.1 Enhanced Project Workspace (different project) → [click multi-project view] → 4.0 Multi-Project Dashboard
 
 ---
 
-## Scenario 3: Progress Tracking and Reporting
+## Scenario 3: Team Collaboration and Communication
 
-**Scenario Context:**
-Lisa, a project manager, needs to prepare for a weekly stakeholder meeting. She requires comprehensive project progress data, team performance metrics, and identification of potential risks or blockers that need attention.
+**Scenario Description:**  
+Jenna, a team lead, needs to facilitate effective collaboration among her distributed team of 8 members across 3 time zones. She must ensure clear communication, track individual contributions, and maintain team alignment on project goals and deadlines.
 
-### Workflow Variation 3A: Executive Summary Report Generation
+### Workflow Variation 3A: Communication-First Collaboration
 
-**User Goal:** Generate comprehensive project status report for stakeholder communication
-**Business Goal:** Improve project transparency and stakeholder confidence through clear reporting
+**User Goal:** Maintain clear team communication and ensure all members stay informed and aligned  
+**Business Goal:** Increase team productivity and reduce project delays through improved collaboration
 
 #### Screen Flow:
 
-**5.0 Analytics Dashboard [type: primary]**
+**5.0 Team Communication Hub [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive project analytics and reporting tools
+- Page Goal: Centralize team communication and provide collaboration tools
 - Screen Description:
-  1. Project progress overview with key metrics
-  2. Team performance indicators and trends
-  3. Timeline adherence tracking
-  4. Budget and resource utilization data
-  5. Risk and blocker identification
-  6. Custom report generation tools
+  1. Activity feed showing recent team actions and updates
+  2. Direct messaging interface with team members
+  3. Project-specific discussion threads
+  4. Announcement section for important updates
+  5. File sharing area with version control
+  6. Video call integration for quick meetings
 - Design Problems:
-  - HMW present complex data in digestible formats for different audiences?
-  - HMW identify actionable insights from project data?
-  - HMW balance comprehensive reporting with focused key metrics?
+  - HMW organize communication without creating information silos?
+  - HMW ensure important messages don't get lost in activity streams?
+  - HMW accommodate different communication preferences across team members?
 - Design Opportunities:
-  - What if we could generate narrative summaries from data automatically?
-  - What if we provided predictive analytics for project outcomes?
-  - What if we could customize reports based on stakeholder roles?
+  - What if we could automatically summarize key decisions from conversations?
+  - What if we provided smart notifications based on relevance and urgency?
+  - What if we offered real-time language translation for global teams?
 
-**Pu.4 Report Builder Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Generate Report" button on Analytics Dashboard
+**5.0-D Thread Detail View [type: detail]**
+- HOW IT IS REACHED: Clicking on discussion thread in Team Communication Hub
 - NAVBAR PRESENCE: No
-- Page Goal: Enable creation of customized reports for different stakeholder needs
+- Page Goal: Provide focused discussion environment with context preservation
 - Screen Description:
-  1. Report template selection (Executive, Detailed, Team-focused)
-  2. Date range and project scope selection
-  3. Metric and visualization customization
-  4. Stakeholder audience targeting
-  5. Export format options (PDF, PowerPoint, Email)
-  6. Automated report scheduling
+  1. Full conversation thread with message history
+  2. Related task and project context sidebar
+  3. File attachments and shared resources
+  4. Action items extraction from conversation
+  5. "Back to Hub" navigation with unread indicators
 - Design Problems:
-  - HMW make report customization accessible to non-technical users?
-  - HMW ensure reports contain relevant information for each audience?
-  - HMW maintain report consistency while allowing customization?
+  - HMW maintain conversation context while enabling deep discussion?
+  - HMW help users track action items that emerge from discussions?
+  - HMW prevent important decisions from being buried in long threads?
 - Design Opportunities:
-  - What if we could suggest report content based on meeting type?
-  - What if we provided real-time collaborative report editing?
-  - What if we could learn from report usage to improve templates?
+  - What if we could automatically create tasks from discussion action items?
+  - What if we provided conversation summaries for team members who join late?
+  - What if we offered smart search across all team communications?
 
-### Workflow Variation 3B: Real-time Progress Monitoring
+**Pu.5 Quick Message Composer [type: modal]**
+- HOW IT IS REACHED: Clicking "Send Message" CTA button in Team Communication Hub
+- NAVBAR PRESENCE: No
+- Page Goal: Enable rapid message composition with appropriate context and recipients
+- Screen Description:
+  1. Recipient selection with team member search
+  2. Message composition with rich text formatting
+  3. Project and task context linking
+  4. Urgency level selection
+  5. "Send Now" and "Schedule Send" options
+- Design Problems:
+  - HMW help users select appropriate recipients for messages?
+  - HMW provide necessary context without cluttering the interface?
+  - HMW respect team members' time zones and availability?
+- Design Opportunities:
+  - What if we suggested recipients based on message content and project involvement?
+  - What if we provided optimal send time recommendations?
+  - What if we offered message templates for common communication patterns?
 
-**User Goal:** Monitor project progress continuously and respond to issues immediately
-**Business Goal:** Reduce project delays through proactive issue identification and resolution
+#### Navigation Structure:
+5.0 Team Communication Hub | 3.0 Project Workspace | 6.0 Team Performance Dashboard
+
+#### User Journey Flow:
+5.0 Team Communication Hub → [click discussion thread] → 5.0-D Thread Detail View → [click Send Message] → Pu.5 Quick Message Composer → [send message] → 5.0 Team Communication Hub (updated with new message)
+
+### Workflow Variation 3B: Task-Centric Collaboration
+
+**User Goal:** Collaborate effectively through task-focused interactions and shared accountability  
+**Business Goal:** Improve project delivery through enhanced task-level collaboration
 
 #### Screen Flow:
 
-**5.1 Live Monitoring Dashboard [type: primary]**
+**6.0 Team Performance Dashboard [type: primary]**
 - HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide real-time project monitoring with alert systems
+- Page Goal: Provide team performance insights and collaboration opportunities
 - Screen Description:
-  1. Live project status indicators
-  2. Real-time team activity feed
-  3. Automated alert system for risks and blockers
-  4. Quick action buttons for common interventions
-  5. Communication tools for immediate team coordination
-  6. Escalation pathways for critical issues
+  1. Individual team member performance metrics
+  2. Collaborative task indicators (shared assignments, dependencies)
+  3. Team velocity and productivity trends
+  4. Workload distribution visualization
+  5. Recognition and feedback system
+  6. Team goals and milestone tracking
 - Design Problems:
-  - HMW provide real-time information without overwhelming users?
-  - HMW prioritize alerts and notifications effectively?
-  - HMW enable quick response to emerging issues?
+  - HMW present performance data without creating competitive pressure?
+  - HMW encourage collaboration while maintaining individual accountability?
+  - HMW help team leads identify when team members need support?
 - Design Opportunities:
-  - What if we could predict issues before they become critical?
-  - What if we provided automated resolution suggestions?
-  - What if we could learn from successful intervention patterns?
+  - What if we gamified team collaboration achievements?
+  - What if we provided peer recognition and feedback mechanisms?
+  - What if we offered team building suggestions based on collaboration patterns?
 
-**NAVIGATION STRUCTURE:**
-5.0 Analytics Dashboard | 5.1 Live Monitoring Dashboard
+**6.0-D Individual Performance View [type: detail]**
+- HOW IT IS REACHED: Clicking on team member card in Team Performance Dashboard
+- NAVBAR PRESENCE: No
+- Page Goal: Provide detailed individual performance analysis with support opportunities
+- Screen Description:
+  1. Individual task completion history and patterns
+  2. Collaboration frequency and quality metrics
+  3. Skill development and learning opportunities
+  4. Workload analysis and capacity planning
+  5. Feedback and recognition history
+- Design Problems:
+  - HMW provide constructive performance insights without being invasive?
+  - HMW help team leads support individual growth and development?
+  - HMW balance individual privacy with team transparency needs?
+- Design Opportunities:
+  - What if we provided personalized development recommendations?
+  - What if we suggested optimal task assignments based on individual strengths?
+  - What if we offered mentoring and skill-sharing opportunities?
 
-**USER JOURNEY FLOW:**
-5.0 Analytics Dashboard → [click Generate Report] → Pu.4 Report Builder Modal → [configure report] → 5.0 Analytics Dashboard (with generated report)
+#### Navigation Structure:
+6.0 Team Performance Dashboard | 5.0 Team Communication Hub | 3.0 Project Workspace
+
+#### User Journey Flow:
+6.0 Team Performance Dashboard → [click team member] → 6.0-D Individual Performance View → [identify support need] → 5.0 Team Communication Hub → [send supportive message] → 3.0 Project Workspace (to adjust task assignments)
 
 ---
 
 ## Scenario 4: Settings and Account Management
 
-**Scenario Context:**
-David, an IT administrator, needs to configure team settings, manage user permissions, set up integrations with existing company tools, and ensure the platform meets security and compliance requirements.
+**Scenario Description:**  
+Alex, a user with accessibility needs, wants to customize the platform interface to better suit their requirements including high contrast mode, keyboard navigation preferences, and notification settings. They also need to manage their account security and integration preferences.
 
-### Workflow Variation 4A: Comprehensive Admin Configuration
+### Workflow Variation 4A: Comprehensive Settings Management
 
-**User Goal:** Configure all platform settings to meet organizational requirements and policies
-**Business Goal:** Ensure platform adoption through proper integration with existing workflows and security compliance
+**User Goal:** Customize platform experience to meet personal accessibility and workflow needs  
+**Business Goal:** Ensure platform accessibility and user satisfaction through comprehensive customization options
 
 #### Screen Flow:
 
-**6.0 Settings [type: settings]**
-- HOW IT IS REACHED: Clicking settings icon in top navigation
+**7.0 Settings Hub [type: settings]**
+- HOW IT IS REACHED: Clicking settings icon in navigation header
 - NAVBAR PRESENCE: No
-- Page Goal: Provide comprehensive configuration options organized by category
+- Page Goal: Provide comprehensive settings management with clear organization
 - Screen Description:
-  1. **Account Settings Section:**
-     - Company profile and branding
-     - Billing and subscription management
-     - Data export and backup options
-  2. **User Management Section:**
-     - Team member roles and permissions
-     - User provisioning and deprovisioning
-     - Single sign-on configuration
-  3. **Integration Settings Section:**
-     - Third-party tool connections (Slack, Email, Calendar)
-     - API access and webhook configuration
-     - Data synchronization preferences
-  4. **Security & Compliance Section:**
-     - Two-factor authentication requirements
-     - Data retention policies
-     - Audit log access
-  5. **Notification Preferences Section:**
-     - Email notification settings
-     - In-app notification preferences
-     - Mobile push notification controls
-  6. **Accessibility Options Section:**
-     - Screen reader compatibility toggle
-     - High contrast mode toggle
-     - Keyboard navigation preferences
-     - Font size and display options
+  1. **Accessibility Section:**
+     - High Contrast Mode toggle (ON/OFF)
+     - Screen Reader Support toggle (ON/OFF)
+     - Keyboard Navigation Preferences
+     - Font Size Adjustment (Small/Medium/Large/Extra Large)
+     - Motion Reduction toggle (ON/OFF)
+     - Focus Indicator Style selection
+  2. **Notification Preferences:**
+     - Email Notifications toggle (ON/OFF)
+     - Push Notifications toggle (ON/OFF)
+     - Notification Frequency (Immediate/Daily Digest/Weekly Summary)
+     - Project-specific notification settings
+  3. **Display Options:**
+     - Theme Selection (Light/Dark/Auto)
+     - Language Preferences
+     - Time Zone Settings
+     - Date Format Preferences
+  4. **Account Security:**
+     - Password Change
+     - Two-Factor Authentication toggle (ON/OFF)
+     - Active Sessions Management
+     - Login History
+  5. **Integration Settings:**
+     - Connected Apps Management
+     - API Key Generation
+     - Data Export Options
+     - Sync Preferences
 - Design Problems:
-  - HMW organize complex settings without overwhelming administrators?
-  - HMW ensure critical security settings are properly configured?
-  - HMW provide clear guidance for complex configuration options?
+  - HMW organize extensive settings without overwhelming users?
+  - HMW ensure accessibility settings are discoverable and effective?
+  - HMW provide clear feedback when settings changes are applied?
 - Design Opportunities:
-  - What if we could provide configuration wizards for common setups?
-  - What if we offered compliance templates for different industries?
-  - What if we could validate configurations against best practices?
+  - What if we provided settings recommendations based on user behavior?
+  - What if we offered guided accessibility setup for users with specific needs?
+  - What if we allowed settings profiles for different work contexts?
 
-### Workflow Variation 4B: Quick User Permission Updates
+#### Navigation Structure:
+Settings accessed via header icon, not sidebar navigation
 
-**User Goal:** Quickly update user permissions and access levels for team changes
-**Business Goal:** Maintain security while enabling flexible team management
+#### User Journey Flow:
+[Any screen] → [click settings icon] → 7.0 Settings Hub → [adjust accessibility settings] → [save changes] → [return to previous screen with new settings applied]
+
+### Workflow Variation 4B: Quick Settings Access
+
+**User Goal:** Rapidly adjust frequently-used settings without navigating away from current work  
+**Business Goal:** Reduce friction in settings adjustment to improve user experience
 
 #### Screen Flow:
 
-**6.1 User Management Interface [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item (admin users only)
-- NAVBAR PRESENCE: Yes
-- Page Goal: Enable efficient user permission management with bulk operations
+**Pu.6 Quick Settings Panel [type: modal]**
+- HOW IT IS REACHED: Keyboard shortcut (Ctrl+,) or quick settings button
+- NAVBAR PRESENCE: No
+- Page Goal: Provide immediate access to most commonly adjusted settings
 - Screen Description:
-  1. User list with current permission levels
-  2. Bulk permission update tools
-  3. Role template application
-  4. Access audit trail
-  5. Pending invitation management
-  6. Deactivation and data transfer tools
+  1. Theme toggle (Light/Dark)
+  2. High Contrast toggle
+  3. Notification pause (1hr/4hr/8hr/Until tomorrow)
+  4. Focus mode toggle
+  5. "More Settings" link to full Settings Hub
 - Design Problems:
-  - HMW make permission management intuitive for non-technical admins?
-  - HMW prevent accidental permission escalation or removal?
-  - HMW provide clear audit trails for compliance?
+  - HMW determine which settings deserve quick access?
+  - HMW maintain consistency between quick settings and full settings?
+  - HMW provide quick access without cluttering the interface?
 - Design Opportunities:
-  - What if we could suggest permission levels based on user roles?
-  - What if we provided permission impact previews before changes?
-  - What if we could automate permission updates based on organizational changes?
+  - What if quick settings adapted based on user's most frequent adjustments?
+  - What if we provided contextual settings based on current activity?
+  - What if we offered voice-controlled settings adjustment?
 
-**NAVIGATION STRUCTURE:**
-6.1 User Management Interface
+#### Navigation Structure:
+Quick settings accessed via keyboard shortcut or floating button
 
-**USER JOURNEY FLOW:**
-6.1 User Management Interface → [click settings icon] → 6.0 Settings → [configure options] → 6.1 User Management Interface
+#### User Journey Flow:
+[Any screen] → [Ctrl+, or click quick settings] → Pu.6 Quick Settings Panel → [adjust setting] → [close panel] → [continue work with new settings applied]
 
 ---
 
 ## Error States and Edge Cases
 
+### Error State Documentation:
+
 **Er.1 Network Connection Error [type: state]**
-- Condition of any screen when network connectivity is lost
-- Shows offline mode options and data sync status
-- Provides clear reconnection guidance
+- Condition: Loss of internet connectivity during platform use
+- Display: Prominent banner with retry options and offline mode explanation
+- User Actions: Retry connection, continue in offline mode, save work locally
 
-**Er.2 Data Loading Failure [type: state]**
-- Condition when server requests fail or timeout
-- Offers retry options and alternative data views
-- Maintains user context for seamless recovery
+**Er.2 Project Load Failure [type: state]**
+- Condition: Project data fails to load due to server issues or permissions
+- Display: Error message with troubleshooting steps and support contact
+- User Actions: Refresh page, check permissions, contact support
 
-**Er.3 Permission Denied Access [type: state]**
-- Condition when users attempt unauthorized actions
-- Provides clear explanation and alternative options
-- Includes contact information for access requests
+**Er.3 Task Creation Failure [type: state]**
+- Condition: Task fails to save due to validation errors or server issues
+- Display: Inline error messages with specific field guidance
+- User Actions: Correct validation errors, retry save, save as draft
 
-**Er.4 Empty Project State [type: state]**
-- Condition of Task Management Dashboard with no tasks
-- Provides guided task creation options
-- Shows helpful tips and template suggestions
+**Er.4 Team Member Access Denied [type: state]**
+- Condition: User attempts to access team member information without permissions
+- Display: Permission denied message with request access option
+- User Actions: Request access, contact team admin, return to previous screen
 
-**Er.5 Search No Results [type: state]**
-- Condition when search queries return no matches
-- Offers search refinement suggestions
-- Provides alternative discovery methods
+**Er.5 File Upload Failure [type: state]**
+- Condition: File upload fails due to size, format, or connection issues
+- Display: Upload progress with error indication and retry options
+- User Actions: Retry upload, check file format, reduce file size
 
 ---
 
@@ -465,38 +565,39 @@ David, an IT administrator, needs to configure team settings, manage user permis
 
 **Keyboard Navigation:**
 - All primary screens support full keyboard navigation with logical tab order
-- Skip links provided for main content areas
-- Keyboard shortcuts available for common actions (Ctrl+N for new task, Ctrl+S for save)
-- Focus indicators clearly visible with 2px solid border in brand color
+- Tab order: Header navigation → Main content → Sidebar → Footer
+- Skip links provided for main content and navigation sections
+- Custom keyboard shortcuts: Ctrl+/ (help), Ctrl+, (quick settings), Ctrl+K (search)
 
 **ARIA Labels and Landmarks:**
-- Main navigation marked with role="navigation" and aria-label="Main navigation"
-- Content areas use appropriate landmark roles (main, aside, complementary)
-- Interactive elements have descriptive aria-labels
-- Form fields include aria-describedby for help text and error messages
+- Navigation regions marked with role="navigation" and aria-label
+- Main content areas use role="main"
+- Form sections include fieldset and legend elements
+- Dynamic content updates announced via aria-live regions
+- Interactive elements include descriptive aria-labels
 
 **Screen Reader Announcements:**
-- Page changes announced with updated page titles
-- Dynamic content updates announced via aria-live regions
+- Page navigation changes announced with new page title
 - Form validation errors announced immediately
-- Progress indicators include text alternatives
+- Task completion and project updates announced in real-time
+- Loading states communicated through aria-live="polite" regions
 
 **High Contrast Mode:**
-- Toggled via Settings screen under Accessibility Options
-- Applies as CSS class site-wide with WCAG AA compliant color ratios
-- Maintains brand recognition while ensuring readability
-- All interactive elements remain clearly distinguishable
+- Toggled via Settings Hub, applies CSS class site-wide
+- Maintains 4.5:1 contrast ratio minimum for all text
+- Focus indicators enhanced with high contrast borders
+- Interactive elements clearly distinguished from static content
 
 **Focus Indicators:**
-- 2px solid outline in primary brand color (#007ACC)
-- Visible on all interactive elements including custom components
-- Maintains visibility in both light and dark themes
-- Never removed or hidden via CSS
+- 2px solid blue outline for keyboard focus
+- Enhanced visibility in high contrast mode
+- Custom focus styles for complex components (cards, modals)
+- Focus trap implementation for modal dialogs
 
 **Minimum Touch Targets:**
-- All interactive elements minimum 44px × 44px
-- Adequate spacing between adjacent clickable elements
-- Mobile-optimized touch targets for gesture-based interactions
+- 44px minimum for all interactive elements
+- Adequate spacing between adjacent clickable items
+- Touch-friendly sizing maintained across all viewport sizes
 
 ---
 
@@ -504,9 +605,9 @@ David, an IT administrator, needs to configure team settings, manage user permis
 
 **Desktop (1024px+):**
 - Full sidebar navigation with expanded labels
-- Multi-column layouts for dashboard widgets
+- Multi-column layouts for dashboard views
 - Hover states and tooltips for enhanced interaction
-- Keyboard shortcuts prominently displayed
+- Drag-and-drop functionality fully enabled
 
 **Tablet (768px–1023px):**
 - Collapsible sidebar with icon-only navigation
@@ -515,22 +616,34 @@ David, an IT administrator, needs to configure team settings, manage user permis
 - Swipe gestures for navigation between sections
 
 **Mobile (320px–767px):**
-- Bottom tab navigation replacing sidebar
+- Bottom navigation bar replaces sidebar
 - Single-column layouts with vertical stacking
-- Full-screen modals instead of overlays
+- Full-screen modals replace drawer interfaces
+- Thumb-friendly navigation and interaction zones
 - Pull-to-refresh functionality on list views
-- Thumb-friendly button placement in bottom half of screen
 
 ---
 
-## Summary
+## Implementation Notes
 
-This user workflow documentation provides a comprehensive framework for a task management platform that balances user needs with business objectives. The systematic approach ensures:
+**Progressive Enhancement:**
+- Core functionality available without JavaScript
+- Enhanced interactions layer on top of basic functionality
+- Graceful degradation for older browsers
 
-1. **User-Centered Design:** Each scenario addresses specific user goals with clear context and motivation
-2. **Business Alignment:** Every workflow variation supports measurable business outcomes
-3. **Accessibility:** Universal design principles integrated throughout all experiences
-4. **Scalability:** Flexible architecture supporting growth and feature expansion
-5. **Comprehensive Coverage:** Multiple workflow variations accommodate different user preferences and expertise levels
+**Performance Considerations:**
+- Lazy loading for non-critical interface elements
+- Optimistic UI updates for immediate feedback
+- Efficient state management for real-time collaboration
 
-The documentation serves as a foundation for wireframe generation, development planning, and user testing validation, ensuring the final product delivers exceptional user experiences while meeting business requirements.
+**Internationalization:**
+- RTL language support with mirrored layouts
+- Flexible text expansion accommodation
+- Cultural considerations for date, time, and number formats
+
+**Security and Privacy:**
+- Secure authentication flows with clear privacy indicators
+- Granular permission controls for team collaboration
+- Data encryption and secure transmission protocols
+
+This comprehensive workflow documentation provides the foundation for creating accessible, scalable, and user-centered design solutions that balance individual user needs with business objectives while ensuring broad accessibility and future growth capabilities.
