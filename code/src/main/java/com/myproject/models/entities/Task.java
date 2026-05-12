@@ -1,45 +1,32 @@
 package com.myproject.models.entities;
 
-import com.myproject.models.dtos.TaskPriority;
-import com.myproject.models.dtos.TaskStatus;
-
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class Task {
 
-    private UUID id;
-    private String userId;
+    private Long id;
+    private Long userId;
     private String title;
     private String description;
-    private TaskPriority priority;
     private TaskStatus status;
+    private TaskPriority priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private LocalDateTime dueDate;
     private Long version;
 
-    public Task() {
-        this.id = UUID.randomUUID();
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-        this.version = 0L;
-        this.status = TaskStatus.PENDING;
-    }
-
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
@@ -59,20 +46,20 @@ public class Task {
         this.description = description;
     }
 
-    public TaskPriority getPriority() {
-        return priority;
-    }
-
-    public void setPriority(TaskPriority priority) {
-        this.priority = priority;
-    }
-
     public TaskStatus getStatus() {
         return status;
     }
 
     public void setStatus(TaskStatus status) {
         this.status = status;
+    }
+
+    public TaskPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TaskPriority priority) {
+        this.priority = priority;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -89,14 +76,6 @@ public class Task {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public LocalDateTime getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDateTime dueDate) {
-        this.dueDate = dueDate;
     }
 
     public Long getVersion() {
