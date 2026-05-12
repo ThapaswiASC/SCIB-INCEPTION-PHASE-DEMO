@@ -22,6 +22,16 @@ public class TaskCreateRequest {
     @Future(message = "Due date must be in the future")
     private LocalDateTime dueDate;
 
+    public TaskCreateRequest() {
+    }
+
+    public TaskCreateRequest(String title, String description, Long userId, TaskPriority priority, LocalDateTime dueDate) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.dueDate = dueDate;
+    }
+
     public String getTitle() {
         return title;
     }
