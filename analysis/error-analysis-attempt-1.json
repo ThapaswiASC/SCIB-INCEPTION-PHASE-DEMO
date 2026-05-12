@@ -1,91 +1,107 @@
 {
-  "executive_summary": "Maven compilation failed with 87 errors across multiple files. The root cause is missing Lombok annotations (@Data, @Builder) on entity and DTO classes, causing the compiler to not find generated getter/setter/builder methods. Additionally, there is a duplicate constructor definition and a missing interface method implementation.",
+  "executive_summary": "Maven build failed with 100 compilation errors across test files. Primary issues include missing service methods (getColumnStats, bulkUpdateColumnCounts, getTaskDetails), type incompatibilities between String and Long for IDs, and DTO method mismatches. These errors indicate incomplete implementation of service interfaces and DTOs that don't match the test expectations.",
   "attempt_number": 1,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-222",
   "log_file": "logs/build_failure_attempt-1.log",
-  "errors_found": 10,
+  "errors_found": 12,
   "errors": [
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/exceptions/ColumnNotFoundException.java",
-      "line": 9,
-      "message": "constructor ColumnNotFoundException(String) is already defined",
-      "root_cause": "Duplicate constructor definition in ColumnNotFoundException class. Lombok @AllArgsConstructor may be conflicting with manually defined constructor.",
-      "fix_recommendation": "Remove the duplicate constructor at line 9, or remove @AllArgsConstructor annotation if manually defining constructors."
+      "file": "code/src/test/java/com/myproject/controllers/ColumnControllerTest.java",
+      "line": 50,
+      "message": "cannot find symbol: method getColumnStats(java.lang.String)",
+      "root_cause": "ColumnService interface is missing the getColumnStats() method that tests are trying to call",
+      "fix_recommendation": "Add getColumnStats(String columnId) method to ColumnService interface and implement it in ColumnServiceImpl"
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/ErrorResponse.java",
-      "line": null,
-      "message": "cannot find symbol: method builder()",
-      "root_cause": "ErrorResponse class is missing @Builder annotation, causing 6 compilation errors in GlobalExceptionHandler where builder() method is called.",
-      "fix_recommendation": "Add @Builder annotation to ErrorResponse class. Ensure @Data or @Getter/@Setter annotations are also present."
+      "file": "code/src/test/java/com/myproject/controllers/ColumnControllerTest.java",
+      "line": 149,
+      "message": "cannot find symbol: method bulkUpdateColumnCounts(BulkUpdateColumnCountsRequest)",
+      "root_cause": "ColumnService interface is missing the bulkUpdateColumnCounts() method",
+      "fix_recommendation": "Add bulkUpdateColumnCounts(BulkUpdateColumnCountsRequest request) method to ColumnService interface and implement it in ColumnServiceImpl"
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/entities/Task.java",
-      "line": null,
-      "message": "cannot find symbol: methods getId(), setId(), getTitle(), getStatus(), getUserId(), getCreatedAt(), getUpdatedAt(), setUpdatedAt(), etc.",
-      "root_cause": "Task entity class is missing @Data or @Getter/@Setter annotations. This causes 50+ compilation errors across InMemoryTaskDataStore, TaskDataStoreImpl, and TaskServiceImpl where getter/setter methods are called.",
-      "fix_recommendation": "Add @Data annotation to Task entity class. Also add @Builder annotation if builder pattern is used. Verify all required fields have appropriate access modifiers."
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 51,
+      "message": "incompatible types: inference variable T has incompatible bounds (upper: Long, lower: String)",
+      "root_cause": "Task ID type mismatch - tests use String but service expects Long",
+      "fix_recommendation": "Update Task entity and related DTOs to use Long for ID fields consistently, or update tests to use String if that's the intended design"
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/datastores/InMemoryTaskDataStore.java",
-      "line": 13,
-      "message": "does not override abstract method countByColumnId(String) in TaskDataStore",
-      "root_cause": "InMemoryTaskDataStore does not implement the countByColumnId() method required by TaskDataStore interface.",
-      "fix_recommendation": "Add implementation for countByColumnId(String columnId) method in InMemoryTaskDataStore class. Return the count of tasks matching the given columnId."
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 144,
+      "message": "incompatible types: java.lang.String cannot be converted to java.lang.Long",
+      "root_cause": "Task ID type mismatch in test setup",
+      "fix_recommendation": "Change task ID from String to Long in test data setup or update Task entity to use String IDs"
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/ColumnTaskCountResponse.java",
-      "line": null,
-      "message": "cannot find symbol: method builder()",
-      "root_cause": "ColumnTaskCountResponse class is missing @Builder annotation, causing compilation error in ColumnServiceImpl.",
-      "fix_recommendation": "Add @Builder annotation to ColumnTaskCountResponse class."
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 146,
+      "message": "incompatible types: TaskStatus cannot be converted to java.lang.String",
+      "root_cause": "TaskStatus enum is being used where String is expected in DTO",
+      "fix_recommendation": "Update TaskDetailsResponse to accept TaskStatus enum instead of String, or convert enum to String in the response builder"
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/TaskStatusUpdateResponse.java",
-      "line": null,
-      "message": "cannot find symbol: method builder()",
-      "root_cause": "TaskStatusUpdateResponse class is missing @Builder annotation.",
-      "fix_recommendation": "Add @Builder annotation to TaskStatusUpdateResponse class."
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 147,
+      "message": "cannot find symbol: method setColumnId(java.lang.String)",
+      "root_cause": "TaskDetailsResponse DTO is missing setColumnId() method",
+      "fix_recommendation": "Add setColumnId(String columnId) method to TaskDetailsResponse DTO or use builder pattern with columnId field"
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/TaskDetailsResponse.java",
-      "line": null,
-      "message": "cannot find symbol: method builder()",
-      "root_cause": "TaskDetailsResponse class is missing @Builder annotation.",
-      "fix_recommendation": "Add @Builder annotation to TaskDetailsResponse class."
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 149,
+      "message": "cannot find symbol: method getTaskDetails(java.lang.String)",
+      "root_cause": "TaskService interface is missing getTaskDetails() method",
+      "fix_recommendation": "Add getTaskDetails(String taskId) method to TaskService interface and implement it in TaskServiceImpl"
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/TaskSummary.java",
-      "line": null,
-      "message": "cannot find symbol: method builder()",
-      "root_cause": "TaskSummary class is missing @Builder annotation.",
-      "fix_recommendation": "Add @Builder annotation to TaskSummary class."
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 184,
+      "message": "incompatible types: TaskPriority cannot be converted to TaskCreateRequest.TaskPriority",
+      "root_cause": "Enum type mismatch - TaskPriority exists in two different locations",
+      "fix_recommendation": "Consolidate TaskPriority enum into a single shared location (e.g., models/enums) and remove duplicate from TaskCreateRequest"
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/ValidateTaskMoveResponse.java",
-      "line": null,
-      "message": "cannot find symbol: method builder()",
-      "root_cause": "ValidateTaskMoveResponse class is missing @Builder annotation.",
-      "fix_recommendation": "Add @Builder annotation to ValidateTaskMoveResponse class."
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 196,
+      "message": "cannot find symbol: method setVersion(long)",
+      "root_cause": "TaskResponse DTO is missing setVersion() method",
+      "fix_recommendation": "Add setVersion(long version) method to TaskResponse DTO or include version field in builder pattern"
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/main/java/com/myproject/models/dtos/TaskCreateRequest.java",
-      "line": null,
-      "message": "cannot find symbol: methods getUserId(), getTitle(), getDescription(), getPriority(), getDueDate()",
-      "root_cause": "TaskCreateRequest, TaskUpdateRequest, TaskStatusUpdateRequest, and ValidateTaskMoveRequest classes are missing @Data or @Getter annotations.",
-      "fix_recommendation": "Add @Data annotation to all request DTO classes: TaskCreateRequest, TaskUpdateRequest, TaskStatusUpdateRequest, and ValidateTaskMoveRequest."
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 286,
+      "message": "cannot find symbol: method setLast(boolean)",
+      "root_cause": "PagedTaskResponse DTO is missing setLast() method for pagination",
+      "fix_recommendation": "Add setLast(boolean last) method to PagedTaskResponse DTO to indicate last page in pagination"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 288,
+      "message": "method getUserTasks cannot be applied to given types (required: Long,int,int found: Long,int,int,String)",
+      "root_cause": "getUserTasks() method signature mismatch - tests pass 4 parameters but method accepts only 3",
+      "fix_recommendation": "Add status filter parameter to getUserTasks(Long userId, int page, int size, String status) method in TaskService interface"
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 516,
+      "message": "cannot find symbol: method setCreatedTasks(List<TaskResponse>)",
+      "root_cause": "BulkTaskResponse DTO is missing setCreatedTasks() method",
+      "fix_recommendation": "Add setCreatedTasks(List<TaskResponse> tasks) method to BulkTaskResponse DTO or use builder pattern with createdTasks field"
     }
   ],
-  "summary": "10 grouped errors found (87 individual compilation errors)"
+  "summary": "12 grouped compilation errors found across test files"
 }
