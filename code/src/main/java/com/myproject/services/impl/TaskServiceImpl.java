@@ -1,16 +1,18 @@
 package com.myproject.services.impl;
 
-import com.myproject.exceptions.TaskNotFoundException;
-import com.myproject.models.datastores.TaskRepository;
+import com.myproject.exceptions.BusinessException;
+import com.myproject.exceptions.ResourceNotFoundException;
+import com.myproject.models.datastores.TaskDataStore;
+import com.myproject.models.datastores.UserDataStore;
 import com.myproject.models.dtos.*;
 import com.myproject.models.entities.Task;
+import com.myproject.models.entities.User;
+import com.myproject.services.interfaces.ColumnService;
 import com.myproject.services.interfaces.TaskService;
-import com.myproject.services.interfaces.ValidationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,179 +20,198 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
+@Slf4j
 public class TaskServiceImpl implements TaskService {
-
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private ValidationService validationService;
+    private final TaskDataStore taskDataStore;
+    private final UserDataStore userDataStore;
+    private final ColumnService columnService;
+    private static final int MAX_TASKS_PER_USER = 10000;
 
     @Override
     public TaskResponse createTask(TaskCreateRequest request) {
-        validationService.validateTaskInput(request);
-        validationService.validateTaskLimit(request.getUserId());
-
-        Task task = new Task();
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setUserId(request.getUserId());
-        task.setPriority(request.getPriority());
-        task.setStatus("PENDING");
-
-        Task savedTask = taskRepository.save(task);
+        log.debug("Creating task for user: {}", request.getUserId());
+        
+        // Validate user exists
+        User user = userDataStore.findById(request.getUserId())
+                .orElseGet(() -> createDefaultUser(request.getUserId()));
+        
+        // Check task limit
+        Long currentTaskCount = taskDataStore.countByUserId(request.getUserId());
+        if (currentTaskCount >= MAX_TASKS_PER_USER) {
+            throw new BusinessException(
+                    "User cannot have more than " + MAX_TASKS_PER_USER + " tasks",
+                    "TASK_LIMIT_EXCEEDED",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+        
+        Task task = Task.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .userId(request.getUserId())
+                .priority(request.getPriority().name())
+                .status("PENDING")
+                .dueDate(request.getDueDate())
+                .build();
+        
+        Task savedTask = taskDataStore.save(task);
+        userDataStore.incrementTaskCount(request.getUserId());
+        
+        log.info("Task created successfully with ID: {}", savedTask.getId());
         return mapToResponse(savedTask);
     }
 
     @Override
-    public TaskResponse updateTask(Long id, TaskUpdateRequest request) {
-        validationService.validateTaskUpdate(request);
+    public TaskResponse getTaskById(Long taskId) {
+        Task task = taskDataStore.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task", "id", taskId));
+        return mapToResponse(task);
+    }
 
-        Task task = taskRepository.findById(id)
-            .orElseThrow(() -> new TaskNotFoundException(id));
+    @Override
+    public PagedTaskResponse getUserTasks(Long userId, int page, int size) {
+        List<Task> tasks = taskDataStore.findByUserId(userId, page, size);
+        Long totalElements = taskDataStore.countByUserId(userId);
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        
+        return PagedTaskResponse.builder()
+                .content(tasks.stream().map(this::mapToResponse).collect(Collectors.toList()))
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .currentPage(page)
+                .pageSize(size)
+                .build();
+    }
 
+    @Override
+    public TaskCountResponse getTaskCount(Long userId) {
+        Long count = taskDataStore.countByUserId(userId);
+        return TaskCountResponse.builder()
+                .userId(userId)
+                .taskCount(count)
+                .build();
+    }
+
+    @Override
+    public TaskResponse updateTask(Long taskId, TaskUpdateRequest request) {
+        Task task = taskDataStore.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task", "id", taskId));
+        
         if (request.getTitle() != null) {
             task.setTitle(request.getTitle());
         }
         if (request.getDescription() != null) {
             task.setDescription(request.getDescription());
         }
-        if (request.getStatus() != null) {
-            validationService.validateStatusTransition(task.getStatus(), request.getStatus());
-            task.setStatus(request.getStatus());
-        }
         if (request.getPriority() != null) {
-            task.setPriority(request.getPriority());
+            task.setPriority(request.getPriority().name());
         }
-
-        Task updatedTask = taskRepository.save(task);
+        if (request.getStatus() != null) {
+            task.setStatus(request.getStatus().name());
+        }
+        if (request.getDueDate() != null) {
+            task.setDueDate(request.getDueDate());
+        }
+        
+        Task updatedTask = taskDataStore.save(task);
+        log.info("Task updated successfully: {}", taskId);
         return mapToResponse(updatedTask);
     }
 
     @Override
-    public TaskResponse getTaskById(Long id) {
-        Task task = taskRepository.findById(id)
-            .orElseThrow(() -> new TaskNotFoundException(id));
-        return mapToResponse(task);
-    }
-
-    @Override
-    public List<TaskResponse> getAllTasks() {
-        return taskRepository.findAll().stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
-    }
-
-    @Override
-    public void deleteTask(Long id) {
-        if (!taskRepository.existsById(id)) {
-            throw new TaskNotFoundException(id);
-        }
-        taskRepository.deleteById(id);
-    }
-
-    @Override
-    public PagedTaskResponse getUserTasks(Long userId, Pageable pageable) {
-        Page<Task> taskPage = taskRepository.findByUserId(userId, pageable);
-
-        PagedTaskResponse response = new PagedTaskResponse();
-        response.setContent(taskPage.getContent().stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList()));
-        response.setTotalElements(taskPage.getTotalElements());
-        response.setTotalPages(taskPage.getTotalPages());
-        response.setCurrentPage(taskPage.getNumber());
-        response.setPageSize(taskPage.getSize());
-
-        return response;
-    }
-
-    @Override
-    public TaskCountResponse getTaskCount(Long userId) {
-        Long count = taskRepository.countTasksByUserId(userId);
-        TaskCountResponse response = new TaskCountResponse();
-        response.setUserId(userId);
-        response.setTaskCount(count);
-        return response;
+    public void deleteTask(Long taskId) {
+        Task task = taskDataStore.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task", "id", taskId));
+        
+        taskDataStore.deleteById(taskId);
+        userDataStore.decrementTaskCount(task.getUserId());
+        log.info("Task deleted successfully: {}", taskId);
     }
 
     @Override
     public BulkTaskResponse bulkCreateTasks(List<TaskCreateRequest> requests) {
-        BulkTaskResponse response = new BulkTaskResponse();
         List<TaskResponse> createdTasks = new ArrayList<>();
         List<BulkTaskResponse.BulkError> errors = new ArrayList<>();
-        int successCount = 0;
-        int failureCount = 0;
-
+        
         for (int i = 0; i < requests.size(); i++) {
             try {
-                TaskCreateRequest request = requests.get(i);
-                TaskResponse taskResponse = createTask(request);
-                createdTasks.add(taskResponse);
-                successCount++;
+                TaskResponse response = createTask(requests.get(i));
+                createdTasks.add(response);
             } catch (Exception e) {
-                BulkTaskResponse.BulkError error = new BulkTaskResponse.BulkError();
-                error.setIndex(i);
-                error.setMessage(e.getMessage());
-                errors.add(error);
-                failureCount++;
+                errors.add(BulkTaskResponse.BulkError.builder()
+                        .index(i)
+                        .message(e.getMessage())
+                        .build());
             }
         }
-
-        response.setSuccessCount(successCount);
-        response.setFailureCount(failureCount);
-        response.setCreatedTasks(createdTasks);
-        response.setErrors(errors);
-
-        return response;
+        
+        return BulkTaskResponse.builder()
+                .successCount(createdTasks.size())
+                .failureCount(errors.size())
+                .createdTasks(createdTasks)
+                .errors(errors)
+                .build();
     }
 
     @Override
-    public UpdateTaskStatusResponse updateTaskStatus(String taskId, UpdateTaskStatusRequest request) {
+    public TaskStatusUpdateResponse updateTaskStatus(String taskId, TaskStatusUpdateRequest request) {
         Long id = Long.parseLong(taskId);
-        Task task = taskRepository.findById(id)
-            .orElseThrow(() -> new TaskNotFoundException(taskId));
-
-        validationService.validateStatusTransition(task.getStatus(), request.getStatus());
-
-        task.setStatus(request.getStatus());
+        Task task = taskDataStore.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task", "id", taskId));
+        
+        String oldColumnId = task.getColumnId();
+        task.setStatus(request.getStatus().name());
         task.setColumnId(request.getColumnId());
-        Task updatedTask = taskRepository.save(task);
-
-        UpdateTaskStatusResponse response = new UpdateTaskStatusResponse();
-        response.setTaskId(String.valueOf(updatedTask.getId()));
-        response.setStatus(updatedTask.getStatus());
-        response.setUpdatedAt(updatedTask.getUpdatedAt());
-
-        return response;
+        
+        Task updatedTask = taskDataStore.save(task);
+        
+        // Update column counts
+        if (oldColumnId != null && !oldColumnId.equals(request.getColumnId())) {
+            columnService.updateColumnCounts(oldColumnId, request.getColumnId());
+        }
+        
+        return TaskStatusUpdateResponse.builder()
+                .taskId(taskId)
+                .status(updatedTask.getStatus())
+                .updatedAt(updatedTask.getUpdatedAt())
+                .build();
     }
 
     @Override
     public TaskDetailsResponse getTaskDetails(String taskId) {
         Long id = Long.parseLong(taskId);
-        Task task = taskRepository.findById(id)
-            .orElseThrow(() -> new TaskNotFoundException(taskId));
-
-        TaskDetailsResponse response = new TaskDetailsResponse();
-        response.setTaskId(String.valueOf(task.getId()));
-        response.setTitle(task.getTitle());
-        response.setStatus(task.getStatus());
-        response.setColumnId(task.getColumnId());
-
-        return response;
+        Task task = taskDataStore.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Task", "id", taskId));
+        
+        return TaskDetailsResponse.builder()
+                .taskId(taskId)
+                .title(task.getTitle())
+                .status(task.getStatus())
+                .columnId(task.getColumnId())
+                .build();
     }
 
     private TaskResponse mapToResponse(Task task) {
-        TaskResponse response = new TaskResponse();
-        response.setId(task.getId());
-        response.setTitle(task.getTitle());
-        response.setDescription(task.getDescription());
-        response.setUserId(task.getUserId());
-        response.setStatus(task.getStatus());
-        response.setPriority(task.getPriority());
-        response.setCreatedAt(task.getCreatedAt());
-        response.setUpdatedAt(task.getUpdatedAt());
-        return response;
+        return TaskResponse.builder()
+                .id(task.getId())
+                .title(task.getTitle())
+                .description(task.getDescription())
+                .userId(task.getUserId())
+                .status(task.getStatus())
+                .priority(task.getPriority())
+                .createdAt(task.getCreatedAt())
+                .updatedAt(task.getUpdatedAt())
+                .build();
+    }
+
+    private User createDefaultUser(Long userId) {
+        User user = User.builder()
+                .id(userId)
+                .username("user" + userId)
+                .email("user" + userId + "@example.com")
+                .taskCount(0L)
+                .build();
+        return userDataStore.save(user);
     }
 }
