@@ -1,7 +1,7 @@
 package com.myproject.utils;
 
 import com.myproject.models.datastores.ColumnRepository;
-import com.myproject.models.entities.Column;
+import com.myproject.models.entities.BoardColumn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -25,7 +25,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createColumn(String id, String name, String boardId, int position) {
-        Column column = new Column();
+        BoardColumn column = new BoardColumn();
         column.setId(id);
         column.setName(name);
         column.setBoardId(boardId);

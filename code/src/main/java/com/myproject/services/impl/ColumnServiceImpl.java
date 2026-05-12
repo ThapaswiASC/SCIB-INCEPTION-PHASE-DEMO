@@ -1,11 +1,11 @@
 package com.myproject.services.impl;
 
-import com.myproject.exceptions.ResourceNotFoundException;
+import com.myproject.exceptions.ColumnNotFoundException;
 import com.myproject.models.datastores.ColumnDataStore;
 import com.myproject.models.dtos.BulkColumnUpdateRequest;
 import com.myproject.models.dtos.BulkColumnUpdateResponse;
 import com.myproject.models.dtos.ColumnStatsResponse;
-import com.myproject.models.entities.Column;
+import com.myproject.models.entities.BoardColumn;
 import com.myproject.services.interfaces.ColumnService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +23,8 @@ public class ColumnServiceImpl implements ColumnService {
 
     @Override
     public ColumnStatsResponse getColumnStats(String columnId) {
-        Column column = columnDataStore.findById(columnId)
-                .orElseGet(() -> createDefaultColumn(columnId));
+        BoardColumn column = columnDataStore.findById(columnId)
+                .orElseThrow(() -> new ColumnNotFoundException(columnId));
         
         return ColumnStatsResponse.builder()
                 .columnId(column.getId())
@@ -39,14 +39,15 @@ public class ColumnServiceImpl implements ColumnService {
         
         for (BulkColumnUpdateRequest.ColumnUpdate update : request.getUpdates()) {
             try {
-                Column column = columnDataStore.findById(update.getColumnId())
-                        .orElseGet(() -> createDefaultColumn(update.getColumnId()));
+                BoardColumn column = columnDataStore.findById(update.getColumnId())
+                        .orElseThrow(() -> new ColumnNotFoundException(update.getColumnId()));
                 
                 columnDataStore.incrementTaskCount(update.getColumnId(), update.getIncrement());
                 updatedColumns.add(update.getColumnId());
                 log.debug("Updated column {} with increment {}", update.getColumnId(), update.getIncrement());
             } catch (Exception e) {
                 log.error("Failed to update column {}: {}", update.getColumnId(), e.getMessage());
+                throw e;
             }
         }
         
@@ -65,16 +66,5 @@ public class ColumnServiceImpl implements ColumnService {
             columnDataStore.incrementTaskCount(newColumnId, 1);
         }
         log.debug("Updated column counts: {} -> {}", oldColumnId, newColumnId);
-    }
-
-    private Column createDefaultColumn(String columnId) {
-        Column column = Column.builder()
-                .id(columnId)
-                .name(columnId)
-                .taskCount(0)
-                .position(0)
-                .lastUpdated(LocalDateTime.now())
-                .build();
-        return columnDataStore.save(column);
     }
 }
