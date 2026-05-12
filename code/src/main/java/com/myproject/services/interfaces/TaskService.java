@@ -9,6 +9,8 @@ public interface TaskService {
     TaskStatusUpdateResponse updateTaskStatus(Long taskId, TaskStatusUpdateRequest request);
 
     TaskDetailsResponse getTaskById(Long taskId);
+    
+    TaskDetailsResponse getTaskDetails(Long taskId);
 
     List<TaskSummary> getTasksByStatus(String status);
 
@@ -21,6 +23,8 @@ public interface TaskService {
     void deleteTask(Long taskId);
 
     PagedTaskResponse getUserTasks(Long userId, int page, int size);
+    
+    PagedTaskResponse getUserTasks(Long userId, int page, int size, String status);
 
     TaskCountResponse getTaskCount(Long userId);
 
