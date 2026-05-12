@@ -2,7 +2,7 @@
 
 ## 1. Objective
 
-This document outlines the low-level design for implementing robust input validation to handle malformed or unexpected input data gracefully in a SpringBoot application. The system will ensure stability by providing helpful feedback when encountering null, undefined, special characters, whitespace-only, or extremely long input data. The implementation will prevent system crashes and maintain data integrity through comprehensive validation mechanisms.
+This document outlines the low-level design for implementing robust input validation to handle malformed or unexpected input data gracefully in a SpringBoot application. The system must maintain stability and provide helpful feedback when encountering null values, special characters, whitespace-only content, or extremely long input that exceeds character limits. The implementation ensures data integrity while delivering clear error messages to users for better user experience.
 
 ## 2. SpringBoot Backend Details
 
@@ -12,17 +12,16 @@ This document outlines the low-level design for implementing robust input valida
 
 | Operation | Method | URL | Request Body | Response Body |
 |-----------|--------|-----|--------------|---------------|
-| Create Task | POST | /api/tasks | TaskCreateRequest | TaskResponse |
-| Update Task | PUT | /api/tasks/{id} | TaskUpdateRequest | TaskResponse |
-| Get Task | GET | /api/tasks/{id} | - | TaskResponse |
-| List Tasks | GET | /api/tasks | - | List<TaskResponse> |
+| Create Task | POST | /api/v1/tasks | TaskCreateRequest | TaskResponse |
+| Update Task | PUT | /api/v1/tasks/{id} | TaskUpdateRequest | TaskResponse |
+| Validate Input | POST | /api/v1/tasks/validate | TaskValidationRequest | ValidationResponse |
 
 #### Controller Classes
 
 | Class Name | Responsibility | Methods |
-|------------|----------------|---------|
-| TaskController | Handle HTTP requests for task operations | createTask(), updateTask(), getTask(), listTasks() |
-| GlobalExceptionHandler | Handle validation and system exceptions | handleValidationException(), handleConstraintViolation() |
+|------------|----------------|----------|
+| TaskController | Handle task-related HTTP requests | createTask(), updateTask(), validateTaskInput() |
+| ValidationController | Handle input validation requests | validateInput(), checkDataIntegrity() |
 
 #### Exception Handlers
 
@@ -30,14 +29,17 @@ This document outlines the low-level design for implementing robust input valida
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex);
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex) {
+        ErrorResponse error = new ErrorResponse("VALIDATION_ERROR", ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
+    }
     
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex);
-    
-    @ExceptionHandler(InvalidInputException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidInput(InvalidInputException ex);
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        ErrorResponse error = new ErrorResponse("DATA_INTEGRITY_ERROR", "Invalid data format provided");
+        return ResponseEntity.badRequest().body(error);
+    }
 }
 ```
 
@@ -53,78 +55,65 @@ public class TaskService {
     private TaskRepository taskRepository;
     
     @Autowired
-    private InputValidationService inputValidationService;
+    private InputValidationService validationService;
     
     public TaskResponse createTask(TaskCreateRequest request) {
-        inputValidationService.validateTaskInput(request);
+        validationService.validateTaskInput(request);
         Task task = mapToEntity(request);
         Task savedTask = taskRepository.save(task);
         return mapToResponse(savedTask);
     }
 }
-```
 
-#### Service Layer Architecture
-
-- **TaskService**: Core business logic for task operations
-- **InputValidationService**: Centralized input validation logic
-- **TaskMappingService**: Entity-DTO mapping operations
-
-#### Dependency Injection Configuration
-
-```java
-@Configuration
-public class ServiceConfiguration {
+@Service
+public class InputValidationService {
     
-    @Bean
-    public InputValidationService inputValidationService() {
-        return new InputValidationService();
+    public void validateTaskInput(TaskCreateRequest request) {
+        validateTitle(request.getTitle());
+        validateDescription(request.getDescription());
+    }
+    
+    private void validateTitle(String title) {
+        if (title == null) {
+            throw new ValidationException("Title is required");
+        }
+        if (title.trim().isEmpty()) {
+            throw new ValidationException("Title cannot be empty or contain only whitespace");
+        }
+        if (title.length() > 255) {
+            throw new ValidationException("Title cannot exceed 255 characters");
+        }
     }
 }
 ```
 
-#### Validation Rules
+#### Service Layer Architecture
+- TaskService: Core business logic for task operations
+- InputValidationService: Centralized validation logic
+- DataSanitizationService: Clean and sanitize input data
+
+#### Dependency Injection Configuration
+- All services use @Service annotation
+- Repository injection via @Autowired
+- Validation service injected into business services
+
+##### Validation Rules
 
 | Field Name | Validation | Error Message | Annotation |
 |------------|------------|---------------|------------|
-| title | NotNull, NotBlank, Size(max=255) | Title is required | @NotNull @NotBlank @Size(max=255) |
-| title | Custom whitespace validation | Title cannot be empty or contain only whitespace | @ValidTitle |
-| description | Size(max=10000) | Description exceeds maximum length of 10000 characters | @Size(max=10000) |
-| title | Special character handling | Special characters properly encoded | @ValidSpecialChars |
+| title | @NotNull, @NotBlank, @Size(max=255) | Title is required / Title cannot be empty or contain only whitespace / Title cannot exceed 255 characters | @Valid |
+| description | @Size(max=10000) | Description cannot exceed 10000 characters | @Valid |
+| priority | @Pattern(regexp="HIGH|MEDIUM|LOW") | Priority must be HIGH, MEDIUM, or LOW | @Valid |
+| dueDate | @Future | Due date must be in the future | @Valid |
 
 ### 2.3 Repository / Data Access Layer
 
 #### Entity Models
 
 | Entity | Fields | Constraints |
-|--------|--------|--------------|
-| Task | id (Long), title (String), description (String), createdAt (LocalDateTime), updatedAt (LocalDateTime) | title: NOT NULL, MAX 255 chars; description: MAX 10000 chars |
-
-```java
-@Entity
-@Table(name = "tasks")
-public class Task {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(name = "title", nullable = false, length = 255)
-    @NotNull
-    @Size(max = 255)
-    private String title;
-    
-    @Column(name = "description", length = 10000)
-    @Size(max = 10000)
-    private String description;
-    
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-    
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-}
-```
+|--------|--------|-------------|
+| Task | id (Long), title (String), description (String), priority (String), status (String), createdDate (LocalDateTime), updatedDate (LocalDateTime) | title: NOT NULL, MAX 255; description: MAX 10000; priority: NOT NULL |
+| ValidationLog | id (Long), inputData (String), validationResult (String), errorMessage (String), timestamp (LocalDateTime) | inputData: NOT NULL; validationResult: NOT NULL |
 
 #### Repository Interfaces
 
@@ -132,18 +121,25 @@ public class Task {
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
     
-    List<Task> findByTitleContainingIgnoreCase(String title);
+    @Query("SELECT t FROM Task t WHERE t.title LIKE %:keyword%")
+    List<Task> findByTitleContaining(@Param("keyword") String keyword);
     
-    @Query("SELECT t FROM Task t WHERE LENGTH(t.title) > :maxLength")
-    List<Task> findTasksWithLongTitles(@Param("maxLength") int maxLength);
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.createdDate >= :startDate")
+    Long countTasksCreatedAfter(@Param("startDate") LocalDateTime startDate);
+}
+
+@Repository
+public interface ValidationLogRepository extends JpaRepository<ValidationLog, Long> {
+    
+    List<ValidationLog> findByValidationResultAndTimestampBetween(
+        String validationResult, LocalDateTime start, LocalDateTime end);
 }
 ```
 
 #### Custom Queries
-
-- Find tasks by title (case-insensitive)
-- Find tasks with titles exceeding specified length
-- Validate special character encoding in stored data
+- Find tasks by title keyword search
+- Count tasks created after specific date
+- Retrieve validation logs by result and time range
 
 ### 2.4 Configuration
 
@@ -157,7 +153,6 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: password
-  
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -165,20 +160,15 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  validation:
+    enabled: true
 
-# Validation Configuration
-validation:
-  title:
-    max-length: 255
-    min-length: 1
-  description:
-    max-length: 10000
-  
-# Logging Configuration
-logging:
-  level:
-    com.example.taskmanager: DEBUG
-    org.springframework.web: DEBUG
+app:
+  validation:
+    max-title-length: 255
+    max-description-length: 10000
+    special-chars-allowed: true
+    unicode-support: true
 ```
 
 #### Spring Configuration Classes
@@ -186,8 +176,8 @@ logging:
 ```java
 @Configuration
 @EnableJpaRepositories
-@EnableWebMvc
-public class ApplicationConfiguration {
+@EnableValidation
+public class ApplicationConfig {
     
     @Bean
     public Validator validator() {
@@ -197,31 +187,49 @@ public class ApplicationConfiguration {
     @Bean
     public MessageSource messageSource() {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-        messageSource.setBasename("validation-messages");
+        messageSource.setBasename("messages");
+        messageSource.setDefaultEncoding("UTF-8");
         return messageSource;
     }
 }
 ```
 
 #### Bean Definitions
-
-- Validator bean for custom validation
+- Validator bean for custom validation logic
 - MessageSource for internationalized error messages
-- Custom validation annotations
+- Custom validation configuration beans
 
 ### 2.5 Security
 
 #### Authentication Mechanism
-- Basic HTTP authentication for API endpoints
-- Input sanitization to prevent injection attacks
+- JWT token-based authentication
+- Spring Security integration
+- Role-based access control
 
 #### Authorization Rules
-- All authenticated users can create/update tasks
-- Input validation applies to all user roles
+- USER role: Can create and update own tasks
+- ADMIN role: Can manage all tasks and view validation logs
+- SYSTEM role: Can access validation endpoints
 
 #### JWT / Token Handling
-- Not applicable for this specific requirement
-- Focus on input validation security
+
+```java
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, 
+                                  HttpServletResponse response, 
+                                  FilterChain filterChain) throws ServletException, IOException {
+        String token = extractTokenFromRequest(request);
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            Authentication auth = jwtTokenProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        }
+        filterChain.doFilter(request, response);
+    }
+}
+```
 
 ### 2.6 Error Handling
 
@@ -232,21 +240,21 @@ public class ApplicationConfiguration {
 public class GlobalExceptionHandler {
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
-        List<String> errors = ex.getBindingResult()
-            .getFieldErrors()
-            .stream()
-            .map(FieldError::getDefaultMessage)
-            .collect(Collectors.toList());
-        
-        ErrorResponse errorResponse = new ErrorResponse("Validation failed", errors);
+    public ResponseEntity<ValidationErrorResponse> handleValidationErrors(
+            MethodArgumentNotValidException ex) {
+        ValidationErrorResponse errorResponse = new ValidationErrorResponse();
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            errorResponse.addError(error.getField(), error.getDefaultMessage());
+        });
         return ResponseEntity.badRequest().body(errorResponse);
     }
     
-    @ExceptionHandler(InvalidInputException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidInput(InvalidInputException ex) {
-        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), Collections.emptyList());
-        return ResponseEntity.badRequest().body(errorResponse);
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(
+            ConstraintViolationException ex) {
+        ErrorResponse error = new ErrorResponse("CONSTRAINT_VIOLATION", 
+                                              "Data validation failed: " + ex.getMessage());
+        return ResponseEntity.badRequest().body(error);
     }
 }
 ```
@@ -254,24 +262,23 @@ public class GlobalExceptionHandler {
 #### Custom Exceptions
 
 ```java
-public class InvalidInputException extends RuntimeException {
-    public InvalidInputException(String message) {
+public class ValidationException extends RuntimeException {
+    public ValidationException(String message) {
         super(message);
     }
 }
 
-public class TitleValidationException extends InvalidInputException {
-    public TitleValidationException(String message) {
-        super(message);
+public class DataIntegrityException extends RuntimeException {
+    public DataIntegrityException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
 ```
 
 #### HTTP Status Mapping
-
-- 400 Bad Request: Validation failures, malformed input
+- 400 Bad Request: Validation errors, malformed input
 - 422 Unprocessable Entity: Business logic validation failures
-- 500 Internal Server Error: System errors
+- 500 Internal Server Error: System errors, database issues
 
 ## 3. Database Design
 
@@ -283,50 +290,91 @@ erDiagram
         BIGINT id PK
         VARCHAR title
         TEXT description
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        VARCHAR priority
+        VARCHAR status
+        TIMESTAMP created_date
+        TIMESTAMP updated_date
     }
+    
+    VALIDATION_LOG {
+        BIGINT id PK
+        TEXT input_data
+        VARCHAR validation_result
+        TEXT error_message
+        TIMESTAMP timestamp
+    }
+    
+    USER {
+        BIGINT id PK
+        VARCHAR username
+        VARCHAR email
+        VARCHAR role
+        TIMESTAMP created_date
+    }
+    
+    USER ||--o{ TASK : creates
+    TASK ||--o{ VALIDATION_LOG : validates
 ```
 
 ### Table Schema
 
 | Table | Columns | Data Types | Constraints |
 |-------|---------|------------|-------------|
-| tasks | id | BIGINT | PRIMARY KEY, AUTO_INCREMENT |
-| tasks | title | VARCHAR(255) | NOT NULL |
-| tasks | description | TEXT(10000) | NULL |
-| tasks | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP |
-| tasks | updated_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP |
+| tasks | id, title, description, priority, status, created_date, updated_date | BIGINT, VARCHAR(255), TEXT, VARCHAR(50), VARCHAR(50), TIMESTAMP, TIMESTAMP | PK(id), NOT NULL(title, priority, status) |
+| validation_logs | id, input_data, validation_result, error_message, timestamp | BIGINT, TEXT, VARCHAR(100), TEXT, TIMESTAMP | PK(id), NOT NULL(input_data, validation_result) |
+| users | id, username, email, role, created_date | BIGINT, VARCHAR(100), VARCHAR(255), VARCHAR(50), TIMESTAMP | PK(id), UNIQUE(username, email) |
 
 ### Database Validations
-
-- Title field: NOT NULL constraint, maximum 255 characters
-- Description field: maximum 10000 characters
-- Character encoding: UTF-8 to support special characters and emojis
-- Index on title field for search performance
+- Title length constraint: MAX 255 characters
+- Description length constraint: MAX 10000 characters
+- Priority enum constraint: 'HIGH', 'MEDIUM', 'LOW'
+- Status enum constraint: 'PENDING', 'IN_PROGRESS', 'COMPLETED'
+- Email format validation
+- Username uniqueness constraint
 
 ## 4. Non Functional Requirements
 
 ### Performance
-
-- Input validation should complete within 100ms
-- Database operations should handle concurrent validation requests
-- Caching of validation rules for improved performance
-- Efficient string processing for large input validation
+- Input validation should complete within 100ms for standard requests
+- Support concurrent validation of up to 1000 requests per second
+- Database queries optimized with proper indexing
+- Caching implemented for frequently accessed validation rules
 
 ### Security
-
-- Input sanitization to prevent XSS and injection attacks
-- Proper encoding of special characters and Unicode
-- Rate limiting on API endpoints to prevent abuse
-- Audit logging of validation failures
+- Input sanitization to prevent XSS and SQL injection
+- Rate limiting on validation endpoints (100 requests per minute per user)
+- Audit logging for all validation failures
+- Secure handling of sensitive data in error messages
 
 ### Logging and Monitoring
+- Structured logging using Logback with JSON format
+- Metrics collection for validation success/failure rates
+- Performance monitoring for validation response times
+- Alert system for high validation failure rates
 
-- Log all validation failures with input details (sanitized)
-- Monitor validation performance metrics
-- Alert on unusual patterns of validation failures
-- Track character encoding issues and resolution
+```java
+@Component
+public class ValidationMetrics {
+    
+    private final MeterRegistry meterRegistry;
+    private final Counter validationSuccessCounter;
+    private final Counter validationFailureCounter;
+    private final Timer validationTimer;
+    
+    public ValidationMetrics(MeterRegistry meterRegistry) {
+        this.meterRegistry = meterRegistry;
+        this.validationSuccessCounter = Counter.builder("validation.success")
+                .description("Number of successful validations")
+                .register(meterRegistry);
+        this.validationFailureCounter = Counter.builder("validation.failure")
+                .description("Number of failed validations")
+                .register(meterRegistry);
+        this.validationTimer = Timer.builder("validation.duration")
+                .description("Validation processing time")
+                .register(meterRegistry);
+    }
+}
+```
 
 ## 5. Dependencies
 
@@ -339,15 +387,21 @@ erDiagram
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-    
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
-    
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
     
     <!-- Database -->
@@ -363,102 +417,57 @@ erDiagram
         <artifactId>hibernate-validator</artifactId>
     </dependency>
     
+    <!-- JWT -->
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-api</artifactId>
+        <version>0.11.5</version>
+    </dependency>
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt-impl</artifactId>
+        <version>0.11.5</version>
+        <scope>runtime</scope>
+    </dependency>
+    
+    <!-- Monitoring -->
+    <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+    
     <!-- Testing -->
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-test</artifactId>
         <scope>test</scope>
     </dependency>
-    
-    <!-- JSON Processing -->
     <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-    </dependency>
-    
-    <!-- Apache Commons for String utilities -->
-    <dependency>
-        <groupId>org.apache.commons</groupId>
-        <artifactId>commons-lang3</artifactId>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-test</artifactId>
+        <scope>test</scope>
     </dependency>
 </dependencies>
 ```
 
 ## 6. Assumptions
 
-1. **Character Encoding**: The system assumes UTF-8 encoding for proper handling of special characters and emojis.
+1. **Character Encoding**: The system assumes UTF-8 encoding for all text input to properly handle special characters and unicode symbols.
 
-2. **Input Limits**: Maximum title length is set to 255 characters and description to 10000 characters based on typical database constraints.
+2. **Database Storage**: H2 in-memory database is used for development and testing; production will use PostgreSQL or MySQL with appropriate character set configuration.
 
-3. **Validation Scope**: Input validation covers HTTP request bodies, query parameters, and path variables.
+3. **Input Size Limits**: Maximum title length is set to 255 characters and description to 10,000 characters based on typical use cases; these can be configured via application properties.
 
-4. **Error Response Format**: Standardized error response format is assumed to be acceptable across all API endpoints.
+4. **Special Characters**: The system allows and preserves special characters including emojis and unicode symbols unless they pose security risks (XSS patterns).
 
-5. **Database Support**: The design assumes the database supports Unicode character storage and proper indexing.
+5. **Error Message Localization**: Error messages are currently in English; internationalization support can be added using Spring's MessageSource.
 
-6. **Performance Requirements**: Validation operations are assumed to be synchronous and should complete within acceptable response times.
+6. **Performance Requirements**: Validation operations are expected to handle moderate load (1000 requests/second); for higher loads, additional caching and optimization may be required.
 
-7. **Internationalization**: Error messages can be localized, but English is the default language for validation messages.
+7. **Security Context**: The application assumes a secure network environment with proper SSL/TLS termination at the load balancer level.
 
-8. **Backward Compatibility**: Existing data in the system may not conform to new validation rules and will require migration strategy.
+8. **Monitoring Infrastructure**: Prometheus and Grafana are assumed to be available for metrics collection and visualization.
 
-## 7. Custom Validation Annotations
+9. **Logging Infrastructure**: ELK stack (Elasticsearch, Logstash, Kibana) or similar centralized logging solution is assumed for log aggregation and analysis.
 
-### @ValidTitle Annotation
-
-```java
-@Target({ElementType.FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = TitleValidator.class)
-public @interface ValidTitle {
-    String message() default "Title cannot be empty or contain only whitespace";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
-}
-
-public class TitleValidator implements ConstraintValidator<ValidTitle, String> {
-    
-    @Override
-    public boolean isValid(String title, ConstraintValidatorContext context) {
-        if (title == null) {
-            return false;
-        }
-        return !title.trim().isEmpty();
-    }
-}
-```
-
-### @ValidSpecialChars Annotation
-
-```java
-@Target({ElementType.FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = SpecialCharsValidator.class)
-public @interface ValidSpecialChars {
-    String message() default "Special characters must be properly encoded";
-    Class<?>[] groups() default {};
-    Class<? extends Payload>[] payload() default {};
-}
-
-public class SpecialCharsValidator implements ConstraintValidator<ValidSpecialChars, String> {
-    
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null) {
-            return true;
-        }
-        // Validate that special characters are properly encoded
-        return isValidUTF8(value);
-    }
-    
-    private boolean isValidUTF8(String input) {
-        try {
-            byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
-            String decoded = new String(bytes, StandardCharsets.UTF_8);
-            return input.equals(decoded);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-}
-```
+10. **Development Environment**: Java 11+ and Maven 3.6+ are assumed for building and running the application.
