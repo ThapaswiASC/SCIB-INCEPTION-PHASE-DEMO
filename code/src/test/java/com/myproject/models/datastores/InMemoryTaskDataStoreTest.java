@@ -1,15 +1,15 @@
 package com.myproject.models.datastores;
 
-import com.myproject.models.dtos.Priority;
+import com.myproject.models.dtos.TaskPriority;
 import com.myproject.models.dtos.TaskStatus;
 import com.myproject.models.entities.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,8 +29,8 @@ class InMemoryTaskDataStoreTest {
         // Arrange
         Task task = new Task();
         task.setTitle("Test Task");
-        task.setUserId(1L);
-        task.setPriority(Priority.HIGH);
+        task.setUserId("user123");
+        task.setPriority(TaskPriority.HIGH);
 
         // Act
         Task savedTask = dataStore.save(task);
@@ -38,7 +38,7 @@ class InMemoryTaskDataStoreTest {
         // Assert
         assertNotNull(savedTask.getId());
         assertEquals("Test Task", savedTask.getTitle());
-        assertEquals(1L, savedTask.getUserId());
+        assertEquals("user123", savedTask.getUserId());
     }
 
     @Test
@@ -46,8 +46,8 @@ class InMemoryTaskDataStoreTest {
         // Arrange
         Task task = new Task();
         task.setTitle("Original Title");
-        task.setUserId(1L);
-        task.setPriority(Priority.HIGH);
+        task.setUserId("user123");
+        task.setPriority(TaskPriority.HIGH);
         Task savedTask = dataStore.save(task);
 
         // Act
@@ -60,15 +60,15 @@ class InMemoryTaskDataStoreTest {
     }
 
     @Test
-    void save_MultipleTasksSequentially_AssignsIncrementingIds() {
+    void save_MultipleTasksSequentially_AssignsUniqueIds() {
         // Arrange
         Task task1 = new Task();
         task1.setTitle("Task 1");
-        task1.setUserId(1L);
+        task1.setUserId("user123");
 
         Task task2 = new Task();
         task2.setTitle("Task 2");
-        task2.setUserId(1L);
+        task2.setUserId("user123");
 
         // Act
         Task saved1 = dataStore.save(task1);
@@ -77,7 +77,7 @@ class InMemoryTaskDataStoreTest {
         // Assert
         assertNotNull(saved1.getId());
         assertNotNull(saved2.getId());
-        assertEquals(saved1.getId() + 1, saved2.getId());
+        assertNotEquals(saved1.getId(), saved2.getId());
     }
 
     // ========== findById Tests ==========
@@ -87,7 +87,7 @@ class InMemoryTaskDataStoreTest {
         // Arrange
         Task task = new Task();
         task.setTitle("Test Task");
-        task.setUserId(1L);
+        task.setUserId("user123");
         Task savedTask = dataStore.save(task);
 
         // Act
@@ -102,7 +102,7 @@ class InMemoryTaskDataStoreTest {
     @Test
     void findById_NonExistingTask_ReturnsEmpty() {
         // Act
-        Optional<Task> found = dataStore.findById(999L);
+        Optional<Task> found = dataStore.findById(UUID.randomUUID());
 
         // Assert
         assertFalse(found.isPresent());
@@ -115,24 +115,24 @@ class InMemoryTaskDataStoreTest {
         // Arrange
         Task task1 = new Task();
         task1.setTitle("Task 1");
-        task1.setUserId(1L);
+        task1.setUserId("user123");
         task1.setCreatedAt(LocalDateTime.now().minusDays(2));
 
         Task task2 = new Task();
         task2.setTitle("Task 2");
-        task2.setUserId(1L);
+        task2.setUserId("user123");
         task2.setCreatedAt(LocalDateTime.now().minusDays(1));
 
         Task task3 = new Task();
         task3.setTitle("Task 3");
-        task3.setUserId(2L);
+        task3.setUserId("user456");
 
         dataStore.save(task1);
         dataStore.save(task2);
         dataStore.save(task3);
 
         // Act
-        List<Task> userTasks = dataStore.findByUserId(1L, 0, 10);
+        List<Task> userTasks = dataStore.findByUserId("user123", 0, 10, "createdAt,desc");
 
         // Assert
         assertEquals(2, userTasks.size());
@@ -147,14 +147,14 @@ class InMemoryTaskDataStoreTest {
         for (int i = 1; i <= 5; i++) {
             Task task = new Task();
             task.setTitle("Task " + i);
-            task.setUserId(1L);
+            task.setUserId("user123");
             task.setCreatedAt(LocalDateTime.now().minusDays(5 - i));
             dataStore.save(task);
         }
 
         // Act
-        List<Task> page1 = dataStore.findByUserId(1L, 0, 2);
-        List<Task> page2 = dataStore.findByUserId(1L, 1, 2);
+        List<Task> page1 = dataStore.findByUserId("user123", 0, 2, "createdAt,desc");
+        List<Task> page2 = dataStore.findByUserId("user123", 1, 2, "createdAt,desc");
 
         // Assert
         assertEquals(2, page1.size());
@@ -168,42 +168,10 @@ class InMemoryTaskDataStoreTest {
     @Test
     void findByUserId_NoTasksForUser_ReturnsEmptyList() {
         // Act
-        List<Task> tasks = dataStore.findByUserId(999L, 0, 10);
+        List<Task> tasks = dataStore.findByUserId("nonexistent", 0, 10, "createdAt,desc");
 
         // Assert
         assertTrue(tasks.isEmpty());
-    }
-
-    // ========== findAll Tests ==========
-
-    @Test
-    void findAll_MultipleTasks_ReturnsAllTasks() {
-        // Arrange
-        Task task1 = new Task();
-        task1.setTitle("Task 1");
-        task1.setUserId(1L);
-
-        Task task2 = new Task();
-        task2.setTitle("Task 2");
-        task2.setUserId(2L);
-
-        dataStore.save(task1);
-        dataStore.save(task2);
-
-        // Act
-        List<Task> allTasks = dataStore.findAll();
-
-        // Assert
-        assertEquals(2, allTasks.size());
-    }
-
-    @Test
-    void findAll_NoTasks_ReturnsEmptyList() {
-        // Act
-        List<Task> allTasks = dataStore.findAll();
-
-        // Assert
-        assertTrue(allTasks.isEmpty());
     }
 
     // ========== deleteById Tests ==========
@@ -213,7 +181,7 @@ class InMemoryTaskDataStoreTest {
         // Arrange
         Task task = new Task();
         task.setTitle("Test Task");
-        task.setUserId(1L);
+        task.setUserId("user123");
         Task savedTask = dataStore.save(task);
 
         // Act
@@ -227,33 +195,7 @@ class InMemoryTaskDataStoreTest {
     @Test
     void deleteById_NonExistingTask_DoesNotThrowException() {
         // Act & Assert
-        assertDoesNotThrow(() -> dataStore.deleteById(999L));
-    }
-
-    // ========== existsById Tests ==========
-
-    @Test
-    void existsById_ExistingTask_ReturnsTrue() {
-        // Arrange
-        Task task = new Task();
-        task.setTitle("Test Task");
-        task.setUserId(1L);
-        Task savedTask = dataStore.save(task);
-
-        // Act
-        boolean exists = dataStore.existsById(savedTask.getId());
-
-        // Assert
-        assertTrue(exists);
-    }
-
-    @Test
-    void existsById_NonExistingTask_ReturnsFalse() {
-        // Act
-        boolean exists = dataStore.existsById(999L);
-
-        // Assert
-        assertFalse(exists);
+        assertDoesNotThrow(() -> dataStore.deleteById(UUID.randomUUID()));
     }
 
     // ========== countByUserId Tests ==========
@@ -264,17 +206,17 @@ class InMemoryTaskDataStoreTest {
         for (int i = 0; i < 3; i++) {
             Task task = new Task();
             task.setTitle("Task " + i);
-            task.setUserId(1L);
+            task.setUserId("user123");
             dataStore.save(task);
         }
 
         Task otherUserTask = new Task();
         otherUserTask.setTitle("Other Task");
-        otherUserTask.setUserId(2L);
+        otherUserTask.setUserId("user456");
         dataStore.save(otherUserTask);
 
         // Act
-        long count = dataStore.countByUserId(1L);
+        long count = dataStore.countByUserId("user123");
 
         // Assert
         assertEquals(3, count);
@@ -283,45 +225,10 @@ class InMemoryTaskDataStoreTest {
     @Test
     void countByUserId_NoTasksForUser_ReturnsZero() {
         // Act
-        long count = dataStore.countByUserId(999L);
+        long count = dataStore.countByUserId("nonexistent");
 
         // Assert
         assertEquals(0, count);
-    }
-
-    // ========== saveAll Tests ==========
-
-    @Test
-    void saveAll_MultipleTasks_SavesAllAndAssignsIds() {
-        // Arrange
-        Task task1 = new Task();
-        task1.setTitle("Task 1");
-        task1.setUserId(1L);
-
-        Task task2 = new Task();
-        task2.setTitle("Task 2");
-        task2.setUserId(1L);
-
-        List<Task> tasks = Arrays.asList(task1, task2);
-
-        // Act
-        List<Task> savedTasks = dataStore.saveAll(tasks);
-
-        // Assert
-        assertEquals(2, savedTasks.size());
-        assertNotNull(savedTasks.get(0).getId());
-        assertNotNull(savedTasks.get(1).getId());
-        assertEquals("Task 1", savedTasks.get(0).getTitle());
-        assertEquals("Task 2", savedTasks.get(1).getTitle());
-    }
-
-    @Test
-    void saveAll_EmptyList_ReturnsEmptyList() {
-        // Act
-        List<Task> savedTasks = dataStore.saveAll(Arrays.asList());
-
-        // Assert
-        assertTrue(savedTasks.isEmpty());
     }
 
     // ========== Integration Tests ==========
@@ -331,8 +238,8 @@ class InMemoryTaskDataStoreTest {
         // Create
         Task task = new Task();
         task.setTitle("CRUD Test Task");
-        task.setUserId(1L);
-        task.setPriority(Priority.HIGH);
+        task.setUserId("user123");
+        task.setPriority(TaskPriority.HIGH);
         task.setStatus(TaskStatus.PENDING);
         Task savedTask = dataStore.save(task);
         assertNotNull(savedTask.getId());
@@ -351,5 +258,44 @@ class InMemoryTaskDataStoreTest {
         dataStore.deleteById(savedTask.getId());
         Optional<Task> deletedTask = dataStore.findById(savedTask.getId());
         assertFalse(deletedTask.isPresent());
+    }
+
+    @Test
+    void existsByIdAndUserId_ExistingTaskAndMatchingUser_ReturnsTrue() {
+        // Arrange
+        Task task = new Task();
+        task.setTitle("Test Task");
+        task.setUserId("user123");
+        Task savedTask = dataStore.save(task);
+
+        // Act
+        boolean exists = dataStore.existsByIdAndUserId(savedTask.getId(), "user123");
+
+        // Assert
+        assertTrue(exists);
+    }
+
+    @Test
+    void existsByIdAndUserId_ExistingTaskButDifferentUser_ReturnsFalse() {
+        // Arrange
+        Task task = new Task();
+        task.setTitle("Test Task");
+        task.setUserId("user123");
+        Task savedTask = dataStore.save(task);
+
+        // Act
+        boolean exists = dataStore.existsByIdAndUserId(savedTask.getId(), "user456");
+
+        // Assert
+        assertFalse(exists);
+    }
+
+    @Test
+    void existsByIdAndUserId_NonExistingTask_ReturnsFalse() {
+        // Act
+        boolean exists = dataStore.existsByIdAndUserId(UUID.randomUUID(), "user123");
+
+        // Assert
+        assertFalse(exists);
     }
 }
