@@ -1,5 +1,5 @@
 {
-  "executive_summary": "Maven test compilation failed with 100 errors across 3 test classes. The primary root cause is a mismatch between test code and production code signatures: DTOs now use builder pattern (no-arg constructors) instead of all-args constructors, service methods require additional userId parameters, and ID types changed from long to UUID. Additionally, several methods were removed from DTOs and data stores.",
+  "executive_summary": "Maven test compilation failed with 100 errors across 3 test classes. Primary issues: (1) Type mismatches between Priority/TaskPriority enums and long/UUID/String types, (2) Method signature incompatibilities where service methods expect different parameter counts/types than provided, (3) Missing methods in DTOs and exception handlers. Root cause: Test code not updated after refactoring domain model to use UUID identifiers and renaming Priority enum to TaskPriority.",
   "attempt_number": 1,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-757",
@@ -9,67 +9,67 @@
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 45,
-      "message": "Constructor TaskCreateRequest/TaskResponse/TaskUpdateRequest cannot be applied: required no arguments, found multiple arguments",
-      "root_cause": "DTOs changed from all-args constructors to builder pattern with no-arg constructors. Tests still use old constructor signatures with multiple parameters.",
-      "fix_recommendation": "Replace all DTO constructor calls with builder pattern. Example: new TaskCreateRequest().setTitle(...).setDescription(...).setUserId(...).setPriority(...).setDueDate(...)"
+      "line": null,
+      "message": "Multiple type incompatibility errors: Priority cannot be converted to TaskPriority (15 occurrences)",
+      "root_cause": "Test code uses Priority enum but domain model was refactored to use TaskPriority enum. Tests not updated after enum rename.",
+      "fix_recommendation": "Replace all occurrences of 'Priority' with 'TaskPriority' in TaskControllerTest.java. Update import statement from 'com.myproject.models.dtos.Priority' to 'com.myproject.models.dtos.TaskPriority'."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 54,
-      "message": "Incompatible types: long cannot be converted to java.util.UUID",
-      "root_cause": "Task ID type changed from long to UUID in production code, but tests still use long values.",
-      "fix_recommendation": "Replace all long task IDs with UUID.randomUUID() or UUID.fromString() in test setup. Update assertions to compare UUID values instead of long."
+      "line": null,
+      "message": "Type conversion errors: long cannot be converted to UUID (12 occurrences) and long cannot be converted to String (9 occurrences)",
+      "root_cause": "Domain model refactored to use UUID for task IDs and String for user IDs, but test code still uses primitive long values.",
+      "fix_recommendation": "Update test data initialization: (1) Replace long task IDs with UUID.randomUUID() or UUID.fromString() calls, (2) Replace long user IDs with String values like \"user-123\", (3) Update all method calls passing IDs to use correct types."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 65,
-      "message": "Method createTask/updateTask/deleteTask/getUserTasks/getTaskById cannot be applied: actual and formal argument lists differ in length",
-      "root_cause": "Service interface methods now require userId (String) as first parameter for authorization, but test mocks don't include this parameter.",
-      "fix_recommendation": "Add userId parameter to all service method calls in tests. Example: when(taskService.createTask(eq("user123"), any(TaskCreateRequest.class))).thenReturn(...)"
+      "line": null,
+      "message": "Method signature mismatch: createTask, getUserTasks, getTaskById, updateTask, deleteTask, bulkCreateTasks methods called with wrong parameter counts",
+      "root_cause": "Service interface methods refactored to require userId/username as first parameter, but test mocks don't include this parameter.",
+      "fix_recommendation": "Update all service method mock calls to include userId/username as first parameter. Example: when(taskService.createTask(request)) should become when(taskService.createTask(\"user-123\", request))."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 49,
-      "message": "Incompatible types: com.myproject.models.dtos.Priority cannot be converted to com.myproject.models.dtos.TaskPriority",
-      "root_cause": "Priority enum was renamed to TaskPriority in production code, but tests still reference the old Priority enum.",
-      "fix_recommendation": "Replace all references to Priority enum with TaskPriority enum in test classes. Update imports from com.myproject.models.dtos.Priority to com.myproject.models.dtos.TaskPriority."
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 202,
-      "message": "Incompatible types: long cannot be converted to java.lang.String for userId parameter",
-      "root_cause": "User ID type changed from long to String in service methods, but tests still pass long values.",
-      "fix_recommendation": "Replace all long userId values with String values in test method calls. Example: change getUserTasks(1L, 0, 10) to getUserTasks("user-1", 0, 10)"
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
-      "line": 44,
-      "message": "Cannot find symbol: method getCode() in ErrorResponse",
-      "root_cause": "ErrorResponse DTO no longer has a getCode() method. The error code field was removed or renamed.",
-      "fix_recommendation": "Remove all assertions on errorResponse.getCode(). If error codes are still needed, check the updated ErrorResponse structure and use the correct getter method."
+      "line": null,
+      "message": "Constructor errors: TaskCreateRequest, TaskResponse, TaskUpdateRequest, TaskCountResponse, BulkTaskResponse constructors cannot be applied",
+      "root_cause": "DTO classes refactored to use builder pattern or no-args constructors with setters, but tests use all-args constructors.",
+      "fix_recommendation": "Replace constructor calls with builder pattern or create objects using no-args constructor and setters. Example: new TaskCreateRequest(...) should become TaskCreateRequest.builder().title(...).description(...).build()."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
       "line": 138,
       "message": "Cannot find symbol: method handleValidationErrors(MethodArgumentNotValidException)",
-      "root_cause": "GlobalExceptionHandler no longer has a handleValidationErrors() method. Validation error handling was refactored or removed.",
-      "fix_recommendation": "Update tests to use the new validation error handling method in GlobalExceptionHandler. Check the handler class for the replacement method signature."
+      "root_cause": "GlobalExceptionHandler method handleValidationErrors was renamed or removed during refactoring.",
+      "fix_recommendation": "Check GlobalExceptionHandler class for the correct method name handling MethodArgumentNotValidException. Update test to call the correct method name, likely handleMethodArgumentNotValid()."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
+      "line": 44,
+      "message": "Cannot find symbol: method getCode() in ErrorResponse (8 occurrences)",
+      "root_cause": "ErrorResponse DTO no longer has getCode() method, likely replaced with getStatus() or getErrorCode().",
+      "fix_recommendation": "Update all errorResponse.getCode() calls to use the correct getter method. Check ErrorResponse class definition and replace with errorResponse.getStatus() or errorResponse.getErrorCode()."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
+      "line": null,
+      "message": "Type incompatibility: Priority cannot be converted to TaskPriority (2 occurrences), long cannot be converted to String/UUID (multiple)",
+      "root_cause": "Same enum rename and ID type changes as TaskControllerTest, affecting data store tests.",
+      "fix_recommendation": "Apply same fixes as TaskControllerTest: (1) Replace Priority with TaskPriority, (2) Use UUID for task IDs, (3) Use String for user IDs."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
       "line": 194,
-      "message": "Cannot find symbol: method findAll()/existsById() in InMemoryTaskDataStore",
-      "root_cause": "InMemoryTaskDataStore no longer implements findAll() and existsById() methods. These methods were removed or the interface changed.",
-      "fix_recommendation": "Remove tests that call findAll() and existsById(), or update them to use the new data store API methods. Check InMemoryTaskDataStore for available query methods."
+      "message": "Cannot find symbol: method findAll() and existsById() in InMemoryTaskDataStore",
+      "root_cause": "InMemoryTaskDataStore interface changed - findAll() and existsById() methods removed or renamed.",
+      "fix_recommendation": "Check InMemoryTaskDataStore interface for available query methods. Replace findAll() with appropriate method like findByUserId() with pagination. Replace existsById() with findById() and check for Optional.isPresent()."
     }
   ],
-  "summary": "8 error categories found (100 total compilation errors)"
+  "summary": "8 grouped compilation error categories found affecting 100 individual compilation failures"
 }
