@@ -43,25 +43,22 @@ class TaskControllerTest {
     @Test
     void createTask_ValidRequest_ReturnsCreated() throws Exception {
         // Arrange
-        TaskCreateRequest request = new TaskCreateRequest(
-            "Test Task",
-            "Test Description",
-            null,
-            TaskPriority.HIGH,
-            LocalDateTime.now().plusDays(1)
-        );
+        TaskCreateRequest request = new TaskCreateRequest();
+        request.setTitle("Test Task");
+        request.setDescription("Test Description");
+        request.setPriority(TaskPriority.HIGH);
+        request.setDueDate(LocalDateTime.now().plusDays(1));
 
-        TaskResponse response = new TaskResponse(
-            UUID.randomUUID(),
-            "Test Task",
-            "Test Description",
-            "user123",
-            TaskPriority.HIGH,
-            TaskStatus.PENDING,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
-            LocalDateTime.now().plusDays(1)
-        );
+        TaskResponse response = new TaskResponse();
+        response.setId(UUID.randomUUID());
+        response.setTitle("Test Task");
+        response.setDescription("Test Description");
+        response.setUserId("user123");
+        response.setPriority(TaskPriority.HIGH);
+        response.setStatus(TaskStatus.PENDING);
+        response.setCreatedAt(LocalDateTime.now());
+        response.setUpdatedAt(LocalDateTime.now());
+        response.setDueDate(LocalDateTime.now().plusDays(1));
 
         when(taskService.createTask(eq("user123"), any(TaskCreateRequest.class))).thenReturn(response);
 
@@ -82,13 +79,10 @@ class TaskControllerTest {
     @Test
     void createTask_MissingTitle_ReturnsBadRequest() throws Exception {
         // Arrange
-        TaskCreateRequest request = new TaskCreateRequest(
-            null,
-            "Test Description",
-            null,
-            TaskPriority.HIGH,
-            LocalDateTime.now().plusDays(1)
-        );
+        TaskCreateRequest request = new TaskCreateRequest();
+        request.setDescription("Test Description");
+        request.setPriority(TaskPriority.HIGH);
+        request.setDueDate(LocalDateTime.now().plusDays(1));
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks")
@@ -103,13 +97,11 @@ class TaskControllerTest {
     void createTask_TitleTooLong_ReturnsBadRequest() throws Exception {
         // Arrange
         String longTitle = "a".repeat(256);
-        TaskCreateRequest request = new TaskCreateRequest(
-            longTitle,
-            "Test Description",
-            null,
-            TaskPriority.HIGH,
-            LocalDateTime.now().plusDays(1)
-        );
+        TaskCreateRequest request = new TaskCreateRequest();
+        request.setTitle(longTitle);
+        request.setDescription("Test Description");
+        request.setPriority(TaskPriority.HIGH);
+        request.setDueDate(LocalDateTime.now().plusDays(1));
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks")
@@ -123,13 +115,10 @@ class TaskControllerTest {
     @Test
     void createTask_MissingPriority_ReturnsBadRequest() throws Exception {
         // Arrange
-        TaskCreateRequest request = new TaskCreateRequest(
-            "Test Task",
-            "Test Description",
-            null,
-            null,
-            LocalDateTime.now().plusDays(1)
-        );
+        TaskCreateRequest request = new TaskCreateRequest();
+        request.setTitle("Test Task");
+        request.setDescription("Test Description");
+        request.setDueDate(LocalDateTime.now().plusDays(1));
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks")
@@ -143,13 +132,11 @@ class TaskControllerTest {
     @Test
     void createTask_TaskLimitExceeded_ReturnsBadRequest() throws Exception {
         // Arrange
-        TaskCreateRequest request = new TaskCreateRequest(
-            "Test Task",
-            "Test Description",
-            null,
-            TaskPriority.HIGH,
-            LocalDateTime.now().plusDays(1)
-        );
+        TaskCreateRequest request = new TaskCreateRequest();
+        request.setTitle("Test Task");
+        request.setDescription("Test Description");
+        request.setPriority(TaskPriority.HIGH);
+        request.setDueDate(LocalDateTime.now().plusDays(1));
 
         when(taskService.createTask(eq("user123"), any(TaskCreateRequest.class)))
             .thenThrow(new TaskLimitExceededException("User has reached the maximum limit of 10000 tasks"));
@@ -169,14 +156,26 @@ class TaskControllerTest {
     @Test
     void getUserTasks_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
-        TaskResponse task1 = new TaskResponse(
-            UUID.randomUUID(), "Task 1", "Description 1", "user123", TaskPriority.HIGH, TaskStatus.PENDING,
-            LocalDateTime.now(), LocalDateTime.now(), null
-        );
-        TaskResponse task2 = new TaskResponse(
-            UUID.randomUUID(), "Task 2", "Description 2", "user123", TaskPriority.MEDIUM, TaskStatus.IN_PROGRESS,
-            LocalDateTime.now(), LocalDateTime.now(), null
-        );
+        TaskResponse task1 = new TaskResponse();
+        task1.setId(UUID.randomUUID());
+        task1.setTitle("Task 1");
+        task1.setDescription("Description 1");
+        task1.setUserId("user123");
+        task1.setPriority(TaskPriority.HIGH);
+        task1.setStatus(TaskStatus.PENDING);
+        task1.setCreatedAt(LocalDateTime.now());
+        task1.setUpdatedAt(LocalDateTime.now());
+
+        TaskResponse task2 = new TaskResponse();
+        task2.setId(UUID.randomUUID());
+        task2.setTitle("Task 2");
+        task2.setDescription("Description 2");
+        task2.setUserId("user123");
+        task2.setPriority(TaskPriority.MEDIUM);
+        task2.setStatus(TaskStatus.IN_PROGRESS);
+        task2.setCreatedAt(LocalDateTime.now());
+        task2.setUpdatedAt(LocalDateTime.now());
+
         List<TaskResponse> tasks = Arrays.asList(task1, task2);
 
         when(taskService.getUserTasks(eq("user123"), anyInt(), anyInt(), anyString())).thenReturn(tasks);
@@ -229,10 +228,16 @@ class TaskControllerTest {
     void getTaskById_ValidId_ReturnsOk() throws Exception {
         // Arrange
         UUID taskId = UUID.randomUUID();
-        TaskResponse response = new TaskResponse(
-            taskId, "Task 1", "Description 1", "user123", TaskPriority.HIGH, TaskStatus.PENDING,
-            LocalDateTime.now(), LocalDateTime.now(), null
-        );
+        TaskResponse response = new TaskResponse();
+        response.setId(taskId);
+        response.setTitle("Task 1");
+        response.setDescription("Description 1");
+        response.setUserId("user123");
+        response.setPriority(TaskPriority.HIGH);
+        response.setStatus(TaskStatus.PENDING);
+        response.setCreatedAt(LocalDateTime.now());
+        response.setUpdatedAt(LocalDateTime.now());
+
         when(taskService.getTaskById(any(UUID.class), eq("user123"))).thenReturn(response);
 
         // Act & Assert
@@ -265,18 +270,23 @@ class TaskControllerTest {
     void updateTask_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
         UUID taskId = UUID.randomUUID();
-        TaskUpdateRequest request = new TaskUpdateRequest(
-            "Updated Task",
-            "Updated Description",
-            TaskPriority.HIGH,
-            TaskStatus.COMPLETED,
-            LocalDateTime.now().plusDays(2)
-        );
+        TaskUpdateRequest request = new TaskUpdateRequest();
+        request.setTitle("Updated Task");
+        request.setDescription("Updated Description");
+        request.setPriority(TaskPriority.HIGH);
+        request.setStatus(TaskStatus.COMPLETED);
+        request.setDueDate(LocalDateTime.now().plusDays(2));
 
-        TaskResponse response = new TaskResponse(
-            taskId, "Updated Task", "Updated Description", "user123", TaskPriority.HIGH, TaskStatus.COMPLETED,
-            LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now().plusDays(2)
-        );
+        TaskResponse response = new TaskResponse();
+        response.setId(taskId);
+        response.setTitle("Updated Task");
+        response.setDescription("Updated Description");
+        response.setUserId("user123");
+        response.setPriority(TaskPriority.HIGH);
+        response.setStatus(TaskStatus.COMPLETED);
+        response.setCreatedAt(LocalDateTime.now());
+        response.setUpdatedAt(LocalDateTime.now());
+        response.setDueDate(LocalDateTime.now().plusDays(2));
 
         when(taskService.updateTask(any(UUID.class), eq("user123"), any(TaskUpdateRequest.class))).thenReturn(response);
 
@@ -295,13 +305,11 @@ class TaskControllerTest {
     void updateTask_TaskNotFound_ReturnsNotFound() throws Exception {
         // Arrange
         UUID taskId = UUID.randomUUID();
-        TaskUpdateRequest request = new TaskUpdateRequest(
-            "Updated Task",
-            "Updated Description",
-            TaskPriority.HIGH,
-            TaskStatus.COMPLETED,
-            null
-        );
+        TaskUpdateRequest request = new TaskUpdateRequest();
+        request.setTitle("Updated Task");
+        request.setDescription("Updated Description");
+        request.setPriority(TaskPriority.HIGH);
+        request.setStatus(TaskStatus.COMPLETED);
 
         when(taskService.updateTask(any(UUID.class), eq("user123"), any(TaskUpdateRequest.class)))
             .thenThrow(new TaskNotFoundException("Task not found"));
@@ -321,13 +329,11 @@ class TaskControllerTest {
         // Arrange
         UUID taskId = UUID.randomUUID();
         String longTitle = "a".repeat(256);
-        TaskUpdateRequest request = new TaskUpdateRequest(
-            longTitle,
-            "Updated Description",
-            TaskPriority.HIGH,
-            TaskStatus.COMPLETED,
-            null
-        );
+        TaskUpdateRequest request = new TaskUpdateRequest();
+        request.setTitle(longTitle);
+        request.setDescription("Updated Description");
+        request.setPriority(TaskPriority.HIGH);
+        request.setStatus(TaskStatus.COMPLETED);
 
         // Act & Assert
         mockMvc.perform(put("/v1/tasks/" + taskId)
@@ -373,22 +379,37 @@ class TaskControllerTest {
     @Test
     void bulkCreateTasks_ValidRequest_ReturnsCreated() throws Exception {
         // Arrange
-        TaskCreateRequest request1 = new TaskCreateRequest(
-            "Task 1", "Description 1", null, TaskPriority.HIGH, null
-        );
-        TaskCreateRequest request2 = new TaskCreateRequest(
-            "Task 2", "Description 2", null, TaskPriority.MEDIUM, null
-        );
+        TaskCreateRequest request1 = new TaskCreateRequest();
+        request1.setTitle("Task 1");
+        request1.setDescription("Description 1");
+        request1.setPriority(TaskPriority.HIGH);
+
+        TaskCreateRequest request2 = new TaskCreateRequest();
+        request2.setTitle("Task 2");
+        request2.setDescription("Description 2");
+        request2.setPriority(TaskPriority.MEDIUM);
+
         List<TaskCreateRequest> requests = Arrays.asList(request1, request2);
 
-        TaskResponse response1 = new TaskResponse(
-            UUID.randomUUID(), "Task 1", "Description 1", "user123", TaskPriority.HIGH, TaskStatus.PENDING,
-            LocalDateTime.now(), LocalDateTime.now(), null
-        );
-        TaskResponse response2 = new TaskResponse(
-            UUID.randomUUID(), "Task 2", "Description 2", "user123", TaskPriority.MEDIUM, TaskStatus.PENDING,
-            LocalDateTime.now(), LocalDateTime.now(), null
-        );
+        TaskResponse response1 = new TaskResponse();
+        response1.setId(UUID.randomUUID());
+        response1.setTitle("Task 1");
+        response1.setDescription("Description 1");
+        response1.setUserId("user123");
+        response1.setPriority(TaskPriority.HIGH);
+        response1.setStatus(TaskStatus.PENDING);
+        response1.setCreatedAt(LocalDateTime.now());
+        response1.setUpdatedAt(LocalDateTime.now());
+
+        TaskResponse response2 = new TaskResponse();
+        response2.setId(UUID.randomUUID());
+        response2.setTitle("Task 2");
+        response2.setDescription("Description 2");
+        response2.setUserId("user123");
+        response2.setPriority(TaskPriority.MEDIUM);
+        response2.setStatus(TaskStatus.PENDING);
+        response2.setCreatedAt(LocalDateTime.now());
+        response2.setUpdatedAt(LocalDateTime.now());
 
         BulkTaskResponse bulkResponse = new BulkTaskResponse(
             2, 0, Arrays.asList(response1, response2), Collections.emptyList()
