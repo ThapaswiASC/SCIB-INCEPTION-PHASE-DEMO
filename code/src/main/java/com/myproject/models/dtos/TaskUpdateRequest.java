@@ -1,48 +1,33 @@
 package com.myproject.models.dtos;
 
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TaskUpdateRequest {
-    
     @Size(min = 1, max = 255, message = "Title must be between 1 and 255 characters")
     private String title;
-    
-    @Size(max = 10000, message = "Description cannot exceed 10000 characters")
+
+    @Size(max = 2000, message = "Description cannot exceed 2000 characters")
     private String description;
-    
-    private String status;
-    
-    private String priority;
 
-    public String getTitle() {
-        return title;
+    private TaskPriority priority;
+    private TaskStatus status;
+    private LocalDateTime dueDate;
+
+    public enum TaskPriority {
+        LOW, MEDIUM, HIGH, URGENT
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-
-    public void setPriority(String priority) {
-        this.priority = priority;
+    public enum TaskStatus {
+        PENDING, IN_PROGRESS, COMPLETED, CANCELLED
     }
 }
