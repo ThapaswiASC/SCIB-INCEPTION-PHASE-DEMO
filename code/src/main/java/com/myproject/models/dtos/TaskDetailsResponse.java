@@ -28,4 +28,7 @@ public class TaskDetailsResponse {
 
     @JsonProperty("createdAt")
     private LocalDateTime createdAt;
+
+    @JsonProperty("columnId")
+    private String columnId;
 }
