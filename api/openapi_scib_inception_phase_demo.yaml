@@ -9,9 +9,9 @@ servers:
 paths:
   /api/v1/tasks:
     post:
-      operationId: DEMO-757CreateTaskPOST
-      summary: Create a new task
-      description: Creates a new task for the authenticated user with performance monitoring
+      operationId: DEMO757CreateTaskPOST
+      summary: Create Task
+      description: Creates a new task for a user with performance monitoring and task limit validation
       tags:
         - Tasks
       requestBody:
@@ -33,20 +33,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized - authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Conflict - concurrent modification detected
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '429':
-          description: Too many requests - rate limit exceeded
+          description: Conflict - concurrent creation error
           content:
             application/json:
               schema:
@@ -57,13 +45,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
   /api/v1/tasks/bulk:
     post:
-      operationId: DEMO-757BulkCreateTasksPOST
-      summary: Bulk create tasks
-      description: Creates multiple tasks in a single operation for improved performance
+      operationId: DEMO757BulkCreateTasksPOST
+      summary: Bulk Create Tasks
+      description: Creates multiple tasks in a single operation
       tags:
         - Tasks
       requestBody:
@@ -82,34 +68,98 @@ paths:
               schema:
                 $ref: '#/components/schemas/BulkTaskResponse'
         '400':
-          description: Bad request - validation error or task limit exceeded
+          description: Bad request - validation error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized - authentication required
+  /api/v1/users/{userId}/tasks:
+    get:
+      operationId: DEMO757GetUserTasksGET
+      summary: Get User Tasks
+      description: Retrieves all tasks for a specific user with pagination support
+      tags:
+        - Tasks
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            format: int64
+        - name: page
+          in: query
+          required: false
+          description: Page number
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          description: Page size
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '404':
+          description: User not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
+  /api/v1/users/{userId}/tasks/count:
+    get:
+      operationId: DEMO757GetTaskCountGET
+      summary: Get Task Count
+      description: Retrieves the total number of tasks for a specific user
+      tags:
+        - Tasks
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Task count retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskCountResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /api/v1/tasks/{taskId}:
     get:
-      operationId: DEMO-757GetTaskByIdGET
-      summary: Get task by ID
-      description: Retrieves a specific task by its unique identifier
+      operationId: DEMO757GetTaskByIdGET
+      summary: Get Task by ID
+      description: Retrieves a specific task by its ID
       tags:
         - Tasks
       parameters:
         - name: taskId
           in: path
           required: true
-          description: Unique task identifier (UUID)
+          description: Task ID
           schema:
-            type: string
-            format: uuid
+            type: integer
+            format: int64
       responses:
         '200':
           description: Task retrieved successfully
@@ -117,40 +167,26 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskResponse'
-        '401':
-          description: Unauthorized - authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden - access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Task not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
     put:
-      operationId: DEMO-757UpdateTaskPUT
-      summary: Update task
-      description: Updates an existing task with new information
+      operationId: DEMO757UpdateTaskPUT
+      summary: Update Task
+      description: Updates an existing task with optimistic locking support
       tags:
         - Tasks
       parameters:
         - name: taskId
           in: path
           required: true
-          description: Unique task identifier (UUID)
+          description: Task ID
           schema:
-            type: string
-            format: uuid
+            type: integer
+            format: int64
       requestBody:
         required: true
         content:
@@ -164,24 +200,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskResponse'
-        '400':
-          description: Bad request - validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '401':
-          description: Unauthorized - authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden - access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Task not found
           content:
@@ -189,275 +207,175 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Conflict - concurrent modification detected
+          description: Conflict - optimistic locking failure
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
     delete:
-      operationId: DEMO-757DeleteTaskDELETE
-      summary: Delete task
-      description: Deletes a specific task by its unique identifier
+      operationId: DEMO757DeleteTaskDELETE
+      summary: Delete Task
+      description: Deletes a specific task
       tags:
         - Tasks
       parameters:
         - name: taskId
           in: path
           required: true
-          description: Unique task identifier (UUID)
+          description: Task ID
           schema:
-            type: string
-            format: uuid
+            type: integer
+            format: int64
       responses:
         '204':
           description: Task deleted successfully
-        '401':
-          description: Unauthorized - authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden - access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Task not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
-  /api/v1/users/{userId}/tasks:
-    get:
-      operationId: DEMO-757GetUserTasksGET
-      summary: Get user tasks
-      description: Retrieves all tasks for a specific user with pagination support
-      tags:
-        - Tasks
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: User identifier
-          schema:
-            type: string
-        - name: page
-          in: query
-          required: false
-          description: Page number for pagination
-          schema:
-            type: integer
-            default: 0
-        - name: size
-          in: query
-          required: false
-          description: Number of items per page
-          schema:
-            type: integer
-            default: 20
-        - name: sort
-          in: query
-          required: false
-          description: Sort field and direction (e.g., createdAt,desc)
-          schema:
-            type: string
-            default: createdAt,desc
-      responses:
-        '200':
-          description: Tasks retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TaskResponse'
-        '401':
-          description: Unauthorized - authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden - access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
-  /api/v1/users/{userId}/tasks/count:
-    get:
-      operationId: DEMO-757GetTaskCountGET
-      summary: Get task count
-      description: Retrieves the total number of tasks for a specific user
-      tags:
-        - Tasks
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          description: User identifier
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Task count retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskCountResponse'
-        '401':
-          description: Unauthorized - authentication required
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '403':
-          description: Forbidden - access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
 components:
   schemas:
     TaskCreateRequest:
       type: object
       required:
+        - userId
         - title
-        - priority
       properties:
+        userId:
+          type: integer
+          format: int64
+          description: User ID
+          minimum: 1
         title:
           type: string
+          description: Task title
           minLength: 1
           maxLength: 255
-          description: Task title
-          example: Complete project documentation
         description:
           type: string
+          description: Task description
           maxLength: 1000
-          description: Detailed task description
-          example: Write comprehensive documentation for the task management system
+        status:
+          type: string
+          description: Task status
+          enum:
+            - PENDING
+            - IN_PROGRESS
+            - COMPLETED
+            - CANCELLED
+          default: PENDING
         priority:
           type: string
+          description: Task priority
           enum:
             - LOW
             - MEDIUM
             - HIGH
-          description: Task priority level
-          example: HIGH
-        dueDate:
-          type: string
-          format: date-time
-          description: Task due date (must be in the future)
-          example: 2024-12-31T23:59:59Z
+            - URGENT
     TaskUpdateRequest:
       type: object
       properties:
         title:
           type: string
+          description: Task title
           minLength: 1
           maxLength: 255
-          description: Task title
-          example: Updated task title
         description:
           type: string
+          description: Task description
           maxLength: 1000
-          description: Detailed task description
-          example: Updated task description
-        priority:
-          type: string
-          enum:
-            - LOW
-            - MEDIUM
-            - HIGH
-          description: Task priority level
-          example: MEDIUM
         status:
           type: string
+          description: Task status
           enum:
             - PENDING
             - IN_PROGRESS
             - COMPLETED
             - CANCELLED
-          description: Task status
-          example: IN_PROGRESS
-        dueDate:
+        priority:
           type: string
-          format: date-time
-          description: Task due date
-          example: 2024-12-31T23:59:59Z
+          description: Task priority
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+            - URGENT
+        version:
+          type: integer
+          format: int64
+          description: Version for optimistic locking
     TaskResponse:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
-          description: Unique task identifier
-          example: 550e8400-e29b-41d4-a716-446655440000
+          type: integer
+          format: int64
+          description: Task ID
         userId:
-          type: string
-          description: User identifier who owns the task
-          example: user123
+          type: integer
+          format: int64
+          description: User ID
         title:
           type: string
           description: Task title
-          example: Complete project documentation
         description:
           type: string
-          description: Detailed task description
-          example: Write comprehensive documentation for the task management system
-        priority:
-          type: string
-          enum:
-            - LOW
-            - MEDIUM
-            - HIGH
-          description: Task priority level
-          example: HIGH
+          description: Task description
         status:
           type: string
+          description: Task status
           enum:
             - PENDING
             - IN_PROGRESS
             - COMPLETED
             - CANCELLED
-          description: Task status
-          example: PENDING
+        priority:
+          type: string
+          description: Task priority
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+            - URGENT
         createdAt:
           type: string
           format: date-time
           description: Task creation timestamp
-          example: 2024-01-15T10:30:00Z
         updatedAt:
           type: string
           format: date-time
           description: Task last update timestamp
-          example: 2024-01-15T14:45:00Z
-        dueDate:
-          type: string
-          format: date-time
-          description: Task due date
-          example: 2024-12-31T23:59:59Z
         version:
           type: integer
           format: int64
-          description: Version number for optimistic locking
-          example: 1
+          description: Version for optimistic locking
+    TaskCountResponse:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: User ID
+        taskCount:
+          type: integer
+          format: int64
+          description: Total number of tasks
+        maxTasksAllowed:
+          type: integer
+          format: int32
+          description: Maximum tasks allowed per user
+          default: 10000
     BulkTaskResponse:
       type: object
       properties:
-        totalCreated:
+        successCount:
           type: integer
-          description: Total number of tasks created
-          example: 100
+          description: Number of tasks created successfully
+        failureCount:
+          type: integer
+          description: Number of tasks that failed to create
         tasks:
           type: array
           items:
@@ -465,74 +383,36 @@ components:
         errors:
           type: array
           items:
-            type: object
-            properties:
-              index:
-                type: integer
-                description: Index of the failed task in the request array
-              errorCode:
-                type: string
-                description: Error code
-              message:
-                type: string
-                description: Error message
-    TaskCountResponse:
-      type: object
-      properties:
-        userId:
-          type: string
-          description: User identifier
-          example: user123
-        taskCount:
-          type: integer
-          format: int64
-          description: Total number of tasks for the user
-          example: 5432
-        maxTasksAllowed:
-          type: integer
-          description: Maximum tasks allowed per user
-          example: 10000
-        remainingCapacity:
-          type: integer
-          description: Remaining task capacity
-          example: 4568
+            $ref: '#/components/schemas/ErrorResponse'
     ErrorResponse:
       type: object
-      required:
-        - errorCode
-        - message
-        - timestamp
       properties:
+        errorCode:
+          type: string
+          description: Error code
+          enum:
+            - TASK_LIMIT_EXCEEDED
+            - CONCURRENT_CREATION_ERROR
+            - PERFORMANCE_THRESHOLD_EXCEEDED
+            - VALIDATION_ERROR
+            - OPTIMISTIC_LOCK_ERROR
+            - DATA_INTEGRITY_ERROR
+        message:
+          type: string
+          description: Error message
         timestamp:
           type: integer
           format: int64
-          description: Error timestamp in milliseconds
-          example: 1705320000000
-        traceId:
-          type: string
-          description: Unique trace identifier for debugging
-          example: abc123-def456-ghi789
-        errorCode:
-          type: string
-          description: Error code identifier
-          example: TASK_LIMIT_EXCEEDED
-        message:
-          type: string
-          description: Human-readable error message
-          example: User has reached maximum task limit of 10000
+          description: Error timestamp
         details:
           type: array
           items:
             type: string
           description: Additional error details
-          example:
-            - Field 'title' is required
-            - Field 'priority' must be one of LOW, MEDIUM, HIGH
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT-based authentication token
 security:
   - bearerAuth: []
