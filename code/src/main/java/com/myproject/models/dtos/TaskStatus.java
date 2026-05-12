@@ -6,9 +6,5 @@ public enum TaskStatus {
     DONE,
     PENDING,
     COMPLETED,
-    CANCELLED;
-    
-    public String name() {
-        return super.name();
-    }
+    CANCELLED
 }
