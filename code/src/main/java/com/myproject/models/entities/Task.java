@@ -1,46 +1,46 @@
 package com.myproject.models.entities;
 
-import com.myproject.models.dtos.Priority;
+import com.myproject.models.dtos.TaskPriority;
 import com.myproject.models.dtos.TaskStatus;
+
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class Task {
 
-    private Long id;
+    private UUID id;
+    private String userId;
     private String title;
     private String description;
-    private Long userId;
-    private Priority priority;
+    private TaskPriority priority;
     private TaskStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime dueDate;
+    private Long version;
 
     public Task() {
+        this.id = UUID.randomUUID();
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.version = 0L;
         this.status = TaskStatus.PENDING;
     }
 
-    public Task(Long id, String title, String description, Long userId, Priority priority, 
-               TaskStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime dueDate) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.userId = userId;
-        this.priority = priority;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.dueDate = dueDate;
-    }
-
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getTitle() {
@@ -59,19 +59,11 @@ public class Task {
         this.description = description;
     }
 
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    public Priority getPriority() {
+    public TaskPriority getPriority() {
         return priority;
     }
 
-    public void setPriority(Priority priority) {
+    public void setPriority(TaskPriority priority) {
         this.priority = priority;
     }
 
@@ -105,5 +97,13 @@ public class Task {
 
     public void setDueDate(LocalDateTime dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }
