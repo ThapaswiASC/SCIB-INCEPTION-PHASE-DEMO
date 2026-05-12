@@ -7,6 +7,6 @@ import java.util.Optional;
 public interface UserDataStore {
     User save(User user);
     Optional<User> findById(Long id);
-    Optional<User> findByUsername(String username);
-    void incrementTaskCount(Long userId, long increment);
+    void incrementTaskCount(Long userId);
+    void decrementTaskCount(Long userId);
 }

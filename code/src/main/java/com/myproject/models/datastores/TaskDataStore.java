@@ -8,11 +8,9 @@ import java.util.Optional;
 public interface TaskDataStore {
     Task save(Task task);
     Optional<Task> findById(Long id);
-    List<Task> findByUserId(Long userId);
-    List<Task> findByUserIdPaginated(Long userId, int page, int size);
+    List<Task> findByUserId(Long userId, int page, int size);
     Long countByUserId(Long userId);
-    List<Task> findByColumnId(String columnId);
     void deleteById(Long id);
+    List<Task> findByColumnId(String columnId);
     List<Task> saveAll(List<Task> tasks);
-    List<Task> findAll();
 }
