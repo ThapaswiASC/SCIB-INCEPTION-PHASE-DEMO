@@ -68,6 +68,48 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(ConcurrentTaskCreationException.class)
+    public ResponseEntity<ErrorResponse> handleConcurrentCreation(ConcurrentTaskCreationException ex) {
+        logger.warn("Concurrent task creation error: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .traceId(UUID.randomUUID().toString())
+                .errorCode("CONCURRENT_CREATION_ERROR")
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(PerformanceThresholdExceededException.class)
+    public ResponseEntity<ErrorResponse> handlePerformanceThreshold(PerformanceThresholdExceededException ex) {
+        logger.warn("Performance threshold exceeded: {}", ex.getMessage());
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .traceId(UUID.randomUUID().toString())
+                .errorCode("PERFORMANCE_THRESHOLD_EXCEEDED")
+                .message("Service temporarily unavailable due to high load")
+                .build();
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+        List<String> errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.toList());
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .traceId(UUID.randomUUID().toString())
+                .errorCode("VALIDATION_ERROR")
+                .message("Validation failed")
+                .details(errors)
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         List<String> errors = ex.getBindingResult()
@@ -92,7 +134,7 @@ public class GlobalExceptionHandler {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .traceId(UUID.randomUUID().toString())
-                .errorCode("INTERNAL_ERROR")
+                .errorCode("INTERNAL_SERVER_ERROR")
                 .message("An unexpected error occurred")
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
