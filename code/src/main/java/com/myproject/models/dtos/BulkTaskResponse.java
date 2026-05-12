@@ -5,37 +5,16 @@ import java.util.List;
 
 public class BulkTaskResponse {
 
-    private Integer successCount;
-    private Integer failureCount;
-    private List<TaskResponse> tasks;
-    private List<ErrorResponse> errors;
+    private Integer totalCreated;
+    private List<TaskResponse> tasks = new ArrayList<>();
+    private List<BulkTaskError> errors = new ArrayList<>();
 
-    public BulkTaskResponse() {
-        this.tasks = new ArrayList<>();
-        this.errors = new ArrayList<>();
+    public Integer getTotalCreated() {
+        return totalCreated;
     }
 
-    public BulkTaskResponse(Integer successCount, Integer failureCount, List<TaskResponse> tasks, List<ErrorResponse> errors) {
-        this.successCount = successCount;
-        this.failureCount = failureCount;
-        this.tasks = tasks != null ? tasks : new ArrayList<>();
-        this.errors = errors != null ? errors : new ArrayList<>();
-    }
-
-    public Integer getSuccessCount() {
-        return successCount;
-    }
-
-    public void setSuccessCount(Integer successCount) {
-        this.successCount = successCount;
-    }
-
-    public Integer getFailureCount() {
-        return failureCount;
-    }
-
-    public void setFailureCount(Integer failureCount) {
-        this.failureCount = failureCount;
+    public void setTotalCreated(Integer totalCreated) {
+        this.totalCreated = totalCreated;
     }
 
     public List<TaskResponse> getTasks() {
@@ -46,11 +25,41 @@ public class BulkTaskResponse {
         this.tasks = tasks;
     }
 
-    public List<ErrorResponse> getErrors() {
+    public List<BulkTaskError> getErrors() {
         return errors;
     }
 
-    public void setErrors(List<ErrorResponse> errors) {
+    public void setErrors(List<BulkTaskError> errors) {
         this.errors = errors;
+    }
+
+    public static class BulkTaskError {
+        private Integer index;
+        private String errorCode;
+        private String message;
+
+        public Integer getIndex() {
+            return index;
+        }
+
+        public void setIndex(Integer index) {
+            this.index = index;
+        }
+
+        public String getErrorCode() {
+            return errorCode;
+        }
+
+        public void setErrorCode(String errorCode) {
+            this.errorCode = errorCode;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
     }
 }

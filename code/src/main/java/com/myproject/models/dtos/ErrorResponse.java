@@ -1,58 +1,21 @@
 package com.myproject.models.dtos;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ErrorResponse {
 
-    private String code;
-    private String message;
-    private LocalDateTime timestamp;
+    private Long timestamp;
     private String traceId;
-    private List<String> details;
+    private String errorCode;
+    private String message;
+    private List<String> details = new ArrayList<>();
 
-    public ErrorResponse() {
-        this.timestamp = LocalDateTime.now();
-        this.details = new ArrayList<>();
-    }
-
-    public ErrorResponse(String code, String message) {
-        this.code = code;
-        this.message = message;
-        this.timestamp = LocalDateTime.now();
-        this.details = new ArrayList<>();
-    }
-
-    public ErrorResponse(String code, String message, String traceId, List<String> details) {
-        this.code = code;
-        this.message = message;
-        this.timestamp = LocalDateTime.now();
-        this.traceId = traceId;
-        this.details = details != null ? details : new ArrayList<>();
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public LocalDateTime getTimestamp() {
+    public Long getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
+    public void setTimestamp(Long timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -62,6 +25,22 @@ public class ErrorResponse {
 
     public void setTraceId(String traceId) {
         this.traceId = traceId;
+    }
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public List<String> getDetails() {

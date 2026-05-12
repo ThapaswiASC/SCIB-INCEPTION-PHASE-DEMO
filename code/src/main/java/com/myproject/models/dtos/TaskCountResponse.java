@@ -1,37 +1,41 @@
 package com.myproject.models.dtos;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-
 public class TaskCountResponse {
 
-    private Long userId;
+    private String userId;
+    private Long taskCount;
+    private Integer maxTasksAllowed;
+    private Integer remainingCapacity;
 
-    @Min(0)
-    @Max(10000)
-    private Integer taskCount;
-
-    public TaskCountResponse() {
-    }
-
-    public TaskCountResponse(Long userId, Integer taskCount) {
-        this.userId = userId;
-        this.taskCount = taskCount;
-    }
-
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public Integer getTaskCount() {
+    public Long getTaskCount() {
         return taskCount;
     }
 
-    public void setTaskCount(Integer taskCount) {
+    public void setTaskCount(Long taskCount) {
         this.taskCount = taskCount;
+    }
+
+    public Integer getMaxTasksAllowed() {
+        return maxTasksAllowed;
+    }
+
+    public void setMaxTasksAllowed(Integer maxTasksAllowed) {
+        this.maxTasksAllowed = maxTasksAllowed;
+    }
+
+    public Integer getRemainingCapacity() {
+        return remainingCapacity;
+    }
+
+    public void setRemainingCapacity(Integer remainingCapacity) {
+        this.remainingCapacity = remainingCapacity;
     }
 }
