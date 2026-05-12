@@ -56,4 +56,13 @@ public class InMemoryColumnDataStore implements ColumnDataStore {
             column.setLastUpdated(LocalDateTime.now());
         }
     }
+
+    @Override
+    public Long countByColumnId(String columnId) {
+        Column column = columns.get(columnId);
+        if (column != null) {
+            return Long.valueOf(column.getTaskCount());
+        }
+        return 0L;
+    }
 }
