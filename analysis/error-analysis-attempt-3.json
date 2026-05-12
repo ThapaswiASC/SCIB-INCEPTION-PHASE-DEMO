@@ -1,0 +1,75 @@
+{
+  "executive_summary": "Maven test compilation failed with 100 errors across multiple test classes. The primary issues are type mismatches (long vs UUID/String, Priority vs TaskPriority), missing methods in data store implementations, and incorrect method signatures in service interfaces. These errors indicate a significant refactoring or API change that broke the test suite.",
+  "attempt_number": 3,
+  "repo": "SCIB-INCEPTION-PHASE-DEMO",
+  "branch": "feature/DEMO-757",
+  "log_file": "logs/build_failure_attempt-3.log",
+  "errors_found": 8,
+  "errors": [
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
+      "line": 138,
+      "message": "Cannot find symbol: method handleValidationErrors(MethodArgumentNotValidException)",
+      "root_cause": "The GlobalExceptionHandler class no longer has a handleValidationErrors method, but tests are still calling it.",
+      "fix_recommendation": "Update GlobalExceptionHandlerTest to use the correct method name or signature that replaced handleValidationErrors, or restore the method if it was removed in error."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
+      "line": null,
+      "message": "Multiple type conversion errors: long cannot be converted to String/UUID, Priority cannot be converted to TaskPriority",
+      "root_cause": "The Task entity and related DTOs changed their ID type from long to UUID and Priority enum was renamed to TaskPriority, but tests still use old types.",
+      "fix_recommendation": "Update all test data creation to use UUID.randomUUID() instead of long IDs, and use TaskPriority enum instead of Priority throughout InMemoryTaskDataStoreTest."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
+      "line": 194,
+      "message": "Cannot find symbol: method findAll(), existsById(), saveAll()",
+      "root_cause": "InMemoryTaskDataStore interface or implementation removed these methods but tests still reference them.",
+      "fix_recommendation": "Either restore findAll(), existsById(UUID), and saveAll(List<Task>) methods to InMemoryTaskDataStore, or update tests to use alternative methods that provide the same functionality."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "src/test/java/com/myproject/models/entities/TaskTest.java",
+      "line": 53,
+      "message": "Constructor Task cannot be applied to given types",
+      "root_cause": "Task entity constructor signature changed but tests still use old constructor with positional parameters.",
+      "fix_recommendation": "Update TaskTest to use builder pattern or new constructor signature. Replace direct constructor calls with Task.builder().id(uuid).title(title)...build() pattern."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "src/test/java/com/myproject/services/impl/TaskServiceImplTest.java",
+      "line": null,
+      "message": "Method signatures mismatch: createTask, getUserTasks, getTaskById, updateTask, deleteTask require different parameters",
+      "root_cause": "TaskService interface methods now require userId (String) as first parameter, but tests call them without it.",
+      "fix_recommendation": "Update all TaskServiceImplTest method calls to include userId as first parameter. For example: createTask(userId, request) instead of createTask(request), getTaskById(taskId, userId) instead of getTaskById(taskId)."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
+      "line": 135,
+      "message": "Method findByUserId requires 4 parameters but only 3 provided",
+      "root_cause": "findByUserId method signature changed to require sortBy parameter but tests don't provide it.",
+      "fix_recommendation": "Add sortBy parameter (String) to all findByUserId calls in tests. Example: findByUserId(userId, page, size, "createdAt")."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
+      "line": 80,
+      "message": "Bad operand types for binary operator '+': UUID + int",
+      "root_cause": "Test code attempts to concatenate UUID with integer, which is not supported.",
+      "fix_recommendation": "Replace UUID arithmetic with proper UUID generation. Use UUID.randomUUID() for each new task instead of trying to increment UUIDs."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 38,
+      "message": "@MockBean is deprecated and marked for removal",
+      "root_cause": "Spring Boot deprecated @MockBean in favor of newer testing annotations.",
+      "fix_recommendation": "Replace @MockBean with @MockitoBean from org.springframework.boot.test.mock.mockito package, or use @Mock with @ExtendWith(MockitoExtension.class)."
+    }
+  ],
+  "summary": "8 error groups found (100 individual errors)"
+}
