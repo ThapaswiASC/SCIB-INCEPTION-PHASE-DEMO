@@ -1,50 +1,55 @@
-# MyProject - SCIB Inception Phase Demo
+# SCIB Inception Phase Demo - MyProject
 
 ## Overview
 
-This is a Spring Boot application implementing a task management system with Kanban board functionality. The application provides RESTful APIs for managing tasks, columns, and user operations with comprehensive input validation and error handling.
+This is a Spring Boot application implementing a task management system with Kanban board functionality. The application provides REST APIs for managing tasks, columns, and validating input data.
 
 ## Features
 
-- **Task Management**: Create, read, update, and delete tasks
-- **Kanban Board**: Drag-and-drop task status updates with column management
-- **Input Validation**: Robust validation for malformed or unexpected input data
-- **Bulk Operations**: Support for bulk task creation and column updates
-- **Pagination**: Efficient pagination for large task lists
-- **Performance Optimized**: Supports up to 10,000 tasks per user with 200ms response time target
+### Task Management (DEMO-757)
+- Create, read, update, and delete tasks
+- Support for up to 10,000 tasks per user
+- Bulk task creation
+- Paginated task retrieval
+- Task count tracking per user
+
+### Kanban Board (DEMO-222)
+- Drag and drop task status updates
+- Column statistics tracking
+- Bulk column count updates
+- Real-time task movement between columns
+
+### Input Validation (DEMO-759)
+- Comprehensive input validation
+- Graceful handling of malformed data
+- Detailed validation error messages
+- Support for special characters and unicode
 
 ## Technology Stack
 
 - **Java**: 21
 - **Spring Boot**: 3.5.9
-- **Database**: H2 (in-memory)
 - **Build Tool**: Maven
-- **Testing**: JUnit Jupiter, Spring Boot Test
-- **Code Coverage**: JaCoCo
+- **Data Storage**: In-memory (ConcurrentHashMap)
 
 ## Project Structure
 
 ```
 code/
-├── pom.xml
-├── src/
-│   └── main/
-│       ├── java/com/myproject/
-│       │   ├── controllers/          # REST API controllers
-│       │   ├── models/
-│       │   │   ├── dtos/            # Data Transfer Objects
-│       │   │   ├── entities/        # JPA entities
-│       │   │   └── datastores/      # Repository interfaces
-│       │   ├── services/
-│       │   │   ├── interfaces/      # Service interfaces
-│       │   │   └── impl/            # Service implementations
-│       │   ├── config/              # Configuration classes
-│       │   ├── exceptions/          # Custom exceptions
-│       │   ├── utils/               # Utility classes
-│       │   └── Application.java     # Main application class
-│       └── resources/
-│           └── application.properties
-└── .github/workflows/build.yml      # CI/CD workflow
+├── src/main/java/com/myproject/
+│   ├── controllers/          # REST API controllers
+│   ├── services/
+│   │   ├── interfaces/       # Service interfaces
+│   │   └── impl/             # Service implementations
+│   ├── models/
+│   │   ├── dtos/             # Data Transfer Objects
+│   │   ├── entities/         # Domain entities
+│   │   └── datastores/       # Data access layer
+│   ├── config/               # Configuration classes
+│   ├── exceptions/           # Custom exceptions
+│   └── Application.java      # Main application class
+└── src/main/resources/
+    └── application.properties # Application configuration
 ```
 
 ## API Endpoints
@@ -52,16 +57,12 @@ code/
 ### Task Management
 
 - `POST /api/v1/tasks` - Create a new task
-- `GET /api/v1/tasks` - List all tasks
-- `GET /api/v1/tasks/{id}` - Get task by ID
-- `PUT /api/v1/tasks/{id}` - Update task
-- `DELETE /api/v1/tasks/{id}` - Delete task
+- `GET /api/v1/tasks/{taskId}` - Get task details
+- `PUT /api/v1/tasks/{taskId}/update` - Update task
+- `DELETE /api/v1/tasks/{taskId}/delete` - Delete task
 - `POST /api/v1/tasks/bulk` - Bulk create tasks
-
-### User Tasks
-
-- `GET /api/v1/users/{userId}/tasks` - Get paginated user tasks
-- `GET /api/v1/users/{userId}/tasks/count` - Get user task count
+- `GET /api/v1/users/{userId}/tasks` - Get user tasks (paginated)
+- `GET /api/v1/users/{userId}/tasks/count` - Get task count
 
 ### Kanban Board
 
@@ -69,12 +70,16 @@ code/
 - `GET /api/v1/columns/{columnId}/stats` - Get column statistics
 - `PUT /api/v1/columns/bulk-update` - Bulk update column counts
 
+### Validation
+
+- `POST /api/v1/tasks/validate` - Validate task input
+
 ## Building and Running
 
 ### Prerequisites
 
-- Java 21
-- Maven 3.6+
+- Java 21 or higher
+- Maven 3.6 or higher
 
 ### Build
 
@@ -91,93 +96,88 @@ mvn spring-boot:run
 
 The application will start on `http://localhost:8080/api`
 
-### H2 Console
-
-Access the H2 database console at: `http://localhost:8080/api/h2-console`
-
-- JDBC URL: `jdbc:h2:mem:testdb`
-- Username: `sa`
-- Password: `password`
-
-## Testing
-
-```bash
-mvn test
-```
-
-### Code Coverage
-
-```bash
-mvn jacoco:report
-```
-
-Coverage reports are generated in `target/site/jacoco/`
-
 ## Configuration
 
 Key configuration properties in `application.properties`:
 
 ```properties
-# Server Configuration
+spring.application.name=myproject
 server.port=8080
 server.servlet.context-path=/api
-
-# Task Limits
-app.task.max-per-user=10000
-app.task.creation-timeout=200ms
-
-# Validation
-validation.title.max-length=255
-validation.description.max-length=10000
+logging.level.root=INFO
+logging.level.com.myproject=DEBUG
 ```
 
-## Input Validation
+## CORS Configuration
 
-The application handles various types of malformed input:
+The application is configured to allow CORS requests from:
+- `http://localhost:4200`
 
-- **Null values**: Proper null checks and error messages
-- **Whitespace-only strings**: Trimmed and validated
-- **Special characters**: UTF-8 encoding support
-- **Length constraints**: Title (1-255 chars), Description (max 10000 chars)
-- **Task limits**: Maximum 10,000 tasks per user
+All headers and methods are allowed with credentials support.
 
 ## Error Handling
 
-Standardized error responses with:
+The application provides comprehensive error handling with structured error responses:
 
-- Timestamp
-- Trace ID for debugging
-- Error code
-- Human-readable message
-- Detailed validation errors (when applicable)
+```json
+{
+  "timestamp": "2024-01-01T10:00:00",
+  "traceId": "uuid",
+  "errorCode": "ERROR_CODE",
+  "message": "Error message",
+  "details": ["Additional details"]
+}
+```
 
-## Performance Considerations
+## Validation Rules
 
-- Database indexing on frequently queried fields
-- Optimistic locking for concurrent operations
-- Pagination for large result sets
-- Efficient bulk operations
-- Connection pooling with HikariCP
+### Task Creation
+- Title: Required, 1-255 characters
+- Description: Optional, max 2000 characters
+- User ID: Required, positive number
+- Priority: Required, one of LOW, MEDIUM, HIGH, URGENT
+- Due Date: Optional, future date
 
-## Security
+### Task Validation Endpoint
+- Title: Required, 1-255 characters
+- Description: Optional, max 10000 characters
+- Priority: Optional, must match pattern ^(HIGH|MEDIUM|LOW)$
 
-- CORS configuration for frontend integration
-- Input sanitization to prevent injection attacks
-- JWT-ready security configuration (currently permissive for development)
+## Business Rules
+
+1. **Task Limit**: Each user can have a maximum of 10,000 tasks
+2. **Status Transitions**: Tasks can move between TO_DO, IN_PROGRESS, and DONE
+3. **Column Counts**: Automatically updated when tasks move between columns
+4. **Concurrent Operations**: Thread-safe in-memory data stores using ConcurrentHashMap
+
+## Testing
+
+Run tests with:
+
+```bash
+mvn test
+```
+
+Generate coverage report:
+
+```bash
+mvn jacoco:report
+```
+
+Coverage reports are available at `target/site/jacoco/index.html`
 
 ## CI/CD
 
-GitHub Actions workflow for:
-
-- Building with Maven
-- Running tests
-- Generating code coverage reports
-- Uploading artifacts
+The project includes a GitHub Actions workflow (`.github/workflows/build.yml`) that:
+- Builds the application
+- Runs tests
+- Generates coverage reports
+- Uploads artifacts
 
 ## License
 
 This project is part of the SCIB Inception Phase Demo.
 
-## Support
+## Contact
 
-For issues and questions, please refer to the project documentation or contact the development team.
+For questions or issues, please refer to the project documentation or contact the development team.
