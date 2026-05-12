@@ -6,82 +6,60 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Component
 public class InMemoryTaskDataStore implements TaskDataStore {
 
-    private final Map<UUID, Task> taskStore = new ConcurrentHashMap<>();
+    private final Map<Long, Task> taskStore = new ConcurrentHashMap<>();
+    private final AtomicLong idGenerator = new AtomicLong(1);
 
     @Override
     public Task save(Task task) {
         if (task.getId() == null) {
-            task.setId(UUID.randomUUID());
+            task.setId(idGenerator.getAndIncrement());
+            task.setCreatedAt(LocalDateTime.now());
+            task.setVersion(1L);
+        } else {
+            task.setUpdatedAt(LocalDateTime.now());
+            if (task.getVersion() != null) {
+                task.setVersion(task.getVersion() + 1);
+            }
         }
-        task.setUpdatedAt(LocalDateTime.now());
-        task.setVersion(task.getVersion() == null ? 0L : task.getVersion() + 1);
         taskStore.put(task.getId(), task);
         return task;
     }
 
     @Override
-    public Optional<Task> findById(UUID id) {
+    public Optional<Task> findById(Long id) {
         return Optional.ofNullable(taskStore.get(id));
     }
 
     @Override
-    public List<Task> findByUserId(String userId, int page, int size, String sort) {
-        List<Task> userTasks = taskStore.values().stream()
+    public List<Task> findByUserId(Long userId, int page, int size) {
+        return taskStore.values().stream()
                 .filter(task -> task.getUserId().equals(userId))
-                .sorted((t1, t2) -> {
-                    if (sort.contains("desc")) {
-                        return t2.getCreatedAt().compareTo(t1.getCreatedAt());
-                    }
-                    return t1.getCreatedAt().compareTo(t2.getCreatedAt());
-                })
+                .sorted(Comparator.comparing(Task::getCreatedAt).reversed())
+                .skip((long) page * size)
+                .limit(size)
                 .collect(Collectors.toList());
-
-        int start = page * size;
-        int end = Math.min(start + size, userTasks.size());
-        
-        if (start >= userTasks.size()) {
-            return Collections.emptyList();
-        }
-        
-        return userTasks.subList(start, end);
     }
 
     @Override
-    public long countByUserId(String userId) {
+    public long countByUserId(Long userId) {
         return taskStore.values().stream()
                 .filter(task -> task.getUserId().equals(userId))
                 .count();
     }
 
     @Override
-    public void deleteById(UUID id) {
+    public void deleteById(Long id) {
         taskStore.remove(id);
     }
 
     @Override
-    public boolean existsByIdAndUserId(UUID id, String userId) {
-        Task task = taskStore.get(id);
-        return task != null && task.getUserId().equals(userId);
-    }
-
-    public List<Task> findAll() {
-        return new ArrayList<>(taskStore.values());
-    }
-
-    public boolean existsById(UUID id) {
+    public boolean existsById(Long id) {
         return taskStore.containsKey(id);
-    }
-
-    public List<Task> saveAll(List<Task> tasks) {
-        List<Task> savedTasks = new ArrayList<>();
-        for (Task task : tasks) {
-            savedTasks.add(save(task));
-        }
-        return savedTasks;
     }
 }
