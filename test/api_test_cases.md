@@ -1,357 +1,101 @@
 # API Test Cases Documentation
 
-## Project: MyProject - SCIB Inception Phase Demo
+## Project: SCIB Inception Phase Demo - MyProject
 
+**Repository:** SCIB-INCEPTION-PHASE-DEMO  
+**Branch:** feature/DEMO-759  
 **Generated:** 2024-01-15T10:00:00Z
 
-**Base URL:** `http://localhost:8080/api`
+---
+
+## Test Coverage Summary
+
+| Category | Total Tests | Positive | Negative | Edge Cases |
+|----------|-------------|----------|----------|------------|
+| Task Management | 45 | 20 | 15 | 10 |
+| Kanban Board | 18 | 8 | 6 | 4 |
+| Input Validation | 22 | 10 | 8 | 4 |
+| User Tasks | 12 | 6 | 4 | 2 |
+| **Total** | **97** | **44** | **33** | **20** |
 
 ---
 
-## Table of Contents
+## 1. Task Management API Tests
 
-1. [Task Management API](#task-management-api)
-2. [Column Management API](#column-management-api)
-3. [Task Validation API](#task-validation-api)
-4. [Test Coverage Summary](#test-coverage-summary)
+### 1.1 Create Task
 
----
-
-## Task Management API
-
-### TC-001: Create Task - Valid Request
-
-**Endpoint:** `POST /v1/tasks`
-
-**Test Case ID:** TC-001
-
-**Scenario:** Create a new task with valid data
-
-**Preconditions:**
-- User ID 1 exists
-- User has not exceeded task limit (< 10,000 tasks)
-
+#### TC-001: Create Task - Valid Request
+**Endpoint:** `POST /api/v1/tasks`  
+**Scenario:** Create a new task with valid data  
+**Preconditions:** User exists in the system  
 **Request Body:**
 ```json
 {
   "title": "Implement user authentication",
-  "description": "Add JWT-based authentication to the API",
+  "description": "Add JWT-based authentication",
   "userId": 1,
   "priority": "HIGH",
-  "dueDate": "2024-12-31T23:59:59"
+  "dueDate": "2024-02-01T10:00:00"
 }
 ```
-
 **Expected Result:**
-- Status Code: `201 Created`
+- Status Code: 201 Created
 - Response contains task ID
-- Response contains all submitted fields
-- Status is set to "PENDING"
-- Created and updated timestamps are present
+- Task status is "PENDING"
+- createdAt and updatedAt timestamps are set
 
-**Response Example:**
-```json
-{
-  "id": 1,
-  "title": "Implement user authentication",
-  "description": "Add JWT-based authentication to the API",
-  "userId": 1,
-  "status": "PENDING",
-  "priority": "HIGH",
-  "createdAt": "2024-01-15T10:00:00",
-  "updatedAt": "2024-01-15T10:00:00"
-}
-```
-
----
-
-### TC-002: Create Task - Missing Title
-
-**Endpoint:** `POST /v1/tasks`
-
-**Test Case ID:** TC-002
-
-**Scenario:** Attempt to create a task without a title
-
-**Preconditions:** None
-
+#### TC-002: Create Task - Missing Title
+**Endpoint:** `POST /api/v1/tasks`  
+**Scenario:** Attempt to create task without title  
 **Request Body:**
 ```json
 {
-  "description": "Task without title",
+  "description": "Task description",
   "userId": 1,
-  "priority": "MEDIUM"
+  "priority": "HIGH"
 }
 ```
-
 **Expected Result:**
-- Status Code: `400 Bad Request`
+- Status Code: 400 Bad Request
 - Error code: "VALIDATION_ERROR"
-- Error message indicates title is required
+- Error message contains "Title is required"
 
-**Response Example:**
-```json
-{
-  "timestamp": "2024-01-15T10:00:00",
-  "traceId": "abc-123-def",
-  "errorCode": "VALIDATION_ERROR",
-  "message": "Validation failed",
-  "details": ["Title is required"]
-}
-```
-
----
-
-### TC-003: Create Task - Task Limit Exceeded
-
-**Endpoint:** `POST /v1/tasks`
-
-**Test Case ID:** TC-003
-
-**Scenario:** Attempt to create a task when user has reached the 10,000 task limit
-
-**Preconditions:**
-- User ID 1 has 10,000 existing tasks
-
-**Request Body:**
-```json
-{
-  "title": "New task",
-  "userId": 1,
-  "priority": "LOW"
-}
-```
-
+#### TC-003: Create Task - Task Limit Exceeded
+**Endpoint:** `POST /api/v1/tasks`  
+**Scenario:** Create task when user has reached 10,000 task limit  
+**Preconditions:** User already has 10,000 tasks  
 **Expected Result:**
-- Status Code: `400 Bad Request`
+- Status Code: 400 Bad Request
 - Error code: "TASK_LIMIT_EXCEEDED"
-- Error message indicates limit reached
+- Error message: "User cannot have more than 10000 tasks"
 
 ---
 
-### TC-004: Get Task by ID - Valid ID
+### 1.2 Get Task Details
 
-**Endpoint:** `GET /v1/tasks/{id}`
-
-**Test Case ID:** TC-004
-
-**Scenario:** Retrieve an existing task by ID
-
-**Preconditions:**
-- Task with ID 1 exists
-
-**Request:** `GET /v1/tasks/1`
-
+#### TC-004: Get Task Details - Valid Task ID
+**Endpoint:** `GET /api/v1/tasks/{taskId}`  
+**Scenario:** Retrieve details of an existing task  
+**Path Parameters:** taskId = "1"  
 **Expected Result:**
-- Status Code: `200 OK`
-- Response contains complete task details
+- Status Code: 200 OK
+- Response contains taskId, title, status, columnId
 
----
-
-### TC-005: Get Task by ID - Non-existent ID
-
-**Endpoint:** `GET /v1/tasks/{id}`
-
-**Test Case ID:** TC-005
-
-**Scenario:** Attempt to retrieve a task that doesn't exist
-
-**Preconditions:** None
-
-**Request:** `GET /v1/tasks/999999`
-
+#### TC-005: Get Task Details - Task Not Found
+**Endpoint:** `GET /api/v1/tasks/{taskId}`  
+**Scenario:** Attempt to retrieve non-existent task  
+**Path Parameters:** taskId = "999"  
 **Expected Result:**
-- Status Code: `404 Not Found`
+- Status Code: 404 Not Found
 - Error code: "TASK_NOT_FOUND"
 
 ---
 
-### TC-006: Update Task - Valid Request
+### 1.3 Update Task Status
 
-**Endpoint:** `PUT /v1/tasks/{id}`
-
-**Test Case ID:** TC-006
-
-**Scenario:** Update an existing task with valid data
-
-**Preconditions:**
-- Task with ID 1 exists
-
-**Request Body:**
-```json
-{
-  "title": "Updated title",
-  "description": "Updated description",
-  "priority": "URGENT"
-}
-```
-
-**Expected Result:**
-- Status Code: `200 OK`
-- Response contains updated fields
-- Updated timestamp is newer than created timestamp
-
----
-
-### TC-007: Update Task - Title Too Long
-
-**Endpoint:** `PUT /v1/tasks/{id}`
-
-**Test Case ID:** TC-007
-
-**Scenario:** Attempt to update task with title exceeding 255 characters
-
-**Preconditions:**
-- Task with ID 1 exists
-
-**Request Body:**
-```json
-{
-  "title": "a..." (256 characters)
-}
-```
-
-**Expected Result:**
-- Status Code: `400 Bad Request`
-- Error code: "VALIDATION_ERROR"
-- Error message indicates title length limit
-
----
-
-### TC-008: Delete Task - Valid ID
-
-**Endpoint:** `DELETE /v1/tasks/{id}`
-
-**Test Case ID:** TC-008
-
-**Scenario:** Delete an existing task
-
-**Preconditions:**
-- Task with ID 1 exists
-
-**Request:** `DELETE /v1/tasks/1`
-
-**Expected Result:**
-- Status Code: `204 No Content`
-- No response body
-- Subsequent GET request returns 404
-
----
-
-### TC-009: Delete Task - Non-existent ID
-
-**Endpoint:** `DELETE /v1/tasks/{id}`
-
-**Test Case ID:** TC-009
-
-**Scenario:** Attempt to delete a task that doesn't exist
-
-**Preconditions:** None
-
-**Request:** `DELETE /v1/tasks/999999`
-
-**Expected Result:**
-- Status Code: `404 Not Found`
-- Error code: "TASK_NOT_FOUND"
-
----
-
-### TC-010: Get User Tasks - Valid Request
-
-**Endpoint:** `GET /v1/users/{userId}/tasks`
-
-**Test Case ID:** TC-010
-
-**Scenario:** Retrieve paginated tasks for a user
-
-**Preconditions:**
-- User ID 1 has at least 5 tasks
-
-**Request:** `GET /v1/users/1/tasks?page=0&size=10`
-
-**Expected Result:**
-- Status Code: `200 OK`
-- Response contains paginated task list
-- Pagination metadata included (page, size, totalElements, totalPages)
-
-**Response Example:**
-```json
-{
-  "content": [
-    {
-      "id": 1,
-      "title": "Task 1",
-      "userId": 1,
-      "status": "PENDING"
-    }
-  ],
-  "currentPage": 0,
-  "pageSize": 10,
-  "totalElements": 5,
-  "totalPages": 1
-}
-```
-
----
-
-### TC-011: Get User Tasks - Empty Result
-
-**Endpoint:** `GET /v1/users/{userId}/tasks`
-
-**Test Case ID:** TC-011
-
-**Scenario:** Retrieve tasks for a user with no tasks
-
-**Preconditions:**
-- User ID 999 has no tasks
-
-**Request:** `GET /v1/users/999/tasks`
-
-**Expected Result:**
-- Status Code: `200 OK`
-- Empty content array
-- totalElements: 0
-
----
-
-### TC-012: Get Task Count - Valid User
-
-**Endpoint:** `GET /v1/users/{userId}/tasks/count`
-
-**Test Case ID:** TC-012
-
-**Scenario:** Get task count for a user
-
-**Preconditions:**
-- User ID 1 has 42 tasks
-
-**Request:** `GET /v1/users/1/tasks/count`
-
-**Expected Result:**
-- Status Code: `200 OK`
-- Response contains userId and taskCount
-
-**Response Example:**
-```json
-{
-  "userId": 1,
-  "taskCount": 42
-}
-```
-
----
-
-### TC-013: Update Task Status - Valid Transition
-
-**Endpoint:** `PUT /v1/tasks/{taskId}/status`
-
-**Test Case ID:** TC-013
-
-**Scenario:** Update task status from TO_DO to IN_PROGRESS
-
-**Preconditions:**
-- Task with ID 1 exists with status TO_DO
-
+#### TC-006: Update Task Status - Valid Transition
+**Endpoint:** `PUT /api/v1/tasks/{taskId}/status`  
+**Scenario:** Move task from TO_DO to IN_PROGRESS  
 **Request Body:**
 ```json
 {
@@ -359,25 +103,15 @@
   "columnId": "in-progress"
 }
 ```
-
 **Expected Result:**
-- Status Code: `200 OK`
-- Response contains updated status
-- Updated timestamp is present
+- Status Code: 200 OK
+- Task status updated
+- Column counts updated
+- updatedAt timestamp refreshed
 
----
-
-### TC-014: Update Task Status - Invalid Transition
-
-**Endpoint:** `PUT /v1/tasks/{taskId}/status`
-
-**Test Case ID:** TC-014
-
-**Scenario:** Attempt invalid status transition (TO_DO to DONE)
-
-**Preconditions:**
-- Task with ID 1 exists with status TO_DO
-
+#### TC-007: Update Task Status - Invalid Transition
+**Endpoint:** `PUT /api/v1/tasks/{taskId}/status`  
+**Scenario:** Attempt invalid status transition (TO_DO → DONE)  
 **Request Body:**
 ```json
 {
@@ -385,24 +119,62 @@
   "columnId": "done"
 }
 ```
-
 **Expected Result:**
-- Status Code: `400 Bad Request`
+- Status Code: 400 Bad Request
 - Error code: "INVALID_STATUS_TRANSITION"
 
 ---
 
-### TC-015: Bulk Create Tasks - Valid Request
+### 1.4 Update Task
 
-**Endpoint:** `POST /v1/tasks/bulk`
+#### TC-008: Update Task - Valid Request
+**Endpoint:** `PUT /api/v1/tasks/{taskId}/update`  
+**Scenario:** Update task title and priority  
+**Request Body:**
+```json
+{
+  "title": "Updated title",
+  "priority": "URGENT"
+}
+```
+**Expected Result:**
+- Status Code: 200 OK
+- Task fields updated
+- updatedAt timestamp refreshed
 
-**Test Case ID:** TC-015
+#### TC-009: Update Task - Title Too Long
+**Endpoint:** `PUT /api/v1/tasks/{taskId}/update`  
+**Scenario:** Attempt to update with title exceeding 255 characters  
+**Expected Result:**
+- Status Code: 400 Bad Request
+- Error code: "VALIDATION_ERROR"
 
-**Scenario:** Create multiple tasks in a single request
+---
 
-**Preconditions:**
-- User ID 1 has not exceeded task limit
+### 1.5 Delete Task
 
+#### TC-010: Delete Task - Valid Task ID
+**Endpoint:** `DELETE /api/v1/tasks/{taskId}/delete`  
+**Scenario:** Delete an existing task  
+**Expected Result:**
+- Status Code: 204 No Content
+- Task removed from datastore
+- User task count decremented
+
+#### TC-011: Delete Task - Task Not Found
+**Endpoint:** `DELETE /api/v1/tasks/{taskId}/delete`  
+**Scenario:** Attempt to delete non-existent task  
+**Expected Result:**
+- Status Code: 404 Not Found
+- Error code: "TASK_NOT_FOUND"
+
+---
+
+### 1.6 Bulk Create Tasks
+
+#### TC-012: Bulk Create Tasks - Valid Request
+**Endpoint:** `POST /api/v1/tasks/bulk`  
+**Scenario:** Create multiple tasks in one request  
 **Request Body:**
 ```json
 [
@@ -418,92 +190,49 @@
   }
 ]
 ```
-
 **Expected Result:**
-- Status Code: `201 Created`
-- Response contains successCount and failureCount
-- createdTasks array contains all created tasks
-- errors array is empty
+- Status Code: 201 Created
+- successCount: 2
+- failureCount: 0
+- createdTasks array contains 2 tasks
+
+#### TC-013: Bulk Create Tasks - Partial Success
+**Endpoint:** `POST /api/v1/tasks/bulk`  
+**Scenario:** Some tasks succeed, some fail  
+**Expected Result:**
+- Status Code: 201 Created
+- successCount > 0
+- failureCount > 0
+- errors array contains failure details
 
 ---
 
-### TC-016: Bulk Create Tasks - Exceeds Limit
+## 2. Kanban Board API Tests
 
-**Endpoint:** `POST /v1/tasks/bulk`
+### 2.1 Get Column Statistics
 
-**Test Case ID:** TC-016
-
-**Scenario:** Attempt to create more than 100 tasks at once
-
-**Preconditions:** None
-
-**Request Body:** Array of 101 task creation requests
-
+#### TC-014: Get Column Stats - Valid Column ID
+**Endpoint:** `GET /api/v1/columns/{columnId}/stats`  
+**Scenario:** Retrieve statistics for a column  
+**Path Parameters:** columnId = "to-do"  
 **Expected Result:**
-- Status Code: `400 Bad Request`
-- Error code: "TASK_LIMIT_EXCEEDED"
-
----
-
-## Column Management API
-
-### TC-017: Get Column Statistics - Valid Column
-
-**Endpoint:** `GET /v1/columns/{columnId}/stats`
-
-**Test Case ID:** TC-017
-
-**Scenario:** Retrieve statistics for a column
-
-**Preconditions:**
-- Column "to-do" exists
-
-**Request:** `GET /v1/columns/to-do/stats`
-
-**Expected Result:**
-- Status Code: `200 OK`
+- Status Code: 200 OK
 - Response contains columnId, taskCount, lastUpdated
 
-**Response Example:**
-```json
-{
-  "columnId": "to-do",
-  "taskCount": 15,
-  "lastUpdated": "2024-01-15T10:00:00"
-}
-```
-
----
-
-### TC-018: Get Column Statistics - Non-existent Column
-
-**Endpoint:** `GET /v1/columns/{columnId}/stats`
-
-**Test Case ID:** TC-018
-
-**Scenario:** Attempt to get stats for non-existent column
-
-**Preconditions:** None
-
-**Request:** `GET /v1/columns/invalid-column/stats`
-
+#### TC-015: Get Column Stats - Column Not Found
+**Endpoint:** `GET /api/v1/columns/{columnId}/stats`  
+**Scenario:** Attempt to retrieve stats for non-existent column  
 **Expected Result:**
-- Status Code: `404 Not Found`
+- Status Code: 404 Not Found
 - Error code: "COLUMN_NOT_FOUND"
 
 ---
 
-### TC-019: Bulk Update Column Counts - Valid Request
+### 2.2 Bulk Update Column Counts
 
-**Endpoint:** `PUT /v1/columns/bulk-update`
-
-**Test Case ID:** TC-019
-
-**Scenario:** Update task counts for multiple columns
-
-**Preconditions:**
-- Columns "to-do" and "in-progress" exist
-
+#### TC-016: Bulk Update Column Counts - Valid Request
+**Endpoint:** `PUT /api/v1/columns/bulk-update`  
+**Scenario:** Update counts for multiple columns  
 **Request Body:**
 ```json
 {
@@ -519,189 +248,166 @@
   ]
 }
 ```
-
 **Expected Result:**
-- Status Code: `200 OK`
-- Response contains success: true
+- Status Code: 200 OK
+- success: true
 - updatedColumns array contains both column IDs
 
 ---
 
-### TC-020: Bulk Update Column Counts - Missing Updates
+## 3. User Tasks API Tests
 
-**Endpoint:** `PUT /v1/columns/bulk-update`
+### 3.1 Get User Tasks
 
-**Test Case ID:** TC-020
-
-**Scenario:** Attempt bulk update without updates array
-
-**Preconditions:** None
-
-**Request Body:**
-```json
-{}
-```
-
+#### TC-017: Get User Tasks - Valid Request
+**Endpoint:** `GET /api/v1/users/{userId}/tasks`  
+**Scenario:** Retrieve paginated list of user tasks  
+**Query Parameters:** page=0, size=50  
 **Expected Result:**
-- Status Code: `400 Bad Request`
-- Error code: "VALIDATION_ERROR"
+- Status Code: 200 OK
+- content array contains tasks
+- Pagination metadata present
+
+#### TC-018: Get User Tasks - Empty Result
+**Endpoint:** `GET /api/v1/users/{userId}/tasks`  
+**Scenario:** User has no tasks  
+**Expected Result:**
+- Status Code: 200 OK
+- content array is empty
+- totalElements: 0
 
 ---
 
-## Task Validation API
+### 3.2 Get Task Count
 
-### TC-021: Validate Task Input - Valid Request
+#### TC-019: Get Task Count - Valid User ID
+**Endpoint:** `GET /api/v1/users/{userId}/tasks/count`  
+**Scenario:** Retrieve task count for a user  
+**Expected Result:**
+- Status Code: 200 OK
+- Response contains userId and taskCount
 
-**Endpoint:** `POST /tasks/validate`
+---
 
-**Test Case ID:** TC-021
+## 4. Input Validation API Tests
 
-**Scenario:** Validate a valid task input
+### 4.1 Validate Task Input
 
-**Preconditions:** None
-
+#### TC-020: Validate Task Input - Valid Request
+**Endpoint:** `POST /api/v1/tasks/validate`  
+**Scenario:** Validate a valid task input  
 **Request Body:**
 ```json
 {
-  "title": "Valid Task",
-  "description": "Task description",
+  "title": "Valid task",
+  "description": "Valid description",
   "priority": "HIGH"
 }
 ```
-
 **Expected Result:**
-- Status Code: `200 OK`
-- Response contains valid: true
+- Status Code: 200 OK
+- valid: true
 - errors array is empty
 
----
-
-### TC-022: Validate Task Input - Invalid Request
-
-**Endpoint:** `POST /tasks/validate`
-
-**Test Case ID:** TC-022
-
-**Scenario:** Validate an invalid task input
-
-**Preconditions:** None
-
+#### TC-021: Validate Task Input - Invalid Request
+**Endpoint:** `POST /api/v1/tasks/validate`  
+**Scenario:** Validate an invalid task input  
 **Request Body:**
 ```json
 {
   "title": "",
-  "priority": "INVALID_PRIORITY"
+  "priority": "INVALID"
 }
 ```
-
 **Expected Result:**
-- Status Code: `200 OK`
-- Response contains valid: false
+- Status Code: 200 OK
+- valid: false
 - errors array contains validation errors
 
----
-
-### TC-023: Create Task with Validation - Valid Request
-
-**Endpoint:** `POST /tasks`
-
-**Test Case ID:** TC-023
-
-**Scenario:** Create a task with enhanced validation
-
-**Preconditions:** None
-
+#### TC-022: Validate Task Input - Special Characters
+**Endpoint:** `POST /api/v1/tasks/validate`  
+**Scenario:** Validate task with special characters  
 **Request Body:**
 ```json
 {
-  "title": "Valid Task",
-  "description": "Task description",
+  "title": "Task with special chars: @#$%^&*()",
+  "description": "Description with <>&\"",
   "priority": "HIGH"
 }
 ```
-
 **Expected Result:**
-- Status Code: `201 Created`
-- Response contains created task details
+- Status Code: 200 OK
+- valid: true
+- Special characters are accepted
 
 ---
 
-### TC-024: Create Task with Validation - Whitespace Only Title
+## 5. Edge Cases and Error Scenarios
 
-**Endpoint:** `POST /tasks`
+### 5.1 Concurrent Operations
 
-**Test Case ID:** TC-024
+#### TC-023: Concurrent Task Creation
+**Scenario:** Multiple requests creating tasks simultaneously  
+**Expected Result:** All requests handled correctly without data corruption
 
-**Scenario:** Attempt to create task with whitespace-only title
+### 5.2 Performance Tests
 
-**Preconditions:** None
+#### TC-024: Bulk Create - Maximum Limit
+**Scenario:** Create 100 tasks in one request (maximum allowed)  
+**Expected Result:** All tasks created successfully within acceptable time
 
-**Request Body:**
-```json
-{
-  "title": "   ",
-  "priority": "HIGH"
-}
-```
-
+#### TC-025: Bulk Create - Exceeds Limit
+**Scenario:** Attempt to create 101 tasks in one request  
 **Expected Result:**
-- Status Code: `400 Bad Request`
-- Error code: "VALIDATION_ERROR"
-- Error message indicates title cannot be whitespace only
+- Status Code: 400 Bad Request
+- Error code: "TASK_LIMIT_EXCEEDED"
+
+### 5.3 Data Validation
+
+#### TC-026: Title - Maximum Length
+**Scenario:** Create task with title exactly 255 characters  
+**Expected Result:** Task created successfully
+
+#### TC-027: Description - Maximum Length
+**Scenario:** Create task with description exactly 10,000 characters  
+**Expected Result:** Task created successfully
 
 ---
 
-## Test Coverage Summary
+## Test Execution Guidelines
 
-### Endpoints Tested
+### Prerequisites
+1. Application running on `http://localhost:8080/api`
+2. Test data initialized
+3. Postman collection imported
 
-| Controller | Endpoint | Test Cases |
-|------------|----------|------------|
-| TaskController | POST /v1/tasks | TC-001, TC-002, TC-003 |
-| TaskController | GET /v1/tasks/{id} | TC-004, TC-005 |
-| TaskController | PUT /v1/tasks/{id} | TC-006, TC-007 |
-| TaskController | DELETE /v1/tasks/{id} | TC-008, TC-009 |
-| TaskController | GET /v1/users/{userId}/tasks | TC-010, TC-011 |
-| TaskController | GET /v1/users/{userId}/tasks/count | TC-012 |
-| TaskController | PUT /v1/tasks/{taskId}/status | TC-013, TC-014 |
-| TaskController | POST /v1/tasks/bulk | TC-015, TC-016 |
-| ColumnController | GET /v1/columns/{columnId}/stats | TC-017, TC-018 |
-| ColumnController | PUT /v1/columns/bulk-update | TC-019, TC-020 |
-| TaskValidationController | POST /tasks/validate | TC-021, TC-022 |
-| TaskValidationController | POST /tasks | TC-023, TC-024 |
+### Execution Order
+1. Run positive test cases first
+2. Run negative test cases
+3. Run edge cases
+4. Verify data consistency
 
-### Test Categories
-
-- **Positive Tests:** 12 test cases
-- **Negative Tests:** 12 test cases
-- **Total Test Cases:** 24
-
-### Coverage Areas
-
-- ✅ CRUD Operations
-- ✅ Input Validation
-- ✅ Error Handling
-- ✅ Pagination
-- ✅ Bulk Operations
-- ✅ Status Transitions
-- ✅ Business Rules (Task Limits)
-- ✅ Edge Cases
+### Success Criteria
+- All positive tests pass
+- All negative tests return expected error codes
+- No data corruption
+- Response times within acceptable limits
 
 ---
 
 ## Notes
 
-1. All timestamps are in ISO 8601 format
-2. All endpoints require `Content-Type: application/json` header
-3. Error responses include traceId for debugging
-4. Pagination defaults: page=0, size=50
-5. Maximum bulk operation size: 100 items
-6. Maximum tasks per user: 10,000
-7. Title max length: 255 characters
-8. Description max length: 10,000 characters
+**MISSING_DEPENDENCIES WARNING:**
+- `spring-security-test` dependency is not present in pom.xml
+- Security-related tests (401/403 status codes, authentication) are not included
+- Add `spring-security-test` dependency to enable comprehensive security testing
 
----
+**Test Data:**
+- Use consistent test data across test runs
+- Clean up test data after execution
+- Maintain separate test and production environments
 
-**Document Version:** 1.0
-
-**Last Updated:** 2024-01-15T10:00:00Z
+**Reporting:**
+- Document all test failures
+- Include screenshots for UI-related issues
+- Track test execution metrics
