@@ -10,66 +10,66 @@
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 49,
-      "message": "incompatible types: Priority cannot be converted to TaskPriority (multiple occurrences)",
-      "root_cause": "Test code uses Priority enum but the application expects TaskPriority enum. This indicates a mismatch between DTO definitions and test expectations.",
-      "fix_recommendation": "Update TaskCreateRequest and TaskUpdateRequest DTOs to use Priority enum instead of TaskPriority, or update all test cases to use TaskPriority enum consistently."
+      "message": "Priority enum cannot be converted to TaskPriority (occurs 15 times across test methods)",
+      "root_cause": "Test code uses Priority enum but the application expects TaskPriority enum. This indicates a refactoring where the enum was renamed but tests were not updated.",
+      "fix_recommendation": "Replace all occurrences of 'Priority' with 'TaskPriority' in TaskControllerTest.java, or add import statement: import com.myproject.models.dtos.TaskPriority;"
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 54,
-      "message": "incompatible types: long cannot be converted to UUID (multiple occurrences)",
-      "root_cause": "Test code uses long primitive for task IDs but the application now uses UUID type for task identifiers.",
-      "fix_recommendation": "Update all test cases to use UUID.randomUUID() instead of long values for task IDs. Replace all instances of 'long taskId = 1L' with 'UUID taskId = UUID.randomUUID()'."
+      "message": "Type conversion error: long cannot be converted to UUID (occurs 12 times)",
+      "root_cause": "Task IDs were changed from long to UUID type but test code still uses long values. Tests instantiate TaskResponse with long IDs instead of UUID.",
+      "fix_recommendation": "Convert all long task IDs to UUID using UUID.randomUUID() or UUID.fromString() in test setup. Example: replace 'long taskId = 1L' with 'UUID taskId = UUID.randomUUID()'"
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 65,
-      "message": "method createTask requires userId parameter: found TaskCreateRequest, required String,TaskCreateRequest",
+      "message": "Method signature mismatch: createTask requires userId parameter (occurs 18 times)",
       "root_cause": "TaskService.createTask() method signature changed to require userId as first parameter, but test mocks only provide TaskCreateRequest.",
-      "fix_recommendation": "Update all when(taskService.createTask(...)) mock statements to include userId parameter: when(taskService.createTask(anyString(), any(TaskCreateRequest.class)))."
+      "fix_recommendation": "Update all when() mock statements for createTask to include userId parameter: when(taskService.createTask(anyString(), any(TaskCreateRequest.class)))"
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 202,
-      "message": "method getUserTasks requires 4 parameters: found long,int,int, required String,int,int,String",
-      "root_cause": "TaskService.getUserTasks() method signature changed to require userId (String) and sortBy parameter, but tests pass long userId and only 3 parameters.",
-      "fix_recommendation": "Update all getUserTasks() calls to: when(taskService.getUserTasks(anyString(), anyInt(), anyInt(), anyString())). Convert userId from long to String."
+      "message": "Method signature mismatch: getUserTasks requires 4 parameters but receives 3 (occurs 9 times)",
+      "root_cause": "TaskService.getUserTasks() now requires userId (String), page, size, and sortBy parameters, but tests only provide userId (as long), page, and size.",
+      "fix_recommendation": "Add sortBy parameter to all getUserTasks calls and convert userId from long to String: taskService.getUserTasks(String.valueOf(userId), page, size, "createdAt")"
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 447,
-      "message": "method bulkCreateTasks requires userId: found Object, required String,List<TaskCreateRequest>",
-      "root_cause": "TaskService.bulkCreateTasks() method signature changed to require userId as first parameter.",
-      "fix_recommendation": "Update bulkCreateTasks mock to: when(taskService.bulkCreateTasks(anyString(), anyList())). Add userId parameter to all bulk operation calls."
+      "message": "Method signature mismatch: bulkCreateTasks requires userId parameter (occurs 6 times)",
+      "root_cause": "TaskService.bulkCreateTasks() method signature changed to require userId as first parameter along with List<TaskCreateRequest>.",
+      "fix_recommendation": "Update all bulkCreateTasks mock calls to include userId: when(taskService.bulkCreateTasks(anyString(), anyList()))"
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
       "line": 138,
-      "message": "cannot find symbol: method handleValidationErrors(MethodArgumentNotValidException)",
-      "root_cause": "GlobalExceptionHandler class does not have a handleValidationErrors() method, but tests expect it to exist.",
-      "fix_recommendation": "Add @ExceptionHandler method in GlobalExceptionHandler: @ExceptionHandler(MethodArgumentNotValidException.class) public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex)."
+      "message": "Method handleValidationErrors not found in GlobalExceptionHandler (occurs 2 times)",
+      "root_cause": "GlobalExceptionHandler class no longer has handleValidationErrors() method, likely renamed or removed during refactoring.",
+      "fix_recommendation": "Check GlobalExceptionHandler for the correct method name handling MethodArgumentNotValidException. Update test to call the correct method or restore handleValidationErrors() method."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
       "line": 32,
-      "message": "incompatible types: long cannot be converted to String, Priority to TaskPriority (multiple occurrences)",
-      "root_cause": "InMemoryTaskDataStore expects String userId and TaskPriority enum, but tests provide long userId and Priority enum.",
-      "fix_recommendation": "Update InMemoryTaskDataStoreTest to use String for userId (e.g., 'user-123') and TaskPriority enum instead of Priority enum throughout all test methods."
+      "message": "Type mismatches in InMemoryTaskDataStore: long to String, Priority to TaskPriority (occurs 18 times)",
+      "root_cause": "InMemoryTaskDataStore methods expect String userId and TaskPriority enum, but tests provide long userId and Priority enum.",
+      "fix_recommendation": "Convert all userId from long to String using String.valueOf() and replace Priority with TaskPriority enum in test data setup."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
       "line": 194,
-      "message": "cannot find symbol: method findAll(), existsById()",
-      "root_cause": "InMemoryTaskDataStore class is missing findAll() and existsById() methods that tests expect to exist.",
-      "fix_recommendation": "Add public List<Task> findAll() and public boolean existsById(UUID taskId) methods to InMemoryTaskDataStore class."
+      "message": "Methods findAll() and existsById() not found in InMemoryTaskDataStore (occurs 3 times)",
+      "root_cause": "InMemoryTaskDataStore class does not expose findAll() and existsById() methods, possibly removed or made private.",
+      "fix_recommendation": "Add public methods findAll() and existsById(UUID) to InMemoryTaskDataStore, or update tests to use alternative query methods like findByUserId()."
     }
   ],
-  "summary": "8 grouped compilation error categories found (100 individual errors)"
+  "summary": "8 grouped error categories found representing 100 individual compilation errors"
 }
