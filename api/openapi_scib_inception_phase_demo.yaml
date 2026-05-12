@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: scib_inception_phase_demo API
   version: 1.0.0
-  description: API specification for task management system supporting 10,000 tasks per user with 200ms performance target
+  description: High-performance task management system API supporting creation of at least 10,000 tasks per user
 servers:
   - url: https://example.com
     description: Production server
@@ -11,7 +11,7 @@ paths:
     post:
       operationId: DEMO-757CreateTaskPOST
       summary: Create a new task
-      description: Creates a new task for a user with performance monitoring
+      description: Creates a new task for the authenticated user with performance monitoring
       tags:
         - Tasks
       requestBody:
@@ -33,8 +33,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Conflict - concurrent task creation error
+          description: Conflict - concurrent modification detected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many requests - rate limit exceeded
           content:
             application/json:
               schema:
@@ -45,93 +57,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/users/{userId}/tasks:
-    get:
-      operationId: DEMO-757GetUserTasksGET
-      summary: Get all tasks for a user
-      description: Retrieves all tasks for a specific user with pagination support
+      security:
+        - bearerAuth: []
+  /api/v1/tasks/bulk:
+    post:
+      operationId: DEMO-757BulkCreateTasksPOST
+      summary: Bulk create tasks
+      description: Creates multiple tasks in a single operation for improved performance
       tags:
         - Tasks
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: User ID
-        - name: page
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 0
-          description: Page number
-        - name: size
-          in: query
-          required: false
-          schema:
-            type: integer
-            default: 20
-          description: Page size
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/TaskCreateRequest'
       responses:
-        '200':
-          description: Tasks retrieved successfully
+        '201':
+          description: Tasks created successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/TaskResponse'
-        '404':
-          description: User not found
+                $ref: '#/components/schemas/BulkTaskResponse'
+        '400':
+          description: Bad request - validation error or task limit exceeded
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/users/{userId}/tasks/count:
-    get:
-      operationId: DEMO-757GetTaskCountGET
-      summary: Get task count for a user
-      description: Retrieves the total number of tasks for a specific user
-      tags:
-        - Tasks
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-          description: User ID
-      responses:
-        '200':
-          description: Task count retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskCountResponse'
-        '404':
-          description: User not found
+        '401':
+          description: Unauthorized - authentication required
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
   /api/v1/tasks/{taskId}:
     get:
       operationId: DEMO-757GetTaskByIdGET
       summary: Get task by ID
-      description: Retrieves a specific task by its ID
+      description: Retrieves a specific task by its unique identifier
       tags:
         - Tasks
       parameters:
         - name: taskId
           in: path
           required: true
+          description: Unique task identifier (UUID)
           schema:
-            type: integer
-            format: int64
-          description: Task ID
+            type: string
+            format: uuid
       responses:
         '200':
           description: Task retrieved successfully
@@ -139,15 +117,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskResponse'
+        '401':
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Task not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
     put:
       operationId: DEMO-757UpdateTaskPUT
-      summary: Update an existing task
+      summary: Update task
       description: Updates an existing task with new information
       tags:
         - Tasks
@@ -155,10 +147,10 @@ paths:
         - name: taskId
           in: path
           required: true
+          description: Unique task identifier (UUID)
           schema:
-            type: integer
-            format: int64
-          description: Task ID
+            type: string
+            format: uuid
       requestBody:
         required: true
         content:
@@ -178,77 +170,168 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Task not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - concurrent modification detected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
     delete:
       operationId: DEMO-757DeleteTaskDELETE
-      summary: Delete a task
-      description: Deletes a specific task by its ID
+      summary: Delete task
+      description: Deletes a specific task by its unique identifier
       tags:
         - Tasks
       parameters:
         - name: taskId
           in: path
           required: true
+          description: Unique task identifier (UUID)
           schema:
-            type: integer
-            format: int64
-          description: Task ID
+            type: string
+            format: uuid
       responses:
         '204':
           description: Task deleted successfully
+        '401':
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Task not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /api/v1/tasks/bulk:
-    post:
-      operationId: DEMO-757BulkCreateTasksPOST
-      summary: Bulk create tasks
-      description: Creates multiple tasks in a single request with batch processing
+      security:
+        - bearerAuth: []
+  /api/v1/users/{userId}/tasks:
+    get:
+      operationId: DEMO-757GetUserTasksGET
+      summary: Get user tasks
+      description: Retrieves all tasks for a specific user with pagination support
       tags:
         - Tasks
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/TaskCreateRequest'
-              maxItems: 100
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User identifier
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          required: false
+          description: Sort field and direction (e.g., createdAt,desc)
+          schema:
+            type: string
+            default: createdAt,desc
       responses:
-        '201':
-          description: Tasks created successfully
+        '200':
+          description: Tasks retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BulkTaskResponse'
-        '400':
-          description: Bad request - validation error or task limit exceeded
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '503':
-          description: Service unavailable - performance threshold exceeded
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+        '401':
+          description: Unauthorized - authentication required
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+  /api/v1/users/{userId}/tasks/count:
+    get:
+      operationId: DEMO-757GetTaskCountGET
+      summary: Get task count
+      description: Retrieves the total number of tasks for a specific user
+      tags:
+        - Tasks
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User identifier
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task count retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskCountResponse'
+        '401':
+          description: Unauthorized - authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - access denied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
 components:
   schemas:
     TaskCreateRequest:
       type: object
       required:
         - title
-        - userId
         - priority
       properties:
         title:
@@ -260,27 +343,20 @@ components:
         description:
           type: string
           maxLength: 1000
-          description: Task description
+          description: Detailed task description
           example: Write comprehensive documentation for the task management system
-        userId:
-          type: integer
-          format: int64
-          minimum: 1
-          description: User ID who creates the task
-          example: 12345
         priority:
           type: string
           enum:
             - LOW
             - MEDIUM
             - HIGH
-            - CRITICAL
           description: Task priority level
           example: HIGH
         dueDate:
           type: string
           format: date-time
-          description: Task due date (must be in future or present)
+          description: Task due date (must be in the future)
           example: 2024-12-31T23:59:59Z
     TaskUpdateRequest:
       type: object
@@ -294,7 +370,7 @@ components:
         description:
           type: string
           maxLength: 1000
-          description: Task description
+          description: Detailed task description
           example: Updated task description
         priority:
           type: string
@@ -302,7 +378,6 @@ components:
             - LOW
             - MEDIUM
             - HIGH
-            - CRITICAL
           description: Task priority level
           example: MEDIUM
         status:
@@ -323,30 +398,28 @@ components:
       type: object
       properties:
         id:
-          type: integer
-          format: int64
-          description: Task ID
-          example: 1001
+          type: string
+          format: uuid
+          description: Unique task identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        userId:
+          type: string
+          description: User identifier who owns the task
+          example: user123
         title:
           type: string
           description: Task title
           example: Complete project documentation
         description:
           type: string
-          description: Task description
+          description: Detailed task description
           example: Write comprehensive documentation for the task management system
-        userId:
-          type: integer
-          format: int64
-          description: User ID
-          example: 12345
         priority:
           type: string
           enum:
             - LOW
             - MEDIUM
             - HIGH
-            - CRITICAL
           description: Task priority level
           example: HIGH
         status:
@@ -367,73 +440,86 @@ components:
           type: string
           format: date-time
           description: Task last update timestamp
-          example: 2024-01-15T10:30:00Z
+          example: 2024-01-15T14:45:00Z
         dueDate:
           type: string
           format: date-time
           description: Task due date
           example: 2024-12-31T23:59:59Z
-    TaskCountResponse:
-      type: object
-      properties:
-        userId:
+        version:
           type: integer
           format: int64
-          description: User ID
-          example: 12345
-        taskCount:
-          type: integer
-          minimum: 0
-          maximum: 10000
-          description: Total number of tasks for the user
-          example: 5432
+          description: Version number for optimistic locking
+          example: 1
     BulkTaskResponse:
       type: object
       properties:
-        successCount:
+        totalCreated:
           type: integer
-          description: Number of tasks created successfully
-          example: 95
-        failureCount:
-          type: integer
-          description: Number of tasks that failed to create
-          example: 5
+          description: Total number of tasks created
+          example: 100
         tasks:
           type: array
           items:
             $ref: '#/components/schemas/TaskResponse'
-          description: List of successfully created tasks
         errors:
           type: array
           items:
-            $ref: '#/components/schemas/ErrorResponse'
-          description: List of errors for failed task creations
-    ErrorResponse:
+            type: object
+            properties:
+              index:
+                type: integer
+                description: Index of the failed task in the request array
+              errorCode:
+                type: string
+                description: Error code
+              message:
+                type: string
+                description: Error message
+    TaskCountResponse:
       type: object
       properties:
-        code:
+        userId:
           type: string
-          description: Error code
-          example: TASK_LIMIT_EXCEEDED
-          enum:
-            - TASK_LIMIT_EXCEEDED
-            - CONCURRENT_CREATION_ERROR
-            - PERFORMANCE_THRESHOLD_EXCEEDED
-            - VALIDATION_ERROR
-            - TASK_NOT_FOUND
-        message:
-          type: string
-          description: Error message
-          example: User has reached the maximum limit of 10,000 tasks
+          description: User identifier
+          example: user123
+        taskCount:
+          type: integer
+          format: int64
+          description: Total number of tasks for the user
+          example: 5432
+        maxTasksAllowed:
+          type: integer
+          description: Maximum tasks allowed per user
+          example: 10000
+        remainingCapacity:
+          type: integer
+          description: Remaining task capacity
+          example: 4568
+    ErrorResponse:
+      type: object
+      required:
+        - errorCode
+        - message
+        - timestamp
+      properties:
         timestamp:
-          type: string
-          format: date-time
-          description: Error timestamp
-          example: 2024-01-15T10:30:00Z
+          type: integer
+          format: int64
+          description: Error timestamp in milliseconds
+          example: 1705320000000
         traceId:
           type: string
-          description: Trace ID for debugging
+          description: Unique trace identifier for debugging
           example: abc123-def456-ghi789
+        errorCode:
+          type: string
+          description: Error code identifier
+          example: TASK_LIMIT_EXCEEDED
+        message:
+          type: string
+          description: Human-readable error message
+          example: User has reached maximum task limit of 10000
         details:
           type: array
           items:
@@ -441,12 +527,12 @@ components:
           description: Additional error details
           example:
             - Field 'title' is required
-            - Field 'userId' must be positive
+            - Field 'priority' must be one of LOW, MEDIUM, HIGH
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT token authentication
+      description: JWT-based authentication token
 security:
   - bearerAuth: []
