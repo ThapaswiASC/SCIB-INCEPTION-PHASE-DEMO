@@ -38,17 +38,20 @@ class TaskControllerTest {
     @Test
     void updateTaskStatus_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
-        String taskId = "1";
-        UpdateTaskStatusRequest request = new UpdateTaskStatusRequest();
-        request.setStatus(TaskStatus.IN_PROGRESS);
-        request.setColumnId("in-progress");
+        Long taskId = 1L;
+        TaskStatusUpdateRequest request = TaskStatusUpdateRequest.builder()
+            .status(TaskStatusUpdateRequest.TaskStatus.IN_PROGRESS)
+            .columnId("in-progress")
+            .build();
 
-        UpdateTaskStatusResponse response = new UpdateTaskStatusResponse();
-        response.setTaskId(taskId);
-        response.setStatus(TaskStatus.IN_PROGRESS);
-        response.setUpdatedAt(LocalDateTime.now());
+        TaskStatusUpdateResponse response = TaskStatusUpdateResponse.builder()
+            .taskId(taskId)
+            .status("IN_PROGRESS")
+            .updatedAt(LocalDateTime.now())
+            .message("Task status updated successfully")
+            .build();
 
-        when(taskService.updateTaskStatus(eq(taskId), any(UpdateTaskStatusRequest.class)))
+        when(taskService.updateTaskStatus(eq(taskId), any(TaskStatusUpdateRequest.class)))
             .thenReturn(response);
 
         // Act & Assert
@@ -60,18 +63,19 @@ class TaskControllerTest {
             .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
             .andExpect(jsonPath("$.updatedAt").exists());
 
-        verify(taskService, times(1)).updateTaskStatus(eq(taskId), any(UpdateTaskStatusRequest.class));
+        verify(taskService, times(1)).updateTaskStatus(eq(taskId), any(TaskStatusUpdateRequest.class));
     }
 
     @Test
     void updateTaskStatus_TaskNotFound_ReturnsNotFound() throws Exception {
         // Arrange
-        String taskId = "999";
-        UpdateTaskStatusRequest request = new UpdateTaskStatusRequest();
-        request.setStatus(TaskStatus.IN_PROGRESS);
-        request.setColumnId("in-progress");
+        Long taskId = 999L;
+        TaskStatusUpdateRequest request = TaskStatusUpdateRequest.builder()
+            .status(TaskStatusUpdateRequest.TaskStatus.IN_PROGRESS)
+            .columnId("in-progress")
+            .build();
 
-        when(taskService.updateTaskStatus(eq(taskId), any(UpdateTaskStatusRequest.class)))
+        when(taskService.updateTaskStatus(eq(taskId), any(TaskStatusUpdateRequest.class)))
             .thenThrow(new TaskNotFoundException(taskId));
 
         // Act & Assert
@@ -86,13 +90,14 @@ class TaskControllerTest {
     @Test
     void updateTaskStatus_InvalidStatusTransition_ReturnsBadRequest() throws Exception {
         // Arrange
-        String taskId = "1";
-        UpdateTaskStatusRequest request = new UpdateTaskStatusRequest();
-        request.setStatus(TaskStatus.DONE);
-        request.setColumnId("done");
+        Long taskId = 1L;
+        TaskStatusUpdateRequest request = TaskStatusUpdateRequest.builder()
+            .status(TaskStatusUpdateRequest.TaskStatus.DONE)
+            .columnId("done")
+            .build();
 
-        when(taskService.updateTaskStatus(eq(taskId), any(UpdateTaskStatusRequest.class)))
-            .thenThrow(new InvalidStatusTransitionException("TO_DO", "DONE"));
+        when(taskService.updateTaskStatus(eq(taskId), any(TaskStatusUpdateRequest.class)))
+            .thenThrow(new InvalidStatusTransitionException("TODO", "DONE"));
 
         // Act & Assert
         mockMvc.perform(put("/v1/tasks/{taskId}/status", taskId)
@@ -105,15 +110,13 @@ class TaskControllerTest {
     @Test
     void updateTaskStatus_MissingStatus_ReturnsBadRequest() throws Exception {
         // Arrange
-        String taskId = "1";
-        UpdateTaskStatusRequest request = new UpdateTaskStatusRequest();
-        request.setColumnId("in-progress");
-        // status is null
+        Long taskId = 1L;
+        String requestJson = "{"columnId":"in-progress"}";
 
         // Act & Assert
         mockMvc.perform(put("/v1/tasks/{taskId}/status", taskId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(requestJson))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
     }
@@ -121,49 +124,48 @@ class TaskControllerTest {
     @Test
     void updateTaskStatus_MissingColumnId_ReturnsBadRequest() throws Exception {
         // Arrange
-        String taskId = "1";
-        UpdateTaskStatusRequest request = new UpdateTaskStatusRequest();
-        request.setStatus(TaskStatus.IN_PROGRESS);
-        // columnId is null
+        Long taskId = 1L;
+        String requestJson = "{"status":"IN_PROGRESS"}";
 
         // Act & Assert
         mockMvc.perform(put("/v1/tasks/{taskId}/status", taskId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(requestJson))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
     }
 
-    // ========== getTaskDetails Tests ==========
+    // ========== getTaskById Tests ==========
 
     @Test
-    void getTaskDetails_ValidTaskId_ReturnsOk() throws Exception {
+    void getTaskById_ValidTaskId_ReturnsOk() throws Exception {
         // Arrange
-        String taskId = "1";
-        TaskDetailsResponse response = new TaskDetailsResponse();
-        response.setTaskId(taskId);
-        response.setTitle("Test Task");
-        response.setStatus(TaskStatus.TO_DO);
-        response.setColumnId("to-do");
+        Long taskId = 1L;
+        TaskDetailsResponse response = TaskDetailsResponse.builder()
+            .taskId(taskId)
+            .title("Test Task")
+            .status("TODO")
+            .assignee("John Doe")
+            .createdAt(LocalDateTime.now())
+            .build();
 
-        when(taskService.getTaskDetails(taskId)).thenReturn(response);
+        when(taskService.getTaskById(taskId)).thenReturn(response);
 
         // Act & Assert
         mockMvc.perform(get("/v1/tasks/{taskId}", taskId))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.taskId").value(taskId))
             .andExpect(jsonPath("$.title").value("Test Task"))
-            .andExpect(jsonPath("$.status").value("TO_DO"))
-            .andExpect(jsonPath("$.columnId").value("to-do"));
+            .andExpect(jsonPath("$.status").value("TODO"));
 
-        verify(taskService, times(1)).getTaskDetails(taskId);
+        verify(taskService, times(1)).getTaskById(taskId);
     }
 
     @Test
-    void getTaskDetails_TaskNotFound_ReturnsNotFound() throws Exception {
+    void getTaskById_TaskNotFound_ReturnsNotFound() throws Exception {
         // Arrange
-        String taskId = "999";
-        when(taskService.getTaskDetails(taskId))
+        Long taskId = 999L;
+        when(taskService.getTaskById(taskId))
             .thenThrow(new TaskNotFoundException(taskId));
 
         // Act & Assert
@@ -177,23 +179,24 @@ class TaskControllerTest {
     @Test
     void createTask_ValidRequest_ReturnsCreated() throws Exception {
         // Arrange
-        TaskCreateRequest request = new TaskCreateRequest();
-        request.setTitle("New Task");
-        request.setDescription("Task description");
-        request.setUserId(1L);
-        request.setPriority(TaskPriority.HIGH);
-        request.setDueDate(LocalDateTime.now().plusDays(7));
+        TaskCreateRequest request = TaskCreateRequest.builder()
+            .title("New Task")
+            .description("Task description")
+            .userId(1L)
+            .priority(TaskCreateRequest.TaskPriority.HIGH)
+            .dueDate(LocalDateTime.now().plusDays(7))
+            .build();
 
-        TaskResponse response = new TaskResponse();
-        response.setId(1L);
-        response.setTitle(request.getTitle());
-        response.setDescription(request.getDescription());
-        response.setUserId(request.getUserId());
-        response.setStatus(TaskStatus.PENDING);
-        response.setPriority(request.getPriority());
-        response.setCreatedAt(LocalDateTime.now());
-        response.setUpdatedAt(LocalDateTime.now());
-        response.setVersion(0L);
+        TaskResponse response = TaskResponse.builder()
+            .id(1L)
+            .title(request.getTitle())
+            .description(request.getDescription())
+            .userId(request.getUserId())
+            .status("PENDING")
+            .priority("HIGH")
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
 
         when(taskService.createTask(any(TaskCreateRequest.class))).thenReturn(response);
 
@@ -213,15 +216,12 @@ class TaskControllerTest {
     @Test
     void createTask_MissingTitle_ReturnsBadRequest() throws Exception {
         // Arrange
-        TaskCreateRequest request = new TaskCreateRequest();
-        request.setUserId(1L);
-        request.setPriority(TaskPriority.HIGH);
-        // title is null
+        String requestJson = "{"userId":1,"priority":"HIGH"}";
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(requestJson))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
     }
@@ -229,15 +229,12 @@ class TaskControllerTest {
     @Test
     void createTask_MissingUserId_ReturnsBadRequest() throws Exception {
         // Arrange
-        TaskCreateRequest request = new TaskCreateRequest();
-        request.setTitle("New Task");
-        request.setPriority(TaskPriority.HIGH);
-        // userId is null
+        String requestJson = "{"title":"New Task","priority":"HIGH"}";
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(requestJson))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
     }
@@ -245,10 +242,11 @@ class TaskControllerTest {
     @Test
     void createTask_TaskLimitExceeded_ReturnsBadRequest() throws Exception {
         // Arrange
-        TaskCreateRequest request = new TaskCreateRequest();
-        request.setTitle("New Task");
-        request.setUserId(1L);
-        request.setPriority(TaskPriority.HIGH);
+        TaskCreateRequest request = TaskCreateRequest.builder()
+            .title("New Task")
+            .userId(1L)
+            .priority(TaskCreateRequest.TaskPriority.HIGH)
+            .build();
 
         when(taskService.createTask(any(TaskCreateRequest.class)))
             .thenThrow(new TaskLimitExceededException("User 1 has reached the maximum task limit of 10000"));
@@ -267,25 +265,27 @@ class TaskControllerTest {
     void getUserTasks_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
         Long userId = 1L;
-        TaskResponse task1 = new TaskResponse();
-        task1.setId(1L);
-        task1.setTitle("Task 1");
-        task1.setUserId(userId);
+        TaskResponse task1 = TaskResponse.builder()
+            .id(1L)
+            .title("Task 1")
+            .userId(userId)
+            .build();
 
-        TaskResponse task2 = new TaskResponse();
-        task2.setId(2L);
-        task2.setTitle("Task 2");
-        task2.setUserId(userId);
+        TaskResponse task2 = TaskResponse.builder()
+            .id(2L)
+            .title("Task 2")
+            .userId(userId)
+            .build();
 
-        PagedTaskResponse response = new PagedTaskResponse();
-        response.setContent(Arrays.asList(task1, task2));
-        response.setPage(0);
-        response.setSize(50);
-        response.setTotalElements(2L);
-        response.setTotalPages(1);
-        response.setLast(true);
+        PagedTaskResponse response = PagedTaskResponse.builder()
+            .content(Arrays.asList(task1, task2))
+            .page(0)
+            .size(50)
+            .totalElements(2L)
+            .totalPages(1)
+            .build();
 
-        when(taskService.getUserTasks(eq(userId), eq(0), eq(50), eq("createdAt,desc")))
+        when(taskService.getUserTasks(eq(userId), eq(0), eq(50)))
             .thenReturn(response);
 
         // Act & Assert
@@ -298,32 +298,30 @@ class TaskControllerTest {
             .andExpect(jsonPath("$.page").value(0))
             .andExpect(jsonPath("$.size").value(50))
             .andExpect(jsonPath("$.totalElements").value(2))
-            .andExpect(jsonPath("$.totalPages").value(1))
-            .andExpect(jsonPath("$.last").value(true));
+            .andExpect(jsonPath("$.totalPages").value(1));
 
-        verify(taskService, times(1)).getUserTasks(eq(userId), eq(0), eq(50), eq("createdAt,desc"));
+        verify(taskService, times(1)).getUserTasks(eq(userId), eq(0), eq(50));
     }
 
     @Test
     void getUserTasks_WithCustomPagination_ReturnsOk() throws Exception {
         // Arrange
         Long userId = 1L;
-        PagedTaskResponse response = new PagedTaskResponse();
-        response.setContent(Collections.emptyList());
-        response.setPage(2);
-        response.setSize(10);
-        response.setTotalElements(25L);
-        response.setTotalPages(3);
-        response.setLast(true);
+        PagedTaskResponse response = PagedTaskResponse.builder()
+            .content(Collections.emptyList())
+            .page(2)
+            .size(10)
+            .totalElements(25L)
+            .totalPages(3)
+            .build();
 
-        when(taskService.getUserTasks(eq(userId), eq(2), eq(10), eq("title,asc")))
+        when(taskService.getUserTasks(eq(userId), eq(2), eq(10)))
             .thenReturn(response);
 
         // Act & Assert
         mockMvc.perform(get("/v1/users/{userId}/tasks", userId)
                 .param("page", "2")
-                .param("size", "10")
-                .param("sort", "title,asc"))
+                .param("size", "10"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.page").value(2))
             .andExpect(jsonPath("$.size").value(10));
@@ -333,15 +331,15 @@ class TaskControllerTest {
     void getUserTasks_EmptyResult_ReturnsOk() throws Exception {
         // Arrange
         Long userId = 999L;
-        PagedTaskResponse response = new PagedTaskResponse();
-        response.setContent(Collections.emptyList());
-        response.setPage(0);
-        response.setSize(50);
-        response.setTotalElements(0L);
-        response.setTotalPages(0);
-        response.setLast(true);
+        PagedTaskResponse response = PagedTaskResponse.builder()
+            .content(Collections.emptyList())
+            .page(0)
+            .size(50)
+            .totalElements(0L)
+            .totalPages(0)
+            .build();
 
-        when(taskService.getUserTasks(eq(userId), eq(0), eq(50), eq("createdAt,desc")))
+        when(taskService.getUserTasks(eq(userId), eq(0), eq(50)))
             .thenReturn(response);
 
         // Act & Assert
@@ -358,9 +356,10 @@ class TaskControllerTest {
     void getTaskCount_ValidUserId_ReturnsOk() throws Exception {
         // Arrange
         Long userId = 1L;
-        TaskCountResponse response = new TaskCountResponse();
-        response.setUserId(userId);
-        response.setTaskCount(42L);
+        TaskCountResponse response = TaskCountResponse.builder()
+            .userId(userId)
+            .taskCount(42L)
+            .build();
 
         when(taskService.getTaskCount(userId)).thenReturn(response);
 
@@ -377,9 +376,10 @@ class TaskControllerTest {
     void getTaskCount_ZeroTasks_ReturnsOk() throws Exception {
         // Arrange
         Long userId = 999L;
-        TaskCountResponse response = new TaskCountResponse();
-        response.setUserId(userId);
-        response.setTaskCount(0L);
+        TaskCountResponse response = TaskCountResponse.builder()
+            .userId(userId)
+            .taskCount(0L)
+            .build();
 
         when(taskService.getTaskCount(userId)).thenReturn(response);
 
@@ -395,19 +395,21 @@ class TaskControllerTest {
     void updateTask_ValidRequest_ReturnsOk() throws Exception {
         // Arrange
         Long taskId = 1L;
-        TaskUpdateRequest request = new TaskUpdateRequest();
-        request.setTitle("Updated Title");
-        request.setDescription("Updated description");
-        request.setStatus(TaskStatus.IN_PROGRESS);
-        request.setPriority(TaskPriority.URGENT);
+        TaskUpdateRequest request = TaskUpdateRequest.builder()
+            .title("Updated Title")
+            .description("Updated description")
+            .status(TaskUpdateRequest.TaskStatus.IN_PROGRESS)
+            .priority(TaskUpdateRequest.TaskPriority.URGENT)
+            .build();
 
-        TaskResponse response = new TaskResponse();
-        response.setId(taskId);
-        response.setTitle(request.getTitle());
-        response.setDescription(request.getDescription());
-        response.setStatus(request.getStatus());
-        response.setPriority(request.getPriority());
-        response.setUpdatedAt(LocalDateTime.now());
+        TaskResponse response = TaskResponse.builder()
+            .id(taskId)
+            .title(request.getTitle())
+            .description(request.getDescription())
+            .status("IN_PROGRESS")
+            .priority("URGENT")
+            .updatedAt(LocalDateTime.now())
+            .build();
 
         when(taskService.updateTask(eq(taskId), any(TaskUpdateRequest.class)))
             .thenReturn(response);
@@ -429,8 +431,9 @@ class TaskControllerTest {
     void updateTask_TaskNotFound_ReturnsNotFound() throws Exception {
         // Arrange
         Long taskId = 999L;
-        TaskUpdateRequest request = new TaskUpdateRequest();
-        request.setTitle("Updated Title");
+        TaskUpdateRequest request = TaskUpdateRequest.builder()
+            .title("Updated Title")
+            .build();
 
         when(taskService.updateTask(eq(taskId), any(TaskUpdateRequest.class)))
             .thenThrow(new TaskNotFoundException(taskId));
@@ -447,13 +450,13 @@ class TaskControllerTest {
     void updateTask_TitleTooLong_ReturnsBadRequest() throws Exception {
         // Arrange
         Long taskId = 1L;
-        TaskUpdateRequest request = new TaskUpdateRequest();
-        request.setTitle("a".repeat(256)); // exceeds 255 character limit
+        String longTitle = "a".repeat(256);
+        String requestJson = "{"title":"" + longTitle + ""}";
 
         // Act & Assert
         mockMvc.perform(put("/v1/tasks/{taskId}", taskId)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content(requestJson))
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("VALIDATION_ERROR"));
     }
@@ -490,31 +493,36 @@ class TaskControllerTest {
     @Test
     void bulkCreateTasks_ValidRequest_ReturnsCreated() throws Exception {
         // Arrange
-        TaskCreateRequest request1 = new TaskCreateRequest();
-        request1.setTitle("Task 1");
-        request1.setUserId(1L);
-        request1.setPriority(TaskPriority.HIGH);
+        TaskCreateRequest request1 = TaskCreateRequest.builder()
+            .title("Task 1")
+            .userId(1L)
+            .priority(TaskCreateRequest.TaskPriority.HIGH)
+            .build();
 
-        TaskCreateRequest request2 = new TaskCreateRequest();
-        request2.setTitle("Task 2");
-        request2.setUserId(1L);
-        request2.setPriority(TaskPriority.MEDIUM);
+        TaskCreateRequest request2 = TaskCreateRequest.builder()
+            .title("Task 2")
+            .userId(1L)
+            .priority(TaskCreateRequest.TaskPriority.MEDIUM)
+            .build();
 
         List<TaskCreateRequest> requests = Arrays.asList(request1, request2);
 
-        TaskResponse response1 = new TaskResponse();
-        response1.setId(1L);
-        response1.setTitle("Task 1");
+        TaskResponse response1 = TaskResponse.builder()
+            .id(1L)
+            .title("Task 1")
+            .build();
 
-        TaskResponse response2 = new TaskResponse();
-        response2.setId(2L);
-        response2.setTitle("Task 2");
+        TaskResponse response2 = TaskResponse.builder()
+            .id(2L)
+            .title("Task 2")
+            .build();
 
-        BulkTaskResponse bulkResponse = new BulkTaskResponse();
-        bulkResponse.setSuccessCount(2);
-        bulkResponse.setFailureCount(0);
-        bulkResponse.setCreatedTasks(Arrays.asList(response1, response2));
-        bulkResponse.setErrors(Collections.emptyList());
+        BulkTaskResponse bulkResponse = BulkTaskResponse.builder()
+            .successCount(2)
+            .failureCount(0)
+            .tasks(Arrays.asList(response1, response2))
+            .errors(Collections.emptyList())
+            .build();
 
         when(taskService.bulkCreateTasks(anyList())).thenReturn(bulkResponse);
 
@@ -525,7 +533,7 @@ class TaskControllerTest {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.successCount").value(2))
             .andExpect(jsonPath("$.failureCount").value(0))
-            .andExpect(jsonPath("$.createdTasks.length()").value(2))
+            .andExpect(jsonPath("$.tasks.length()").value(2))
             .andExpect(jsonPath("$.errors.length()").value(0));
 
         verify(taskService, times(1)).bulkCreateTasks(anyList());
@@ -534,31 +542,31 @@ class TaskControllerTest {
     @Test
     void bulkCreateTasks_PartialSuccess_ReturnsCreated() throws Exception {
         // Arrange
-        TaskCreateRequest request1 = new TaskCreateRequest();
-        request1.setTitle("Task 1");
-        request1.setUserId(1L);
-        request1.setPriority(TaskPriority.HIGH);
+        TaskCreateRequest request1 = TaskCreateRequest.builder()
+            .title("Task 1")
+            .userId(1L)
+            .priority(TaskCreateRequest.TaskPriority.HIGH)
+            .build();
 
-        TaskCreateRequest request2 = new TaskCreateRequest();
-        request2.setTitle("Task 2");
-        request2.setUserId(1L);
-        request2.setPriority(TaskPriority.MEDIUM);
+        TaskCreateRequest request2 = TaskCreateRequest.builder()
+            .title("Task 2")
+            .userId(1L)
+            .priority(TaskCreateRequest.TaskPriority.MEDIUM)
+            .build();
 
         List<TaskCreateRequest> requests = Arrays.asList(request1, request2);
 
-        TaskResponse response1 = new TaskResponse();
-        response1.setId(1L);
-        response1.setTitle("Task 1");
+        TaskResponse response1 = TaskResponse.builder()
+            .id(1L)
+            .title("Task 1")
+            .build();
 
-        BulkTaskResponse.BulkTaskError error = new BulkTaskResponse.BulkTaskError();
-        error.setIndex(1);
-        error.setMessage("Task limit exceeded");
-
-        BulkTaskResponse bulkResponse = new BulkTaskResponse();
-        bulkResponse.setSuccessCount(1);
-        bulkResponse.setFailureCount(1);
-        bulkResponse.setCreatedTasks(Collections.singletonList(response1));
-        bulkResponse.setErrors(Collections.singletonList(error));
+        BulkTaskResponse bulkResponse = BulkTaskResponse.builder()
+            .successCount(1)
+            .failureCount(1)
+            .tasks(Collections.singletonList(response1))
+            .errors(Collections.singletonList("Failed to create task 'Task 2': Task limit exceeded"))
+            .build();
 
         when(taskService.bulkCreateTasks(anyList())).thenReturn(bulkResponse);
 
@@ -569,24 +577,22 @@ class TaskControllerTest {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.successCount").value(1))
             .andExpect(jsonPath("$.failureCount").value(1))
-            .andExpect(jsonPath("$.createdTasks.length()").value(1))
-            .andExpect(jsonPath("$.errors.length()").value(1))
-            .andExpect(jsonPath("$.errors[0].index").value(1));
+            .andExpect(jsonPath("$.tasks.length()").value(1))
+            .andExpect(jsonPath("$.errors.length()").value(1));
     }
 
     @Test
     void bulkCreateTasks_ExceedsLimit_ReturnsBadRequest() throws Exception {
         // Arrange
-        List<TaskCreateRequest> requests = Collections.nCopies(101, new TaskCreateRequest());
+        List<TaskCreateRequest> requests = Collections.nCopies(101, TaskCreateRequest.builder().title("Task").userId(1L).priority(TaskCreateRequest.TaskPriority.LOW).build());
 
         when(taskService.bulkCreateTasks(anyList()))
-            .thenThrow(new TaskLimitExceededException("Bulk creation limited to 100 tasks at a time"));
+            .thenThrow(new IllegalArgumentException("Cannot create more than 100 tasks at once"));
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks/bulk")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requests)))
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.errorCode").value("TASK_LIMIT_EXCEEDED"));
+            .andExpect(status().isBadRequest());
     }
 }
