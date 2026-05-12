@@ -1,107 +1,75 @@
 {
-  "executive_summary": "Build failed with 100 compilation errors across 7 test files. Primary issues: missing service methods (getColumnStats, bulkUpdateColumnCounts, getTaskDetails), type mismatches between String and Long for IDs, enum conversion failures between DTO classes, and missing setter methods. Root cause is API contract mismatch between test expectations and actual service/DTO implementations.",
+  "executive_summary": "Maven build failed with 100 compilation errors across test classes. Primary issues: missing service interface methods (getColumnStats, bulkUpdateColumnCounts, updateColumnCounts, getTaskDetails), type mismatches between DTOs and test code (String vs Long for IDs, enum conversion issues), and missing exception handler methods. Root cause is incomplete implementation of service interfaces and DTO structure changes not reflected in tests.",
   "attempt_number": 1,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-222",
   "log_file": "logs/build_failure_attempt-1.log",
-  "errors_found": 12,
+  "errors_found": 8,
   "errors": [
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/ColumnControllerTest.java",
       "line": 50,
-      "message": "Cannot find symbol: method getColumnStats(String) in ColumnService (6 occurrences)",
-      "root_cause": "ColumnService interface does not define getColumnStats() method but tests expect it to exist",
-      "fix_recommendation": "Add getColumnStats(String columnId) method to ColumnService interface and implement it in ColumnServiceImpl"
+      "message": "Cannot find symbol: method getColumnStats(String) in ColumnService (6 test methods affected)",
+      "root_cause": "The ColumnService interface is missing the getColumnStats(String columnId) method that tests are trying to mock and verify.",
+      "fix_recommendation": "Add getColumnStats(String columnId) method declaration to ColumnService interface and implement it in ColumnServiceImpl to return column statistics."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/ColumnControllerTest.java",
       "line": 149,
-      "message": "Cannot find symbol: method bulkUpdateColumnCounts(BulkUpdateColumnCountsRequest) (6 occurrences)",
-      "root_cause": "ColumnService interface missing bulkUpdateColumnCounts() method required by controller tests",
-      "fix_recommendation": "Add bulkUpdateColumnCounts(BulkUpdateColumnCountsRequest) method to ColumnService interface and implement in ColumnServiceImpl"
+      "message": "Cannot find symbol: method bulkUpdateColumnCounts(BulkUpdateColumnCountsRequest) (6 test methods affected)",
+      "root_cause": "The ColumnService interface is missing the bulkUpdateColumnCounts method that handles bulk column count updates.",
+      "fix_recommendation": "Add bulkUpdateColumnCounts(BulkUpdateColumnCountsRequest request) method to ColumnService interface and implement the bulk update logic in ColumnServiceImpl."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 51,
-      "message": "Incompatible types: inference variable T has incompatible bounds - upper: Long, lower: String (4 occurrences)",
-      "root_cause": "Task ID type mismatch - tests use String but service expects Long",
-      "fix_recommendation": "Change task ID type from String to Long in test setup, or update Task entity and service to use String IDs consistently"
+      "message": "Incompatible types: inference variable T has incompatible bounds (4 occurrences)",
+      "root_cause": "Task ID field type mismatch - tests use String but the actual implementation expects Long. This affects multiple test methods using when().thenReturn() with String IDs.",
+      "fix_recommendation": "Change all task ID references in TaskControllerTest from String to Long. Update test data setup to use Long values (e.g., 1L instead of \"task-1\")."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 146,
-      "message": "Incompatible types: TaskStatus cannot be converted to String (2 occurrences)",
-      "root_cause": "TaskDetailsResponse expects String for status but TaskStatus enum is being passed",
-      "fix_recommendation": "Update TaskDetailsResponse.status field to accept TaskStatus enum or convert enum to String using .name() method"
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 147,
-      "message": "Cannot find symbol: method setColumnId(String) in TaskDetailsResponse",
-      "root_cause": "TaskDetailsResponse DTO missing setColumnId() setter method",
-      "fix_recommendation": "Add setColumnId(String columnId) method to TaskDetailsResponse or use Lombok @Setter annotation"
+      "message": "TaskStatus/TaskPriority enum cannot be converted to String (multiple occurrences)",
+      "root_cause": "DTO classes changed to use String for status and priority fields, but tests still use enum types. Also missing setColumnId, setVersion, setLast, setCreatedTasks methods in response DTOs.",
+      "fix_recommendation": "Update TaskDetailsResponse, TaskResponse, PagedTaskResponse, and BulkTaskResponse DTOs to include missing setter methods. Change test code to use String values instead of enum types for status and priority fields."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 149,
-      "message": "Cannot find symbol: method getTaskDetails(String) in TaskService (3 occurrences)",
-      "root_cause": "TaskService interface does not define getTaskDetails() method but tests call it",
-      "fix_recommendation": "Add getTaskDetails(Long taskId) method to TaskService interface and implement in TaskServiceImpl"
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 184,
-      "message": "Incompatible types: TaskPriority cannot be converted to TaskCreateRequest.TaskPriority (6 occurrences)",
-      "root_cause": "Enum type mismatch - TaskPriority enum exists in two different packages/classes",
-      "fix_recommendation": "Consolidate TaskPriority enum into single shared location or add conversion method between the two enum types"
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 196,
-      "message": "Cannot find symbol: method setVersion(long) in TaskResponse",
-      "root_cause": "TaskResponse DTO missing setVersion() setter method",
-      "fix_recommendation": "Add setVersion(long version) method to TaskResponse or use Lombok @Setter annotation"
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 286,
-      "message": "Cannot find symbol: method setLast(boolean) in PagedTaskResponse (3 occurrences)",
-      "root_cause": "PagedTaskResponse DTO missing setLast() setter method for pagination",
-      "fix_recommendation": "Add setLast(boolean last) method to PagedTaskResponse or use Lombok @Setter annotation"
+      "message": "Cannot find symbol: method getTaskDetails(String) (3 occurrences)",
+      "root_cause": "TaskService interface is missing getTaskDetails method or has wrong parameter type (should be Long instead of String).",
+      "fix_recommendation": "Add getTaskDetails(Long taskId) method to TaskService interface and implement it in TaskServiceImpl to return detailed task information including column association."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 288,
-      "message": "Method getUserTasks cannot be applied - required: Long,int,int found: Long,int,int,String (3 occurrences)",
-      "root_cause": "TaskService.getUserTasks() signature mismatch - tests pass 4 parameters but method accepts only 3",
-      "fix_recommendation": "Update TaskService.getUserTasks() to accept status filter parameter: getUserTasks(Long userId, int page, int size, String status)"
+      "message": "Method getUserTasks signature mismatch - requires (Long, int, int) but found (Long, int, int, String)",
+      "root_cause": "Tests are calling getUserTasks with 4 parameters including a status filter, but the interface only accepts 3 parameters (userId, page, size).",
+      "fix_recommendation": "Update TaskService.getUserTasks method signature to include optional status filter parameter: getUserTasks(Long userId, int page, int size, String status). Implement filtering logic in TaskServiceImpl."
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 516,
-      "message": "Cannot find symbol: method setCreatedTasks(List<TaskResponse>) in BulkTaskResponse (2 occurrences)",
-      "root_cause": "BulkTaskResponse DTO missing setCreatedTasks() setter method",
-      "fix_recommendation": "Add setCreatedTasks(List<TaskResponse> tasks) method to BulkTaskResponse or use Lombok @Setter annotation"
+      "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
+      "line": 127,
+      "message": "Cannot find symbol: handleConcurrentCreation, handlePerformanceThreshold, handleValidationException methods (4 occurrences)",
+      "root_cause": "GlobalExceptionHandler is missing exception handler methods for ConcurrentTaskCreationException, PerformanceThresholdExceededException, and MethodArgumentNotValidException.",
+      "fix_recommendation": "Add @ExceptionHandler methods in GlobalExceptionHandler for: handleConcurrentCreation(ConcurrentTaskCreationException), handlePerformanceThreshold(PerformanceThresholdExceededException), and handleValidationException(MethodArgumentNotValidException) with appropriate HTTP status codes and error responses."
     },
     {
       "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 553,
-      "message": "Cannot find symbol: class BulkTaskError in BulkTaskResponse (2 occurrences)",
-      "root_cause": "BulkTaskError inner class or separate class is missing from BulkTaskResponse",
-      "fix_recommendation": "Create BulkTaskError class as inner class in BulkTaskResponse or as separate DTO class with error details"
+      "file": "code/src/test/java/com/myproject/services/impl/ColumnServiceImplTest.java",
+      "line": 301,
+      "message": "Cannot find symbol: method updateColumnCounts(String, String) (4 occurrences)",
+      "root_cause": "ColumnService interface is missing updateColumnCounts method for updating task counts when tasks are moved between columns.",
+      "fix_recommendation": "Add updateColumnCounts(String oldColumnId, String newColumnId) method to ColumnService interface and implement the logic in ColumnServiceImpl to decrement old column count and increment new column count."
     }
   ],
-  "summary": "12 grouped compilation errors found across test files"
+  "summary": "8 grouped compilation errors found affecting 100+ individual error instances"
 }
