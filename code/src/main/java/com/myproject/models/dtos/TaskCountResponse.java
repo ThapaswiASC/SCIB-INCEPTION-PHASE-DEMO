@@ -7,6 +7,14 @@ public class TaskCountResponse {
     private Integer maxTasksAllowed;
     private Integer remainingCapacity;
 
+    public TaskCountResponse() {
+    }
+
+    public TaskCountResponse(String userId, long taskCount) {
+        this.userId = userId;
+        this.taskCount = taskCount;
+    }
+
     public String getUserId() {
         return userId;
     }

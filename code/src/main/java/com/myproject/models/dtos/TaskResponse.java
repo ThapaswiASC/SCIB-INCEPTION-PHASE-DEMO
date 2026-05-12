@@ -16,6 +16,21 @@ public class TaskResponse {
     private LocalDateTime dueDate;
     private Long version;
 
+    public TaskResponse() {
+    }
+
+    public TaskResponse(UUID id, String title, String description, String userId, TaskPriority priority, TaskStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime dueDate) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.userId = userId;
+        this.priority = priority;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.dueDate = dueDate;
+    }
+
     public UUID getId() {
         return id;
     }

@@ -50,4 +50,8 @@ public class ErrorResponse {
     public void setDetails(List<String> details) {
         this.details = details;
     }
+
+    public String getCode() {
+        return errorCode;
+    }
 }

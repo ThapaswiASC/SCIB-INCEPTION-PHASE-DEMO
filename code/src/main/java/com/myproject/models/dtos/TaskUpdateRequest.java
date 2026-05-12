@@ -18,6 +18,17 @@ public class TaskUpdateRequest {
 
     private LocalDateTime dueDate;
 
+    public TaskUpdateRequest() {
+    }
+
+    public TaskUpdateRequest(String title, String description, TaskPriority priority, TaskStatus status, LocalDateTime dueDate) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.status = status;
+        this.dueDate = dueDate;
+    }
+
     public String getTitle() {
         return title;
     }

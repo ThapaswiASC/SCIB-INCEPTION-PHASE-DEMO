@@ -9,6 +9,15 @@ public class BulkTaskResponse {
     private List<TaskResponse> tasks = new ArrayList<>();
     private List<BulkTaskError> errors = new ArrayList<>();
 
+    public BulkTaskResponse() {
+    }
+
+    public BulkTaskResponse(int successCount, int failureCount, List<TaskResponse> tasks, List<BulkTaskError> errors) {
+        this.totalCreated = successCount;
+        this.tasks = tasks;
+        this.errors = errors;
+    }
+
     public Integer getTotalCreated() {
         return totalCreated;
     }
@@ -31,6 +40,14 @@ public class BulkTaskResponse {
 
     public void setErrors(List<BulkTaskError> errors) {
         this.errors = errors;
+    }
+
+    public int getSuccessCount() {
+        return totalCreated != null ? totalCreated : 0;
+    }
+
+    public int getFailureCount() {
+        return errors != null ? errors.size() : 0;
     }
 
     public static class BulkTaskError {
