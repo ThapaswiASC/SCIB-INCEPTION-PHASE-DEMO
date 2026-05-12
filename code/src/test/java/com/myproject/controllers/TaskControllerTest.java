@@ -63,7 +63,7 @@ class TaskControllerTest {
             LocalDateTime.now().plusDays(1)
         );
 
-        when(taskService.createTask(anyString(), any(TaskCreateRequest.class))).thenReturn(response);
+        when(taskService.createTask(eq("user123"), any(TaskCreateRequest.class))).thenReturn(response);
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks")
@@ -76,7 +76,7 @@ class TaskControllerTest {
             .andExpect(jsonPath("$.priority").value("HIGH"))
             .andExpect(jsonPath("$.status").value("PENDING"));
 
-        verify(taskService, times(1)).createTask(anyString(), any(TaskCreateRequest.class));
+        verify(taskService, times(1)).createTask(eq("user123"), any(TaskCreateRequest.class));
     }
 
     @Test
@@ -151,7 +151,7 @@ class TaskControllerTest {
             LocalDateTime.now().plusDays(1)
         );
 
-        when(taskService.createTask(anyString(), any(TaskCreateRequest.class)))
+        when(taskService.createTask(eq("user123"), any(TaskCreateRequest.class)))
             .thenThrow(new TaskLimitExceededException("User has reached the maximum limit of 10000 tasks"));
 
         // Act & Assert
@@ -161,7 +161,7 @@ class TaskControllerTest {
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.errorCode").value("TASK_LIMIT_EXCEEDED"));
 
-        verify(taskService, times(1)).createTask(anyString(), any(TaskCreateRequest.class));
+        verify(taskService, times(1)).createTask(eq("user123"), any(TaskCreateRequest.class));
     }
 
     // ========== GET /v1/users/{userId}/tasks - Get User Tasks ==========
@@ -179,7 +179,7 @@ class TaskControllerTest {
         );
         List<TaskResponse> tasks = Arrays.asList(task1, task2);
 
-        when(taskService.getUserTasks(anyString(), anyInt(), anyInt(), anyString())).thenReturn(tasks);
+        when(taskService.getUserTasks(eq("user123"), anyInt(), anyInt(), anyString())).thenReturn(tasks);
 
         // Act & Assert
         mockMvc.perform(get("/v1/users/user123/tasks")
@@ -196,7 +196,7 @@ class TaskControllerTest {
     @Test
     void getUserTasks_DefaultPagination_ReturnsOk() throws Exception {
         // Arrange
-        when(taskService.getUserTasks(anyString(), anyInt(), anyInt(), anyString())).thenReturn(Collections.emptyList());
+        when(taskService.getUserTasks(eq("user123"), anyInt(), anyInt(), anyString())).thenReturn(Collections.emptyList());
 
         // Act & Assert
         mockMvc.perform(get("/v1/users/user123/tasks"))
@@ -233,7 +233,7 @@ class TaskControllerTest {
             taskId, "Task 1", "Description 1", "user123", TaskPriority.HIGH, TaskStatus.PENDING,
             LocalDateTime.now(), LocalDateTime.now(), null
         );
-        when(taskService.getTaskById(any(UUID.class), anyString())).thenReturn(response);
+        when(taskService.getTaskById(any(UUID.class), eq("user123"))).thenReturn(response);
 
         // Act & Assert
         mockMvc.perform(get("/v1/tasks/" + taskId))
@@ -241,14 +241,14 @@ class TaskControllerTest {
             .andExpect(jsonPath("$.title").value("Task 1"))
             .andExpect(jsonPath("$.description").value("Description 1"));
 
-        verify(taskService, times(1)).getTaskById(any(UUID.class), anyString());
+        verify(taskService, times(1)).getTaskById(any(UUID.class), eq("user123"));
     }
 
     @Test
     void getTaskById_TaskNotFound_ReturnsNotFound() throws Exception {
         // Arrange
         UUID taskId = UUID.randomUUID();
-        when(taskService.getTaskById(any(UUID.class), anyString()))
+        when(taskService.getTaskById(any(UUID.class), eq("user123")))
             .thenThrow(new TaskNotFoundException("Task not found"));
 
         // Act & Assert
@@ -256,7 +256,7 @@ class TaskControllerTest {
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.errorCode").value("TASK_NOT_FOUND"));
 
-        verify(taskService, times(1)).getTaskById(any(UUID.class), anyString());
+        verify(taskService, times(1)).getTaskById(any(UUID.class), eq("user123"));
     }
 
     // ========== PUT /v1/tasks/{taskId} - Update Task ==========
@@ -278,7 +278,7 @@ class TaskControllerTest {
             LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now().plusDays(2)
         );
 
-        when(taskService.updateTask(any(UUID.class), anyString(), any(TaskUpdateRequest.class))).thenReturn(response);
+        when(taskService.updateTask(any(UUID.class), eq("user123"), any(TaskUpdateRequest.class))).thenReturn(response);
 
         // Act & Assert
         mockMvc.perform(put("/v1/tasks/" + taskId)
@@ -288,7 +288,7 @@ class TaskControllerTest {
             .andExpect(jsonPath("$.title").value("Updated Task"))
             .andExpect(jsonPath("$.status").value("COMPLETED"));
 
-        verify(taskService, times(1)).updateTask(any(UUID.class), anyString(), any(TaskUpdateRequest.class));
+        verify(taskService, times(1)).updateTask(any(UUID.class), eq("user123"), any(TaskUpdateRequest.class));
     }
 
     @Test
@@ -303,7 +303,7 @@ class TaskControllerTest {
             null
         );
 
-        when(taskService.updateTask(any(UUID.class), anyString(), any(TaskUpdateRequest.class)))
+        when(taskService.updateTask(any(UUID.class), eq("user123"), any(TaskUpdateRequest.class)))
             .thenThrow(new TaskNotFoundException("Task not found"));
 
         // Act & Assert
@@ -313,7 +313,7 @@ class TaskControllerTest {
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.errorCode").value("TASK_NOT_FOUND"));
 
-        verify(taskService, times(1)).updateTask(any(UUID.class), anyString(), any(TaskUpdateRequest.class));
+        verify(taskService, times(1)).updateTask(any(UUID.class), eq("user123"), any(TaskUpdateRequest.class));
     }
 
     @Test
@@ -344,13 +344,13 @@ class TaskControllerTest {
     void deleteTask_ValidId_ReturnsNoContent() throws Exception {
         // Arrange
         UUID taskId = UUID.randomUUID();
-        doNothing().when(taskService).deleteTask(any(UUID.class), anyString());
+        doNothing().when(taskService).deleteTask(any(UUID.class), eq("user123"));
 
         // Act & Assert
         mockMvc.perform(delete("/v1/tasks/" + taskId))
             .andExpect(status().isNoContent());
 
-        verify(taskService, times(1)).deleteTask(any(UUID.class), anyString());
+        verify(taskService, times(1)).deleteTask(any(UUID.class), eq("user123"));
     }
 
     @Test
@@ -358,14 +358,14 @@ class TaskControllerTest {
         // Arrange
         UUID taskId = UUID.randomUUID();
         doThrow(new TaskNotFoundException("Task not found"))
-            .when(taskService).deleteTask(any(UUID.class), anyString());
+            .when(taskService).deleteTask(any(UUID.class), eq("user123"));
 
         // Act & Assert
         mockMvc.perform(delete("/v1/tasks/" + taskId))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.errorCode").value("TASK_NOT_FOUND"));
 
-        verify(taskService, times(1)).deleteTask(any(UUID.class), anyString());
+        verify(taskService, times(1)).deleteTask(any(UUID.class), eq("user123"));
     }
 
     // ========== POST /v1/tasks/bulk - Bulk Create Tasks ==========
@@ -394,7 +394,7 @@ class TaskControllerTest {
             2, 0, Arrays.asList(response1, response2), Collections.emptyList()
         );
 
-        when(taskService.bulkCreateTasks(anyString(), anyList())).thenReturn(bulkResponse);
+        when(taskService.bulkCreateTasks(eq("user123"), anyList())).thenReturn(bulkResponse);
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks/bulk")
@@ -403,7 +403,7 @@ class TaskControllerTest {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.totalCreated").value(2));
 
-        verify(taskService, times(1)).bulkCreateTasks(anyString(), anyList());
+        verify(taskService, times(1)).bulkCreateTasks(eq("user123"), anyList());
     }
 
     @Test
@@ -414,7 +414,7 @@ class TaskControllerTest {
             0, 0, Collections.emptyList(), Collections.emptyList()
         );
 
-        when(taskService.bulkCreateTasks(anyString(), anyList())).thenReturn(bulkResponse);
+        when(taskService.bulkCreateTasks(eq("user123"), anyList())).thenReturn(bulkResponse);
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks/bulk")
@@ -423,6 +423,6 @@ class TaskControllerTest {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.totalCreated").value(0));
 
-        verify(taskService, times(1)).bulkCreateTasks(anyString(), anyList());
+        verify(taskService, times(1)).bulkCreateTasks(eq("user123"), anyList());
     }
 }
