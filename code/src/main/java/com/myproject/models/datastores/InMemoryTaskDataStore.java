@@ -68,4 +68,20 @@ public class InMemoryTaskDataStore implements TaskDataStore {
         Task task = taskStore.get(id);
         return task != null && task.getUserId().equals(userId);
     }
+
+    public List<Task> findAll() {
+        return new ArrayList<>(taskStore.values());
+    }
+
+    public boolean existsById(UUID id) {
+        return taskStore.containsKey(id);
+    }
+
+    public List<Task> saveAll(List<Task> tasks) {
+        List<Task> savedTasks = new ArrayList<>();
+        for (Task task : tasks) {
+            savedTasks.add(save(task));
+        }
+        return savedTasks;
+    }
 }
