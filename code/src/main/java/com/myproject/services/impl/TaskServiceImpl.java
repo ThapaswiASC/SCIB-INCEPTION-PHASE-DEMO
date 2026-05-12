@@ -1,106 +1,122 @@
 package com.myproject.services.impl;
 
-import com.myproject.exceptions.PerformanceThresholdExceededException;
-import com.myproject.exceptions.TaskLimitExceededException;
-import com.myproject.exceptions.TaskNotFoundException;
+import com.myproject.exceptions.*;
+import com.myproject.models.datastores.TaskCounterDataStore;
 import com.myproject.models.datastores.TaskDataStore;
 import com.myproject.models.dtos.*;
 import com.myproject.models.entities.Task;
+import com.myproject.models.entities.TaskCounter;
+import com.myproject.services.interfaces.PerformanceMonitoringService;
 import com.myproject.services.interfaces.TaskService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.myproject.utils.TaskMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 public class TaskServiceImpl implements TaskService {
 
-    private static final Logger logger = LoggerFactory.getLogger(TaskServiceImpl.class);
+    @Value("${app.task.max-per-user:10000}")
+    private int maxTasksPerUser;
 
-    private final TaskDataStore taskDataStore;
+    @Value("${app.performance.threshold-ms:200}")
+    private long performanceThresholdMs;
 
-    @Value("${task.user.limit:10000}")
-    private int taskUserLimit;
+    @Autowired
+    private TaskDataStore taskDataStore;
 
-    @Value("${task.creation.performance.threshold:200}")
-    private long performanceThreshold;
+    @Autowired
+    private TaskCounterDataStore taskCounterDataStore;
 
-    public TaskServiceImpl(TaskDataStore taskDataStore) {
-        this.taskDataStore = taskDataStore;
-    }
+    @Autowired
+    private PerformanceMonitoringService performanceMonitoringService;
 
     @Override
-    public TaskResponse createTask(TaskCreateRequest request) {
+    public TaskResponse createTask(String userId, TaskCreateRequest request) {
         long startTime = System.currentTimeMillis();
 
         // Validate task limit
-        long currentTaskCount = taskDataStore.countByUserId(request.getUserId());
-        if (currentTaskCount >= taskUserLimit) {
-            throw new TaskLimitExceededException(
-                String.format("User %d has reached the maximum limit of %d tasks", 
-                    request.getUserId(), taskUserLimit)
-            );
-        }
+        validateTaskLimit(userId);
 
-        // Create task entity
+        // Create task
         Task task = new Task();
+        task.setUserId(userId);
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
-        task.setUserId(request.getUserId());
         task.setPriority(request.getPriority());
-        task.setStatus(TaskStatus.PENDING);
         task.setDueDate(request.getDueDate());
+        task.setStatus(TaskStatus.PENDING);
         task.setCreatedAt(LocalDateTime.now());
         task.setUpdatedAt(LocalDateTime.now());
 
-        // Save task
         Task savedTask = taskDataStore.save(task);
 
-        long duration = System.currentTimeMillis() - startTime;
-        logger.info("Task created: userId={}, taskId={}, duration={}ms", 
-            request.getUserId(), savedTask.getId(), duration);
+        // Update task counter
+        taskCounterDataStore.incrementTaskCount(userId);
 
-        if (duration > performanceThreshold) {
-            logger.warn("Performance threshold exceeded: duration={}ms", duration);
+        // Monitor performance
+        long executionTime = System.currentTimeMillis() - startTime;
+        performanceMonitoringService.recordTaskCreationTime(executionTime);
+
+        if (executionTime > performanceThresholdMs) {
+            throw new PerformanceThresholdExceededException(
+                    "Task creation exceeded performance threshold: " + executionTime + "ms");
         }
 
-        return mapToResponse(savedTask);
+        return TaskMapper.toResponse(savedTask);
     }
 
     @Override
-    public List<TaskResponse> getUserTasks(Long userId, int page, int size) {
-        List<Task> tasks = taskDataStore.findByUserId(userId, page, size);
-        return tasks.stream()
-            .map(this::mapToResponse)
-            .collect(Collectors.toList());
+    public BulkTaskResponse bulkCreateTasks(String userId, List<TaskCreateRequest> requests) {
+        BulkTaskResponse response = new BulkTaskResponse();
+        List<TaskResponse> createdTasks = new ArrayList<>();
+        List<BulkTaskResponse.BulkTaskError> errors = new ArrayList<>();
+
+        for (int i = 0; i < requests.size(); i++) {
+            try {
+                TaskResponse taskResponse = createTask(userId, requests.get(i));
+                createdTasks.add(taskResponse);
+            } catch (Exception e) {
+                BulkTaskResponse.BulkTaskError error = new BulkTaskResponse.BulkTaskError();
+                error.setIndex(i);
+                error.setErrorCode("TASK_CREATION_FAILED");
+                error.setMessage(e.getMessage());
+                errors.add(error);
+            }
+        }
+
+        response.setTotalCreated(createdTasks.size());
+        response.setTasks(createdTasks);
+        response.setErrors(errors);
+
+        return response;
     }
 
     @Override
-    public TaskCountResponse getTaskCount(Long userId) {
-        long count = taskDataStore.countByUserId(userId);
-        return new TaskCountResponse(userId, (int) count);
-    }
-
-    @Override
-    public TaskResponse getTaskById(Long taskId) {
+    public TaskResponse getTaskById(UUID taskId, String userId) {
         Task task = taskDataStore.findById(taskId)
-            .orElseThrow(() -> new TaskNotFoundException(
-                String.format("Task with ID %d not found", taskId)
-            ));
-        return mapToResponse(task);
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + taskId));
+
+        if (!task.getUserId().equals(userId)) {
+            throw new UnauthorizedException("Access denied to task: " + taskId);
+        }
+
+        return TaskMapper.toResponse(task);
     }
 
     @Override
-    public TaskResponse updateTask(Long taskId, TaskUpdateRequest request) {
+    public TaskResponse updateTask(UUID taskId, String userId, TaskUpdateRequest request) {
         Task task = taskDataStore.findById(taskId)
-            .orElseThrow(() -> new TaskNotFoundException(
-                String.format("Task with ID %d not found", taskId)
-            ));
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + taskId));
+
+        if (!task.getUserId().equals(userId)) {
+            throw new UnauthorizedException("Access denied to task: " + taskId);
+        }
 
         // Update fields if provided
         if (request.getTitle() != null) {
@@ -118,74 +134,52 @@ public class TaskServiceImpl implements TaskService {
         if (request.getDueDate() != null) {
             task.setDueDate(request.getDueDate());
         }
+
         task.setUpdatedAt(LocalDateTime.now());
-
         Task updatedTask = taskDataStore.save(task);
-        logger.info("Task updated: taskId={}", taskId);
 
-        return mapToResponse(updatedTask);
+        return TaskMapper.toResponse(updatedTask);
     }
 
     @Override
-    public void deleteTask(Long taskId) {
-        if (!taskDataStore.existsById(taskId)) {
-            throw new TaskNotFoundException(
-                String.format("Task with ID %d not found", taskId)
-            );
+    public void deleteTask(UUID taskId, String userId) {
+        Task task = taskDataStore.findById(taskId)
+                .orElseThrow(() -> new TaskNotFoundException("Task not found with id: " + taskId));
+
+        if (!task.getUserId().equals(userId)) {
+            throw new UnauthorizedException("Access denied to task: " + taskId);
         }
+
         taskDataStore.deleteById(taskId);
-        logger.info("Task deleted: taskId={}", taskId);
+        taskCounterDataStore.decrementTaskCount(userId);
     }
 
     @Override
-    public BulkTaskResponse bulkCreateTasks(List<TaskCreateRequest> requests) {
-        long startTime = System.currentTimeMillis();
+    public List<TaskResponse> getUserTasks(String userId, int page, int size, String sort) {
+        List<Task> tasks = taskDataStore.findByUserId(userId, page, size, sort);
+        return tasks.stream()
+                .map(TaskMapper::toResponse)
+                .toList();
+    }
 
-        List<TaskResponse> successfulTasks = new ArrayList<>();
-        List<ErrorResponse> errors = new ArrayList<>();
+    @Override
+    public TaskCountResponse getTaskCount(String userId) {
+        long taskCount = taskDataStore.countByUserId(userId);
 
-        for (int i = 0; i < requests.size(); i++) {
-            try {
-                TaskCreateRequest request = requests.get(i);
-                TaskResponse response = createTask(request);
-                successfulTasks.add(response);
-            } catch (Exception e) {
-                ErrorResponse error = new ErrorResponse(
-                    "TASK_CREATION_FAILED",
-                    String.format("Failed to create task at index %d: %s", i, e.getMessage())
-                );
-                errors.add(error);
-            }
-        }
-
-        long duration = System.currentTimeMillis() - startTime;
-        logger.info("Bulk task creation completed: success={}, failures={}, duration={}ms",
-            successfulTasks.size(), errors.size(), duration);
-
-        if (duration > performanceThreshold * requests.size()) {
-            logger.warn("Bulk operation performance threshold exceeded: duration={}ms", duration);
-        }
-
-        BulkTaskResponse response = new BulkTaskResponse();
-        response.setSuccessCount(successfulTasks.size());
-        response.setFailureCount(errors.size());
-        response.setTasks(successfulTasks);
-        response.setErrors(errors);
+        TaskCountResponse response = new TaskCountResponse();
+        response.setUserId(userId);
+        response.setTaskCount(taskCount);
+        response.setMaxTasksAllowed(maxTasksPerUser);
+        response.setRemainingCapacity((int) (maxTasksPerUser - taskCount));
 
         return response;
     }
 
-    private TaskResponse mapToResponse(Task task) {
-        return new TaskResponse(
-            task.getId(),
-            task.getTitle(),
-            task.getDescription(),
-            task.getUserId(),
-            task.getPriority(),
-            task.getStatus(),
-            task.getCreatedAt(),
-            task.getUpdatedAt(),
-            task.getDueDate()
-        );
+    private void validateTaskLimit(String userId) {
+        long currentTaskCount = taskDataStore.countByUserId(userId);
+        if (currentTaskCount >= maxTasksPerUser) {
+            throw new TaskLimitExceededException(
+                    "User has reached maximum task limit of " + maxTasksPerUser);
+        }
     }
 }
