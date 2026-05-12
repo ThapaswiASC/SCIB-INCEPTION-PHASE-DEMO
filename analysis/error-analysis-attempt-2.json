@@ -1,99 +1,75 @@
 {
-  "executive_summary": "Maven test compilation failed with 100 errors across 3 test classes. The root cause is a major refactoring where the domain model changed from using primitive types (long) to UUID for IDs, and Priority enum was renamed to TaskPriority. Additionally, service method signatures were updated to require userId parameter. All test classes need to be updated to match the new domain model and service interfaces.",
+  "executive_summary": "Maven test compilation failed with 100 errors across 3 test classes. Primary issues: (1) Type mismatches between Priority and TaskPriority enums, (2) Incorrect data types (long vs UUID/String) in test fixtures, (3) Method signature mismatches where service methods expect additional parameters (userId as String), (4) Missing methods in GlobalExceptionHandler and InMemoryTaskDataStore classes.",
   "attempt_number": 2,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-757",
   "log_file": "logs/build_failure_attempt-2.log",
-  "errors_found": 11,
+  "errors_found": 8,
   "errors": [
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 49,
-      "message": "Priority enum cannot be converted to TaskPriority (occurs 13 times)",
-      "root_cause": "The Priority enum was renamed to TaskPriority in the domain model, but test code still references the old Priority enum name.",
-      "fix_recommendation": "Replace all occurrences of 'Priority' with 'TaskPriority' in TaskControllerTest.java. Update import statement from 'com.myproject.models.dtos.Priority' to 'com.myproject.models.dtos.TaskPriority'."
+      "message": "Priority enum cannot be converted to TaskPriority enum (occurs 15 times across test methods)",
+      "root_cause": "Test code uses Priority enum but the application expects TaskPriority enum. This indicates either a refactoring where the enum was renamed, or tests are using the wrong enum type.",
+      "fix_recommendation": "Replace all instances of Priority.HIGH/MEDIUM/LOW with TaskPriority.HIGH/MEDIUM/LOW in TaskControllerTest.java, or update the domain model to use Priority instead of TaskPriority."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 54,
-      "message": "long cannot be converted to UUID (occurs 10 times)",
-      "root_cause": "Task IDs were changed from long to UUID type, but test code still uses long values for task IDs.",
-      "fix_recommendation": "Replace all long task ID values with UUID.randomUUID() or UUID.fromString() calls. For example, change 'long taskId = 1L' to 'UUID taskId = UUID.randomUUID()'."
+      "message": "Type mismatch: long cannot be converted to UUID (occurs 12 times in test fixtures)",
+      "root_cause": "Tests use long primitive values (1L, 2L) for task IDs, but the application now uses UUID type for task identifiers. This suggests a data model change from numeric IDs to UUIDs.",
+      "fix_recommendation": "Update all test fixtures to use UUID.randomUUID() or UUID.fromString() instead of long values. Example: replace '1L' with 'UUID.fromString(\"550e8400-e29b-41d4-a716-446655440000\")' or use UUID.randomUUID() for test data."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 65,
-      "message": "createTask method signature mismatch - missing userId parameter (occurs 12 times)",
-      "root_cause": "TaskService.createTask() method signature was updated to require userId as first parameter, but test mocks still call it with only TaskCreateRequest.",
-      "fix_recommendation": "Update all when(taskService.createTask(...)) calls to include userId as first parameter: when(taskService.createTask(anyString(), any(TaskCreateRequest.class))). Add userId variable in test setup."
+      "message": "Method signature mismatch: createTask requires (String userId, TaskCreateRequest) but called with (TaskCreateRequest) - 12 occurrences",
+      "root_cause": "The TaskService.createTask() method signature was updated to require a userId parameter, but test mocks still call it with only the request object.",
+      "fix_recommendation": "Update all when(taskService.createTask(...)) mock statements to include userId as first parameter. Example: when(taskService.createTask(eq(\"user123\"), any(TaskCreateRequest.class))).thenReturn(response);"
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 202,
-      "message": "getUserTasks method signature mismatch - requires String userId, int page, int size, String sortBy (occurs 9 times)",
-      "root_cause": "TaskService.getUserTasks() method signature changed to require 4 parameters including sortBy, but tests call it with only 3 parameters and pass long instead of String for userId.",
-      "fix_recommendation": "Update all getUserTasks calls to: when(taskService.getUserTasks(anyString(), anyInt(), anyInt(), anyString())). Change userId from long to String type in test data."
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 269,
-      "message": "TaskCountResponse constructor and countUserTasks method signature mismatch (occurs 3 times)",
-      "root_cause": "TaskCountResponse constructor changed and countUserTasks method now requires String userId instead of long.",
-      "fix_recommendation": "Update TaskCountResponse instantiation to use builder pattern or correct constructor. Change userId parameter from long to String in countUserTasks calls."
+      "message": "Method signature mismatch: getUserTasks requires (String userId, int page, int size, String sortBy) but called with (long, int, int) - 9 occurrences",
+      "root_cause": "The getUserTasks method signature changed to accept String userId and added sortBy parameter, but tests still pass long userId without sortBy.",
+      "fix_recommendation": "Update getUserTasks mock calls to: when(taskService.getUserTasks(eq(\"user123\"), eq(0), eq(10), eq(\"createdAt\"))).thenReturn(response). Convert userId from long to String and add sortBy parameter."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 290,
-      "message": "getTaskById method signature mismatch - requires UUID taskId and String userId (occurs 4 times)",
-      "root_cause": "TaskService.getTaskById() method signature changed to require both UUID taskId and String userId parameters.",
-      "fix_recommendation": "Update all getTaskById calls to: when(taskService.getTaskById(any(UUID.class), anyString())). Ensure taskId is UUID type and userId is String."
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 334,
-      "message": "updateTask method signature mismatch - requires UUID taskId, String userId, TaskUpdateRequest (occurs 6 times)",
-      "root_cause": "TaskService.updateTask() method signature changed to require UUID taskId and String userId as first two parameters.",
-      "fix_recommendation": "Update all updateTask calls to: when(taskService.updateTask(any(UUID.class), anyString(), any(TaskUpdateRequest.class))). Convert taskId from long to UUID."
-    },
-    {
-      "type": "COMPILATION_ERROR",
-      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
-      "line": 398,
-      "message": "deleteTask method signature mismatch - requires UUID taskId and String userId (occurs 4 times)",
-      "root_cause": "TaskService.deleteTask() method signature changed to require both UUID taskId and String userId parameters.",
-      "fix_recommendation": "Update all deleteTask calls to: when(taskService.deleteTask(any(UUID.class), anyString())). Convert taskId from long to UUID type."
+      "message": "Method signature mismatch: getTaskById, updateTask, deleteTask methods require (UUID taskId, String userId) but called with (long) - 16 occurrences",
+      "root_cause": "Task retrieval, update, and delete methods now require both UUID taskId and String userId for authorization, but tests only provide long taskId.",
+      "fix_recommendation": "Update all getTaskById, updateTask, and deleteTask mock calls to include both UUID and userId. Example: when(taskService.getTaskById(eq(taskUuid), eq(\"user123\"))).thenReturn(response);"
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 447,
-      "message": "bulkCreateTasks method signature mismatch - requires String userId and List (occurs 6 times)",
-      "root_cause": "TaskService.bulkCreateTasks() method signature changed to require userId as first parameter.",
-      "fix_recommendation": "Update all bulkCreateTasks calls to: when(taskService.bulkCreateTasks(anyString(), anyList())). Add userId parameter to method calls."
+      "message": "Method signature mismatch: bulkCreateTasks requires (String userId, List<TaskCreateRequest>) but called with (Object) - 6 occurrences",
+      "root_cause": "The bulkCreateTasks method signature was updated to require userId parameter, but test mocks pass incorrect argument types.",
+      "fix_recommendation": "Update bulkCreateTasks mock to: when(taskService.bulkCreateTasks(eq(\"user123\"), anyList())).thenReturn(bulkResponse). Ensure userId is passed as first parameter."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
       "line": 138,
-      "message": "handleValidationErrors method not found (occurs 2 times)",
-      "root_cause": "GlobalExceptionHandler.handleValidationErrors() method was removed or renamed.",
-      "fix_recommendation": "Check GlobalExceptionHandler class for the correct method name for handling MethodArgumentNotValidException. Update test to call the correct method or remove tests if method was intentionally removed."
+      "message": "Method handleValidationErrors not found in GlobalExceptionHandler (2 occurrences)",
+      "root_cause": "Tests reference handleValidationErrors() method that no longer exists in GlobalExceptionHandler class, likely removed or renamed during refactoring.",
+      "fix_recommendation": "Check GlobalExceptionHandler for the correct method name for handling MethodArgumentNotValidException. Update test to call the correct method, or restore handleValidationErrors() method if it was removed in error."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
       "line": 32,
-      "message": "Multiple type mismatches and missing methods in datastore tests (occurs 20 times)",
-      "root_cause": "InMemoryTaskDataStore class underwent major refactoring: userId changed from long to String, Priority changed to TaskPriority, taskId changed from long to UUID, findByUserId signature changed to require sortBy parameter, findAll() and existsById() methods were removed or renamed.",
-      "fix_recommendation": "Comprehensively refactor InMemoryTaskDataStoreTest: 1) Change all userId from long to String, 2) Replace Priority with TaskPriority, 3) Convert all taskId from long to UUID, 4) Update findByUserId calls to include sortBy parameter, 5) Replace findAll() calls with appropriate alternative method, 6) Update existsById() calls to match new method signature or use alternative."
+      "message": "Multiple type and method errors: Priority vs TaskPriority (4x), long vs String userId (10x), UUID arithmetic error (1x), missing findAll() (2x), missing existsById() (2x)",
+      "root_cause": "InMemoryTaskDataStore tests have multiple issues: (1) Wrong enum type usage, (2) userId changed from long to String, (3) taskId changed from long to UUID, (4) Missing findAll() and existsById() methods in the datastore implementation.",
+      "fix_recommendation": "(1) Replace Priority with TaskPriority enum. (2) Change all userId from long to String type. (3) Replace long taskIds with UUID type. (4) Add findAll() and existsById(UUID) methods to InMemoryTaskDataStore class, or update tests to use existing query methods. (5) Remove UUID arithmetic operations (task.getId() + 999) as UUIDs cannot be added."
     }
   ],
-  "summary": "11 error groups found (representing 100 individual compilation errors)"
+  "summary": "8 grouped compilation error categories found affecting 100 individual compilation failures"
 }
