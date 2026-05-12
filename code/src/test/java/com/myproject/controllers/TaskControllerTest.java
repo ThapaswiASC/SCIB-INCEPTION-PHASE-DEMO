@@ -394,7 +394,7 @@ class TaskControllerTest {
             2, 0, Arrays.asList(response1, response2), Collections.emptyList()
         );
 
-        when(taskService.bulkCreateTasks(eq("user123"), any())).thenReturn(bulkResponse);
+        when(taskService.bulkCreateTasks(eq("user123"), anyList())).thenReturn(bulkResponse);
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks/bulk")
@@ -403,7 +403,7 @@ class TaskControllerTest {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.totalCreated").value(2));
 
-        verify(taskService, times(1)).bulkCreateTasks(eq("user123"), any());
+        verify(taskService, times(1)).bulkCreateTasks(eq("user123"), anyList());
     }
 
     @Test
@@ -414,7 +414,7 @@ class TaskControllerTest {
             0, 0, Collections.emptyList(), Collections.emptyList()
         );
 
-        when(taskService.bulkCreateTasks(eq("user123"), any())).thenReturn(bulkResponse);
+        when(taskService.bulkCreateTasks(eq("user123"), anyList())).thenReturn(bulkResponse);
 
         // Act & Assert
         mockMvc.perform(post("/v1/tasks/bulk")
@@ -423,6 +423,6 @@ class TaskControllerTest {
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.totalCreated").value(0));
 
-        verify(taskService, times(1)).bulkCreateTasks(eq("user123"), any());
+        verify(taskService, times(1)).bulkCreateTasks(eq("user123"), anyList());
     }
 }
