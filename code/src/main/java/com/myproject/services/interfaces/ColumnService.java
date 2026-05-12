@@ -1,11 +1,11 @@
 package com.myproject.services.interfaces;
 
-import com.myproject.models.dtos.BulkUpdateColumnCountsRequest;
-import com.myproject.models.dtos.BulkUpdateColumnCountsResponse;
+import com.myproject.models.dtos.BulkColumnUpdateRequest;
+import com.myproject.models.dtos.BulkColumnUpdateResponse;
 import com.myproject.models.dtos.ColumnStatsResponse;
 
 public interface ColumnService {
     ColumnStatsResponse getColumnStats(String columnId);
-    BulkUpdateColumnCountsResponse bulkUpdateColumnCounts(BulkUpdateColumnCountsRequest request);
+    BulkColumnUpdateResponse bulkUpdateColumnCounts(BulkColumnUpdateRequest request);
     void updateColumnCounts(String oldColumnId, String newColumnId);
 }
