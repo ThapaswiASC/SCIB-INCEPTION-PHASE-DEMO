@@ -17,71 +17,77 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(TaskLimitExceededException.class)
     public ResponseEntity<ErrorResponse> handleTaskLimitExceeded(TaskLimitExceededException ex) {
-        ErrorResponse error = new ErrorResponse(
-            "TASK_LIMIT_EXCEEDED",
-            ex.getMessage(),
-            UUID.randomUUID().toString(),
-            List.of("User has reached the maximum limit of 10,000 tasks")
-        );
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(System.currentTimeMillis());
+        error.setTraceId(UUID.randomUUID().toString());
+        error.setErrorCode("TASK_LIMIT_EXCEEDED");
+        error.setMessage(ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(ConcurrentTaskCreationException.class)
     public ResponseEntity<ErrorResponse> handleConcurrentCreation(ConcurrentTaskCreationException ex) {
-        ErrorResponse error = new ErrorResponse(
-            "CONCURRENT_CREATION_ERROR",
-            ex.getMessage(),
-            UUID.randomUUID().toString(),
-            List.of("Concurrent task creation detected, please retry")
-        );
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(System.currentTimeMillis());
+        error.setTraceId(UUID.randomUUID().toString());
+        error.setErrorCode("CONCURRENT_CREATION_ERROR");
+        error.setMessage(ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 
     @ExceptionHandler(PerformanceThresholdExceededException.class)
     public ResponseEntity<ErrorResponse> handlePerformanceThreshold(PerformanceThresholdExceededException ex) {
-        ErrorResponse error = new ErrorResponse(
-            "PERFORMANCE_THRESHOLD_EXCEEDED",
-            ex.getMessage(),
-            UUID.randomUUID().toString(),
-            List.of("System performance threshold exceeded, please try again later")
-        );
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(System.currentTimeMillis());
+        error.setTraceId(UUID.randomUUID().toString());
+        error.setErrorCode("PERFORMANCE_THRESHOLD_EXCEEDED");
+        error.setMessage(ex.getMessage());
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
     }
 
     @ExceptionHandler(TaskNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleTaskNotFound(TaskNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(
-            "TASK_NOT_FOUND",
-            ex.getMessage(),
-            UUID.randomUUID().toString(),
-            List.of("The requested task does not exist")
-        );
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(System.currentTimeMillis());
+        error.setTraceId(UUID.randomUUID().toString());
+        error.setErrorCode("TASK_NOT_FOUND");
+        error.setMessage(ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex) {
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(System.currentTimeMillis());
+        error.setTraceId(UUID.randomUUID().toString());
+        error.setErrorCode("UNAUTHORIZED");
+        error.setMessage(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         List<String> details = new ArrayList<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
             details.add(error.getField() + ": " + error.getDefaultMessage());
         }
-        ErrorResponse error = new ErrorResponse(
-            "VALIDATION_ERROR",
-            "Validation failed for request",
-            UUID.randomUUID().toString(),
-            details
-        );
+        
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(System.currentTimeMillis());
+        error.setTraceId(UUID.randomUUID().toString());
+        error.setErrorCode("VALIDATION_ERROR");
+        error.setMessage("Validation failed");
+        error.setDetails(details);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        ErrorResponse error = new ErrorResponse(
-            "INTERNAL_SERVER_ERROR",
-            "An unexpected error occurred",
-            UUID.randomUUID().toString(),
-            List.of(ex.getMessage())
-        );
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(System.currentTimeMillis());
+        error.setTraceId(UUID.randomUUID().toString());
+        error.setErrorCode("INTERNAL_SERVER_ERROR");
+        error.setMessage("An unexpected error occurred");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }
