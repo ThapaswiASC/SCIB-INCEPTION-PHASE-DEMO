@@ -2,8 +2,6 @@ package com.myproject.models.dtos;
 
 import jakarta.validation.constraints.Size;
 
-import java.time.LocalDateTime;
-
 public class TaskUpdateRequest {
 
     @Size(min = 1, max = 255, message = "Title must be between 1 and 255 characters")
@@ -12,22 +10,11 @@ public class TaskUpdateRequest {
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
 
-    private TaskPriority priority;
+    private String status;
 
-    private TaskStatus status;
+    private String priority;
 
-    private LocalDateTime dueDate;
-
-    public TaskUpdateRequest() {
-    }
-
-    public TaskUpdateRequest(String title, String description, TaskPriority priority, TaskStatus status, LocalDateTime dueDate) {
-        this.title = title;
-        this.description = description;
-        this.priority = priority;
-        this.status = status;
-        this.dueDate = dueDate;
-    }
+    private Long version;
 
     public String getTitle() {
         return title;
@@ -45,27 +32,27 @@ public class TaskUpdateRequest {
         this.description = description;
     }
 
-    public TaskPriority getPriority() {
-        return priority;
-    }
-
-    public void setPriority(TaskPriority priority) {
-        this.priority = priority;
-    }
-
-    public TaskStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public LocalDateTime getDueDate() {
-        return dueDate;
+    public String getPriority() {
+        return priority;
     }
 
-    public void setDueDate(LocalDateTime dueDate) {
-        this.dueDate = dueDate;
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

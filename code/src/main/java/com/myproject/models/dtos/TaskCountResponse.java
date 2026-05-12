@@ -2,24 +2,15 @@ package com.myproject.models.dtos;
 
 public class TaskCountResponse {
 
-    private String userId;
+    private Long userId;
     private Long taskCount;
-    private Integer maxTasksAllowed;
-    private Integer remainingCapacity;
+    private Integer maxTasksAllowed = 10000;
 
-    public TaskCountResponse() {
-    }
-
-    public TaskCountResponse(String userId, long taskCount) {
-        this.userId = userId;
-        this.taskCount = taskCount;
-    }
-
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
@@ -37,13 +28,5 @@ public class TaskCountResponse {
 
     public void setMaxTasksAllowed(Integer maxTasksAllowed) {
         this.maxTasksAllowed = maxTasksAllowed;
-    }
-
-    public Integer getRemainingCapacity() {
-        return remainingCapacity;
-    }
-
-    public void setRemainingCapacity(Integer remainingCapacity) {
-        this.remainingCapacity = remainingCapacity;
     }
 }

@@ -1,49 +1,32 @@
 package com.myproject.models.dtos;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 public class TaskResponse {
 
-    private UUID id;
-    private String userId;
+    private Long id;
+    private Long userId;
     private String title;
     private String description;
-    private TaskPriority priority;
-    private TaskStatus status;
+    private String status;
+    private String priority;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private LocalDateTime dueDate;
     private Long version;
 
-    public TaskResponse() {
-    }
-
-    public TaskResponse(UUID id, String title, String description, String userId, TaskPriority priority, TaskStatus status, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime dueDate) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.userId = userId;
-        this.priority = priority;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.dueDate = dueDate;
-    }
-
-    public UUID getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public String getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(String userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
@@ -63,20 +46,20 @@ public class TaskResponse {
         this.description = description;
     }
 
-    public TaskPriority getPriority() {
-        return priority;
-    }
-
-    public void setPriority(TaskPriority priority) {
-        this.priority = priority;
-    }
-
-    public TaskStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
+    public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -93,14 +76,6 @@ public class TaskResponse {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public LocalDateTime getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDateTime dueDate) {
-        this.dueDate = dueDate;
     }
 
     public Long getVersion() {
