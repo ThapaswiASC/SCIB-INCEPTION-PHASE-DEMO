@@ -2,76 +2,76 @@ package com.myproject.controllers;
 
 import com.myproject.models.dtos.*;
 import com.myproject.services.interfaces.TaskService;
-import com.myproject.utils.AuthenticationHelper;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1")
 public class TaskController {
 
+    private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
+
     @Autowired
     private TaskService taskService;
 
-    @Autowired
-    private AuthenticationHelper authenticationHelper;
-
     @PostMapping("/tasks")
     public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskCreateRequest request) {
-        String userId = authenticationHelper.getCurrentUserId();
-        TaskResponse response = taskService.createTask(userId, request);
+        logger.info("POST /v1/tasks - Creating task for user: {}", request.getUserId());
+        TaskResponse response = taskService.createTask(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/tasks/bulk")
     public ResponseEntity<BulkTaskResponse> bulkCreateTasks(@Valid @RequestBody List<TaskCreateRequest> requests) {
-        String userId = authenticationHelper.getCurrentUserId();
-        BulkTaskResponse response = taskService.bulkCreateTasks(userId, requests);
+        logger.info("POST /v1/tasks/bulk - Bulk creating {} tasks", requests.size());
+        BulkTaskResponse response = taskService.bulkCreateTasks(requests);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/users/{userId}/tasks")
+    public ResponseEntity<List<TaskResponse>> getUserTasks(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        logger.info("GET /v1/users/{}/tasks - Fetching tasks (page: {}, size: {})", userId, page, size);
+        List<TaskResponse> tasks = taskService.getUserTasks(userId, page, size);
+        return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/users/{userId}/tasks/count")
+    public ResponseEntity<TaskCountResponse> getTaskCount(@PathVariable Long userId) {
+        logger.info("GET /v1/users/{}/tasks/count - Getting task count", userId);
+        TaskCountResponse response = taskService.getTaskCount(userId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/tasks/{taskId}")
-    public ResponseEntity<TaskResponse> getTaskById(@PathVariable UUID taskId) {
-        String userId = authenticationHelper.getCurrentUserId();
-        TaskResponse response = taskService.getTaskById(taskId, userId);
+    public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long taskId) {
+        logger.info("GET /v1/tasks/{} - Fetching task by ID", taskId);
+        TaskResponse response = taskService.getTaskById(taskId);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/tasks/{taskId}")
     public ResponseEntity<TaskResponse> updateTask(
-            @PathVariable UUID taskId,
+            @PathVariable Long taskId,
             @Valid @RequestBody TaskUpdateRequest request) {
-        String userId = authenticationHelper.getCurrentUserId();
-        TaskResponse response = taskService.updateTask(taskId, userId, request);
+        logger.info("PUT /v1/tasks/{} - Updating task", taskId);
+        TaskResponse response = taskService.updateTask(taskId, request);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/tasks/{taskId}")
-    public ResponseEntity<Void> deleteTask(@PathVariable UUID taskId) {
-        String userId = authenticationHelper.getCurrentUserId();
-        taskService.deleteTask(taskId, userId);
+    public ResponseEntity<Void> deleteTask(@PathVariable Long taskId) {
+        logger.info("DELETE /v1/tasks/{} - Deleting task", taskId);
+        taskService.deleteTask(taskId);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/users/{userId}/tasks")
-    public ResponseEntity<List<TaskResponse>> getUserTasks(
-            @PathVariable String userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "createdAt,desc") String sort) {
-        List<TaskResponse> response = taskService.getUserTasks(userId, page, size, sort);
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/users/{userId}/tasks/count")
-    public ResponseEntity<TaskCountResponse> getTaskCount(@PathVariable String userId) {
-        TaskCountResponse response = taskService.getTaskCount(userId);
-        return ResponseEntity.ok(response);
     }
 }
