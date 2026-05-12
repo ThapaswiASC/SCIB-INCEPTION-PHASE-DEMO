@@ -1,10 +1,11 @@
 package com.myproject.models.entities;
 
-import com.myproject.models.dtos.Priority;
+import com.myproject.models.dtos.TaskPriority;
 import com.myproject.models.dtos.TaskStatus;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,7 +20,7 @@ class TaskTest {
         assertNotNull(task.getCreatedAt());
         assertNotNull(task.getUpdatedAt());
         assertEquals(TaskStatus.PENDING, task.getStatus());
-        assertNull(task.getId());
+        assertNotNull(task.getId());
         assertNull(task.getTitle());
         assertNull(task.getDescription());
         assertNull(task.getUserId());
@@ -44,60 +45,30 @@ class TaskTest {
     }
 
     @Test
-    void parameterizedConstructor_SetsAllFields() {
-        // Arrange
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime dueDate = now.plusDays(7);
-
-        // Act
-        Task task = new Task(
-            1L,
-            "Test Task",
-            "Test Description",
-            100L,
-            Priority.HIGH,
-            TaskStatus.IN_PROGRESS,
-            now,
-            now,
-            dueDate
-        );
-
-        // Assert
-        assertEquals(1L, task.getId());
-        assertEquals("Test Task", task.getTitle());
-        assertEquals("Test Description", task.getDescription());
-        assertEquals(100L, task.getUserId());
-        assertEquals(Priority.HIGH, task.getPriority());
-        assertEquals(TaskStatus.IN_PROGRESS, task.getStatus());
-        assertEquals(now, task.getCreatedAt());
-        assertEquals(now, task.getUpdatedAt());
-        assertEquals(dueDate, task.getDueDate());
-    }
-
-    @Test
     void settersAndGetters_WorkCorrectly() {
         // Arrange
         Task task = new Task();
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime dueDate = now.plusDays(5);
+        UUID taskId = UUID.randomUUID();
 
         // Act
-        task.setId(42L);
+        task.setId(taskId);
         task.setTitle("Updated Title");
         task.setDescription("Updated Description");
-        task.setUserId(200L);
-        task.setPriority(Priority.CRITICAL);
+        task.setUserId("user200");
+        task.setPriority(TaskPriority.HIGH);
         task.setStatus(TaskStatus.COMPLETED);
         task.setCreatedAt(now);
         task.setUpdatedAt(now);
         task.setDueDate(dueDate);
 
         // Assert
-        assertEquals(42L, task.getId());
+        assertEquals(taskId, task.getId());
         assertEquals("Updated Title", task.getTitle());
         assertEquals("Updated Description", task.getDescription());
-        assertEquals(200L, task.getUserId());
-        assertEquals(Priority.CRITICAL, task.getPriority());
+        assertEquals("user200", task.getUserId());
+        assertEquals(TaskPriority.HIGH, task.getPriority());
         assertEquals(TaskStatus.COMPLETED, task.getStatus());
         assertEquals(now, task.getCreatedAt());
         assertEquals(now, task.getUpdatedAt());
@@ -107,17 +78,11 @@ class TaskTest {
     @Test
     void task_CanBeCreatedWithNullOptionalFields() {
         // Act
-        Task task = new Task(
-            1L,
-            "Minimal Task",
-            null,
-            100L,
-            Priority.LOW,
-            TaskStatus.PENDING,
-            LocalDateTime.now(),
-            LocalDateTime.now(),
-            null
-        );
+        Task task = new Task();
+        task.setTitle("Minimal Task");
+        task.setUserId("user100");
+        task.setPriority(TaskPriority.LOW);
+        task.setStatus(TaskStatus.PENDING);
 
         // Assert
         assertNotNull(task);
