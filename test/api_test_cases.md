@@ -1,180 +1,280 @@
-# API Test Cases - Task Management System
+# API Test Cases - MyProject Task Management System
 
 ## Overview
-
-This document describes all test cases for the Task Management System API. The test cases cover positive scenarios, negative scenarios, validation errors, and edge cases.
-
----
-
-## Test Case Summary
-
-| Category | Test Cases | Status |
-|----------|------------|--------|
-| Task Management | 9 | ✓ |
-| User Tasks | 3 | ✓ |
-| Bulk Operations | 2 | ✓ |
-| **Total** | **14** | **✓** |
+This document describes all test cases for the Task Management System API.
 
 ---
 
-## 1. Task Management
+## Health Check Endpoints
 
-### TC-001: Create Task - Valid Request
+### TC-HEALTH-001: Get Health Status
 
-**Endpoint:** `POST /api/v1/tasks`
+**Endpoint:** `GET /v1/health`
+
+**Scenario:** Verify application health status
+
+**Preconditions:** Application is running
+
+**Steps:**
+1. Send GET request to `/v1/health`
+2. Verify response status code
+3. Verify response body structure
+
+**Expected Result:**
+- Status code: 200 OK
+- Response body contains:
+  - `status`: "UP"
+  - `application`: "myproject"
+  - `timestamp`: Current timestamp (number)
+
+---
+
+### TC-HEALTH-002: Get Performance Metrics
+
+**Endpoint:** `GET /v1/health/metrics`
+
+**Scenario:** Retrieve performance metrics
+
+**Preconditions:** Application is running
+
+**Steps:**
+1. Send GET request to `/v1/health/metrics`
+2. Verify response status code
+3. Verify metrics are present
+
+**Expected Result:**
+- Status code: 200 OK
+- Response body contains:
+  - `totalTasksCreated`: Number
+  - `averageCreationTimeMs`: Number
+  - `timestamp`: Current timestamp
+
+---
+
+## Task Management Endpoints
+
+### TC-TASK-001: Create Task - Valid Request
+
+**Endpoint:** `POST /v1/tasks`
 
 **Scenario:** Create a new task with valid data
 
-**Preconditions:**
-- API server is running
-- User is authenticated
+**Preconditions:** User exists in the system
+
+**Steps:**
+1. Prepare valid task creation request
+2. Send POST request to `/v1/tasks`
+3. Verify response status code
+4. Verify task is created with correct data
 
 **Request Body:**
 ```json
 {
+  "userId": 1,
   "title": "Test Task",
-  "description": "Test Description",
-  "priority": "HIGH",
-  "dueDate": "2025-12-31T23:59:59"
-}
-```
-
-**Expected Result:**
-- Status Code: `201 Created`
-- Response contains task ID
-- Response contains all task fields
-- Task status is `PENDING`
-- Task has timestamps (createdAt, updatedAt)
-
-**Assertions:**
-- `id` is not null
-- `title` equals "Test Task"
-- `priority` equals "HIGH"
-- `status` equals "PENDING"
-- `userId` equals "user123"
-
----
-
-### TC-002: Create Task - Missing Title
-
-**Endpoint:** `POST /api/v1/tasks`
-
-**Scenario:** Attempt to create task without required title field
-
-**Preconditions:**
-- API server is running
-
-**Request Body:**
-```json
-{
   "description": "Test Description",
   "priority": "HIGH"
 }
 ```
 
 **Expected Result:**
-- Status Code: `400 Bad Request`
-- Error code: `VALIDATION_ERROR`
-- Error message indicates title is required
-- Response contains validation details
-
-**Assertions:**
-- `errorCode` equals "VALIDATION_ERROR"
-- `details` array contains title validation error
+- Status code: 201 Created
+- Response body contains:
+  - `id`: Generated task ID
+  - `userId`: 1
+  - `title`: "Test Task"
+  - `description`: "Test Description"
+  - `status`: "PENDING"
+  - `priority`: "HIGH"
+  - `createdAt`: Timestamp
+  - `updatedAt`: Timestamp
 
 ---
 
-### TC-003: Create Task - Missing Priority
+### TC-TASK-002: Create Task - Missing Title
 
-**Endpoint:** `POST /api/v1/tasks`
+**Endpoint:** `POST /v1/tasks`
 
-**Scenario:** Attempt to create task without required priority field
+**Scenario:** Attempt to create task without required title field
 
-**Preconditions:**
-- API server is running
+**Preconditions:** None
+
+**Steps:**
+1. Prepare task creation request without title
+2. Send POST request to `/v1/tasks`
+3. Verify validation error response
 
 **Request Body:**
 ```json
 {
-  "title": "Test Task",
-  "description": "Test Description"
+  "userId": 1,
+  "description": "Test Description",
+  "priority": "HIGH"
 }
 ```
 
 **Expected Result:**
-- Status Code: `400 Bad Request`
-- Error code: `VALIDATION_ERROR`
-- Error message indicates priority is required
-
-**Assertions:**
-- `errorCode` equals "VALIDATION_ERROR"
-- `details` array contains priority validation error
+- Status code: 400 Bad Request
+- Response body contains:
+  - `errorCode`: "VALIDATION_ERROR"
+  - `message`: "Validation failed"
+  - `details`: Array containing "title: Title is required"
 
 ---
 
-### TC-004: Get Task by ID - Valid
+### TC-TASK-003: Create Task - Title Too Long
 
-**Endpoint:** `GET /api/v1/tasks/{taskId}`
+**Endpoint:** `POST /v1/tasks`
 
-**Scenario:** Retrieve an existing task by its ID
+**Scenario:** Attempt to create task with title exceeding 255 characters
 
-**Preconditions:**
-- Task exists in the system
-- User has access to the task
+**Preconditions:** None
 
-**Path Parameters:**
-- `taskId`: Valid UUID of existing task
+**Steps:**
+1. Prepare task creation request with 256-character title
+2. Send POST request to `/v1/tasks`
+3. Verify validation error response
 
 **Expected Result:**
-- Status Code: `200 OK`
-- Response contains complete task details
-- All fields are populated correctly
-
-**Assertions:**
-- `id` matches requested taskId
-- `title` is not null
-- `priority` is not null
-- `status` is not null
-- `createdAt` is not null
-- `updatedAt` is not null
+- Status code: 400 Bad Request
+- Response body contains validation error for title length
 
 ---
 
-### TC-005: Get Task by ID - Not Found
+### TC-TASK-004: Create Task - Task Limit Exceeded
 
-**Endpoint:** `GET /api/v1/tasks/{taskId}`
+**Endpoint:** `POST /v1/tasks`
 
-**Scenario:** Attempt to retrieve a non-existent task
+**Scenario:** Attempt to create task when user has reached 10,000 task limit
 
-**Preconditions:**
-- API server is running
+**Preconditions:** User already has 10,000 tasks
 
-**Path Parameters:**
-- `taskId`: UUID that doesn't exist (e.g., 00000000-0000-0000-0000-000000000000)
+**Steps:**
+1. Prepare valid task creation request
+2. Send POST request to `/v1/tasks`
+3. Verify task limit error response
 
 **Expected Result:**
-- Status Code: `404 Not Found`
-- Error code: `TASK_NOT_FOUND`
-- Error message indicates task not found
-
-**Assertions:**
-- `errorCode` equals "TASK_NOT_FOUND"
-- `message` contains task ID
+- Status code: 400 Bad Request
+- Response body contains:
+  - `errorCode`: "TASK_LIMIT_EXCEEDED"
+  - `message`: "User has reached maximum task limit of 10000"
 
 ---
 
-### TC-006: Update Task - Valid
+### TC-TASK-005: Get User Tasks
 
-**Endpoint:** `PUT /api/v1/tasks/{taskId}`
+**Endpoint:** `GET /v1/users/{userId}/tasks`
+
+**Scenario:** Retrieve all tasks for a specific user with pagination
+
+**Preconditions:** User has at least one task
+
+**Steps:**
+1. Send GET request to `/v1/users/{userId}/tasks?page=0&size=20`
+2. Verify response status code
+3. Verify tasks are returned
+
+**Expected Result:**
+- Status code: 200 OK
+- Response body is an array of task objects
+- Each task contains: id, userId, title, description, status, priority, createdAt, updatedAt
+
+---
+
+### TC-TASK-006: Get User Tasks - Empty Result
+
+**Endpoint:** `GET /v1/users/{userId}/tasks`
+
+**Scenario:** Retrieve tasks for user with no tasks
+
+**Preconditions:** User has no tasks
+
+**Steps:**
+1. Send GET request to `/v1/users/{userId}/tasks`
+2. Verify response status code
+3. Verify empty array is returned
+
+**Expected Result:**
+- Status code: 200 OK
+- Response body is an empty array: `[]`
+
+---
+
+### TC-TASK-007: Get Task Count
+
+**Endpoint:** `GET /v1/users/{userId}/tasks/count`
+
+**Scenario:** Get total task count for a user
+
+**Preconditions:** User exists
+
+**Steps:**
+1. Send GET request to `/v1/users/{userId}/tasks/count`
+2. Verify response status code
+3. Verify count is returned
+
+**Expected Result:**
+- Status code: 200 OK
+- Response body contains:
+  - `userId`: User ID
+  - `taskCount`: Number of tasks
+  - `maxTasksAllowed`: 10000
+
+---
+
+### TC-TASK-008: Get Task By ID - Valid ID
+
+**Endpoint:** `GET /v1/tasks/{taskId}`
+
+**Scenario:** Retrieve a specific task by its ID
+
+**Preconditions:** Task exists with given ID
+
+**Steps:**
+1. Send GET request to `/v1/tasks/{taskId}`
+2. Verify response status code
+3. Verify task details are returned
+
+**Expected Result:**
+- Status code: 200 OK
+- Response body contains complete task details
+
+---
+
+### TC-TASK-009: Get Task By ID - Task Not Found
+
+**Endpoint:** `GET /v1/tasks/{taskId}`
+
+**Scenario:** Attempt to retrieve non-existent task
+
+**Preconditions:** Task ID does not exist
+
+**Steps:**
+1. Send GET request to `/v1/tasks/{nonExistentId}`
+2. Verify error response
+
+**Expected Result:**
+- Status code: 404 Not Found
+- Response body contains:
+  - `errorCode`: "RESOURCE_NOT_FOUND"
+  - `message`: "Task not found with ID: {taskId}"
+
+---
+
+### TC-TASK-010: Update Task - Valid Request
+
+**Endpoint:** `PUT /v1/tasks/{taskId}`
 
 **Scenario:** Update an existing task with valid data
 
-**Preconditions:**
-- Task exists in the system
-- User has access to the task
+**Preconditions:** Task exists with given ID
 
-**Path Parameters:**
-- `taskId`: Valid UUID of existing task
+**Steps:**
+1. Prepare task update request
+2. Send PUT request to `/v1/tasks/{taskId}`
+3. Verify response status code
+4. Verify task is updated
 
 **Request Body:**
 ```json
@@ -185,373 +285,194 @@ This document describes all test cases for the Task Management System API. The t
 ```
 
 **Expected Result:**
-- Status Code: `200 OK`
-- Response contains updated task
-- Title is updated
-- Status is updated
-- `updatedAt` timestamp is newer
-
-**Assertions:**
-- `title` equals "Updated Task Title"
-- `status` equals "IN_PROGRESS"
-- `updatedAt` is after original timestamp
+- Status code: 200 OK
+- Response body contains updated task with:
+  - `title`: "Updated Task Title"
+  - `status`: "IN_PROGRESS"
+  - `updatedAt`: New timestamp
 
 ---
 
-### TC-007: Update Task - Not Found
+### TC-TASK-011: Update Task - Task Not Found
 
-**Endpoint:** `PUT /api/v1/tasks/{taskId}`
+**Endpoint:** `PUT /v1/tasks/{taskId}`
 
-**Scenario:** Attempt to update a non-existent task
+**Scenario:** Attempt to update non-existent task
 
-**Preconditions:**
-- API server is running
+**Preconditions:** Task ID does not exist
 
-**Path Parameters:**
-- `taskId`: UUID that doesn't exist
-
-**Request Body:**
-```json
-{
-  "title": "Updated Task Title"
-}
-```
+**Steps:**
+1. Prepare task update request
+2. Send PUT request to `/v1/tasks/{nonExistentId}`
+3. Verify error response
 
 **Expected Result:**
-- Status Code: `404 Not Found`
-- Error code: `TASK_NOT_FOUND`
-
-**Assertions:**
-- `errorCode` equals "TASK_NOT_FOUND"
+- Status code: 404 Not Found
+- Response body contains:
+  - `errorCode`: "RESOURCE_NOT_FOUND"
+  - `message`: "Task not found with ID: {taskId}"
 
 ---
 
-### TC-008: Delete Task - Valid
+### TC-TASK-012: Delete Task - Valid ID
 
-**Endpoint:** `DELETE /api/v1/tasks/{taskId}`
+**Endpoint:** `DELETE /v1/tasks/{taskId}`
 
 **Scenario:** Delete an existing task
 
-**Preconditions:**
-- Task exists in the system
-- User has access to the task
+**Preconditions:** Task exists with given ID
 
-**Path Parameters:**
-- `taskId`: Valid UUID of existing task
+**Steps:**
+1. Send DELETE request to `/v1/tasks/{taskId}`
+2. Verify response status code
+3. Verify task is deleted
 
 **Expected Result:**
-- Status Code: `204 No Content`
+- Status code: 204 No Content
 - No response body
 - Task is removed from system
-- Task counter is decremented
-
-**Assertions:**
-- Status code is 204
-- Subsequent GET request returns 404
 
 ---
 
-### TC-009: Delete Task - Not Found
+### TC-TASK-013: Delete Task - Task Not Found
 
-**Endpoint:** `DELETE /api/v1/tasks/{taskId}`
+**Endpoint:** `DELETE /v1/tasks/{taskId}`
 
-**Scenario:** Attempt to delete a non-existent task
+**Scenario:** Attempt to delete non-existent task
 
-**Preconditions:**
-- API server is running
+**Preconditions:** Task ID does not exist
 
-**Path Parameters:**
-- `taskId`: UUID that doesn't exist
+**Steps:**
+1. Send DELETE request to `/v1/tasks/{nonExistentId}`
+2. Verify error response
 
 **Expected Result:**
-- Status Code: `404 Not Found`
-- Error code: `TASK_NOT_FOUND`
-
-**Assertions:**
-- `errorCode` equals "TASK_NOT_FOUND"
-
----
-
-## 2. User Tasks
-
-### TC-010: Get User Tasks - Valid
-
-**Endpoint:** `GET /api/v1/users/{userId}/tasks`
-
-**Scenario:** Retrieve all tasks for a specific user with pagination
-
-**Preconditions:**
-- User exists in the system
-- User has at least one task
-
-**Path Parameters:**
-- `userId`: Valid user ID
-
-**Query Parameters:**
-- `page`: 0
-- `size`: 20
-- `sort`: createdAt,desc
-
-**Expected Result:**
-- Status Code: `200 OK`
-- Response is an array of tasks
-- Tasks are sorted by creation date (descending)
-- Maximum 20 tasks returned
-
-**Assertions:**
-- Response is an array
-- Each task belongs to the specified user
-- Tasks are sorted correctly
+- Status code: 404 Not Found
+- Response body contains:
+  - `errorCode`: "RESOURCE_NOT_FOUND"
+  - `message`: "Task not found with ID: {taskId}"
 
 ---
 
-### TC-011: Get User Tasks - Default Pagination
+### TC-TASK-014: Bulk Create Tasks - All Successful
 
-**Endpoint:** `GET /api/v1/users/{userId}/tasks`
-
-**Scenario:** Retrieve user tasks without specifying pagination parameters
-
-**Preconditions:**
-- User exists in the system
-
-**Path Parameters:**
-- `userId`: Valid user ID
-
-**Expected Result:**
-- Status Code: `200 OK`
-- Default pagination applied (page=0, size=20)
-- Response is an array
-
-**Assertions:**
-- Response is an array
-- Maximum 20 tasks returned
-
----
-
-### TC-012: Get Task Count - Valid
-
-**Endpoint:** `GET /api/v1/users/{userId}/tasks/count`
-
-**Scenario:** Retrieve task count for a specific user
-
-**Preconditions:**
-- User exists in the system
-
-**Path Parameters:**
-- `userId`: Valid user ID
-
-**Expected Result:**
-- Status Code: `200 OK`
-- Response contains task count information
-- Response includes remaining capacity
-
-**Assertions:**
-- `userId` matches requested user
-- `taskCount` is a non-negative number
-- `maxTasksAllowed` equals 10000
-- `remainingCapacity` equals (maxTasksAllowed - taskCount)
-
----
-
-## 3. Bulk Operations
-
-### TC-013: Bulk Create Tasks - Valid
-
-**Endpoint:** `POST /api/v1/tasks/bulk`
+**Endpoint:** `POST /v1/tasks/bulk`
 
 **Scenario:** Create multiple tasks in a single request
 
-**Preconditions:**
-- API server is running
-- User has capacity for additional tasks
+**Preconditions:** User exists and has not reached task limit
+
+**Steps:**
+1. Prepare array of task creation requests
+2. Send POST request to `/v1/tasks/bulk`
+3. Verify response status code
+4. Verify all tasks are created
 
 **Request Body:**
 ```json
 [
   {
+    "userId": 1,
     "title": "Bulk Task 1",
     "description": "Description 1",
     "priority": "HIGH"
   },
   {
+    "userId": 1,
     "title": "Bulk Task 2",
     "description": "Description 2",
     "priority": "MEDIUM"
-  },
-  {
-    "title": "Bulk Task 3",
-    "description": "Description 3",
-    "priority": "LOW"
   }
 ]
 ```
 
 **Expected Result:**
-- Status Code: `201 Created`
-- Response contains `totalCreated` count
-- Response contains array of created tasks
-- Response contains array of errors (if any)
-
-**Assertions:**
-- `totalCreated` equals number of successful creations
-- `tasks` array contains created task details
-- `errors` array is empty (for all successful)
+- Status code: 201 Created
+- Response body contains:
+  - `successCount`: 2
+  - `failureCount`: 0
+  - `tasks`: Array of 2 created tasks
+  - `errors`: Empty array
 
 ---
 
-### TC-014: Bulk Create Tasks - Empty List
+### TC-TASK-015: Bulk Create Tasks - Partial Success
 
-**Endpoint:** `POST /api/v1/tasks/bulk`
+**Endpoint:** `POST /v1/tasks/bulk`
 
-**Scenario:** Attempt bulk creation with empty array
+**Scenario:** Create multiple tasks where some fail validation
 
-**Preconditions:**
-- API server is running
+**Preconditions:** User exists
 
-**Request Body:**
-```json
-[]
-```
+**Steps:**
+1. Prepare array with valid and invalid task requests
+2. Send POST request to `/v1/tasks/bulk`
+3. Verify partial success response
 
 **Expected Result:**
-- Status Code: `201 Created`
-- `totalCreated` equals 0
-- `tasks` array is empty
-- `errors` array is empty
-
-**Assertions:**
-- `totalCreated` equals 0
-- `tasks` is an empty array
-- `errors` is an empty array
+- Status code: 201 Created
+- Response body contains:
+  - `successCount`: Number of successful creations
+  - `failureCount`: Number of failures
+  - `tasks`: Array of successfully created tasks
+  - `errors`: Array of error details for failed tasks
 
 ---
 
-## Error Scenarios
+## Edge Cases
 
-### Common Error Responses
+### TC-EDGE-001: Create Task Near Limit
 
-#### Validation Error (400)
-```json
-{
-  "timestamp": 1705320000000,
-  "traceId": "abc123-def456",
-  "errorCode": "VALIDATION_ERROR",
-  "message": "Validation failed",
-  "details": [
-    "title: Title is required",
-    "priority: Priority is required"
-  ]
-}
-```
+**Scenario:** Create task when user has 9,999 tasks
 
-#### Task Not Found (404)
-```json
-{
-  "timestamp": 1705320000000,
-  "traceId": "abc123-def456",
-  "errorCode": "TASK_NOT_FOUND",
-  "message": "Task not found with id: {taskId}",
-  "details": []
-}
-```
-
-#### Task Limit Exceeded (400)
-```json
-{
-  "timestamp": 1705320000000,
-  "traceId": "abc123-def456",
-  "errorCode": "TASK_LIMIT_EXCEEDED",
-  "message": "User has reached maximum task limit of 10000",
-  "details": []
-}
-```
-
-#### Unauthorized (401)
-```json
-{
-  "timestamp": 1705320000000,
-  "traceId": "abc123-def456",
-  "errorCode": "UNAUTHORIZED",
-  "message": "Access denied to task: {taskId}",
-  "details": []
-}
-```
+**Expected Result:** Task is created successfully (9,999 < 10,000)
 
 ---
 
-## Test Execution
+### TC-EDGE-002: Pagination - Last Page
 
-### Prerequisites
-1. Start the Spring Boot application
-2. Ensure the application is running on `http://localhost:8080`
-3. Import the Postman collection and environment
+**Scenario:** Request page beyond available data
 
-### Running Tests
-
-#### Using Postman
-1. Import `test/postman/collection.json`
-2. Import `test/postman/environment.json`
-3. Select the environment
-4. Run the collection
-
-#### Using Newman (CLI)
-```bash
-newman run test/postman/collection.json \n  -e test/postman/environment.json \n  --reporters cli,json \n  --reporter-json-export test-results.json
-```
-
-### Expected Results
-- All 14 test cases should pass
-- No errors or failures
-- Response times should be under 200ms for most requests
+**Expected Result:** Empty array is returned
 
 ---
 
-## Test Coverage
+### TC-EDGE-003: Update Task - Partial Update
 
-### Endpoints Covered
-- ✓ POST /api/v1/tasks
-- ✓ POST /api/v1/tasks/bulk
-- ✓ GET /api/v1/tasks/{taskId}
-- ✓ PUT /api/v1/tasks/{taskId}
-- ✓ DELETE /api/v1/tasks/{taskId}
-- ✓ GET /api/v1/users/{userId}/tasks
-- ✓ GET /api/v1/users/{userId}/tasks/count
+**Scenario:** Update only specific fields, leaving others unchanged
 
-### Scenarios Covered
-- ✓ Happy path (valid requests)
-- ✓ Validation errors (missing/invalid fields)
-- ✓ Not found errors (non-existent resources)
-- ✓ Edge cases (empty lists, default values)
-- ✓ Pagination
-- ✓ Bulk operations
+**Expected Result:** Only specified fields are updated, others remain unchanged
 
 ---
 
-## Notes
+## Performance Tests
 
-1. **Authentication**: Current implementation uses mock authentication (user123). In production, replace with JWT token validation.
+### TC-PERF-001: Create 10,000 Tasks
 
-2. **Performance**: Task creation should complete within 200ms threshold. Monitor performance metrics during testing.
+**Scenario:** Create maximum allowed tasks for a single user
 
-3. **Concurrency**: The system supports concurrent task creation. Consider adding load tests for concurrent scenarios.
-
-4. **Data Persistence**: Current implementation uses in-memory storage. Data is lost on application restart.
-
-5. **Task Limits**: Each user can create up to 10,000 tasks. Test cases should verify this limit is enforced.
+**Expected Result:** All tasks created successfully within performance threshold
 
 ---
 
-## Maintenance
+### TC-PERF-002: Bulk Create 100 Tasks
 
-This test case document should be updated when:
-- New endpoints are added
-- Existing endpoints are modified
-- New validation rules are introduced
-- Error handling changes
-- Business logic changes
+**Scenario:** Create 100 tasks in a single bulk request
+
+**Expected Result:** All tasks created successfully, average creation time < 200ms
 
 ---
 
-**Last Updated:** 2025-01-15  
-**Version:** 1.0.0  
-**Author:** QA Automation Agent
+## Summary
+
+**Total Test Cases:** 20
+- Health Check: 2
+- Task Management: 15
+- Edge Cases: 3
+- Performance: 2
+
+**Coverage:**
+- Positive scenarios: 10
+- Negative scenarios: 8
+- Edge cases: 3
+- Performance: 2
