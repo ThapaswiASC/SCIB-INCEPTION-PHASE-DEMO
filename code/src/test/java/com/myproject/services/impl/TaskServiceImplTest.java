@@ -1,9 +1,11 @@
 package com.myproject.services.impl;
 
 import com.myproject.exceptions.*;
+import com.myproject.models.datastores.TaskCounterDataStore;
 import com.myproject.models.datastores.TaskDataStore;
 import com.myproject.models.dtos.*;
 import com.myproject.models.entities.Task;
+import com.myproject.services.interfaces.PerformanceMonitoringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,10 +19,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,13 +32,19 @@ class TaskServiceImplTest {
     @Mock
     private TaskDataStore taskDataStore;
 
+    @Mock
+    private TaskCounterDataStore taskCounterDataStore;
+
+    @Mock
+    private PerformanceMonitoringService performanceMonitoringService;
+
     @InjectMocks
     private TaskServiceImpl taskService;
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(taskService, "taskUserLimit", 10000);
-        ReflectionTestUtils.setField(taskService, "performanceThreshold", 200L);
+        ReflectionTestUtils.setField(taskService, "maxTasksPerUser", 10000);
+        ReflectionTestUtils.setField(taskService, "performanceThresholdMs", 200L);
     }
 
     // ========== createTask Tests ==========
@@ -46,37 +55,37 @@ class TaskServiceImplTest {
         TaskCreateRequest request = new TaskCreateRequest(
             "Test Task",
             "Test Description",
-            1L,
-            Priority.HIGH,
+            null,
+            TaskPriority.HIGH,
             LocalDateTime.now().plusDays(1)
         );
 
         Task savedTask = new Task();
-        savedTask.setId(1L);
+        savedTask.setId(UUID.randomUUID());
         savedTask.setTitle("Test Task");
         savedTask.setDescription("Test Description");
-        savedTask.setUserId(1L);
-        savedTask.setPriority(Priority.HIGH);
+        savedTask.setUserId("user123");
+        savedTask.setPriority(TaskPriority.HIGH);
         savedTask.setStatus(TaskStatus.PENDING);
         savedTask.setCreatedAt(LocalDateTime.now());
         savedTask.setUpdatedAt(LocalDateTime.now());
 
-        when(taskDataStore.countByUserId(1L)).thenReturn(0L);
+        when(taskDataStore.countByUserId("user123")).thenReturn(0L);
         when(taskDataStore.save(any(Task.class))).thenReturn(savedTask);
 
         // Act
-        TaskResponse response = taskService.createTask(request);
+        TaskResponse response = taskService.createTask("user123", request);
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getId());
+        assertNotNull(response.getId());
         assertEquals("Test Task", response.getTitle());
         assertEquals("Test Description", response.getDescription());
-        assertEquals(1L, response.getUserId());
-        assertEquals(Priority.HIGH, response.getPriority());
+        assertEquals("user123", response.getUserId());
+        assertEquals(TaskPriority.HIGH, response.getPriority());
         assertEquals(TaskStatus.PENDING, response.getStatus());
 
-        verify(taskDataStore, times(1)).countByUserId(1L);
+        verify(taskDataStore, times(1)).countByUserId("user123");
         verify(taskDataStore, times(1)).save(any(Task.class));
     }
 
@@ -86,21 +95,21 @@ class TaskServiceImplTest {
         TaskCreateRequest request = new TaskCreateRequest(
             "Test Task",
             "Test Description",
-            1L,
-            Priority.HIGH,
+            null,
+            TaskPriority.HIGH,
             null
         );
 
-        when(taskDataStore.countByUserId(1L)).thenReturn(10000L);
+        when(taskDataStore.countByUserId("user123")).thenReturn(10000L);
 
         // Act & Assert
         TaskLimitExceededException exception = assertThrows(
             TaskLimitExceededException.class,
-            () -> taskService.createTask(request)
+            () -> taskService.createTask("user123", request)
         );
 
-        assertTrue(exception.getMessage().contains("User 1 has reached the maximum limit of 10000 tasks"));
-        verify(taskDataStore, times(1)).countByUserId(1L);
+        assertTrue(exception.getMessage().contains("maximum task limit"));
+        verify(taskDataStore, times(1)).countByUserId("user123");
         verify(taskDataStore, never()).save(any(Task.class));
     }
 
@@ -110,28 +119,28 @@ class TaskServiceImplTest {
         TaskCreateRequest request = new TaskCreateRequest(
             "Test Task",
             "Test Description",
-            1L,
-            Priority.HIGH,
+            null,
+            TaskPriority.HIGH,
             null
         );
 
         Task savedTask = new Task();
-        savedTask.setId(1L);
+        savedTask.setId(UUID.randomUUID());
         savedTask.setTitle("Test Task");
-        savedTask.setUserId(1L);
-        savedTask.setPriority(Priority.HIGH);
+        savedTask.setUserId("user123");
+        savedTask.setPriority(TaskPriority.HIGH);
         savedTask.setStatus(TaskStatus.PENDING);
 
-        when(taskDataStore.countByUserId(1L)).thenReturn(9999L);
+        when(taskDataStore.countByUserId("user123")).thenReturn(9999L);
         when(taskDataStore.save(any(Task.class))).thenReturn(savedTask);
 
         // Act
-        TaskResponse response = taskService.createTask(request);
+        TaskResponse response = taskService.createTask("user123", request);
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getId());
-        verify(taskDataStore, times(1)).countByUserId(1L);
+        assertNotNull(response.getId());
+        verify(taskDataStore, times(1)).countByUserId("user123");
         verify(taskDataStore, times(1)).save(any(Task.class));
     }
 
@@ -141,24 +150,24 @@ class TaskServiceImplTest {
     void getUserTasks_ValidRequest_ReturnsTaskList() {
         // Arrange
         Task task1 = new Task();
-        task1.setId(1L);
+        task1.setId(UUID.randomUUID());
         task1.setTitle("Task 1");
-        task1.setUserId(1L);
-        task1.setPriority(Priority.HIGH);
+        task1.setUserId("user123");
+        task1.setPriority(TaskPriority.HIGH);
         task1.setStatus(TaskStatus.PENDING);
 
         Task task2 = new Task();
-        task2.setId(2L);
+        task2.setId(UUID.randomUUID());
         task2.setTitle("Task 2");
-        task2.setUserId(1L);
-        task2.setPriority(Priority.MEDIUM);
+        task2.setUserId("user123");
+        task2.setPriority(TaskPriority.MEDIUM);
         task2.setStatus(TaskStatus.IN_PROGRESS);
 
         List<Task> tasks = Arrays.asList(task1, task2);
-        when(taskDataStore.findByUserId(1L, 0, 20)).thenReturn(tasks);
+        when(taskDataStore.findByUserId("user123", 0, 20, "createdAt,desc")).thenReturn(tasks);
 
         // Act
-        List<TaskResponse> responses = taskService.getUserTasks(1L, 0, 20);
+        List<TaskResponse> responses = taskService.getUserTasks("user123", 0, 20, "createdAt,desc");
 
         // Assert
         assertNotNull(responses);
@@ -166,22 +175,22 @@ class TaskServiceImplTest {
         assertEquals("Task 1", responses.get(0).getTitle());
         assertEquals("Task 2", responses.get(1).getTitle());
 
-        verify(taskDataStore, times(1)).findByUserId(1L, 0, 20);
+        verify(taskDataStore, times(1)).findByUserId("user123", 0, 20, "createdAt,desc");
     }
 
     @Test
     void getUserTasks_NoTasks_ReturnsEmptyList() {
         // Arrange
-        when(taskDataStore.findByUserId(1L, 0, 20)).thenReturn(Collections.emptyList());
+        when(taskDataStore.findByUserId("user123", 0, 20, "createdAt,desc")).thenReturn(Collections.emptyList());
 
         // Act
-        List<TaskResponse> responses = taskService.getUserTasks(1L, 0, 20);
+        List<TaskResponse> responses = taskService.getUserTasks("user123", 0, 20, "createdAt,desc");
 
         // Assert
         assertNotNull(responses);
         assertTrue(responses.isEmpty());
 
-        verify(taskDataStore, times(1)).findByUserId(1L, 0, 20);
+        verify(taskDataStore, times(1)).findByUserId("user123", 0, 20, "createdAt,desc");
     }
 
     // ========== getTaskCount Tests ==========
@@ -189,33 +198,33 @@ class TaskServiceImplTest {
     @Test
     void getTaskCount_ValidUserId_ReturnsCount() {
         // Arrange
-        when(taskDataStore.countByUserId(1L)).thenReturn(42L);
+        when(taskDataStore.countByUserId("user123")).thenReturn(42L);
 
         // Act
-        TaskCountResponse response = taskService.getTaskCount(1L);
+        TaskCountResponse response = taskService.getTaskCount("user123");
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getUserId());
+        assertEquals("user123", response.getUserId());
         assertEquals(42, response.getTaskCount());
 
-        verify(taskDataStore, times(1)).countByUserId(1L);
+        verify(taskDataStore, times(1)).countByUserId("user123");
     }
 
     @Test
     void getTaskCount_NoTasks_ReturnsZero() {
         // Arrange
-        when(taskDataStore.countByUserId(1L)).thenReturn(0L);
+        when(taskDataStore.countByUserId("user123")).thenReturn(0L);
 
         // Act
-        TaskCountResponse response = taskService.getTaskCount(1L);
+        TaskCountResponse response = taskService.getTaskCount("user123");
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getUserId());
+        assertEquals("user123", response.getUserId());
         assertEquals(0, response.getTaskCount());
 
-        verify(taskDataStore, times(1)).countByUserId(1L);
+        verify(taskDataStore, times(1)).countByUserId("user123");
     }
 
     // ========== getTaskById Tests ==========
@@ -223,39 +232,41 @@ class TaskServiceImplTest {
     @Test
     void getTaskById_ValidId_ReturnsTask() {
         // Arrange
+        UUID taskId = UUID.randomUUID();
         Task task = new Task();
-        task.setId(1L);
+        task.setId(taskId);
         task.setTitle("Test Task");
-        task.setUserId(1L);
-        task.setPriority(Priority.HIGH);
+        task.setUserId("user123");
+        task.setPriority(TaskPriority.HIGH);
         task.setStatus(TaskStatus.PENDING);
 
-        when(taskDataStore.findById(1L)).thenReturn(Optional.of(task));
+        when(taskDataStore.findById(taskId)).thenReturn(Optional.of(task));
 
         // Act
-        TaskResponse response = taskService.getTaskById(1L);
+        TaskResponse response = taskService.getTaskById(taskId, "user123");
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getId());
+        assertEquals(taskId, response.getId());
         assertEquals("Test Task", response.getTitle());
 
-        verify(taskDataStore, times(1)).findById(1L);
+        verify(taskDataStore, times(1)).findById(taskId);
     }
 
     @Test
     void getTaskById_TaskNotFound_ThrowsException() {
         // Arrange
-        when(taskDataStore.findById(999L)).thenReturn(Optional.empty());
+        UUID taskId = UUID.randomUUID();
+        when(taskDataStore.findById(taskId)).thenReturn(Optional.empty());
 
         // Act & Assert
         TaskNotFoundException exception = assertThrows(
             TaskNotFoundException.class,
-            () -> taskService.getTaskById(999L)
+            () -> taskService.getTaskById(taskId, "user123")
         );
 
-        assertTrue(exception.getMessage().contains("Task with ID 999 not found"));
-        verify(taskDataStore, times(1)).findById(999L);
+        assertTrue(exception.getMessage().contains("not found"));
+        verify(taskDataStore, times(1)).findById(taskId);
     }
 
     // ========== updateTask Tests ==========
@@ -263,96 +274,98 @@ class TaskServiceImplTest {
     @Test
     void updateTask_ValidRequest_ReturnsUpdatedTask() {
         // Arrange
+        UUID taskId = UUID.randomUUID();
         Task existingTask = new Task();
-        existingTask.setId(1L);
+        existingTask.setId(taskId);
         existingTask.setTitle("Old Title");
         existingTask.setDescription("Old Description");
-        existingTask.setUserId(1L);
-        existingTask.setPriority(Priority.LOW);
+        existingTask.setUserId("user123");
+        existingTask.setPriority(TaskPriority.LOW);
         existingTask.setStatus(TaskStatus.PENDING);
 
         TaskUpdateRequest request = new TaskUpdateRequest(
             "New Title",
             "New Description",
-            Priority.HIGH,
+            TaskPriority.HIGH,
             TaskStatus.COMPLETED,
             LocalDateTime.now().plusDays(1)
         );
 
         Task updatedTask = new Task();
-        updatedTask.setId(1L);
+        updatedTask.setId(taskId);
         updatedTask.setTitle("New Title");
         updatedTask.setDescription("New Description");
-        updatedTask.setUserId(1L);
-        updatedTask.setPriority(Priority.HIGH);
+        updatedTask.setUserId("user123");
+        updatedTask.setPriority(TaskPriority.HIGH);
         updatedTask.setStatus(TaskStatus.COMPLETED);
 
-        when(taskDataStore.findById(1L)).thenReturn(Optional.of(existingTask));
+        when(taskDataStore.findById(taskId)).thenReturn(Optional.of(existingTask));
         when(taskDataStore.save(any(Task.class))).thenReturn(updatedTask);
 
         // Act
-        TaskResponse response = taskService.updateTask(1L, request);
+        TaskResponse response = taskService.updateTask(taskId, "user123", request);
 
         // Assert
         assertNotNull(response);
-        assertEquals(1L, response.getId());
+        assertEquals(taskId, response.getId());
         assertEquals("New Title", response.getTitle());
         assertEquals("New Description", response.getDescription());
-        assertEquals(Priority.HIGH, response.getPriority());
+        assertEquals(TaskPriority.HIGH, response.getPriority());
         assertEquals(TaskStatus.COMPLETED, response.getStatus());
 
-        verify(taskDataStore, times(1)).findById(1L);
+        verify(taskDataStore, times(1)).findById(taskId);
         verify(taskDataStore, times(1)).save(any(Task.class));
     }
 
     @Test
     void updateTask_PartialUpdate_OnlyUpdatesProvidedFields() {
         // Arrange
+        UUID taskId = UUID.randomUUID();
         Task existingTask = new Task();
-        existingTask.setId(1L);
+        existingTask.setId(taskId);
         existingTask.setTitle("Old Title");
         existingTask.setDescription("Old Description");
-        existingTask.setUserId(1L);
-        existingTask.setPriority(Priority.LOW);
+        existingTask.setUserId("user123");
+        existingTask.setPriority(TaskPriority.LOW);
         existingTask.setStatus(TaskStatus.PENDING);
 
         TaskUpdateRequest request = new TaskUpdateRequest();
         request.setTitle("New Title");
-        // Only title is set, other fields are null
 
-        when(taskDataStore.findById(1L)).thenReturn(Optional.of(existingTask));
+        when(taskDataStore.findById(taskId)).thenReturn(Optional.of(existingTask));
         when(taskDataStore.save(any(Task.class))).thenReturn(existingTask);
 
         // Act
-        TaskResponse response = taskService.updateTask(1L, request);
+        TaskResponse response = taskService.updateTask(taskId, "user123", request);
 
         // Assert
         assertNotNull(response);
-        verify(taskDataStore, times(1)).findById(1L);
+        verify(taskDataStore, times(1)).findById(taskId);
         verify(taskDataStore, times(1)).save(any(Task.class));
     }
 
     @Test
     void updateTask_TaskNotFound_ThrowsException() {
         // Arrange
+        UUID taskId = UUID.randomUUID();
         TaskUpdateRequest request = new TaskUpdateRequest(
             "New Title",
             "New Description",
-            Priority.HIGH,
+            TaskPriority.HIGH,
             TaskStatus.COMPLETED,
             null
         );
 
-        when(taskDataStore.findById(999L)).thenReturn(Optional.empty());
+        when(taskDataStore.findById(taskId)).thenReturn(Optional.empty());
 
         // Act & Assert
         TaskNotFoundException exception = assertThrows(
             TaskNotFoundException.class,
-            () -> taskService.updateTask(999L, request)
+            () -> taskService.updateTask(taskId, "user123", request)
         );
 
-        assertTrue(exception.getMessage().contains("Task with ID 999 not found"));
-        verify(taskDataStore, times(1)).findById(999L);
+        assertTrue(exception.getMessage().contains("not found"));
+        verify(taskDataStore, times(1)).findById(taskId);
         verify(taskDataStore, never()).save(any(Task.class));
     }
 
@@ -361,31 +374,37 @@ class TaskServiceImplTest {
     @Test
     void deleteTask_ValidId_DeletesTask() {
         // Arrange
-        when(taskDataStore.existsById(1L)).thenReturn(true);
-        doNothing().when(taskDataStore).deleteById(1L);
+        UUID taskId = UUID.randomUUID();
+        Task task = new Task();
+        task.setId(taskId);
+        task.setUserId("user123");
+        
+        when(taskDataStore.findById(taskId)).thenReturn(Optional.of(task));
+        doNothing().when(taskDataStore).deleteById(taskId);
 
         // Act
-        taskService.deleteTask(1L);
+        taskService.deleteTask(taskId, "user123");
 
         // Assert
-        verify(taskDataStore, times(1)).existsById(1L);
-        verify(taskDataStore, times(1)).deleteById(1L);
+        verify(taskDataStore, times(1)).findById(taskId);
+        verify(taskDataStore, times(1)).deleteById(taskId);
     }
 
     @Test
     void deleteTask_TaskNotFound_ThrowsException() {
         // Arrange
-        when(taskDataStore.existsById(999L)).thenReturn(false);
+        UUID taskId = UUID.randomUUID();
+        when(taskDataStore.findById(taskId)).thenReturn(Optional.empty());
 
         // Act & Assert
         TaskNotFoundException exception = assertThrows(
             TaskNotFoundException.class,
-            () -> taskService.deleteTask(999L)
+            () -> taskService.deleteTask(taskId, "user123")
         );
 
-        assertTrue(exception.getMessage().contains("Task with ID 999 not found"));
-        verify(taskDataStore, times(1)).existsById(999L);
-        verify(taskDataStore, never()).deleteById(anyLong());
+        assertTrue(exception.getMessage().contains("not found"));
+        verify(taskDataStore, times(1)).findById(taskId);
+        verify(taskDataStore, never()).deleteById(any(UUID.class));
     }
 
     // ========== bulkCreateTasks Tests ==========
@@ -394,34 +413,34 @@ class TaskServiceImplTest {
     void bulkCreateTasks_AllSuccessful_ReturnsSuccessResponse() {
         // Arrange
         TaskCreateRequest request1 = new TaskCreateRequest(
-            "Task 1", "Description 1", 1L, Priority.HIGH, null
+            "Task 1", "Description 1", null, TaskPriority.HIGH, null
         );
         TaskCreateRequest request2 = new TaskCreateRequest(
-            "Task 2", "Description 2", 1L, Priority.MEDIUM, null
+            "Task 2", "Description 2", null, TaskPriority.MEDIUM, null
         );
         List<TaskCreateRequest> requests = Arrays.asList(request1, request2);
 
         Task savedTask1 = new Task();
-        savedTask1.setId(1L);
+        savedTask1.setId(UUID.randomUUID());
         savedTask1.setTitle("Task 1");
-        savedTask1.setUserId(1L);
-        savedTask1.setPriority(Priority.HIGH);
+        savedTask1.setUserId("user123");
+        savedTask1.setPriority(TaskPriority.HIGH);
         savedTask1.setStatus(TaskStatus.PENDING);
 
         Task savedTask2 = new Task();
-        savedTask2.setId(2L);
+        savedTask2.setId(UUID.randomUUID());
         savedTask2.setTitle("Task 2");
-        savedTask2.setUserId(1L);
-        savedTask2.setPriority(Priority.MEDIUM);
+        savedTask2.setUserId("user123");
+        savedTask2.setPriority(TaskPriority.MEDIUM);
         savedTask2.setStatus(TaskStatus.PENDING);
 
-        when(taskDataStore.countByUserId(1L)).thenReturn(0L);
+        when(taskDataStore.countByUserId("user123")).thenReturn(0L);
         when(taskDataStore.save(any(Task.class)))
             .thenReturn(savedTask1)
             .thenReturn(savedTask2);
 
         // Act
-        BulkTaskResponse response = taskService.bulkCreateTasks(requests);
+        BulkTaskResponse response = taskService.bulkCreateTasks("user123", requests);
 
         // Assert
         assertNotNull(response);
@@ -430,7 +449,7 @@ class TaskServiceImplTest {
         assertEquals(2, response.getTasks().size());
         assertTrue(response.getErrors().isEmpty());
 
-        verify(taskDataStore, times(2)).countByUserId(1L);
+        verify(taskDataStore, times(2)).countByUserId("user123");
         verify(taskDataStore, times(2)).save(any(Task.class));
     }
 
@@ -438,26 +457,25 @@ class TaskServiceImplTest {
     void bulkCreateTasks_SomeFailures_ReturnsPartialSuccess() {
         // Arrange
         TaskCreateRequest request1 = new TaskCreateRequest(
-            "Task 1", "Description 1", 1L, Priority.HIGH, null
+            "Task 1", "Description 1", null, TaskPriority.HIGH, null
         );
         TaskCreateRequest request2 = new TaskCreateRequest(
-            "Task 2", "Description 2", 2L, Priority.MEDIUM, null
+            "Task 2", "Description 2", null, TaskPriority.MEDIUM, null
         );
         List<TaskCreateRequest> requests = Arrays.asList(request1, request2);
 
         Task savedTask1 = new Task();
-        savedTask1.setId(1L);
+        savedTask1.setId(UUID.randomUUID());
         savedTask1.setTitle("Task 1");
-        savedTask1.setUserId(1L);
-        savedTask1.setPriority(Priority.HIGH);
+        savedTask1.setUserId("user123");
+        savedTask1.setPriority(TaskPriority.HIGH);
         savedTask1.setStatus(TaskStatus.PENDING);
 
-        when(taskDataStore.countByUserId(1L)).thenReturn(0L);
-        when(taskDataStore.countByUserId(2L)).thenReturn(10000L);
+        when(taskDataStore.countByUserId("user123")).thenReturn(0L).thenReturn(10000L);
         when(taskDataStore.save(any(Task.class))).thenReturn(savedTask1);
 
         // Act
-        BulkTaskResponse response = taskService.bulkCreateTasks(requests);
+        BulkTaskResponse response = taskService.bulkCreateTasks("user123", requests);
 
         // Assert
         assertNotNull(response);
@@ -466,8 +484,7 @@ class TaskServiceImplTest {
         assertEquals(1, response.getTasks().size());
         assertEquals(1, response.getErrors().size());
 
-        verify(taskDataStore, times(1)).countByUserId(1L);
-        verify(taskDataStore, times(1)).countByUserId(2L);
+        verify(taskDataStore, times(2)).countByUserId("user123");
         verify(taskDataStore, times(1)).save(any(Task.class));
     }
 
@@ -477,7 +494,7 @@ class TaskServiceImplTest {
         List<TaskCreateRequest> requests = Collections.emptyList();
 
         // Act
-        BulkTaskResponse response = taskService.bulkCreateTasks(requests);
+        BulkTaskResponse response = taskService.bulkCreateTasks("user123", requests);
 
         // Assert
         assertNotNull(response);
@@ -486,7 +503,7 @@ class TaskServiceImplTest {
         assertTrue(response.getTasks().isEmpty());
         assertTrue(response.getErrors().isEmpty());
 
-        verify(taskDataStore, never()).countByUserId(anyLong());
+        verify(taskDataStore, never()).countByUserId(anyString());
         verify(taskDataStore, never()).save(any(Task.class));
     }
 }
