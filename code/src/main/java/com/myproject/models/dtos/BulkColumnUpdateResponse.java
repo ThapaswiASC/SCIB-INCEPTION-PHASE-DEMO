@@ -5,13 +5,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaskDetailsResponse {
-    private String taskId;
-    private String title;
-    private String status;
-    private String columnId;
+public class BulkColumnUpdateResponse {
+    private Boolean success;
+    private List<String> updatedColumns;
 }
