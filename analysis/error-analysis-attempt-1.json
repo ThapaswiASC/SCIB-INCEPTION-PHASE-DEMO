@@ -1,59 +1,107 @@
 {
-  "executive_summary": "Maven build failed with 100 compilation errors across test classes. Root cause: DTO constructors changed from parameterized to no-arg constructors, service method signatures changed to require additional parameters (userId as String, taskId as UUID), and ErrorResponse missing getCode() method. All test classes need updates to use builder pattern or setters for DTOs and pass correct parameters to service methods.",
+  "executive_summary": "Maven build failed with 100 compilation errors during test compilation phase. The root cause is a mismatch between DTO constructors and service method signatures versus their usage in test classes. DTOs are being instantiated with arguments but are defined with no-argument constructors, and service methods are being called with incorrect parameter counts and types (long vs String/UUID).",
   "attempt_number": 1,
   "repo": "SCIB-INCEPTION-PHASE-DEMO",
   "branch": "feature/DEMO-757",
   "log_file": "logs/build_failure_attempt-1.log",
-  "errors_found": 6,
+  "errors_found": 12,
   "errors": [
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 45,
-      "message": "DTO constructors require no arguments but tests pass parameters (TaskCreateRequest, TaskResponse, TaskUpdateRequest, TaskCountResponse, BulkTaskResponse)",
-      "root_cause": "DTOs were refactored from parameterized constructors to no-argument constructors. Tests still use old constructor signatures with multiple parameters.",
-      "fix_recommendation": "Update all DTO instantiations in TaskControllerTest to use no-arg constructor followed by setter methods, or implement builder pattern. Example: new TaskCreateRequest().setTitle(...).setDescription(...) instead of new TaskCreateRequest(title, description, ...)"
+      "message": "TaskCreateRequest constructor requires no arguments but called with 5 arguments",
+      "root_cause": "TaskCreateRequest DTO is defined with a no-argument constructor but test code attempts to instantiate it with (String, String, long, Priority, LocalDateTime). This pattern repeats across multiple test methods.",
+      "fix_recommendation": "Add an all-args constructor to TaskCreateRequest DTO or use builder pattern. Alternatively, update test code to use no-arg constructor followed by setter methods."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 53,
+      "message": "TaskResponse constructor requires no arguments but called with 9 arguments",
+      "root_cause": "TaskResponse DTO is defined with a no-argument constructor but test code attempts to instantiate it with 9 parameters including id, title, description, userId, priority, status, and timestamps.",
+      "fix_recommendation": "Add an all-args constructor to TaskResponse DTO or use builder pattern. Alternatively, update test code to use no-arg constructor followed by setter methods."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 65,
-      "message": "Service method signatures changed: createTask, getUserTasks, getTaskById, updateTask, deleteTask, bulkCreateTasks now require userId parameter",
-      "root_cause": "TaskService interface methods were refactored to require userId (String) as first parameter for authorization. Tests call methods without this parameter.",
-      "fix_recommendation": "Add userId parameter to all TaskService method calls. Example: taskService.createTask("user123", request) instead of taskService.createTask(request). Extract userId from test context or use mock user ID."
+      "message": "TaskService.createTask() requires 2 parameters (String, TaskCreateRequest) but called with 1",
+      "root_cause": "The TaskService interface defines createTask(String userId, TaskCreateRequest request) but test code calls it with only TaskCreateRequest. This indicates the service signature was changed to require userId but tests were not updated.",
+      "fix_recommendation": "Update all TaskService.createTask() calls in tests to include the userId parameter as the first argument. Extract userId from test context or use a test constant."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 202,
-      "message": "Type mismatch: long cannot be converted to String for userId parameter",
-      "root_cause": "userId changed from long to String type in service method signatures. Tests still pass long values.",
-      "fix_recommendation": "Convert all userId references from long to String. Replace numeric IDs like 1L with String IDs like "user-1" or UUID strings throughout test class."
+      "message": "TaskService.getUserTasks() requires 4 parameters but called with 3; long cannot be converted to String",
+      "root_cause": "The getUserTasks method signature expects (String userId, int page, int size, String sortBy) but tests call it with (long userId, int page, int size). The userId type changed from long to String.",
+      "fix_recommendation": "Update all getUserTasks() calls to pass userId as String instead of long, and add the missing sortBy parameter. Convert long userId to String using String.valueOf() or use UUID.toString() if applicable."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 269,
+      "message": "TaskCountResponse constructor requires no arguments but called with 2 arguments",
+      "root_cause": "TaskCountResponse DTO is defined with a no-argument constructor but test code attempts to instantiate it with (long userId, int count).",
+      "fix_recommendation": "Add an all-args constructor to TaskCountResponse DTO or use builder pattern. Alternatively, update test code to use no-arg constructor followed by setter methods."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
       "line": 290,
-      "message": "Type mismatch: taskId changed from long to UUID in getTaskById, updateTask, deleteTask methods",
-      "root_cause": "Task ID type changed from long to UUID in service interface. Tests still use long primitive values.",
-      "fix_recommendation": "Replace all long taskId values with UUID. Use UUID.randomUUID() for test data or UUID.fromString() to convert string literals. Update mock responses to return UUID instead of long."
+      "message": "TaskService.getTaskById() requires 2 parameters (UUID, String) but called with 1 (long)",
+      "root_cause": "The getTaskById method signature changed to require (UUID taskId, String userId) but tests call it with only a long taskId. The task ID type changed from long to UUID and userId parameter was added.",
+      "fix_recommendation": "Update all getTaskById() calls to convert long taskId to UUID and add userId parameter. Use UUID.fromString() or generate test UUIDs, and extract userId from test context."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 321,
+      "message": "TaskUpdateRequest constructor requires no arguments but called with 5 arguments",
+      "root_cause": "TaskUpdateRequest DTO is defined with a no-argument constructor but test code attempts to instantiate it with (String, String, Priority, TaskStatus, LocalDateTime).",
+      "fix_recommendation": "Add an all-args constructor to TaskUpdateRequest DTO or use builder pattern. Alternatively, update test code to use no-arg constructor followed by setter methods."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 334,
+      "message": "TaskService.updateTask() requires 3 parameters (UUID, String, TaskUpdateRequest) but called with 2; long cannot be converted to UUID",
+      "root_cause": "The updateTask method signature changed to require (UUID taskId, String userId, TaskUpdateRequest request) but tests call it with (long taskId, TaskUpdateRequest). The task ID type changed from long to UUID and userId parameter was added.",
+      "fix_recommendation": "Update all updateTask() calls to convert long taskId to UUID and add userId parameter. Use UUID.fromString() or generate test UUIDs, and extract userId from test context."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 398,
+      "message": "TaskService.deleteTask() requires 2 parameters (UUID, String) but called with 1 (long)",
+      "root_cause": "The deleteTask method signature changed to require (UUID taskId, String userId) but tests call it with only a long taskId. The task ID type changed from long to UUID and userId parameter was added.",
+      "fix_recommendation": "Update all deleteTask() calls to convert long taskId to UUID and add userId parameter. Use UUID.fromString() or generate test UUIDs, and extract userId from test context."
+    },
+    {
+      "type": "COMPILATION_ERROR",
+      "file": "code/src/test/java/com/myproject/controllers/TaskControllerTest.java",
+      "line": 443,
+      "message": "BulkTaskResponse constructor requires no arguments but called with 4 arguments",
+      "root_cause": "BulkTaskResponse DTO is defined with a no-argument constructor but test code attempts to instantiate it with (int successCount, int failureCount, List<TaskResponse>, List<Object>).",
+      "fix_recommendation": "Add an all-args constructor to BulkTaskResponse DTO or use builder pattern. Alternatively, update test code to use no-arg constructor followed by setter methods."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/exceptions/GlobalExceptionHandlerTest.java",
       "line": 44,
       "message": "ErrorResponse.getCode() method does not exist",
-      "root_cause": "ErrorResponse DTO no longer has getCode() method. Tests attempt to verify error codes using this non-existent getter.",
-      "fix_recommendation": "Remove all assertions calling response.getCode(). If error codes are still needed, check if ErrorResponse has alternative field like errorCode or status, or remove code verification from tests."
+      "root_cause": "Test code attempts to call getCode() on ErrorResponse but this method is not defined in the ErrorResponse class. The method may have been removed or renamed.",
+      "fix_recommendation": "Add getCode() method to ErrorResponse class or update test assertions to use the correct method name (e.g., getErrorCode(), getStatus(), or similar)."
     },
     {
       "type": "COMPILATION_ERROR",
       "file": "code/src/test/java/com/myproject/models/datastores/InMemoryTaskDataStoreTest.java",
-      "line": 33,
-      "message": "Enum type mismatch: Priority cannot be converted to TaskPriority; userId type mismatch (long vs String); taskId arithmetic operations invalid for UUID",
-      "root_cause": "Multiple type changes in data store: Priority enum renamed to TaskPriority, userId changed from long to String, taskId changed from long to UUID. Tests use old types.",
-      "fix_recommendation": "Update InMemoryTaskDataStoreTest: (1) Replace Priority enum with TaskPriority, (2) Change all userId from long to String type, (3) Replace taskId long with UUID and remove arithmetic operations like taskId+1, use UUID.randomUUID() instead."
+      "line": 32,
+      "message": "Type mismatch: long cannot be converted to String; Priority cannot be converted to TaskPriority",
+      "root_cause": "InMemoryTaskDataStore methods expect String userId and TaskPriority enum but tests pass long userId and Priority enum. This indicates a refactoring where userId type changed from long to String and Priority enum was renamed to TaskPriority.",
+      "fix_recommendation": "Update InMemoryTaskDataStoreTest to convert long userId to String using String.valueOf() and use TaskPriority enum instead of Priority enum throughout the test class."
     }
   ],
-  "summary": "6 grouped compilation error categories found affecting 100 individual error instances"
+  "summary": "12 error groups found (100 individual compilation errors)"
 }
