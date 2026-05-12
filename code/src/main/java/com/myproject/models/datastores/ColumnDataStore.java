@@ -7,4 +7,5 @@ public interface ColumnDataStore {
     Column save(Column column);
     Optional<Column> findById(String id);
     void incrementTaskCount(String columnId, int increment);
+    Long countByColumnId(String columnId);
 }
