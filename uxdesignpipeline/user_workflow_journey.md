@@ -1,481 +1,495 @@
-# SCIB SSO Integration - User Workflow Journey
+# User Workflow Journey Documentation
 
 ## Experience Overview
 
-The SCIB Task Management System authentication experience enables users to securely access the application using their existing SCIB credentials through Single Sign-On (SSO). This experience encompasses user authentication, session management, role synchronization, and error handling scenarios.
+This document outlines comprehensive user workflow scenarios for a digital healthcare platform, focusing on patient appointment management and healthcare service discovery. The experience encompasses multiple touchpoints from initial awareness through ongoing healthcare management.
 
-## Scenarios
+## Core User Experiences Identified
 
-### Scenario 1: First-Time User Authentication
+1. **Healthcare Discovery & Awareness**
+2. **Appointment Scheduling & Management** 
+3. **Healthcare Service Utilization**
+4. **Account & Profile Management**
+5. **Communication & Support**
 
-**Context & Task**: Sarah, a new SCIB employee, has been granted access to the Task Management System. She needs to authenticate using her SCIB credentials for the first time to access her assigned tasks and begin her work.
+---
 
-#### Workflow Variation 1A: Standard Desktop Authentication Flow
+## SCENARIO 1: First-Time Patient Booking an Appointment
 
-**User Goal**: Successfully authenticate using SCIB SSO credentials to access the task management system securely and efficiently.
+**Context & User Scenario:**
+Sarah, a 28-year-old working professional, has been experiencing persistent headaches for the past week. She's new to the city and doesn't have a regular doctor. She needs to find a qualified healthcare provider and book an appointment quickly while managing her busy work schedule.
 
-**Business Goal**: Onboard new users seamlessly while maintaining security standards and reducing authentication friction through SSO integration.
+**User Goal:** Find a trusted healthcare provider and successfully book an appointment that fits her schedule with minimal friction.
 
-**Screens:**
+**Business Goal:** Convert a new user into a registered patient while capturing essential onboarding data and demonstrating platform value.
 
-1.0 Login Landing Page [type: primary]
-- HOW IT IS REACHED: Direct navigation via application URL or bookmark
+### Workflow Variation A: Symptom-Guided Discovery
+
+**1.0 Homepage [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Present authentication options and guide users to SCIB SSO login
+- Page Goal: Build credibility and guide users toward appropriate healthcare solutions
 - Screen Description:
-  1. Display application branding and welcome message
-  2. Present "Login with SCIB SSO" primary CTA button
-  3. Show security badges and compliance information
-  4. Provide help links for authentication issues
-  5. Display system status indicator
+  1. Patient can access symptom checker tool
+  2. Patient can search for doctors by specialty or condition
+  3. Patient can view platform benefits and testimonials
+  4. Patient can access emergency care information
+  5. Patient can view health packages and preventive care options
 - Design Problems:
-  - HMW make it immediately clear that SCIB SSO is the primary authentication method?
-  - HMW build trust and confidence in the security of the authentication process?
-  - HMW provide clear guidance for users unfamiliar with SSO?
+  - HMW help patients quickly identify the right type of healthcare provider?
+  - HMW build trust with first-time users who are unfamiliar with the platform?
+  - HMW reduce decision paralysis when multiple healthcare options are available?
 - Design Opportunities:
-  - What if we could pre-populate user context based on network detection?
-  - What if we provided a quick tutorial on SSO benefits for first-time users?
-  - What if we could show personalized welcome messages based on user department?
+  - What if we could provide AI-powered symptom assessment to guide specialty selection?
+  - What if we showed real-time availability to create urgency and convenience?
+  - What if we displayed patient reviews and success stories prominently?
 
-2.0 SCIB SSO Authorization Page [type: primary]
-- HOW IT IS REACHED: Redirect from Login Landing Page after clicking "Login with SCIB SSO"
+**Pu.1 Symptom Assessment Modal [type: modal]**
+- HOW IT IS REACHED: Click "Check Symptoms" CTA button on homepage
+- NAVBAR PRESENCE: No
+- Page Goal: Gather symptom information to recommend appropriate specialists
+- Screen Description:
+  1. Progressive symptom questionnaire with smart branching
+  2. Severity assessment with visual indicators
+  3. Duration and frequency tracking
+  4. Recommendation engine for specialist types
+- Design Problems:
+  - HMW make medical questionnaires feel approachable and non-intimidating?
+  - HMW ensure accuracy while keeping the assessment brief?
+  - HMW handle edge cases where symptoms could indicate multiple specialties?
+- Design Opportunities:
+  - What if we used conversational UI to make the assessment feel more natural?
+  - What if we provided educational content about symptoms during the assessment?
+  - What if we could integrate with wearable device data for more accurate assessment?
+
+**2.0 Doctor Search Results [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item or completion of symptom assessment
 - NAVBAR PRESENCE: Yes
-- Page Goal: Facilitate secure credential entry and authorization consent
+- Page Goal: Help users compare and select the most suitable healthcare provider
 - Screen Description:
-  1. Display SCIB branding and secure connection indicators
-  2. Present username and password input fields
-  3. Show "Remember me" option for trusted devices
-  4. Display multi-factor authentication prompts if required
-  5. Present authorization consent for task management access
-  6. Show scope permissions (profile, email, tasks)
+  1. Filtered list of doctors based on specialty, location, and availability
+  2. Doctor profiles with ratings, experience, and patient reviews
+  3. Real-time availability calendar preview
+  4. Insurance compatibility indicators
+  5. Telemedicine vs in-person options
 - Design Problems:
-  - HMW ensure users understand they're on the official SCIB authentication page?
-  - HMW clearly communicate what permissions are being requested?
-  - HMW handle MFA requirements without causing confusion?
+  - HMW help patients make informed decisions with limited medical knowledge?
+  - HMW display complex scheduling information clearly?
+  - HMW handle cases where no doctors match the exact criteria?
 - Design Opportunities:
-  - What if we could provide contextual help during the authentication process?
-  - What if we showed the user's last successful login information for security?
-  - What if we could streamline MFA with biometric options?
+  - What if we could show estimated wait times for each doctor?
+  - What if we provided video introductions from healthcare providers?
+  - What if we could match patients based on communication style preferences?
 
-3.0 Task Dashboard [type: primary]
-- HOW IT IS REACHED: Automatic redirect after successful SSO authentication and token exchange
+**2.0-D Doctor Profile Detail [type: detail]**
+- HOW IT IS REACHED: Click on doctor card from search results
+- NAVBAR PRESENCE: No
+- Page Goal: Provide comprehensive information to support booking decision
+- Screen Description:
+  1. Detailed doctor biography and credentials
+  2. Patient reviews and ratings breakdown
+  3. Available appointment slots with pricing
+  4. Office location and amenities information
+  5. Accepted insurance plans
+- Design Problems:
+  - HMW present extensive information without overwhelming the user?
+  - HMW help patients understand what to expect from their appointment?
+  - HMW address concerns about doctor credibility and qualifications?
+- Design Opportunities:
+  - What if we showed the doctor's approach to patient care?
+  - What if we provided virtual office tours?
+  - What if we could show similar patient success stories?
+
+**Pu.2 Appointment Booking Modal [type: modal]**
+- HOW IT IS REACHED: Click "Book Appointment" CTA button on doctor profile
+- NAVBAR PRESENCE: No
+- Page Goal: Capture appointment details and patient information efficiently
+- Screen Description:
+  1. Calendar interface with available time slots
+  2. Appointment type selection (consultation, follow-up, etc.)
+  3. Patient information form with smart defaults
+  4. Insurance verification and payment options
+  5. Appointment confirmation and next steps
+- Design Problems:
+  - HMW streamline the booking process for new users?
+  - HMW handle insurance verification without causing delays?
+  - HMW ensure all necessary information is collected without form fatigue?
+- Design Opportunities:
+  - What if we could pre-populate forms using previous healthcare records?
+  - What if we provided estimated appointment duration and preparation instructions?
+  - What if we could offer flexible payment plans for uninsured patients?
+
+### Workflow Variation B: Direct Doctor Search
+
+**1.0 Homepage [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Present user's personalized task overview and enable immediate productivity
-- Screen Description:
-  1. Display personalized welcome message with user name and role
-  2. Show task summary cards (assigned, in progress, completed)
-  3. Present recent activity feed
-  4. Display role-based navigation menu
-  5. Show user profile and logout options
-  6. Present quick action buttons for common tasks
-- Design Problems:
-  - HMW confirm successful authentication without being intrusive?
-  - HMW present role-appropriate content immediately upon login?
-  - HMW ensure users understand their permissions and capabilities?
-- Design Opportunities:
-  - What if we could show a brief onboarding tour for first-time users?
-  - What if we provided smart task recommendations based on role and workload?
-  - What if we could display team collaboration opportunities?
+- Page Goal: Provide immediate access to doctor search for users who know what they need
+- Screen Description: Same as Variation A
+- Design Problems: Same as Variation A
+- Design Opportunities: Same as Variation A
 
-#### Workflow Variation 1B: Mobile-First Authentication Flow
-
-**User Goal**: Authenticate securely on mobile device while maintaining ease of use and security standards.
-
-**Business Goal**: Ensure consistent authentication experience across all devices while optimizing for mobile usage patterns.
-
-**Screens:**
-
-1.1 Mobile Login Interface [type: primary]
-- HOW IT IS REACHED: Direct navigation via mobile browser or app
+**2.0 Doctor Search Results [type: primary]**
+- HOW IT IS REACHED: Direct search from homepage search bar
 - NAVBAR PRESENCE: Yes
-- Page Goal: Provide mobile-optimized authentication entry point
-- Screen Description:
-  1. Display condensed application branding
-  2. Present large, touch-friendly "Login with SCIB SSO" button
-  3. Show mobile-specific security indicators
-  4. Provide swipe gestures for help information
-  5. Display offline capability indicators
-- Design Problems:
-  - HMW optimize touch interactions for various screen sizes?
-  - HMW maintain security visibility on smaller screens?
-  - HMW handle network connectivity issues gracefully?
-- Design Opportunities:
-  - What if we could use device biometrics for additional security?
-  - What if we provided voice-guided authentication for accessibility?
-  - What if we could cache authentication state for offline scenarios?
+- Page Goal: Same as Variation A
+- Screen Description: Same as Variation A with enhanced filtering options
+- Design Problems: Same as Variation A plus:
+  - HMW help users refine broad search queries?
+  - HMW handle misspelled medical terms or conditions?
+- Design Opportunities: Same as Variation A plus:
+  - What if we provided search suggestions based on popular conditions?
+  - What if we could learn from user search patterns to improve results?
 
-**Navigation Structure:** 1.0 Login Landing Page | 2.0 SCIB SSO Authorization Page | 3.0 Task Dashboard
+**Navigation Structure:** 1.0 Homepage | 2.0 Doctor Search | 3.0 My Appointments | 4.0 Health Records | 5.0 Settings
 
 **User Journey Flow:**
-1.0 Login Landing Page → [click "Login with SCIB SSO"] → 2.0 SCIB SSO Authorization Page → [successful authentication] → 3.0 Task Dashboard
+- Variation A: 1.0 Homepage → [click Check Symptoms] → Pu.1 Symptom Assessment → 2.0 Search Results → [click doctor card] → 2.0-D Doctor Profile → [click Book] → Pu.2 Booking Modal
+- Variation B: 1.0 Homepage → [search doctors] → 2.0 Search Results → [click doctor card] → 2.0-D Doctor Profile → [click Book] → Pu.2 Booking Modal
 
-### Scenario 2: Returning User Session Management
+---
 
-**Context & Task**: Mike, an experienced SCIB employee, returns to the Task Management System after his session expired. He needs to re-authenticate quickly without losing his work context and continue with his tasks efficiently.
+## SCENARIO 2: Existing Patient Managing Upcoming Appointments
 
-#### Workflow Variation 2A: Token Refresh Flow
+**Context & User Scenario:**
+Mike, a 45-year-old patient with diabetes, has regular check-ups scheduled. He needs to reschedule his upcoming appointment due to a work conflict and wants to ensure continuity of care while managing his medication refill timing.
 
-**User Goal**: Seamlessly continue working without interruption when session expires, maintaining work context and productivity.
+**User Goal:** Efficiently reschedule appointments while maintaining treatment continuity and medication management.
 
-**Business Goal**: Minimize user friction during session management while maintaining security compliance and audit requirements.
+**Business Goal:** Retain existing patients through seamless appointment management while reducing administrative overhead.
 
-**Screens:**
+### Workflow Variation A: Dashboard-Centric Management
 
-4.0 Session Expiry Notification [type: modal]
-- HOW IT IS REACHED: Automatic trigger when access token expires during active session
-- NAVBAR PRESENCE: No
-- Page Goal: Inform user of session status and provide seamless renewal options
-- Screen Description:
-  1. Display session expiry countdown timer
-  2. Present "Continue Session" primary action
-  3. Show "Logout" secondary action
-  4. Display work-in-progress preservation notice
-  5. Present security reminder about automatic logout
-- Design Problems:
-  - HMW notify users of session expiry without disrupting their workflow?
-  - HMW provide clear options for session management?
-  - HMW preserve user work during authentication renewal?
-- Design Opportunities:
-  - What if we could predict session expiry and proactively refresh tokens?
-  - What if we provided smart work-saving before session expiry?
-  - What if we could show productivity metrics during session renewal?
-
-#### Workflow Variation 2B: Automatic Background Refresh
-
-**User Goal**: Experience uninterrupted workflow with transparent session management.
-
-**Business Goal**: Maximize user productivity while maintaining security standards through seamless token management.
-
-**Screens:**
-
-5.0 Background Refresh Indicator [type: state]
-- HOW IT IS REACHED: Automatic background process during active user session
-- NAVBAR PRESENCE: No
-- Page Goal: Provide subtle feedback about session renewal without disrupting workflow
-- Screen Description:
-  1. Display minimal loading indicator in header
-  2. Show brief "Securing session" message
-  3. Present success confirmation
-  4. Maintain all current page state and user inputs
-- Design Problems:
-  - HMW provide transparency about security processes without causing anxiety?
-  - HMW ensure users feel secure about automatic processes?
-- Design Opportunities:
-  - What if we could gamify security compliance with positive reinforcement?
-  - What if we provided security insights to help users understand protection levels?
-
-**Navigation Structure:** 3.0 Task Dashboard
-
-**User Journey Flow:**
-3.0 Task Dashboard → [token expiry detected] → 4.0 Session Expiry Notification [type: modal] → [click "Continue Session"] → [background refresh] → 3.0 Task Dashboard (maintained state)
-
-### Scenario 3: Role-Based Access Management
-
-**Context & Task**: Jennifer, a SCIB Task Administrator, logs into the system and needs to access administrative functions that are specific to her elevated role permissions while also performing regular task management activities.
-
-#### Workflow Variation 3A: Admin Role Discovery Flow
-
-**User Goal**: Quickly identify and access role-specific administrative capabilities while understanding permission boundaries.
-
-**Business Goal**: Ensure proper role-based access control while enabling administrators to efficiently manage system resources and user permissions.
-
-**Screens:**
-
-6.0 Admin Dashboard [type: primary]
-- HOW IT IS REACHED: Automatic redirect after authentication based on SCIB_TASK_ADMIN role
+**3.0 My Appointments Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Present administrative overview and enable efficient system management
+- Page Goal: Provide comprehensive view of all appointment-related activities
 - Screen Description:
-  1. Display administrative role confirmation badge
-  2. Show system health and user activity metrics
-  3. Present admin-specific navigation menu
-  4. Display user management quick actions
-  5. Show audit log summary
-  6. Present system configuration shortcuts
+  1. Upcoming appointments with quick action buttons
+  2. Past appointment history with notes and outcomes
+  3. Prescription refill reminders linked to appointments
+  4. Health metrics tracking related to appointments
+  5. Care team communication hub
 - Design Problems:
-  - HMW clearly communicate elevated permissions and responsibilities?
-  - HMW organize administrative functions for efficient access?
-  - HMW provide appropriate oversight tools for system management?
+  - HMW help patients understand the relationship between appointments and ongoing care?
+  - HMW make rescheduling feel effortless while considering care continuity?
+  - HMW handle complex scheduling constraints for chronic condition management?
 - Design Opportunities:
-  - What if we could provide predictive insights about system usage patterns?
-  - What if we offered guided workflows for complex administrative tasks?
-  - What if we could show real-time collaboration between admin users?
+  - What if we could automatically suggest optimal rescheduling based on treatment plans?
+  - What if we provided care gap analysis when appointments are delayed?
+  - What if we could coordinate multiple specialist appointments automatically?
 
-6.0-D User Management Detail [type: detail]
-- HOW IT IS REACHED: Click on user management card from Admin Dashboard
+**3.0-D Appointment Detail [type: detail]**
+- HOW IT IS REACHED: Click on specific appointment card from dashboard
 - NAVBAR PRESENCE: No
-- Page Goal: Enable detailed user account management and role assignment
+- Page Goal: Provide detailed appointment information and management options
 - Screen Description:
-  1. Display comprehensive user list with role indicators
-  2. Show user activity and last login information
-  3. Present role assignment and modification controls
-  4. Display user permission audit trail
-  5. Show bulk user management actions
+  1. Appointment details with preparation instructions
+  2. Doctor information and previous visit notes
+  3. Related prescriptions and lab orders
+  4. Rescheduling options with care continuity warnings
+  5. Pre-visit questionnaire if applicable
 - Design Problems:
-  - HMW provide comprehensive user oversight without overwhelming the interface?
-  - HMW ensure accurate role assignments and prevent permission errors?
+  - HMW ensure patients are properly prepared for their appointments?
+  - HMW communicate the impact of rescheduling on treatment plans?
+  - HMW handle urgent rescheduling needs outside business hours?
 - Design Opportunities:
-  - What if we could automate role suggestions based on user behavior patterns?
-  - What if we provided visual role hierarchy mapping?
+  - What if we could provide personalized preparation checklists?
+  - What if we showed the optimal rescheduling window for treatment effectiveness?
+  - What if we could automatically coordinate with pharmacy for prescription timing?
 
-#### Workflow Variation 3B: Standard User Role Flow
+**Pu.3 Reschedule Appointment Modal [type: modal]**
+- HOW IT IS REACHED: Click "Reschedule" CTA button on appointment detail
+- NAVBAR PRESENCE: No
+- Page Goal: Enable efficient rescheduling while maintaining care quality
+- Screen Description:
+  1. Available time slots with care continuity indicators
+  2. Impact assessment on treatment plan
+  3. Automatic prescription refill adjustment options
+  4. Reason for rescheduling (optional for analytics)
+  5. Confirmation with updated care timeline
+- Design Problems:
+  - HMW make the rescheduling process feel supportive rather than punitive?
+  - HMW ensure patients understand the medical implications of delays?
+  - HMW handle cases where rescheduling significantly impacts care?
+- Design Opportunities:
+  - What if we could offer telemedicine alternatives for routine check-ups?
+  - What if we provided flexible scheduling options based on patient preferences?
+  - What if we could automatically notify the care team of scheduling changes?
 
-**User Goal**: Access appropriate task management features based on standard user permissions without confusion about role limitations.
+### Workflow Variation B: Quick Action Focused
 
-**Business Goal**: Ensure users can efficiently complete their assigned tasks while maintaining proper access control boundaries.
-
-**Screens:**
-
-7.0 Standard User Dashboard [type: primary]
-- HOW IT IS REACHED: Automatic redirect after authentication based on SCIB_USER role
+**3.0 My Appointments Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Present user-appropriate task management interface
-- Screen Description:
-  1. Display user role indicator
-  2. Show assigned tasks and deadlines
-  3. Present task collaboration features
-  4. Display progress tracking tools
-  5. Show limited reporting capabilities
-- Design Problems:
-  - HMW ensure users understand their role capabilities and limitations?
-  - HMW provide efficient task management without administrative complexity?
-- Design Opportunities:
-  - What if we could provide role-appropriate productivity tips?
-  - What if we offered peer collaboration suggestions based on similar roles?
+- Page Goal: Enable rapid appointment actions without deep navigation
+- Screen Description: Enhanced version with prominent quick-action buttons
+- Design Problems: Same as Variation A plus:
+  - HMW reduce cognitive load for frequent appointment managers?
+  - HMW prevent accidental appointment changes?
+- Design Opportunities: Same as Variation A plus:
+  - What if we could provide one-click rescheduling for routine appointments?
+  - What if we used machine learning to predict optimal appointment times?
 
-**Navigation Structure:** 6.0 Admin Dashboard | 7.0 Standard User Dashboard
+**Navigation Structure:** 1.0 Homepage | 2.0 Doctor Search | 3.0 My Appointments | 4.0 Health Records | 5.0 Settings
 
 **User Journey Flow:**
-1.0 Login Landing Page → [authentication with role detection] → 6.0 Admin Dashboard (for SCIB_TASK_ADMIN) OR 7.0 Standard User Dashboard (for SCIB_USER) → [click user management] → 6.0-D User Management Detail [type: detail]
+- Variation A: 3.0 Dashboard → [click appointment] → 3.0-D Appointment Detail → [click Reschedule] → Pu.3 Reschedule Modal → 3.0 Dashboard (updated)
+- Variation B: 3.0 Dashboard → [click quick reschedule] → Pu.3 Reschedule Modal → 3.0 Dashboard (updated)
 
-### Scenario 4: Authentication Error Handling
+---
 
-**Context & Task**: David attempts to access the Task Management System but encounters authentication issues due to SCIB SSO service unavailability. He needs clear guidance and alternative options to either resolve the issue or understand when service will be restored.
+## SCENARIO 3: Patient Accessing Health Records and Test Results
 
-#### Workflow Variation 4A: Service Unavailability Recovery
+**Context & User Scenario:**
+Dr. Jennifer, a 35-year-old physician who is also a patient, needs to access her recent lab results to share with a specialist. She values detailed medical information and wants to track her health metrics over time for personal and professional interest.
 
-**User Goal**: Understand the authentication issue and receive clear guidance on resolution steps or alternative access methods.
+**User Goal:** Access comprehensive health records with detailed medical information and historical trends.
 
-**Business Goal**: Maintain user confidence during service disruptions while providing transparent communication and recovery options.
+**Business Goal:** Demonstrate platform value through comprehensive health data management while encouraging continued engagement.
 
-**Screens:**
+### Workflow Variation A: Comprehensive Health Dashboard
 
-Er.1 SSO Service Unavailable [type: state]
-- HOW IT IS REACHED: Automatic display when SCIB SSO service cannot be reached
-- NAVBAR PRESENCE: No
-- Page Goal: Inform users of service status and provide recovery options
-- Screen Description:
-  1. Display clear service unavailability message
-  2. Show estimated restoration time if available
-  3. Present "Retry Authentication" action button
-  4. Display alternative contact methods for urgent access
-  5. Show service status page link
-  6. Present troubleshooting steps for user-side issues
-- Design Problems:
-  - HMW communicate service issues without causing panic or frustration?
-  - HMW provide helpful recovery options during service disruptions?
-  - HMW maintain user trust during technical difficulties?
-- Design Opportunities:
-  - What if we could provide real-time service restoration updates?
-  - What if we offered alternative productivity tools during downtime?
-  - What if we could queue authentication requests for automatic retry?
-
-#### Workflow Variation 4B: Authentication Failure Recovery
-
-**User Goal**: Resolve authentication failures quickly with clear guidance and support options.
-
-**Business Goal**: Minimize support burden while helping users resolve authentication issues independently.
-
-**Screens:**
-
-Er.2 Authentication Failed [type: state]
-- HOW IT IS REACHED: Display after failed authentication attempts or invalid credentials
-- NAVBAR PRESENCE: No
-- Page Goal: Guide users through authentication problem resolution
-- Screen Description:
-  1. Display specific error message (invalid credentials, account locked, etc.)
-  2. Present "Try Again" primary action
-  3. Show password reset link for SCIB SSO
-  4. Display account unlock instructions
-  5. Present IT support contact information
-  6. Show security best practices reminder
-- Design Problems:
-  - HMW provide specific guidance without revealing security vulnerabilities?
-  - HMW help users self-resolve common authentication issues?
-- Design Opportunities:
-  - What if we could provide contextual help based on the specific error type?
-  - What if we offered proactive security recommendations?
-
-**Navigation Structure:** 1.0 Login Landing Page
-
-**User Journey Flow:**
-1.0 Login Landing Page → [SSO service unavailable] → Er.1 SSO Service Unavailable [type: state] → [click "Retry Authentication"] → 1.0 Login Landing Page OR [authentication failure] → Er.2 Authentication Failed [type: state] → [click "Try Again"] → 1.0 Login Landing Page
-
-### Scenario 5: Secure Logout Process
-
-**Context & Task**: Lisa completes her work session and needs to securely log out of the Task Management System, ensuring her session is properly terminated and her work is saved.
-
-#### Workflow Variation 5A: Standard Logout Flow
-
-**User Goal**: Securely end the session while ensuring work is saved and understanding logout confirmation.
-
-**Business Goal**: Ensure complete session termination for security compliance while providing user confidence in data preservation.
-
-**Screens:**
-
-Pu.1 Logout Confirmation Modal [type: modal]
-- HOW IT IS REACHED: Click logout button from any authenticated screen
-- NAVBAR PRESENCE: No
-- Page Goal: Confirm logout intent and ensure work preservation
-- Screen Description:
-  1. Display logout confirmation message
-  2. Show unsaved work warning if applicable
-  3. Present "Save and Logout" primary action
-  4. Show "Cancel" secondary action
-  5. Display session security reminder
-- Design Problems:
-  - HMW ensure users don't accidentally lose work during logout?
-  - HMW provide confidence that logout is secure and complete?
-- Design Opportunities:
-  - What if we could auto-save work before logout confirmation?
-  - What if we provided session summary before logout?
-
-8.0 Logout Success Page [type: primary]
-- HOW IT IS REACHED: Redirect after successful logout completion
+**4.0 Health Records Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
 - NAVBAR PRESENCE: Yes
-- Page Goal: Confirm successful logout and provide re-entry options
+- Page Goal: Provide comprehensive health data overview with actionable insights
 - Screen Description:
-  1. Display logout success confirmation
-  2. Show security reminder about shared computers
-  3. Present "Login Again" action button
-  4. Display session duration summary
-  5. Show productivity summary if applicable
+  1. Recent test results with trend analysis
+  2. Medication history and current prescriptions
+  3. Appointment summaries and doctor notes
+  4. Health metrics visualization (charts, graphs)
+  5. Shareable health summary generation
 - Design Problems:
-  - HMW confirm logout completion without being redundant?
-  - HMW encourage good security practices?
+  - HMW present complex medical data in an understandable format?
+  - HMW help patients identify concerning trends or changes?
+  - HMW ensure data accuracy while maintaining patient privacy?
 - Design Opportunities:
-  - What if we could provide personalized productivity insights?
-  - What if we offered quick access to frequently used resources?
+  - What if we could provide AI-powered health insights and recommendations?
+  - What if we allowed patients to annotate their records with personal observations?
+  - What if we could integrate with wearable devices for continuous monitoring?
 
-#### Workflow Variation 5B: Automatic Session Timeout
-
-**User Goal**: Understand automatic logout due to inactivity and easily re-authenticate if needed.
-
-**Business Goal**: Maintain security through automatic session management while minimizing user frustration.
-
-**Screens:**
-
-Er.3 Session Timeout [type: state]
-- HOW IT IS REACHED: Automatic trigger after period of user inactivity
+**4.0-D Test Results Detail [type: detail]**
+- HOW IT IS REACHED: Click on specific test result from health dashboard
 - NAVBAR PRESENCE: No
-- Page Goal: Inform user of automatic logout and provide re-authentication path
+- Page Goal: Provide detailed test information with context and interpretation
 - Screen Description:
-  1. Display session timeout notification
-  2. Show work preservation status
-  3. Present "Login Again" primary action
-  4. Display timeout duration information
-  5. Show security explanation for automatic logout
+  1. Detailed test results with reference ranges
+  2. Historical comparison and trend analysis
+  3. Doctor's interpretation and recommendations
+  4. Related health articles and educational content
+  5. Sharing options for healthcare providers
 - Design Problems:
-  - HMW communicate automatic logout without causing frustration?
-  - HMW ensure users understand security benefits of timeout?
+  - HMW help patients understand complex medical terminology?
+  - HMW prevent health anxiety from abnormal results?
+  - HMW ensure patients take appropriate action based on results?
 - Design Opportunities:
-  - What if we could provide customizable timeout preferences?
-  - What if we offered activity-based timeout adjustments?
+  - What if we provided personalized explanations based on patient health literacy?
+  - What if we could connect patients with relevant support groups?
+  - What if we offered immediate consultation options for concerning results?
 
-**Navigation Structure:** 8.0 Logout Success Page
+**Pu.4 Share Health Data Modal [type: modal]**
+- HOW IT IS REACHED: Click "Share" CTA button on health records or test results
+- NAVBAR PRESENCE: No
+- Page Goal: Enable secure health data sharing with healthcare providers
+- Screen Description:
+  1. Healthcare provider selection or manual entry
+  2. Data selection with granular privacy controls
+  3. Sharing duration and access level settings
+  4. Secure sharing method options (portal, email, fax)
+  5. Sharing confirmation and tracking
+- Design Problems:
+  - HMW ensure patient privacy while enabling necessary data sharing?
+  - HMW make complex privacy controls understandable?
+  - HMW handle cases where shared data needs to be revoked?
+- Design Opportunities:
+  - What if we could automatically format data for different healthcare systems?
+  - What if we provided audit trails for all data access?
+  - What if we could enable real-time collaboration between healthcare providers?
+
+### Workflow Variation B: Quick Access Focused
+
+**4.0 Health Records Dashboard [type: primary]**
+- HOW IT IS REACHED: Direct navigation via sidebar nav item
+- NAVBAR PRESENCE: Yes
+- Page Goal: Provide rapid access to most recent and relevant health information
+- Screen Description: Streamlined version focusing on recent results and quick actions
+- Design Problems: Same as Variation A plus:
+  - HMW prioritize the most important health information?
+  - HMW reduce information overload for patients with extensive medical histories?
+- Design Opportunities: Same as Variation A plus:
+  - What if we could use AI to surface the most relevant information first?
+  - What if we provided customizable dashboard layouts?
+
+**Navigation Structure:** 1.0 Homepage | 2.0 Doctor Search | 3.0 My Appointments | 4.0 Health Records | 5.0 Settings
 
 **User Journey Flow:**
-[Any authenticated screen] → [click logout] → Pu.1 Logout Confirmation Modal [type: modal] → [click "Save and Logout"] → 8.0 Logout Success Page OR [automatic timeout] → Er.3 Session Timeout [type: state] → [click "Login Again"] → 1.0 Login Landing Page
+- Variation A: 4.0 Health Dashboard → [click test result] → 4.0-D Test Detail → [click Share] → Pu.4 Share Modal → 4.0 Health Dashboard
+- Variation B: 4.0 Health Dashboard → [click quick share] → Pu.4 Share Modal → 4.0 Health Dashboard
 
-## Settings Integration
+---
 
-9.0 Settings [type: settings]
-- HOW IT IS REACHED: Click settings icon from any authenticated screen
+## SCENARIO 4: Patient Managing Account Settings and Preferences
+
+**Context & User Scenario:**
+Robert, a 60-year-old retiree with limited tech experience, needs to update his insurance information and adjust his notification preferences. He prefers phone calls over emails and needs larger text due to vision changes.
+
+**User Goal:** Successfully update account information and customize the platform experience to match personal preferences and accessibility needs.
+
+**Business Goal:** Maintain accurate patient data while improving user experience through personalization and accessibility features.
+
+### Workflow Variation A: Comprehensive Settings Management
+
+**5.0 Settings Dashboard [type: settings]**
+- HOW IT IS REACHED: Click settings icon in navigation or user profile menu
 - NAVBAR PRESENCE: No
-- Page Goal: Centralize user preferences and security settings
+- Page Goal: Provide centralized access to all account and preference management options
 - Screen Description:
-  1. **Authentication Preferences Section**:
-     - Remember device toggle
-     - Session timeout preferences
-     - Two-factor authentication settings
-  2. **Accessibility Options Section**:
-     - Screen reader support toggle
-     - High contrast mode toggle
-     - Keyboard navigation preferences
-     - Font size adjustments
-  3. **Notification Settings Section**:
-     - Session expiry warnings toggle
-     - Security alert preferences
-     - System maintenance notifications
-  4. **Privacy Controls Section**:
-     - Activity logging preferences
-     - Data retention settings
-     - Third-party integration permissions
+  1. Personal Information section (name, contact, emergency contacts)
+  2. Insurance and Payment section (plans, billing preferences)
+  3. Communication Preferences (notifications, reminders, channels)
+  4. Accessibility Options (text size, high contrast, screen reader)
+  5. Privacy and Security settings (data sharing, two-factor authentication)
+  6. Healthcare Preferences (provider types, appointment reminders)
 - Design Problems:
-  - HMW organize diverse settings without overwhelming users?
-  - HMW ensure security settings are easily discoverable?
+  - HMW organize complex settings without overwhelming users?
+  - HMW ensure accessibility settings are discoverable and easy to use?
+  - HMW help users understand the impact of their preference choices?
 - Design Opportunities:
-  - What if we could provide smart setting recommendations based on usage patterns?
-  - What if we offered guided security configuration?
+  - What if we could provide guided setup for new users?
+  - What if we offered smart defaults based on user demographics?
+  - What if we could sync preferences across multiple devices?
+
+**Pu.5 Insurance Update Modal [type: modal]**
+- HOW IT IS REACHED: Click "Update Insurance" CTA button in settings
+- NAVBAR PRESENCE: No
+- Page Goal: Streamline insurance information updates with validation
+- Screen Description:
+  1. Insurance provider selection with search functionality
+  2. Policy information form with real-time validation
+  3. Coverage verification and benefit summary
+  4. Effective date selection and transition planning
+  5. Impact assessment on existing appointments
+- Design Problems:
+  - HMW simplify complex insurance information entry?
+  - HMW handle cases where insurance verification fails?
+  - HMW ensure continuity of care during insurance transitions?
+- Design Opportunities:
+  - What if we could auto-populate insurance information from photos?
+  - What if we provided real-time benefit verification?
+  - What if we could automatically update all affected appointments?
+
+### Workflow Variation B: Guided Settings Configuration
+
+**5.0 Settings Dashboard [type: settings]**
+- HOW IT IS REACHED: Click settings icon or guided setup prompt
+- NAVBAR PRESENCE: No
+- Page Goal: Provide step-by-step guidance for settings configuration
+- Screen Description: Same content with progressive disclosure and guided workflows
+- Design Problems: Same as Variation A plus:
+  - HMW make settings feel approachable for less tech-savvy users?
+  - HMW prevent users from getting lost in complex configuration options?
+- Design Opportunities: Same as Variation A plus:
+  - What if we provided contextual help and explanations for each setting?
+  - What if we could offer video tutorials for complex configurations?
+
+**Navigation Structure:** 1.0 Homepage | 2.0 Doctor Search | 3.0 My Appointments | 4.0 Health Records | 5.0 Settings
+
+**User Journey Flow:**
+- Variation A: 5.0 Settings → [click Update Insurance] → Pu.5 Insurance Modal → 5.0 Settings (updated)
+- Variation B: 5.0 Settings → [guided setup] → Pu.5 Insurance Modal → 5.0 Settings (updated)
+
+---
+
+## Error States and Edge Cases
+
+**Er.1 No Search Results [type: state]**
+- Condition of 2.0 Doctor Search Results when no doctors match criteria
+- Provides alternative search suggestions and expanded radius options
+- Offers callback request for manual assistance
+
+**Er.2 Appointment Booking Failure [type: state]**
+- Condition when appointment booking encounters technical or availability issues
+- Provides alternative time slots and waitlist options
+- Offers phone booking as backup method
+
+**Er.3 Health Data Sync Error [type: state]**
+- Condition when health records fail to load or sync
+- Provides manual refresh options and offline access to cached data
+- Offers technical support contact information
+
+**Er.4 Insurance Verification Failure [type: state]**
+- Condition when insurance information cannot be verified
+- Provides manual verification process and alternative payment options
+- Offers insurance specialist consultation
+
+---
 
 ## ACCESSIBILITY NOTES
 
 **Keyboard Navigation:**
-- All primary screens (1.0-9.0) support full keyboard navigation with logical tab order
-- Tab order: Header navigation → Main content → Footer links
-- Skip links provided for main content on all screens
+- All primary screens support full keyboard navigation with logical tab order
+- Skip links provided for main content areas on each screen
 - Modal dialogs trap focus and return to trigger element on close
+- Custom keyboard shortcuts for frequent actions (Alt+A for appointments, Alt+H for health records)
 
 **ARIA Labels and Landmarks:**
-- All screens include proper landmark roles (banner, navigation, main, complementary)
-- Form inputs have associated labels and error descriptions
-- Status messages announced via aria-live regions
-- Authentication states clearly announced to screen readers
+- Navigation region clearly marked with role="navigation"
+- Main content areas use role="main" landmark
+- Search functionality includes proper form labels and live regions for results
+- Health data visualizations include detailed alt text and data tables
 
 **Screen Reader Announcements:**
-- Login success/failure states announced immediately
-- Session expiry warnings announced with appropriate urgency
-- Role changes announced when switching between admin/user views
-- Loading states announced during authentication processes
+- Page changes announced with new page title and primary heading
+- Form validation errors announced immediately with clear correction instructions
+- Loading states announced with progress indicators
+- Appointment confirmations and updates announced with full details
 
 **High Contrast Mode:**
-- Toggled via Settings screen (9.0)
-- Applied as CSS class site-wide affecting all screens
-- Maintains WCAG AA contrast ratios (4.5:1 minimum)
-- Focus indicators enhanced in high contrast mode
+- Toggled via Settings screen accessibility section
+- Applies as CSS class site-wide with WCAG AA compliant color ratios
+- Maintains all functionality while improving visual clarity
+- Custom focus indicators remain visible in high contrast mode
 
 **Focus Indicators:**
-- Visible focus rings on all interactive elements
-- Enhanced focus indicators for authentication forms
-- Focus management during modal interactions
-- Clear focus restoration after modal dismissal
+- 3px solid blue outline for keyboard focus with 2px white inner border
+- Focus indicators remain visible across all color themes
+- Custom focus styles for complex components like calendars and data visualizations
 
 **Minimum Touch Targets:**
-- 44px minimum on all interactive elements across all screens
-- Authentication buttons optimized for touch interaction
-- Modal close buttons meet accessibility size requirements
+- 44px minimum for all interactive elements across all breakpoints
+- Adequate spacing between adjacent interactive elements
+- Larger touch targets (56px) for primary actions and navigation
+
+---
 
 ## VIEWPORT BEHAVIOUR
 
 **Desktop (1024px+):**
-- Full navigation sidebar visible on all primary screens
-- Multi-column layouts for dashboard screens (3.0, 6.0, 7.0)
-- Modal dialogs centered with backdrop overlay
-- Authentication forms displayed in centered cards
+- Full sidebar navigation with expanded labels and icons
+- Multi-column layouts for dashboard screens with data visualization
+- Hover states and tooltips for enhanced interactivity
+- Side-by-side modal dialogs for complex forms
 
 **Tablet (768px–1023px):**
-- Navigation collapses to hamburger menu
-- Dashboard layouts adapt to two-column grid
-- Modal dialogs adjust to tablet-appropriate sizing
-- Touch-optimized button spacing maintained
+- Collapsible sidebar navigation with icon-only collapsed state
+- Responsive grid layouts that stack appropriately
+- Touch-optimized interaction patterns
+- Full-screen modals with optimized form layouts
 
 **Mobile (320px–767px):**
-- Single-column layouts for all content
-- Navigation becomes full-screen overlay
-- Modal dialogs become full-screen on small devices
-- Authentication flows optimized for mobile keyboards
-- Swipe gestures enabled for navigation where appropriate
+- Bottom tab navigation replacing sidebar
+- Single-column layouts with progressive disclosure
+- Swipe gestures for navigation between related screens
+- Full-screen modals with mobile-optimized input methods
+- Sticky action buttons for primary tasks
 
 ---
 
-*This workflow documentation serves as the foundation for wireframe generation and development implementation, ensuring consistent user experience across all authentication scenarios while maintaining security and accessibility standards.*
+## Implementation Notes
+
+This workflow documentation provides the foundation for creating wireframes and prototypes that balance user needs with business objectives. Each scenario includes multiple workflow variations to accommodate different user preferences and contexts while maintaining consistency in core functionality.
+
+The accessibility and viewport behavior specifications ensure that the platform serves diverse user needs and scales effectively across devices and usage contexts. These requirements should be implemented as foundational features rather than afterthoughts, ensuring inclusive design from the ground up.
+
+Future iterations should include user testing validation of these workflows, with particular attention to the effectiveness of the different workflow variations for different user segments and contexts.
