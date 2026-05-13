@@ -11,6 +11,7 @@ import com.myproject.services.interfaces.ColumnService;
 import com.myproject.services.interfaces.TaskService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +71,10 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public PagedTaskResponse getUserTasks(Long userId, int page, int size) {
+    public PagedTaskResponse getUserTasks(Long userId, Pageable pageable) {
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+        
         List<Task> tasks = taskDataStore.findByUserId(userId, page, size);
         Long totalElements = taskDataStore.countByUserId(userId);
         int totalPages = (int) Math.ceil((double) totalElements / size);
@@ -190,6 +194,62 @@ public class TaskServiceImpl implements TaskService {
                 .status(task.getStatus())
                 .columnId(task.getColumnId())
                 .build();
+    }
+
+    @Override
+    public TaskResponse createTaskValidated(TaskCreateRequestValidated request) {
+        log.debug("Creating validated task with title: {}", request.getTitle());
+        
+        // Convert validated request to standard create request
+        TaskCreateRequest createRequest = TaskCreateRequest.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .userId(1L) // Default user for validated requests
+                .priority(TaskCreateRequest.TaskPriority.valueOf(request.getPriority().name()))
+                .build();
+        
+        return createTask(createRequest);
+    }
+
+    @Override
+    public ValidationResponse validateTaskInput(TaskCreateRequestValidated request) {
+        log.debug("Validating task input for title: {}", request.getTitle());
+        
+        List<String> errors = new ArrayList<>();
+        
+        // Validate title
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+            errors.add("Title is required and cannot be empty");
+        } else if (request.getTitle().length() > 255) {
+            errors.add("Title cannot exceed 255 characters");
+        }
+        
+        // Validate description
+        if (request.getDescription() != null && request.getDescription().length() > 10000) {
+            errors.add("Description cannot exceed 10000 characters");
+        }
+        
+        // Validate priority
+        if (request.getPriority() == null) {
+            errors.add("Priority is required");
+        }
+        
+        // Validate status
+        if (request.getStatus() == null) {
+            errors.add("Status is required");
+        }
+        
+        if (errors.isEmpty()) {
+            return ValidationResponse.builder()
+                    .valid(true)
+                    .message("Validation successful")
+                    .build();
+        } else {
+            return ValidationResponse.builder()
+                    .valid(false)
+                    .message(String.join("; ", errors))
+                    .build();
+        }
     }
 
     private TaskResponse mapToResponse(Task task) {
