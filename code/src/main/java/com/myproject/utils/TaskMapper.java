@@ -15,7 +15,7 @@ public class TaskMapper {
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
         task.setUserId(request.getUserId());
-        task.setPriority(request.getPriority());
+        task.setPriority(request.getPriority().name());
         task.setDueDate(request.getDueDate());
         task.setStatus("PENDING");
         return task;
