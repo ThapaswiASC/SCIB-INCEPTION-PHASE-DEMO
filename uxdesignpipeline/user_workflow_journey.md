@@ -4,556 +4,477 @@
 
 The SCIB Task Management System authentication experience enables users to securely access the application using their existing SCIB credentials through Single Sign-On (SSO). This experience encompasses user authentication, session management, role synchronization, and error handling scenarios.
 
-## Scenario 1: First-Time User Authentication
+## Scenarios
 
-### Context
-Sarah, a new SCIB employee, has been granted access to the Task Management System. She needs to authenticate using her existing SCIB credentials to access the application for the first time and understand her role-based permissions.
+### Scenario 1: First-Time User Authentication
 
-### Workflow Variation 1A: Standard First-Time Login
+**Context & Task**: Sarah, a new SCIB employee, has been granted access to the Task Management System. She needs to authenticate using her SCIB credentials for the first time to access her assigned tasks and begin her work.
 
-**User Goal:** Successfully authenticate using SCIB SSO credentials and gain access to the Task Management System with appropriate role-based permissions.
+#### Workflow Variation 1A: Standard Desktop Authentication Flow
 
-**Business Goal:** Seamlessly onboard new users through SSO integration while ensuring proper role mapping and security compliance.
+**User Goal**: Successfully authenticate using SCIB SSO credentials to access the task management system securely and efficiently.
 
-#### Screens:
+**Business Goal**: Onboard new users seamlessly while maintaining security standards and reducing authentication friction through SSO integration.
 
-**1.0 Login Landing Page [type: primary]**
+**Screens:**
+
+1.0 Login Landing Page [type: primary]
 - HOW IT IS REACHED: Direct navigation via application URL or bookmark
 - NAVBAR PRESENCE: Yes
 - Page Goal: Present authentication options and guide users to SCIB SSO login
 - Screen Description:
-  1. User sees application branding and welcome message
-  2. User can click "Login with SCIB SSO" primary CTA button
-  3. User can view system status and maintenance notifications
-  4. User can access help documentation or support contact
-  5. User can view privacy policy and terms of service links
+  1. Display application branding and welcome message
+  2. Present "Login with SCIB SSO" primary CTA button
+  3. Show security badges and compliance information
+  4. Provide help links for authentication issues
+  5. Display system status indicator
 - Design Problems:
-  - HMW clearly communicate that SCIB SSO is the primary authentication method?
-  - HMW build trust and credibility for first-time users?
-  - HMW handle users who don't have SCIB credentials?
+  - HMW make it immediately clear that SCIB SSO is the primary authentication method?
+  - HMW build trust and confidence in the security of the authentication process?
+  - HMW provide clear guidance for users unfamiliar with SSO?
 - Design Opportunities:
-  - What if we could show a preview of the application features before login?
-  - What if we could provide guided onboarding for new SCIB employees?
-  - What if we could detect user's organization and customize the login experience?
+  - What if we could pre-populate user context based on network detection?
+  - What if we provided a quick tutorial on SSO benefits for first-time users?
+  - What if we could show personalized welcome messages based on user department?
 
-**2.0 SCIB SSO Authorization Page [type: primary]**
-- HOW IT IS REACHED: Redirect from SCIB SSO after clicking "Login with SCIB SSO"
+2.0 SCIB SSO Authorization Page [type: primary]
+- HOW IT IS REACHED: Redirect from Login Landing Page after clicking "Login with SCIB SSO"
 - NAVBAR PRESENCE: Yes
-- Page Goal: Allow users to authenticate with their SCIB credentials securely
+- Page Goal: Facilitate secure credential entry and authorization consent
 - Screen Description:
-  1. User enters SCIB username and password
-  2. User can enable "Remember me" option for future logins
-  3. User can access password reset functionality
-  4. User can view SCIB security policies and guidelines
-  5. User sees clear indication of secure connection (SSL indicators)
+  1. Display SCIB branding and secure connection indicators
+  2. Present username and password input fields
+  3. Show "Remember me" option for trusted devices
+  4. Display multi-factor authentication prompts if required
+  5. Present authorization consent for task management access
+  6. Show scope permissions (profile, email, tasks)
 - Design Problems:
   - HMW ensure users understand they're on the official SCIB authentication page?
-  - HMW handle users who forgot their SCIB credentials?
-  - HMW communicate security best practices during authentication?
+  - HMW clearly communicate what permissions are being requested?
+  - HMW handle MFA requirements without causing confusion?
 - Design Opportunities:
-  - What if we could provide biometric authentication options?
-  - What if we could show login history for security awareness?
-  - What if we could provide contextual security tips?
+  - What if we could provide contextual help during the authentication process?
+  - What if we showed the user's last successful login information for security?
+  - What if we could streamline MFA with biometric options?
 
-**3.0 Dashboard [type: primary]**
-- HOW IT IS REACHED: Redirect after successful SSO authentication and token validation
+3.0 Task Dashboard [type: primary]
+- HOW IT IS REACHED: Automatic redirect after successful SSO authentication and token exchange
 - NAVBAR PRESENCE: Yes
-- Page Goal: Welcome authenticated users and provide overview of their role-based access and available features
+- Page Goal: Present user's personalized task overview and enable immediate productivity
 - Screen Description:
-  1. User sees personalized welcome message with their name and role
-  2. User can view role-specific task summary and metrics
-  3. User can access quick actions based on their permissions
-  4. User can view recent activity and notifications
-  5. User can navigate to different sections via sidebar navigation
+  1. Display personalized welcome message with user name and role
+  2. Show task summary cards (assigned, in progress, completed)
+  3. Present recent activity feed
+  4. Display role-based navigation menu
+  5. Show user profile and logout options
+  6. Present quick action buttons for common tasks
 - Design Problems:
-  - HMW clearly communicate user's role and associated permissions?
-  - HMW help users understand what they can and cannot do based on their role?
-  - HMW provide efficient navigation to role-appropriate features?
+  - HMW confirm successful authentication without being intrusive?
+  - HMW present role-appropriate content immediately upon login?
+  - HMW ensure users understand their permissions and capabilities?
 - Design Opportunities:
-  - What if we could provide role-based onboarding tours?
-  - What if we could show personalized productivity insights?
-  - What if we could provide contextual help based on user's role?
+  - What if we could show a brief onboarding tour for first-time users?
+  - What if we provided smart task recommendations based on role and workload?
+  - What if we could display team collaboration opportunities?
 
-**Pu.1 Role Permissions Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "View Permissions" button on Dashboard
-- NAVBAR PRESENCE: No
-- Page Goal: Educate users about their role-based permissions and access levels
-- Screen Description:
-  1. User sees detailed breakdown of their current role (TASK_ADMIN, TASK_MANAGER, or TASK_VIEWER)
-  2. User can view specific permissions and restrictions
-  3. User can understand how SCIB roles map to application roles
-  4. User can contact administrator for role changes if needed
-  5. User can close modal and return to Dashboard
-- Design Problems:
-  - HMW make role permissions easy to understand for non-technical users?
-  - HMW help users know who to contact for permission changes?
-- Design Opportunities:
-  - What if we could provide interactive examples of what each permission allows?
-  - What if we could show a comparison of different role levels?
+#### Workflow Variation 1B: Mobile-First Authentication Flow
 
-### Workflow Variation 1B: First-Time Login with Role Mapping Issues
+**User Goal**: Authenticate securely on mobile device while maintaining ease of use and security standards.
 
-**User Goal:** Successfully authenticate and understand any role-related access limitations while knowing how to resolve them.
+**Business Goal**: Ensure consistent authentication experience across all devices while optimizing for mobile usage patterns.
 
-**Business Goal:** Handle role mapping edge cases gracefully while maintaining security and providing clear resolution paths.
+**Screens:**
 
-#### Additional Screens:
-
-**Er.1 Role Mapping Warning [type: state]**
-- HOW IT IS REACHED: Automatic display when SCIB role doesn't map to application role
-- NAVBAR PRESENCE: No
-- Page Goal: Inform users about role mapping issues and provide resolution steps
-- Screen Description:
-  1. User sees clear explanation of the role mapping issue
-  2. User can view their SCIB role and why it couldn't be mapped
-  3. User can contact system administrator with pre-filled request
-  4. User can access limited functionality while role is being resolved
-  5. User can view expected timeline for role resolution
-- Design Problems:
-  - HMW explain technical role mapping issues in user-friendly terms?
-  - HMW prevent user frustration when they can't access expected features?
-- Design Opportunities:
-  - What if we could provide temporary guest access while roles are resolved?
-  - What if we could automatically escalate role mapping issues?
-
-**NAVIGATION STRUCTURE:** 1.0 Login Landing Page | 2.0 SCIB SSO Authorization Page | 3.0 Dashboard
-
-**USER JOURNEY FLOW:** 
-1.0 Login Landing Page → [click "Login with SCIB SSO"] → 2.0 SCIB SSO Authorization Page → [successful authentication] → 3.0 Dashboard → [click "View Permissions"] → Pu.1 Role Permissions Modal → [close] → 3.0 Dashboard
-
-## Scenario 2: Returning User Authentication
-
-### Context
-Mark, an experienced SCIB employee, regularly uses the Task Management System. He wants to quickly access the application using his existing session or authenticate efficiently if his session has expired.
-
-### Workflow Variation 2A: Active Session Return
-
-**User Goal:** Quickly access the application without re-authentication when session is still valid.
-
-**Business Goal:** Provide seamless user experience while maintaining security through proper session management.
-
-#### Screens:
-
-**3.0 Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via application URL with valid session
+1.1 Mobile Login Interface [type: primary]
+- HOW IT IS REACHED: Direct navigation via mobile browser or app
 - NAVBAR PRESENCE: Yes
-- Page Goal: Immediately provide access to user's work environment
+- Page Goal: Provide mobile-optimized authentication entry point
 - Screen Description:
-  1. User sees their personalized dashboard with recent activity
-  2. User can continue from where they left off
-  3. User can view session expiration time in header
-  4. User can access all role-appropriate features immediately
-  5. User can manually refresh session if needed
+  1. Display condensed application branding
+  2. Present large, touch-friendly "Login with SCIB SSO" button
+  3. Show mobile-specific security indicators
+  4. Provide swipe gestures for help information
+  5. Display offline capability indicators
 - Design Problems:
-  - HMW communicate session status clearly to users?
-  - HMW handle session expiration gracefully during active use?
+  - HMW optimize touch interactions for various screen sizes?
+  - HMW maintain security visibility on smaller screens?
+  - HMW handle network connectivity issues gracefully?
 - Design Opportunities:
-  - What if we could provide session activity insights?
-  - What if we could predict when users typically need session extensions?
+  - What if we could use device biometrics for additional security?
+  - What if we provided voice-guided authentication for accessibility?
+  - What if we could cache authentication state for offline scenarios?
 
-### Workflow Variation 2B: Expired Session Re-authentication
+**Navigation Structure:** 1.0 Login Landing Page | 2.0 SCIB SSO Authorization Page | 3.0 Task Dashboard
 
-**User Goal:** Quickly re-authenticate when session expires and return to previous work context.
+**User Journey Flow:**
+1.0 Login Landing Page → [click "Login with SCIB SSO"] → 2.0 SCIB SSO Authorization Page → [successful authentication] → 3.0 Task Dashboard
 
-**Business Goal:** Maintain security through proper session expiration while minimizing user disruption.
+### Scenario 2: Returning User Session Management
 
-#### Additional Screens:
+**Context & Task**: Mike, an experienced SCIB employee, returns to the Task Management System after his session expired. He needs to re-authenticate quickly without losing his work context and continue with his tasks efficiently.
 
-**Pu.2 Session Expired Modal [type: modal]**
-- HOW IT IS REACHED: Automatic display when session expires during application use
+#### Workflow Variation 2A: Token Refresh Flow
+
+**User Goal**: Seamlessly continue working without interruption when session expires, maintaining work context and productivity.
+
+**Business Goal**: Minimize user friction during session management while maintaining security compliance and audit requirements.
+
+**Screens:**
+
+4.0 Session Expiry Notification [type: modal]
+- HOW IT IS REACHED: Automatic trigger when access token expires during active session
 - NAVBAR PRESENCE: No
-- Page Goal: Inform users about session expiration and provide quick re-authentication
+- Page Goal: Inform user of session status and provide seamless renewal options
 - Screen Description:
-  1. User sees clear explanation that their session has expired
-  2. User can click "Re-authenticate" to return to SCIB SSO
-  3. User can view how long they were inactive
-  4. User can see that their work context will be preserved after re-authentication
-  5. User can access security tips about session management
+  1. Display session expiry countdown timer
+  2. Present "Continue Session" primary action
+  3. Show "Logout" secondary action
+  4. Display work-in-progress preservation notice
+  5. Present security reminder about automatic logout
 - Design Problems:
-  - HMW minimize disruption when sessions expire during active work?
-  - HMW help users understand why sessions expire for security?
+  - HMW notify users of session expiry without disrupting their workflow?
+  - HMW provide clear options for session management?
+  - HMW preserve user work during authentication renewal?
 - Design Opportunities:
-  - What if we could provide session extension warnings before expiration?
-  - What if we could save user's current work state during re-authentication?
+  - What if we could predict session expiry and proactively refresh tokens?
+  - What if we provided smart work-saving before session expiry?
+  - What if we could show productivity metrics during session renewal?
 
-**NAVIGATION STRUCTURE:** 3.0 Dashboard
+#### Workflow Variation 2B: Automatic Background Refresh
 
-**USER JOURNEY FLOW:** 
-Direct access → 3.0 Dashboard (if session valid)
-OR
-Direct access → Pu.2 Session Expired Modal → [click "Re-authenticate"] → 2.0 SCIB SSO Authorization Page → [successful authentication] → 3.0 Dashboard (restored context)
+**User Goal**: Experience uninterrupted workflow with transparent session management.
 
-## Scenario 3: Token Refresh and Session Management
+**Business Goal**: Maximize user productivity while maintaining security standards through seamless token management.
 
-### Context
-Lisa, a task manager, is actively working in the application when her SCIB SSO access token expires after 1 hour. The system needs to refresh her token seamlessly without interrupting her workflow.
+**Screens:**
 
-### Workflow Variation 3A: Automatic Token Refresh
+5.0 Background Refresh Indicator [type: state]
+- HOW IT IS REACHED: Automatic background process during active user session
+- NAVBAR PRESENCE: No
+- Page Goal: Provide subtle feedback about session renewal without disrupting workflow
+- Screen Description:
+  1. Display minimal loading indicator in header
+  2. Show brief "Securing session" message
+  3. Present success confirmation
+  4. Maintain all current page state and user inputs
+- Design Problems:
+  - HMW provide transparency about security processes without causing anxiety?
+  - HMW ensure users feel secure about automatic processes?
+- Design Opportunities:
+  - What if we could gamify security compliance with positive reinforcement?
+  - What if we provided security insights to help users understand protection levels?
 
-**User Goal:** Continue working without interruption while the system maintains secure authentication.
+**Navigation Structure:** 3.0 Task Dashboard
 
-**Business Goal:** Provide seamless user experience while maintaining security through automatic token refresh.
+**User Journey Flow:**
+3.0 Task Dashboard → [token expiry detected] → 4.0 Session Expiry Notification [type: modal] → [click "Continue Session"] → [background refresh] → 3.0 Task Dashboard (maintained state)
 
-#### Screens:
+### Scenario 3: Role-Based Access Management
 
-**3.1 Dashboard with Token Refresh [type: primary]**
-- HOW IT IS REACHED: Automatic token refresh during active session
+**Context & Task**: Jennifer, a SCIB Task Administrator, logs into the system and needs to access administrative functions that are specific to her elevated role permissions while also performing regular task management activities.
+
+#### Workflow Variation 3A: Admin Role Discovery Flow
+
+**User Goal**: Quickly identify and access role-specific administrative capabilities while understanding permission boundaries.
+
+**Business Goal**: Ensure proper role-based access control while enabling administrators to efficiently manage system resources and user permissions.
+
+**Screens:**
+
+6.0 Admin Dashboard [type: primary]
+- HOW IT IS REACHED: Automatic redirect after authentication based on SCIB_TASK_ADMIN role
 - NAVBAR PRESENCE: Yes
-- Page Goal: Maintain user workflow while handling token refresh transparently
+- Page Goal: Present administrative overview and enable efficient system management
 - Screen Description:
-  1. User continues their work without visible interruption
-  2. User sees subtle loading indicator during token refresh (if needed)
-  3. User can view updated session expiration time after refresh
-  4. User receives confirmation that session has been extended
-  5. User can access all features normally after refresh
+  1. Display administrative role confirmation badge
+  2. Show system health and user activity metrics
+  3. Present admin-specific navigation menu
+  4. Display user management quick actions
+  5. Show audit log summary
+  6. Present system configuration shortcuts
 - Design Problems:
-  - HMW handle token refresh without disrupting user workflow?
-  - HMW communicate successful token refresh without being intrusive?
+  - HMW clearly communicate elevated permissions and responsibilities?
+  - HMW organize administrative functions for efficient access?
+  - HMW provide appropriate oversight tools for system management?
 - Design Opportunities:
-  - What if we could provide proactive session health indicators?
-  - What if we could optimize token refresh timing based on user activity?
+  - What if we could provide predictive insights about system usage patterns?
+  - What if we offered guided workflows for complex administrative tasks?
+  - What if we could show real-time collaboration between admin users?
 
-### Workflow Variation 3B: Token Refresh Failure
-
-**User Goal:** Understand when automatic token refresh fails and quickly resolve authentication issues.
-
-**Business Goal:** Handle token refresh failures gracefully while maintaining security and data integrity.
-
-#### Additional Screens:
-
-**Er.2 Token Refresh Failed [type: state]**
-- HOW IT IS REACHED: Automatic display when token refresh fails
+6.0-D User Management Detail [type: detail]
+- HOW IT IS REACHED: Click on user management card from Admin Dashboard
 - NAVBAR PRESENCE: No
-- Page Goal: Inform users about authentication issues and provide resolution steps
+- Page Goal: Enable detailed user account management and role assignment
 - Screen Description:
-  1. User sees explanation that authentication needs to be renewed
-  2. User can click "Re-authenticate" to return to SCIB SSO
-  3. User can view their unsaved work and save options
-  4. User can see estimated time to resolve the issue
-  5. User can contact support if issues persist
+  1. Display comprehensive user list with role indicators
+  2. Show user activity and last login information
+  3. Present role assignment and modification controls
+  4. Display user permission audit trail
+  5. Show bulk user management actions
 - Design Problems:
-  - HMW prevent data loss when token refresh fails?
-  - HMW help users understand technical authentication issues?
+  - HMW provide comprehensive user oversight without overwhelming the interface?
+  - HMW ensure accurate role assignments and prevent permission errors?
 - Design Opportunities:
-  - What if we could automatically save user work before token refresh?
-  - What if we could provide offline mode during authentication issues?
+  - What if we could automate role suggestions based on user behavior patterns?
+  - What if we provided visual role hierarchy mapping?
 
-**NAVIGATION STRUCTURE:** 3.1 Dashboard with Token Refresh
+#### Workflow Variation 3B: Standard User Role Flow
 
-**USER JOURNEY FLOW:** 
-3.0 Dashboard → [automatic token refresh] → 3.1 Dashboard with Token Refresh (seamless)
-OR
-3.0 Dashboard → [token refresh fails] → Er.2 Token Refresh Failed → [click "Re-authenticate"] → 2.0 SCIB SSO Authorization Page → [successful authentication] → 3.0 Dashboard
+**User Goal**: Access appropriate task management features based on standard user permissions without confusion about role limitations.
 
-## Scenario 4: User Logout Process
+**Business Goal**: Ensure users can efficiently complete their assigned tasks while maintaining proper access control boundaries.
 
-### Context
-David, a security-conscious user, wants to properly log out of the Task Management System and ensure his session is completely terminated from both the application and SCIB SSO.
+**Screens:**
 
-### Workflow Variation 4A: Standard Logout
-
-**User Goal:** Securely log out of the application and SCIB SSO system completely.
-
-**Business Goal:** Ensure proper session termination and security compliance through complete logout process.
-
-#### Screens:
-
-**Pu.3 Logout Confirmation Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Logout" button in navigation header
-- NAVBAR PRESENCE: No
-- Page Goal: Confirm logout intent and provide options for session management
-- Screen Description:
-  1. User sees confirmation message about logging out
-  2. User can confirm logout from both application and SCIB SSO
-  3. User can choose to save current work before logout
-  4. User can view security reminder about shared computers
-  5. User can cancel logout and return to application
-- Design Problems:
-  - HMW ensure users understand the complete logout process?
-  - HMW prevent accidental logouts that could disrupt work?
-- Design Opportunities:
-  - What if we could provide quick save options before logout?
-  - What if we could remember user preferences for logout behavior?
-
-**4.0 Logout Success Page [type: primary]**
-- HOW IT IS REACHED: Redirect after successful logout from SCIB SSO
+7.0 Standard User Dashboard [type: primary]
+- HOW IT IS REACHED: Automatic redirect after authentication based on SCIB_USER role
 - NAVBAR PRESENCE: Yes
-- Page Goal: Confirm successful logout and provide options for future access
+- Page Goal: Present user-appropriate task management interface
 - Screen Description:
-  1. User sees confirmation that logout was successful
-  2. User can click "Login Again" to return to authentication
-  3. User can view security tips for shared computers
-  4. User can access public resources or documentation
-  5. User can provide feedback about their session experience
+  1. Display user role indicator
+  2. Show assigned tasks and deadlines
+  3. Present task collaboration features
+  4. Display progress tracking tools
+  5. Show limited reporting capabilities
 - Design Problems:
-  - HMW confirm that logout was complete and secure?
-  - HMW provide easy path back to login for immediate re-access?
+  - HMW ensure users understand their role capabilities and limitations?
+  - HMW provide efficient task management without administrative complexity?
 - Design Opportunities:
-  - What if we could provide session summary before logout?
-  - What if we could offer quick login options for frequent users?
+  - What if we could provide role-appropriate productivity tips?
+  - What if we offered peer collaboration suggestions based on similar roles?
 
-### Workflow Variation 4B: Forced Logout Due to Security
+**Navigation Structure:** 6.0 Admin Dashboard | 7.0 Standard User Dashboard
 
-**User Goal:** Understand why they were logged out and quickly regain secure access.
+**User Journey Flow:**
+1.0 Login Landing Page → [authentication with role detection] → 6.0 Admin Dashboard (for SCIB_TASK_ADMIN) OR 7.0 Standard User Dashboard (for SCIB_USER) → [click user management] → 6.0-D User Management Detail [type: detail]
 
-**Business Goal:** Maintain security through forced logout while providing clear communication and easy re-access.
+### Scenario 4: Authentication Error Handling
 
-#### Additional Screens:
+**Context & Task**: David attempts to access the Task Management System but encounters authentication issues due to SCIB SSO service unavailability. He needs clear guidance and alternative options to either resolve the issue or understand when service will be restored.
 
-**Er.3 Security Logout Notice [type: state]**
-- HOW IT IS REACHED: Automatic redirect when security-based logout occurs
+#### Workflow Variation 4A: Service Unavailability Recovery
+
+**User Goal**: Understand the authentication issue and receive clear guidance on resolution steps or alternative access methods.
+
+**Business Goal**: Maintain user confidence during service disruptions while providing transparent communication and recovery options.
+
+**Screens:**
+
+Er.1 SSO Service Unavailable [type: state]
+- HOW IT IS REACHED: Automatic display when SCIB SSO service cannot be reached
 - NAVBAR PRESENCE: No
-- Page Goal: Explain security logout and provide immediate re-authentication options
+- Page Goal: Inform users of service status and provide recovery options
 - Screen Description:
-  1. User sees explanation of why security logout occurred
-  2. User can immediately re-authenticate with SCIB SSO
-  3. User can view security best practices and recommendations
-  4. User can contact security team if they suspect unauthorized access
-  5. User can view their recent login history for verification
+  1. Display clear service unavailability message
+  2. Show estimated restoration time if available
+  3. Present "Retry Authentication" action button
+  4. Display alternative contact methods for urgent access
+  5. Show service status page link
+  6. Present troubleshooting steps for user-side issues
 - Design Problems:
-  - HMW communicate security logouts without causing alarm?
-  - HMW help users understand security policies and compliance?
+  - HMW communicate service issues without causing panic or frustration?
+  - HMW provide helpful recovery options during service disruptions?
+  - HMW maintain user trust during technical difficulties?
 - Design Opportunities:
-  - What if we could provide security education during forced logouts?
-  - What if we could show users how to improve their security practices?
+  - What if we could provide real-time service restoration updates?
+  - What if we offered alternative productivity tools during downtime?
+  - What if we could queue authentication requests for automatic retry?
 
-**NAVIGATION STRUCTURE:** 4.0 Logout Success Page
+#### Workflow Variation 4B: Authentication Failure Recovery
 
-**USER JOURNEY FLOW:** 
-Any screen → [click "Logout"] → Pu.3 Logout Confirmation Modal → [confirm logout] → 4.0 Logout Success Page → [click "Login Again"] → 1.0 Login Landing Page
-OR
-Any screen → [security logout] → Er.3 Security Logout Notice → [click "Re-authenticate"] → 2.0 SCIB SSO Authorization Page
+**User Goal**: Resolve authentication failures quickly with clear guidance and support options.
 
-## Scenario 5: SSO Service Unavailability
+**Business Goal**: Minimize support burden while helping users resolve authentication issues independently.
 
-### Context
-The SCIB SSO service is experiencing downtime during peak business hours. Users need to understand the situation and have alternative options or clear expectations for resolution.
+**Screens:**
 
-### Workflow Variation 5A: Planned Maintenance
+Er.2 Authentication Failed [type: state]
+- HOW IT IS REACHED: Display after failed authentication attempts or invalid credentials
+- NAVBAR PRESENCE: No
+- Page Goal: Guide users through authentication problem resolution
+- Screen Description:
+  1. Display specific error message (invalid credentials, account locked, etc.)
+  2. Present "Try Again" primary action
+  3. Show password reset link for SCIB SSO
+  4. Display account unlock instructions
+  5. Present IT support contact information
+  6. Show security best practices reminder
+- Design Problems:
+  - HMW provide specific guidance without revealing security vulnerabilities?
+  - HMW help users self-resolve common authentication issues?
+- Design Opportunities:
+  - What if we could provide contextual help based on the specific error type?
+  - What if we offered proactive security recommendations?
 
-**User Goal:** Understand planned maintenance schedule and know when service will be restored.
+**Navigation Structure:** 1.0 Login Landing Page
 
-**Business Goal:** Communicate planned downtime effectively while maintaining user trust and providing alternatives where possible.
+**User Journey Flow:**
+1.0 Login Landing Page → [SSO service unavailable] → Er.1 SSO Service Unavailable [type: state] → [click "Retry Authentication"] → 1.0 Login Landing Page OR [authentication failure] → Er.2 Authentication Failed [type: state] → [click "Try Again"] → 1.0 Login Landing Page
 
-#### Screens:
+### Scenario 5: Secure Logout Process
 
-**5.0 Service Maintenance Page [type: primary]**
-- HOW IT IS REACHED: Redirect when accessing application during planned maintenance
+**Context & Task**: Lisa completes her work session and needs to securely log out of the Task Management System, ensuring her session is properly terminated and her work is saved.
+
+#### Workflow Variation 5A: Standard Logout Flow
+
+**User Goal**: Securely end the session while ensuring work is saved and understanding logout confirmation.
+
+**Business Goal**: Ensure complete session termination for security compliance while providing user confidence in data preservation.
+
+**Screens:**
+
+Pu.1 Logout Confirmation Modal [type: modal]
+- HOW IT IS REACHED: Click logout button from any authenticated screen
+- NAVBAR PRESENCE: No
+- Page Goal: Confirm logout intent and ensure work preservation
+- Screen Description:
+  1. Display logout confirmation message
+  2. Show unsaved work warning if applicable
+  3. Present "Save and Logout" primary action
+  4. Show "Cancel" secondary action
+  5. Display session security reminder
+- Design Problems:
+  - HMW ensure users don't accidentally lose work during logout?
+  - HMW provide confidence that logout is secure and complete?
+- Design Opportunities:
+  - What if we could auto-save work before logout confirmation?
+  - What if we provided session summary before logout?
+
+8.0 Logout Success Page [type: primary]
+- HOW IT IS REACHED: Redirect after successful logout completion
 - NAVBAR PRESENCE: Yes
-- Page Goal: Inform users about planned maintenance and provide clear timeline for restoration
+- Page Goal: Confirm successful logout and provide re-entry options
 - Screen Description:
-  1. User sees clear explanation of planned maintenance
-  2. User can view estimated completion time and progress updates
-  3. User can subscribe to status notifications via email or SMS
-  4. User can access offline resources or documentation
-  5. User can view alternative contact methods for urgent issues
+  1. Display logout success confirmation
+  2. Show security reminder about shared computers
+  3. Present "Login Again" action button
+  4. Display session duration summary
+  5. Show productivity summary if applicable
 - Design Problems:
-  - HMW communicate maintenance schedules effectively in advance?
-  - HMW provide useful alternatives during planned downtime?
+  - HMW confirm logout completion without being redundant?
+  - HMW encourage good security practices?
 - Design Opportunities:
-  - What if we could provide offline mode for critical functions?
-  - What if we could send proactive maintenance notifications?
+  - What if we could provide personalized productivity insights?
+  - What if we offered quick access to frequently used resources?
 
-### Workflow Variation 5B: Unexpected Service Outage
+#### Workflow Variation 5B: Automatic Session Timeout
 
-**User Goal:** Understand the service issue and receive updates on resolution progress.
+**User Goal**: Understand automatic logout due to inactivity and easily re-authenticate if needed.
 
-**Business Goal:** Handle unexpected outages transparently while maintaining user confidence and providing regular updates.
+**Business Goal**: Maintain security through automatic session management while minimizing user frustration.
 
-#### Additional Screens:
+**Screens:**
 
-**Er.4 Service Unavailable [type: state]**
-- HOW IT IS REACHED: Automatic display when SCIB SSO service is unavailable
+Er.3 Session Timeout [type: state]
+- HOW IT IS REACHED: Automatic trigger after period of user inactivity
 - NAVBAR PRESENCE: No
-- Page Goal: Inform users about service issues and provide status updates
+- Page Goal: Inform user of automatic logout and provide re-authentication path
 - Screen Description:
-  1. User sees explanation that authentication service is temporarily unavailable
-  2. User can view real-time status updates and estimated resolution time
-  3. User can enable automatic retry when service is restored
-  4. User can access cached content if available and appropriate
-  5. User can contact support for urgent access needs
+  1. Display session timeout notification
+  2. Show work preservation status
+  3. Present "Login Again" primary action
+  4. Display timeout duration information
+  5. Show security explanation for automatic logout
 - Design Problems:
-  - HMW maintain user confidence during unexpected outages?
-  - HMW provide useful functionality when authentication is unavailable?
+  - HMW communicate automatic logout without causing frustration?
+  - HMW ensure users understand security benefits of timeout?
 - Design Opportunities:
-  - What if we could provide intelligent retry mechanisms?
-  - What if we could offer limited offline functionality for critical tasks?
+  - What if we could provide customizable timeout preferences?
+  - What if we offered activity-based timeout adjustments?
 
-**NAVIGATION STRUCTURE:** 5.0 Service Maintenance Page
+**Navigation Structure:** 8.0 Logout Success Page
 
-**USER JOURNEY FLOW:** 
-Application access → [service unavailable] → 5.0 Service Maintenance Page (planned)
-OR
-Application access → [service unavailable] → Er.4 Service Unavailable → [automatic retry] → 1.0 Login Landing Page (when restored)
-
-## Scenario 6: Role-Based Access Management
-
-### Context
-Jennifer, a system administrator, needs to understand how SCIB roles are mapped to application permissions and help users who have role-related access issues.
-
-### Workflow Variation 6A: Role Mapping Overview
-
-**User Goal:** Understand current role mappings and manage user access effectively.
-
-**Business Goal:** Provide clear role management tools while maintaining security and compliance with SCIB policies.
-
-#### Screens:
-
-**6.0 Role Management Dashboard [type: primary]**
-- HOW IT IS REACHED: Navigation via admin sidebar menu item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive overview of role mappings and user access management
-- Screen Description:
-  1. Admin can view current SCIB to application role mappings
-  2. Admin can see user distribution across different roles
-  3. Admin can access role mapping configuration settings
-  4. Admin can view recent role-related issues and resolutions
-  5. Admin can generate role compliance reports
-- Design Problems:
-  - HMW make complex role mappings easy to understand and manage?
-  - HMW help admins quickly identify and resolve role issues?
-- Design Opportunities:
-  - What if we could provide automated role mapping suggestions?
-  - What if we could show role usage analytics and optimization recommendations?
-
-**6.0-D User Role Detail [type: detail]**
-- HOW IT IS REACHED: Clicking on specific user card in Role Management Dashboard
-- NAVBAR PRESENCE: No
-- Page Goal: Provide detailed view of individual user's role and permissions
-- Screen Description:
-  1. Admin can view user's SCIB role and mapped application role
-  2. Admin can see user's permission history and changes
-  3. Admin can temporarily override role mappings if needed
-  4. Admin can view user's recent activity and access patterns
-  5. Admin can contact user or SCIB admin for role updates
-- Design Problems:
-  - HMW provide detailed role information without overwhelming admins?
-  - HMW enable quick role troubleshooting and resolution?
-- Design Opportunities:
-  - What if we could provide role change impact analysis?
-  - What if we could automate common role resolution workflows?
-
-### Workflow Variation 6B: Role Mapping Configuration
-
-**User Goal:** Configure and update role mappings to ensure proper access control.
-
-**Business Goal:** Enable flexible role management while maintaining security standards and audit compliance.
-
-#### Additional Screens:
-
-**Pu.4 Role Mapping Configuration Modal [type: modal]**
-- HOW IT IS REACHED: Clicking "Configure Mappings" button on Role Management Dashboard
-- NAVBAR PRESENCE: No
-- Page Goal: Allow admins to configure SCIB to application role mappings
-- Screen Description:
-  1. Admin can view and edit current role mapping rules
-  2. Admin can add new SCIB roles and their application equivalents
-  3. Admin can test role mappings with sample user data
-  4. Admin can view mapping change history and audit trail
-  5. Admin can save and deploy role mapping changes
-- Design Problems:
-  - HMW make role mapping configuration intuitive for non-technical admins?
-  - HMW prevent role mapping errors that could affect user access?
-- Design Opportunities:
-  - What if we could provide role mapping validation and testing tools?
-  - What if we could suggest optimal role mappings based on usage patterns?
-
-**NAVIGATION STRUCTURE:** 6.0 Role Management Dashboard
-
-**USER JOURNEY FLOW:** 
-6.0 Role Management Dashboard → [click user card] → 6.0-D User Role Detail → [back to dashboard] → 6.0 Role Management Dashboard → [click "Configure Mappings"] → Pu.4 Role Mapping Configuration Modal → [save changes] → 6.0 Role Management Dashboard
+**User Journey Flow:**
+[Any authenticated screen] → [click logout] → Pu.1 Logout Confirmation Modal [type: modal] → [click "Save and Logout"] → 8.0 Logout Success Page OR [automatic timeout] → Er.3 Session Timeout [type: state] → [click "Login Again"] → 1.0 Login Landing Page
 
 ## Settings Integration
 
-**7.0 Settings [type: settings]**
-- HOW IT IS REACHED: Clicking settings icon in navigation header
+9.0 Settings [type: settings]
+- HOW IT IS REACHED: Click settings icon from any authenticated screen
 - NAVBAR PRESENCE: No
-- Page Goal: Provide centralized access to all user preferences and system configurations
+- Page Goal: Centralize user preferences and security settings
 - Screen Description:
-  1. **Authentication Preferences**
-     - Remember login preference toggle
+  1. **Authentication Preferences Section**:
+     - Remember device toggle
      - Session timeout preferences
-     - Two-factor authentication settings (if available)
-  2. **Notification Settings**
-     - SSO-related notification preferences
-     - Security alert preferences
-     - Maintenance notification preferences
-  3. **Accessibility Options**
+     - Two-factor authentication settings
+  2. **Accessibility Options Section**:
+     - Screen reader support toggle
      - High contrast mode toggle
-     - Screen reader optimization toggle
      - Keyboard navigation preferences
-     - Font size and display preferences
-  4. **Privacy and Security**
-     - Session activity history
-     - Connected devices and sessions
-     - Data export and deletion requests
-  5. **System Information**
-     - Current role and permissions summary
-     - SSO connection status
-     - Application version and updates
+     - Font size adjustments
+  3. **Notification Settings Section**:
+     - Session expiry warnings toggle
+     - Security alert preferences
+     - System maintenance notifications
+  4. **Privacy Controls Section**:
+     - Activity logging preferences
+     - Data retention settings
+     - Third-party integration permissions
 - Design Problems:
-  - HMW organize diverse settings in an intuitive way?
-  - HMW help users understand the impact of different setting changes?
+  - HMW organize diverse settings without overwhelming users?
+  - HMW ensure security settings are easily discoverable?
 - Design Opportunities:
-  - What if we could provide personalized setting recommendations?
-  - What if we could show how settings changes affect user experience?
+  - What if we could provide smart setting recommendations based on usage patterns?
+  - What if we offered guided security configuration?
 
 ## ACCESSIBILITY NOTES
 
 **Keyboard Navigation:**
-- All primary screens support full keyboard navigation with logical tab order
+- All primary screens (1.0-9.0) support full keyboard navigation with logical tab order
 - Tab order: Header navigation → Main content → Footer links
-- Skip links provided to main content on all screens
+- Skip links provided for main content on all screens
 - Modal dialogs trap focus and return to trigger element on close
 
 **ARIA Labels and Landmarks:**
-- Main navigation marked with role="navigation" and aria-label="Main navigation"
-- Content areas marked with role="main"
-- Form sections have proper fieldset and legend elements
-- Status messages use aria-live regions for screen reader announcements
+- All screens include proper landmark roles (banner, navigation, main, complementary)
+- Form inputs have associated labels and error descriptions
+- Status messages announced via aria-live regions
+- Authentication states clearly announced to screen readers
 
 **Screen Reader Announcements:**
-- Login success/failure announced immediately
-- Session status changes announced in real-time
-- Role changes and permission updates announced
-- Error states and resolution steps clearly announced
+- Login success/failure states announced immediately
+- Session expiry warnings announced with appropriate urgency
+- Role changes announced when switching between admin/user views
+- Loading states announced during authentication processes
 
 **High Contrast Mode:**
-- Toggled via Settings screen under Accessibility Options
-- Applies as CSS class site-wide affecting all screens
-- Maintains WCAG AA contrast ratios (4.5:1 for normal text, 3:1 for large text)
-- Focus indicators remain visible in high contrast mode
+- Toggled via Settings screen (9.0)
+- Applied as CSS class site-wide affecting all screens
+- Maintains WCAG AA contrast ratios (4.5:1 minimum)
+- Focus indicators enhanced in high contrast mode
 
 **Focus Indicators:**
 - Visible focus rings on all interactive elements
-- 2px solid border with high contrast color
-- Focus indicators scale appropriately across all viewport sizes
+- Enhanced focus indicators for authentication forms
+- Focus management during modal interactions
+- Clear focus restoration after modal dismissal
 
 **Minimum Touch Targets:**
-- All interactive elements minimum 44px touch target
-- Adequate spacing between adjacent interactive elements
-- Applies to buttons, links, form controls, and navigation items
+- 44px minimum on all interactive elements across all screens
+- Authentication buttons optimized for touch interaction
+- Modal close buttons meet accessibility size requirements
 
 ## VIEWPORT BEHAVIOUR
 
 **Desktop (1024px+):**
-- Full sidebar navigation with expanded menu items
-- Multi-column layouts for dashboard and management screens
-- Hover states and tooltips for enhanced interaction
+- Full navigation sidebar visible on all primary screens
+- Multi-column layouts for dashboard screens (3.0, 6.0, 7.0)
 - Modal dialogs centered with backdrop overlay
+- Authentication forms displayed in centered cards
 
 **Tablet (768px–1023px):**
-- Collapsible sidebar navigation with icon-only collapsed state
-- Responsive grid layouts adapt to available space
-- Touch-optimized interaction targets and spacing
-- Modal dialogs adapt to tablet viewport with appropriate sizing
+- Navigation collapses to hamburger menu
+- Dashboard layouts adapt to two-column grid
+- Modal dialogs adjust to tablet-appropriate sizing
+- Touch-optimized button spacing maintained
 
 **Mobile (320px–767px):**
-- Bottom navigation bar replaces sidebar navigation
-- Single-column layouts with vertical stacking
-- Full-screen modal dialogs for optimal mobile experience
-- Swipe gestures for navigation where appropriate
-- Optimized form layouts with mobile-friendly input types
+- Single-column layouts for all content
+- Navigation becomes full-screen overlay
+- Modal dialogs become full-screen on small devices
+- Authentication flows optimized for mobile keyboards
+- Swipe gestures enabled for navigation where appropriate
 
 ---
 
