@@ -72,19 +72,16 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public PagedTaskResponse getUserTasks(Long userId, Pageable pageable) {
-        int page = pageable.getPageNumber();
-        int size = pageable.getPageSize();
-        
-        List<Task> tasks = taskDataStore.findByUserId(userId, page, size);
+        List<Task> tasks = taskDataStore.findByUserId(userId, pageable.getPageNumber(), pageable.getPageSize());
         Long totalElements = taskDataStore.countByUserId(userId);
-        int totalPages = (int) Math.ceil((double) totalElements / size);
+        int totalPages = (int) Math.ceil((double) totalElements / pageable.getPageSize());
         
         return PagedTaskResponse.builder()
                 .content(tasks.stream().map(this::mapToResponse).collect(Collectors.toList()))
                 .totalElements(totalElements)
                 .totalPages(totalPages)
-                .currentPage(page)
-                .pageSize(size)
+                .currentPage(pageable.getPageNumber())
+                .pageSize(pageable.getPageSize())
                 .build();
     }
 
@@ -204,7 +201,7 @@ public class TaskServiceImpl implements TaskService {
         TaskCreateRequest createRequest = TaskCreateRequest.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .userId(1L) // Default user for validated requests
+                .userId(1L) // Default user ID for validated requests
                 .priority(TaskCreateRequest.TaskPriority.valueOf(request.getPriority().name()))
                 .build();
         
