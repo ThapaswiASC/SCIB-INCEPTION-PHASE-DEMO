@@ -1,11 +1,11 @@
 package com.myproject.models.dtos;
 
 public class TaskCountResponse {
+
     private Long userId;
     private Long taskCount;
 
-    public TaskCountResponse() {
-    }
+    public TaskCountResponse() {}
 
     public TaskCountResponse(Long userId, Long taskCount) {
         this.userId = userId;

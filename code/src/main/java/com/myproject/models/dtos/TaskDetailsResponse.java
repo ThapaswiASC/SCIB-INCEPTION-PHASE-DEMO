@@ -1,13 +1,13 @@
 package com.myproject.models.dtos;
 
 public class TaskDetailsResponse {
+
     private String taskId;
     private String title;
     private String status;
     private String columnId;
 
-    public TaskDetailsResponse() {
-    }
+    public TaskDetailsResponse() {}
 
     public TaskDetailsResponse(String taskId, String title, String status, String columnId) {
         this.taskId = taskId;

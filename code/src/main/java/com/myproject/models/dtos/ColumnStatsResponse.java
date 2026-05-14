@@ -3,12 +3,12 @@ package com.myproject.models.dtos;
 import java.time.LocalDateTime;
 
 public class ColumnStatsResponse {
+
     private String columnId;
     private Integer taskCount;
     private LocalDateTime lastUpdated;
 
-    public ColumnStatsResponse() {
-    }
+    public ColumnStatsResponse() {}
 
     public ColumnStatsResponse(String columnId, Integer taskCount, LocalDateTime lastUpdated) {
         this.columnId = columnId;

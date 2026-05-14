@@ -3,27 +3,19 @@ package com.myproject.models.dtos;
 import java.util.List;
 
 public class BulkTaskResponse {
-    private List<TaskResponse> createdTasks;
+
     private Integer successCount;
     private Integer failureCount;
+    private List<TaskResponse> createdTasks;
     private List<String> errors;
 
-    public BulkTaskResponse() {
-    }
+    public BulkTaskResponse() {}
 
-    public BulkTaskResponse(List<TaskResponse> createdTasks, Integer successCount, Integer failureCount, List<String> errors) {
-        this.createdTasks = createdTasks;
+    public BulkTaskResponse(Integer successCount, Integer failureCount, List<TaskResponse> createdTasks, List<String> errors) {
         this.successCount = successCount;
         this.failureCount = failureCount;
-        this.errors = errors;
-    }
-
-    public List<TaskResponse> getCreatedTasks() {
-        return createdTasks;
-    }
-
-    public void setCreatedTasks(List<TaskResponse> createdTasks) {
         this.createdTasks = createdTasks;
+        this.errors = errors;
     }
 
     public Integer getSuccessCount() {
@@ -40,6 +32,14 @@ public class BulkTaskResponse {
 
     public void setFailureCount(Integer failureCount) {
         this.failureCount = failureCount;
+    }
+
+    public List<TaskResponse> getCreatedTasks() {
+        return createdTasks;
+    }
+
+    public void setCreatedTasks(List<TaskResponse> createdTasks) {
+        this.createdTasks = createdTasks;
     }
 
     public List<String> getErrors() {

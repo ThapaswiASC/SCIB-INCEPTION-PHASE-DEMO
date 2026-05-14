@@ -3,12 +3,12 @@ package com.myproject.models.dtos;
 import java.time.LocalDateTime;
 
 public class UpdateTaskStatusResponse {
+
     private String taskId;
     private String status;
     private LocalDateTime updatedAt;
 
-    public UpdateTaskStatusResponse() {
-    }
+    public UpdateTaskStatusResponse() {}
 
     public UpdateTaskStatusResponse(String taskId, String status, LocalDateTime updatedAt) {
         this.taskId = taskId;

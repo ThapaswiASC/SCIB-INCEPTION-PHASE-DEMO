@@ -3,21 +3,21 @@ package com.myproject.models.dtos;
 import java.util.List;
 
 public class PagedTaskResponse {
+
     private List<TaskResponse> content;
     private Long totalElements;
     private Integer totalPages;
-    private Integer size;
-    private Integer number;
+    private Integer currentPage;
+    private Integer pageSize;
 
-    public PagedTaskResponse() {
-    }
+    public PagedTaskResponse() {}
 
-    public PagedTaskResponse(List<TaskResponse> content, Long totalElements, Integer totalPages, Integer size, Integer number) {
+    public PagedTaskResponse(List<TaskResponse> content, Long totalElements, Integer totalPages, Integer currentPage, Integer pageSize) {
         this.content = content;
         this.totalElements = totalElements;
         this.totalPages = totalPages;
-        this.size = size;
-        this.number = number;
+        this.currentPage = currentPage;
+        this.pageSize = pageSize;
     }
 
     public List<TaskResponse> getContent() {
@@ -44,19 +44,19 @@ public class PagedTaskResponse {
         this.totalPages = totalPages;
     }
 
-    public Integer getSize() {
-        return size;
+    public Integer getCurrentPage() {
+        return currentPage;
     }
 
-    public void setSize(Integer size) {
-        this.size = size;
+    public void setCurrentPage(Integer currentPage) {
+        this.currentPage = currentPage;
     }
 
-    public Integer getNumber() {
-        return number;
+    public Integer getPageSize() {
+        return pageSize;
     }
 
-    public void setNumber(Integer number) {
-        this.number = number;
+    public void setPageSize(Integer pageSize) {
+        this.pageSize = pageSize;
     }
 }
