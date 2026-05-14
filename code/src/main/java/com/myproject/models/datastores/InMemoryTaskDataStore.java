@@ -3,7 +3,6 @@ package com.myproject.models.datastores;
 import com.myproject.models.entities.Task;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,9 +17,7 @@ public class InMemoryTaskDataStore implements TaskDataStore {
     public Task save(Task task) {
         if (task.getId() == null) {
             task.setId(idGenerator.getAndIncrement());
-            task.setCreatedAt(LocalDateTime.now());
         }
-        task.setUpdatedAt(LocalDateTime.now());
         tasks.put(task.getId(), task);
         return task;
     }
@@ -34,7 +31,7 @@ public class InMemoryTaskDataStore implements TaskDataStore {
     public List<Task> findByUserId(Long userId, int page, int size) {
         return tasks.values().stream()
                 .filter(task -> task.getUserId().equals(userId))
-                .sorted(Comparator.comparing(Task::getCreatedAt).reversed())
+                .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
                 .skip((long) page * size)
                 .limit(size)
                 .collect(Collectors.toList());
@@ -61,8 +58,10 @@ public class InMemoryTaskDataStore implements TaskDataStore {
 
     @Override
     public List<Task> saveAll(List<Task> taskList) {
-        return taskList.stream()
-                .map(this::save)
-                .collect(Collectors.toList());
+        List<Task> savedTasks = new ArrayList<>();
+        for (Task task : taskList) {
+            savedTasks.add(save(task));
+        }
+        return savedTasks;
     }
 }

@@ -1,7 +1,6 @@
 package com.myproject.models.datastores;
 
 import com.myproject.models.entities.Task;
-
 import java.util.List;
 import java.util.Optional;
 
