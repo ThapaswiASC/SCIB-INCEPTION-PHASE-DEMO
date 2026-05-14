@@ -12,30 +12,30 @@ paths:
   /api/v1/tasks/{taskId}/status:
     put:
       operationId: DEMO222UpdateTaskStatusPUT
-      summary: Update task status in Kanban board
-      description: Updates the status of a task when dragged from one column to another
+      summary: Update Task Status
+      description: Updates the status of a task when dragged from one column to another in the Kanban board
       tags:
         - Kanban Board
       parameters:
         - name: taskId
           in: path
           required: true
-          description: Unique identifier of the task
           schema:
             type: string
+          description: Unique identifier of the task
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TaskStatusUpdateRequest'
+              $ref: '#/components/schemas/UpdateTaskStatusRequest'
       responses:
         '200':
           description: Task status updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskStatusUpdateResponse'
+                $ref: '#/components/schemas/UpdateTaskStatusResponse'
         '400':
           description: Invalid status transition
           content:
@@ -48,12 +48,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
   /api/v1/tasks/{taskId}:
     get:
       operationId: DEMO222GetTaskDetailsGET
-      summary: Get task details
+      summary: Get Task Details
       description: Retrieves detailed information about a specific task
       tags:
         - Kanban Board
@@ -61,9 +59,9 @@ paths:
         - name: taskId
           in: path
           required: true
-          description: Unique identifier of the task
           schema:
             type: string
+          description: Unique identifier of the task
       responses:
         '200':
           description: Task details retrieved successfully
@@ -77,22 +75,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
   /api/v1/columns/{columnId}/stats:
     get:
       operationId: DEMO222GetColumnStatisticsGET
-      summary: Get column statistics
-      description: Retrieves statistics for a specific Kanban board column
+      summary: Get Column Statistics
+      description: Retrieves statistics for a specific column including task count
       tags:
         - Kanban Board
       parameters:
         - name: columnId
           in: path
           required: true
-          description: Unique identifier of the column
           schema:
             type: string
+          description: Unique identifier of the column
       responses:
         '200':
           description: Column statistics retrieved successfully
@@ -106,12 +102,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
   /api/v1/columns/bulk-update:
     put:
       operationId: DEMO222BulkUpdateColumnCountsPUT
-      summary: Bulk update column counts
+      summary: Bulk Update Column Counts
       description: Updates task counts for multiple columns atomically
       tags:
         - Kanban Board
@@ -120,27 +114,25 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/BulkColumnUpdateRequest'
+              $ref: '#/components/schemas/BulkUpdateColumnCountsRequest'
       responses:
         '200':
           description: Column counts updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BulkColumnUpdateResponse'
+                $ref: '#/components/schemas/BulkUpdateColumnCountsResponse'
         '400':
-          description: Invalid update request
+          description: Invalid request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
   /api/v1/tasks:
     post:
       operationId: DEMO757CreateTaskPOST
-      summary: Create a new task
-      description: Creates a new task in the task management system
+      summary: Create Task
+      description: Creates a new task in the system
       tags:
         - Task Management
       requestBody:
@@ -162,34 +154,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
-  /api/v1/users/{userId}/tasks:
     get:
       operationId: DEMO757GetUserTasksGET
-      summary: Get user tasks
-      description: Retrieves paginated list of tasks for a specific user
+      summary: Get User Tasks
+      description: Retrieves paginated list of tasks
+      tags:
+        - Task Management
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Page number
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 50
+          description: Page size
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedTaskResponse'
+  /api/v1/users/{userId}/tasks:
+    get:
+      operationId: DEMO757GetUserTasksByUserIdGET
+      summary: Get User Tasks by User ID
+      description: Retrieves all tasks for a specific user with pagination
       tags:
         - Task Management
       parameters:
         - name: userId
           in: path
           required: true
-          description: Unique identifier of the user
           schema:
             type: integer
             format: int64
+          description: User identifier
         - name: page
           in: query
-          required: false
-          description: Page number
           schema:
             type: integer
             default: 0
         - name: size
           in: query
-          required: false
-          description: Page size
           schema:
             type: integer
             default: 50
@@ -200,29 +212,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PagedTaskResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
   /api/v1/users/{userId}/tasks/count:
     get:
       operationId: DEMO757GetTaskCountGET
-      summary: Get task count for user
-      description: Retrieves the total number of tasks for a specific user
+      summary: Get Task Count
+      description: Retrieves the total count of tasks for a user
       tags:
         - Task Management
       parameters:
         - name: userId
           in: path
           required: true
-          description: Unique identifier of the user
           schema:
             type: integer
             format: int64
+          description: User identifier
       responses:
         '200':
           description: Task count retrieved successfully
@@ -230,29 +234,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskCountResponse'
-        '404':
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
-  /api/v1/tasks/{taskId}/update:
+  /api/v1/tasks/{taskId}:
     put:
       operationId: DEMO757UpdateTaskPUT
-      summary: Update an existing task
-      description: Updates task details for a specific task
+      summary: Update Task
+      description: Updates an existing task
       tags:
         - Task Management
       parameters:
         - name: taskId
           in: path
           required: true
-          description: Unique identifier of the task
           schema:
             type: integer
             format: int64
+          description: Task identifier
       requestBody:
         required: true
         content:
@@ -272,23 +268,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
-  /api/v1/tasks/{taskId}/delete:
     delete:
       operationId: DEMO757DeleteTaskDELETE
-      summary: Delete a task
-      description: Deletes a specific task from the system
+      summary: Delete Task
+      description: Deletes a task from the system
       tags:
         - Task Management
       parameters:
         - name: taskId
           in: path
           required: true
-          description: Unique identifier of the task
           schema:
             type: integer
             format: int64
+          description: Task identifier
       responses:
         '204':
           description: Task deleted successfully
@@ -298,12 +291,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
   /api/v1/tasks/bulk:
     post:
       operationId: DEMO757BulkCreateTasksPOST
-      summary: Bulk create tasks
+      summary: Bulk Create Tasks
       description: Creates multiple tasks in a single operation
       tags:
         - Task Management
@@ -328,39 +319,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-      security:
-        - bearerAuth: []
-  /api/v1/tasks/validate:
-    post:
-      operationId: DEMO759ValidateInputPOST
-      summary: Validate task input
-      description: Validates task input data without creating a task
-      tags:
-        - Validation
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TaskValidationRequest'
-      responses:
-        '200':
-          description: Validation successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationResponse'
-        '400':
-          description: Validation failed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationErrorResponse'
-      security:
-        - bearerAuth: []
 components:
   schemas:
-    TaskStatusUpdateRequest:
+    UpdateTaskStatusRequest:
       type: object
       required:
         - status
@@ -368,20 +329,23 @@ components:
       properties:
         status:
           type: string
-          enum: [TO_DO, IN_PROGRESS, DONE]
+          enum:
+            - TO_DO
+            - IN_PROGRESS
+            - DONE
           description: New status of the task
         columnId:
           type: string
           description: Target column identifier
-    TaskStatusUpdateResponse:
+    UpdateTaskStatusResponse:
       type: object
       properties:
         taskId:
           type: string
-          description: Unique identifier of the task
+          description: Task identifier
         status:
           type: string
-          description: Updated status
+          description: Updated task status
         updatedAt:
           type: string
           format: date-time
@@ -391,23 +355,30 @@ components:
       properties:
         taskId:
           type: string
+          description: Task identifier
         title:
           type: string
+          description: Task title
         status:
           type: string
+          description: Current task status
         columnId:
           type: string
+          description: Current column identifier
     ColumnStatsResponse:
       type: object
       properties:
         columnId:
           type: string
+          description: Column identifier
         taskCount:
           type: integer
+          description: Number of tasks in the column
         lastUpdated:
           type: string
           format: date-time
-    BulkColumnUpdateRequest:
+          description: Last update timestamp
+    BulkUpdateColumnCountsRequest:
       type: object
       required:
         - updates
@@ -421,7 +392,7 @@ components:
                 type: string
               increment:
                 type: integer
-    BulkColumnUpdateResponse:
+    BulkUpdateColumnCountsResponse:
       type: object
       properties:
         success:
@@ -435,7 +406,6 @@ components:
       required:
         - title
         - userId
-        - priority
       properties:
         title:
           type: string
@@ -444,7 +414,7 @@ components:
           description: Task title
         description:
           type: string
-          maxLength: 2000
+          maxLength: 10000
           description: Task description
         userId:
           type: integer
@@ -453,35 +423,75 @@ components:
           description: User identifier
         priority:
           type: string
-          enum: [LOW, MEDIUM, HIGH, URGENT]
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+            - URGENT
           description: Task priority level
         dueDate:
           type: string
           format: date-time
           description: Task due date
+    TaskUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Task title
+        description:
+          type: string
+          maxLength: 10000
+          description: Task description
+        status:
+          type: string
+          enum:
+            - PENDING
+            - IN_PROGRESS
+            - COMPLETED
+            - CANCELLED
+          description: Task status
+        priority:
+          type: string
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+            - URGENT
+          description: Task priority level
     TaskResponse:
       type: object
       properties:
         id:
           type: integer
           format: int64
+          description: Task identifier
         title:
           type: string
+          description: Task title
         description:
           type: string
+          description: Task description
         userId:
           type: integer
           format: int64
+          description: User identifier
         status:
           type: string
+          description: Task status
         priority:
           type: string
+          description: Task priority
         createdAt:
           type: string
           format: date-time
+          description: Creation timestamp
         updatedAt:
           type: string
           format: date-time
+          description: Last update timestamp
     PagedTaskResponse:
       type: object
       properties:
@@ -494,9 +504,9 @@ components:
           format: int64
         totalPages:
           type: integer
-        currentPage:
+        size:
           type: integer
-        pageSize:
+        number:
           type: integer
     TaskCountResponse:
       type: object
@@ -507,105 +517,50 @@ components:
         taskCount:
           type: integer
           format: int64
-    TaskUpdateRequest:
-      type: object
-      properties:
-        title:
-          type: string
-          minLength: 1
-          maxLength: 255
-        description:
-          type: string
-          maxLength: 2000
-        priority:
-          type: string
-          enum: [LOW, MEDIUM, HIGH, URGENT]
-        status:
-          type: string
-          enum: [PENDING, IN_PROGRESS, COMPLETED, CANCELLED]
-        dueDate:
-          type: string
-          format: date-time
     BulkTaskResponse:
       type: object
       properties:
-        successCount:
-          type: integer
-        failureCount:
-          type: integer
         createdTasks:
           type: array
           items:
             $ref: '#/components/schemas/TaskResponse'
+        successCount:
+          type: integer
+        failureCount:
+          type: integer
         errors:
           type: array
           items:
-            type: object
-            properties:
-              index:
-                type: integer
-              message:
-                type: string
-    TaskValidationRequest:
-      type: object
-      required:
-        - title
-      properties:
-        title:
-          type: string
-          minLength: 1
-          maxLength: 255
-        description:
-          type: string
-          maxLength: 10000
-        priority:
-          type: string
-          pattern: ^(HIGH|MEDIUM|LOW)$
-        dueDate:
-          type: string
-          format: date-time
-    ValidationResponse:
-      type: object
-      properties:
-        valid:
-          type: boolean
-        message:
-          type: string
-    ValidationErrorResponse:
-      type: object
-      properties:
-        valid:
-          type: boolean
-        errors:
-          type: array
-          items:
-            type: object
-            properties:
-              field:
-                type: string
-              message:
-                type: string
+            type: string
     ErrorResponse:
       type: object
+      required:
+        - timestamp
+        - errorCode
+        - message
       properties:
         timestamp:
           type: string
           format: date-time
+          description: Error timestamp
         traceId:
           type: string
+          description: Trace identifier for debugging
         errorCode:
           type: string
+          description: Error code
         message:
           type: string
+          description: Error message
         details:
           type: array
           items:
             type: string
+          description: Additional error details
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT token-based authentication
 security:
   - bearerAuth: []
