@@ -3,6 +3,7 @@ package com.myproject.models.entities;
 import java.time.LocalDateTime;
 
 public class Column {
+
     private String id;
     private String name;
     private String boardId;
@@ -19,8 +20,8 @@ public class Column {
         this.id = id;
         this.name = name;
         this.boardId = boardId;
-        this.taskCount = 0;
         this.position = position;
+        this.taskCount = 0;
         this.lastUpdated = LocalDateTime.now();
     }
 
@@ -73,8 +74,15 @@ public class Column {
         this.lastUpdated = lastUpdated;
     }
 
-    public void incrementTaskCount(int increment) {
-        this.taskCount += increment;
+    public void incrementTaskCount() {
+        this.taskCount++;
         this.lastUpdated = LocalDateTime.now();
+    }
+
+    public void decrementTaskCount() {
+        if (this.taskCount > 0) {
+            this.taskCount--;
+            this.lastUpdated = LocalDateTime.now();
+        }
     }
 }

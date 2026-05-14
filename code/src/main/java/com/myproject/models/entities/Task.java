@@ -3,6 +3,7 @@ package com.myproject.models.entities;
 import java.time.LocalDateTime;
 
 public class Task {
+
     private Long id;
     private String title;
     private String description;
@@ -10,16 +11,17 @@ public class Task {
     private String status;
     private String priority;
     private String columnId;
-    private LocalDateTime dueDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long version;
 
     public Task() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.version = 0L;
     }
 
-    public Task(Long id, String title, String description, Long userId, String status, String priority, String columnId, LocalDateTime dueDate) {
+    public Task(Long id, String title, String description, Long userId, String status, String priority, String columnId) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -27,9 +29,9 @@ public class Task {
         this.status = status;
         this.priority = priority;
         this.columnId = columnId;
-        this.dueDate = dueDate;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.version = 0L;
     }
 
     public Long getId() {
@@ -89,14 +91,6 @@ public class Task {
         this.columnId = columnId;
     }
 
-    public LocalDateTime getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDateTime dueDate) {
-        this.dueDate = dueDate;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -111,5 +105,13 @@ public class Task {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }
