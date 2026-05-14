@@ -7,6 +7,15 @@ public class UpdateTaskStatusResponse {
     private String status;
     private LocalDateTime updatedAt;
 
+    public UpdateTaskStatusResponse() {
+    }
+
+    public UpdateTaskStatusResponse(String taskId, String status, LocalDateTime updatedAt) {
+        this.taskId = taskId;
+        this.status = status;
+        this.updatedAt = updatedAt;
+    }
+
     public String getTaskId() {
         return taskId;
     }

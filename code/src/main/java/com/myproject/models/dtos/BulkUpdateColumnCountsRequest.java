@@ -4,9 +4,15 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class BulkUpdateColumnCountsRequest {
-    
     @NotNull(message = "Updates list is required")
     private List<ColumnUpdate> updates;
+
+    public BulkUpdateColumnCountsRequest() {
+    }
+
+    public BulkUpdateColumnCountsRequest(List<ColumnUpdate> updates) {
+        this.updates = updates;
+    }
 
     public List<ColumnUpdate> getUpdates() {
         return updates;
@@ -19,6 +25,14 @@ public class BulkUpdateColumnCountsRequest {
     public static class ColumnUpdate {
         private String columnId;
         private Integer increment;
+
+        public ColumnUpdate() {
+        }
+
+        public ColumnUpdate(String columnId, Integer increment) {
+            this.columnId = columnId;
+            this.increment = increment;
+        }
 
         public String getColumnId() {
             return columnId;

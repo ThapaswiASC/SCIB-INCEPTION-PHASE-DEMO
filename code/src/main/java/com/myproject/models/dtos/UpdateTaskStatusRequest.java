@@ -4,18 +4,25 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class UpdateTaskStatusRequest {
-    
     @NotNull(message = "Status is required")
-    private String status;
-    
+    private TaskStatus status;
+
     @NotBlank(message = "Column ID is required")
     private String columnId;
 
-    public String getStatus() {
+    public UpdateTaskStatusRequest() {
+    }
+
+    public UpdateTaskStatusRequest(TaskStatus status, String columnId) {
+        this.status = status;
+        this.columnId = columnId;
+    }
+
+    public TaskStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
 
@@ -25,5 +32,9 @@ public class UpdateTaskStatusRequest {
 
     public void setColumnId(String columnId) {
         this.columnId = columnId;
+    }
+
+    public enum TaskStatus {
+        TO_DO, IN_PROGRESS, DONE
     }
 }

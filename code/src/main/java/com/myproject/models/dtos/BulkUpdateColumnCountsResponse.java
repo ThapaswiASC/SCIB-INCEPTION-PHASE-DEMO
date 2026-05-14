@@ -6,6 +6,14 @@ public class BulkUpdateColumnCountsResponse {
     private Boolean success;
     private List<String> updatedColumns;
 
+    public BulkUpdateColumnCountsResponse() {
+    }
+
+    public BulkUpdateColumnCountsResponse(Boolean success, List<String> updatedColumns) {
+        this.success = success;
+        this.updatedColumns = updatedColumns;
+    }
+
     public Boolean getSuccess() {
         return success;
     }
