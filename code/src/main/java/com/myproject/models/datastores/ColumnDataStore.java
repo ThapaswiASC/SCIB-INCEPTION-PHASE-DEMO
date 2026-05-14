@@ -5,8 +5,18 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ColumnDataStore {
+
     Column save(Column column);
+
     Optional<Column> findById(String id);
-    List<Column> findByBoardId(String boardId);
-    void incrementTaskCount(String columnId, int increment);
+
+    List<Column> findAll();
+
+    void deleteById(String id);
+
+    boolean existsById(String id);
+
+    void incrementTaskCount(String columnId);
+
+    void decrementTaskCount(String columnId);
 }
