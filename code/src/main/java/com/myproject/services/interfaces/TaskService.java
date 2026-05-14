@@ -1,7 +1,6 @@
 package com.myproject.services.interfaces;
 
 import com.myproject.models.dtos.*;
-
 import java.util.List;
 
 public interface TaskService {
@@ -12,6 +11,6 @@ public interface TaskService {
     TaskResponse updateTask(Long taskId, TaskUpdateRequest request);
     void deleteTask(Long taskId);
     BulkTaskResponse bulkCreateTasks(List<TaskCreateRequest> requests);
-    TaskStatusUpdateResponse updateTaskStatus(String taskId, TaskStatusUpdateRequest request);
+    UpdateTaskStatusResponse updateTaskStatus(String taskId, UpdateTaskStatusRequest request);
     TaskDetailsResponse getTaskDetails(String taskId);
 }

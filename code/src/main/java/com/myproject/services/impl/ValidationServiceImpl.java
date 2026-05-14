@@ -1,76 +1,80 @@
 package com.myproject.services.impl;
 
-import com.myproject.exceptions.ValidationException;
-import com.myproject.models.dtos.TaskValidationRequest;
-import com.myproject.models.dtos.ValidationResponse;
+import com.myproject.exceptions.InvalidInputException;
+import com.myproject.exceptions.InvalidStatusTransitionException;
+import com.myproject.exceptions.TaskLimitExceededException;
+import com.myproject.models.datastores.TaskDataStore;
+import com.myproject.models.dtos.TaskCreateRequest;
 import com.myproject.services.interfaces.ValidationService;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
-@Slf4j
 public class ValidationServiceImpl implements ValidationService {
 
+    private static final int MAX_TASKS_PER_USER = 10000;
+    private static final List<String> VALID_STATUS_TRANSITIONS = Arrays.asList(
+            "TO_DO->IN_PROGRESS",
+            "IN_PROGRESS->DONE",
+            "IN_PROGRESS->TO_DO",
+            "PENDING->IN_PROGRESS",
+            "IN_PROGRESS->COMPLETED"
+    );
+
+    @Autowired
+    private TaskDataStore taskDataStore;
+
     @Override
-    public ValidationResponse validateInput(TaskValidationRequest request) {
-        List<String> errors = new ArrayList<>();
-        
-        // Validate title
+    public void validateTaskInput(TaskCreateRequest request) {
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
-            errors.add("Title is required and cannot be empty or contain only whitespace");
-        } else if (request.getTitle().length() > 255) {
-            errors.add("Title cannot exceed 255 characters");
+            throw new InvalidInputException("Title is required and cannot be empty");
         }
-        
-        // Validate description
+
+        validateTitle(request.getTitle());
+
         if (request.getDescription() != null && request.getDescription().length() > 10000) {
-            errors.add("Description cannot exceed 10000 characters");
-        }
-        
-        // Validate priority
-        if (request.getPriority() != null && !request.getPriority().matches("^(HIGH|MEDIUM|LOW)$")) {
-            errors.add("Priority must be HIGH, MEDIUM, or LOW");
-        }
-        
-        if (errors.isEmpty()) {
-            return ValidationResponse.builder()
-                    .valid(true)
-                    .message("Validation successful")
-                    .build();
-        } else {
-            return ValidationResponse.builder()
-                    .valid(false)
-                    .message(String.join("; ", errors))
-                    .build();
+            throw new InvalidInputException("Description exceeds maximum length of 10000 characters");
         }
     }
 
     @Override
-    public void validateTaskInput(TaskValidationRequest request) {
-        // Validate title
-        if (request.getTitle() == null) {
-            throw new ValidationException("Title is required");
+    public void validateStatusTransition(String fromStatus, String toStatus) {
+        if (fromStatus == null || toStatus == null) {
+            return;
         }
-        if (request.getTitle().trim().isEmpty()) {
-            throw new ValidationException("Title cannot be empty or contain only whitespace");
+
+        String transition = fromStatus + "->" + toStatus;
+        if (!VALID_STATUS_TRANSITIONS.contains(transition)) {
+            throw new InvalidStatusTransitionException(fromStatus, toStatus);
         }
-        if (request.getTitle().length() > 255) {
-            throw new ValidationException("Title cannot exceed 255 characters");
+    }
+
+    @Override
+    public void validateTaskLimit(Long userId) {
+        Long currentCount = taskDataStore.countByUserId(userId);
+        if (currentCount >= MAX_TASKS_PER_USER) {
+            throw new TaskLimitExceededException(
+                    "User has reached the maximum task limit of " + MAX_TASKS_PER_USER
+            );
         }
-        
-        // Validate description
-        if (request.getDescription() != null && request.getDescription().length() > 10000) {
-            throw new ValidationException("Description cannot exceed 10000 characters");
+    }
+
+    @Override
+    public void validateTitle(String title) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new InvalidInputException("Title cannot be empty or contain only whitespace");
         }
-        
-        // Validate priority
-        if (request.getPriority() != null && !request.getPriority().matches("^(HIGH|MEDIUM|LOW)$")) {
-            throw new ValidationException("Priority must be HIGH, MEDIUM, or LOW");
+
+        if (title.length() > 255) {
+            throw new InvalidInputException("Title exceeds maximum length of 255 characters");
         }
-        
-        log.debug("Task input validation passed for title: {}", request.getTitle());
+
+        // Check for whitespace-only content
+        if (title.trim().length() == 0) {
+            throw new InvalidInputException("Title cannot contain only whitespace");
+        }
     }
 }
