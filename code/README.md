@@ -1,23 +1,26 @@
-# MyProject - SCIB Inception Phase Demo
+# MyProject - Task Management System
 
 ## Overview
 
-This is a Spring Boot 3.5.9 application built with Java 21 that implements a task management system with Kanban board functionality.
+This is a Spring Boot application for managing tasks with support for Kanban board functionality. The application provides REST APIs for creating, updating, deleting, and retrieving tasks, as well as managing column statistics.
 
 ## Features
 
 - **Task Management**: Create, read, update, and delete tasks
-- **Kanban Board**: Drag-and-drop task status updates with column management
-- **Input Validation**: Robust validation for malformed or unexpected input
-- **High Performance**: Supports up to 10,000 tasks per user with optimized operations
-- **In-Memory Storage**: Uses concurrent data structures for thread-safe operations
+- **User Task Management**: Retrieve tasks by user with pagination
+- **Bulk Operations**: Create multiple tasks in a single request
+- **Task Status Management**: Update task status and column assignments
+- **Column Statistics**: Track task counts per column
+- **Input Validation**: Comprehensive validation for all inputs
+- **Error Handling**: Graceful error handling with detailed error messages
 
 ## Technology Stack
 
 - **Java**: 21
 - **Spring Boot**: 3.5.9
 - **Build Tool**: Maven
-- **Testing**: JUnit Jupiter, JaCoCo for coverage
+- **Testing**: JUnit Jupiter
+- **Code Coverage**: JaCoCo
 
 ## Project Structure
 
@@ -27,17 +30,16 @@ code/
 ├── src/
 │   └── main/
 │       ├── java/com/myproject/
-│       │   ├── controllers/          # REST API endpoints
+│       │   ├── controllers/          # REST API controllers
 │       │   ├── models/
 │       │   │   ├── dtos/            # Data Transfer Objects
 │       │   │   ├── entities/        # Domain entities
-│       │   │   └── datastores/      # In-memory data storage
+│       │   │   └── datastores/      # In-memory data stores
 │       │   ├── services/
-│       │   │   ├── interfaces/      # Service contracts
+│       │   │   ├── interfaces/      # Service interfaces
 │       │   │   └── impl/            # Service implementations
 │       │   ├── config/              # Configuration classes
 │       │   ├── exceptions/          # Custom exceptions
-│       │   ├── utils/               # Utility classes
 │       │   └── Application.java     # Main application class
 │       └── resources/
 │           └── application.properties
@@ -49,62 +51,58 @@ code/
 ### Task Management
 
 - `POST /api/v1/tasks` - Create a new task
-- `GET /api/v1/tasks` - Get paginated list of tasks
+- `GET /api/v1/tasks` - List all tasks
 - `GET /api/v1/tasks/{taskId}` - Get task by ID
 - `PUT /api/v1/tasks/{taskId}` - Update task
 - `DELETE /api/v1/tasks/{taskId}` - Delete task
-- `POST /api/v1/tasks/bulk` - Bulk create tasks
 - `PUT /api/v1/tasks/{taskId}/status` - Update task status
+- `POST /api/v1/tasks/bulk` - Bulk create tasks
 
-### User Tasks
+### User Task Management
 
-- `GET /api/v1/users/{userId}/tasks` - Get user's tasks
-- `GET /api/v1/users/{userId}/tasks/count` - Get user's task count
+- `GET /api/v1/users/{userId}/tasks` - Get user tasks (paginated)
+- `GET /api/v1/users/{userId}/tasks/count` - Get user task count
 
 ### Column Management
 
 - `GET /api/v1/columns/{columnId}/stats` - Get column statistics
 - `PUT /api/v1/columns/bulk-update` - Bulk update column counts
 
-## Building and Running
-
-### Prerequisites
-
-- Java 21
-- Maven 3.6+
-
-### Build
+## Building the Application
 
 ```bash
 cd code
 mvn clean install
 ```
 
-### Run
+## Running the Application
 
 ```bash
+cd code
 mvn spring-boot:run
 ```
 
 The application will start on `http://localhost:8080/api`
 
-### Run Tests
+## Running Tests
 
 ```bash
+cd code
 mvn test
 ```
 
-### Generate Coverage Report
+## Generating Code Coverage Report
 
 ```bash
+cd code
 mvn jacoco:report
 ```
 
-Coverage report will be available at `target/site/jacoco/index.html`
+The coverage report will be available at `code/target/site/jacoco/index.html`
 
 ## Configuration
 
-Key configuration properties in `application.properties`:
+The application can be configured via `application.properties`:
 
 ```properties
 spring.application.name=myproject
@@ -116,69 +114,59 @@ logging.level.com.myproject=DEBUG
 
 ## CORS Configuration
 
-CORS is configured to allow requests from:
-- `http://localhost:4200` (Angular development server)
+The application is configured to allow CORS requests from:
+- Origin: `http://localhost:4200`
+- All HTTP methods
+- All headers
+- Credentials enabled
+
+## Data Storage
+
+The application uses in-memory data stores for:
+- **Tasks**: Stored in `TaskDataStoreImpl`
+- **Columns**: Stored in `ColumnDataStoreImpl` with default columns (To Do, In Progress, Done)
 
 ## Validation Rules
 
 ### Task Creation
+- Title: Required, 1-255 characters, cannot be empty or whitespace-only
+- Description: Optional, max 2000 characters
+- User ID: Required, must be positive
+- Priority: Optional, must be LOW, MEDIUM, HIGH, or URGENT
 
-- **Title**: Required, 1-255 characters, cannot be whitespace-only
-- **Description**: Optional, max 10,000 characters
-- **User ID**: Required, must be positive
-- **Priority**: Optional, valid values: LOW, MEDIUM, HIGH, URGENT
+### Task Update
+- Title: Optional, 1-255 characters if provided
+- Description: Optional, max 10000 characters
+- Priority: Optional, must be LOW, MEDIUM, or HIGH
+- Status: Optional, must be TODO, IN_PROGRESS, or DONE
 
 ### Task Limits
-
-- Maximum 10,000 tasks per user
-- Validation enforced at service layer
-
-### Status Transitions
-
-Valid status transitions:
-- TO_DO → IN_PROGRESS
-- IN_PROGRESS → DONE
-- IN_PROGRESS → TO_DO
-- PENDING → IN_PROGRESS
-- IN_PROGRESS → COMPLETED
+- Maximum tasks per user: 10,000
 
 ## Error Handling
 
-The application provides structured error responses:
+The application provides detailed error responses with:
+- HTTP status code
+- Error code
+- Error message
+- Timestamp
+- Validation errors (if applicable)
 
-```json
-{
-  "timestamp": "2024-01-01T10:00:00",
-  "errorCode": "VALIDATION_ERROR",
-  "message": "Validation failed",
-  "details": ["Title is required"]
-}
-```
+### Common Error Codes
+- `TASK_NOT_FOUND` - Task does not exist
+- `COLUMN_NOT_FOUND` - Column does not exist
+- `TASK_LIMIT_EXCEEDED` - User has reached maximum task limit
+- `INVALID_STATUS_TRANSITION` - Invalid task status change
+- `INVALID_INPUT` - Input validation failed
+- `VALIDATION_ERROR` - Bean validation failed
 
 ## CI/CD
 
-GitHub Actions workflow is configured for:
-- Building with Maven
-- Running tests
-- Generating JaCoCo coverage reports
-- Uploading test results and coverage artifacts
-
-## Development Notes
-
-### In-Memory Storage
-
-The application uses in-memory concurrent data structures:
-- `ConcurrentHashMap` for thread-safe operations
-- `AtomicLong` for ID generation
-- Pre-initialized with default Kanban columns (To Do, In Progress, Done)
-
-### Future Enhancements
-
-- Database integration (PostgreSQL/MySQL)
-- Authentication and authorization
-- WebSocket support for real-time updates
-- Redis caching
-- Metrics and monitoring
+The project includes a GitHub Actions workflow (`.github/workflows/build.yml`) that:
+- Builds the application with Maven
+- Runs tests
+- Generates JaCoCo coverage reports
+- Uploads test results and coverage reports as artifacts
 
 ## License
 
@@ -186,4 +174,4 @@ This project is part of the SCIB Inception Phase Demo.
 
 ## Contact
 
-For questions or issues, please refer to the project documentation.
+For questions or issues, please refer to the project documentation or contact the development team.
