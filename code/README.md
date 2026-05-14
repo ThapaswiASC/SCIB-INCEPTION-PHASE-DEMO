@@ -1,55 +1,47 @@
-# SCIB Inception Phase Demo - MyProject
+# MyProject - SCIB Inception Phase Demo
 
 ## Overview
 
-This is a Spring Boot application implementing a task management system with Kanban board functionality. The application provides REST APIs for managing tasks, columns, and validating input data.
+This is a Spring Boot 3.5.9 application built with Java 21 that implements a task management system with Kanban board functionality.
 
 ## Features
 
-### Task Management (DEMO-757)
-- Create, read, update, and delete tasks
-- Support for up to 10,000 tasks per user
-- Bulk task creation
-- Paginated task retrieval
-- Task count tracking per user
-
-### Kanban Board (DEMO-222)
-- Drag and drop task status updates
-- Column statistics tracking
-- Bulk column count updates
-- Real-time task movement between columns
-
-### Input Validation (DEMO-759)
-- Comprehensive input validation
-- Graceful handling of malformed data
-- Detailed validation error messages
-- Support for special characters and unicode
+- **Task Management**: Create, read, update, and delete tasks
+- **Kanban Board**: Drag-and-drop task status updates with column management
+- **Input Validation**: Robust validation for malformed or unexpected input
+- **High Performance**: Supports up to 10,000 tasks per user with optimized operations
+- **In-Memory Storage**: Uses concurrent data structures for thread-safe operations
 
 ## Technology Stack
 
 - **Java**: 21
 - **Spring Boot**: 3.5.9
 - **Build Tool**: Maven
-- **Data Storage**: In-memory (ConcurrentHashMap)
+- **Testing**: JUnit Jupiter, JaCoCo for coverage
 
 ## Project Structure
 
 ```
 code/
-├── src/main/java/com/myproject/
-│   ├── controllers/          # REST API controllers
-│   ├── services/
-│   │   ├── interfaces/       # Service interfaces
-│   │   └── impl/             # Service implementations
-│   ├── models/
-│   │   ├── dtos/             # Data Transfer Objects
-│   │   ├── entities/         # Domain entities
-│   │   └── datastores/       # Data access layer
-│   ├── config/               # Configuration classes
-│   ├── exceptions/           # Custom exceptions
-│   └── Application.java      # Main application class
-└── src/main/resources/
-    └── application.properties # Application configuration
+├── pom.xml
+├── src/
+│   └── main/
+│       ├── java/com/myproject/
+│       │   ├── controllers/          # REST API endpoints
+│       │   ├── models/
+│       │   │   ├── dtos/            # Data Transfer Objects
+│       │   │   ├── entities/        # Domain entities
+│       │   │   └── datastores/      # In-memory data storage
+│       │   ├── services/
+│       │   │   ├── interfaces/      # Service contracts
+│       │   │   └── impl/            # Service implementations
+│       │   ├── config/              # Configuration classes
+│       │   ├── exceptions/          # Custom exceptions
+│       │   ├── utils/               # Utility classes
+│       │   └── Application.java     # Main application class
+│       └── resources/
+│           └── application.properties
+└── .github/workflows/build.yml      # CI/CD workflow
 ```
 
 ## API Endpoints
@@ -57,29 +49,29 @@ code/
 ### Task Management
 
 - `POST /api/v1/tasks` - Create a new task
-- `GET /api/v1/tasks/{taskId}` - Get task details
-- `PUT /api/v1/tasks/{taskId}/update` - Update task
-- `DELETE /api/v1/tasks/{taskId}/delete` - Delete task
+- `GET /api/v1/tasks` - Get paginated list of tasks
+- `GET /api/v1/tasks/{taskId}` - Get task by ID
+- `PUT /api/v1/tasks/{taskId}` - Update task
+- `DELETE /api/v1/tasks/{taskId}` - Delete task
 - `POST /api/v1/tasks/bulk` - Bulk create tasks
-- `GET /api/v1/users/{userId}/tasks` - Get user tasks (paginated)
-- `GET /api/v1/users/{userId}/tasks/count` - Get task count
-
-### Kanban Board
-
 - `PUT /api/v1/tasks/{taskId}/status` - Update task status
+
+### User Tasks
+
+- `GET /api/v1/users/{userId}/tasks` - Get user's tasks
+- `GET /api/v1/users/{userId}/tasks/count` - Get user's task count
+
+### Column Management
+
 - `GET /api/v1/columns/{columnId}/stats` - Get column statistics
 - `PUT /api/v1/columns/bulk-update` - Bulk update column counts
-
-### Validation
-
-- `POST /api/v1/tasks/validate` - Validate task input
 
 ## Building and Running
 
 ### Prerequisites
 
-- Java 21 or higher
-- Maven 3.6 or higher
+- Java 21
+- Maven 3.6+
 
 ### Build
 
@@ -96,6 +88,20 @@ mvn spring-boot:run
 
 The application will start on `http://localhost:8080/api`
 
+### Run Tests
+
+```bash
+mvn test
+```
+
+### Generate Coverage Report
+
+```bash
+mvn jacoco:report
+```
+
+Coverage report will be available at `target/site/jacoco/index.html`
+
 ## Configuration
 
 Key configuration properties in `application.properties`:
@@ -110,69 +116,69 @@ logging.level.com.myproject=DEBUG
 
 ## CORS Configuration
 
-The application is configured to allow CORS requests from:
-- `http://localhost:4200`
-
-All headers and methods are allowed with credentials support.
-
-## Error Handling
-
-The application provides comprehensive error handling with structured error responses:
-
-```json
-{
-  "timestamp": "2024-01-01T10:00:00",
-  "traceId": "uuid",
-  "errorCode": "ERROR_CODE",
-  "message": "Error message",
-  "details": ["Additional details"]
-}
-```
+CORS is configured to allow requests from:
+- `http://localhost:4200` (Angular development server)
 
 ## Validation Rules
 
 ### Task Creation
-- Title: Required, 1-255 characters
-- Description: Optional, max 2000 characters
-- User ID: Required, positive number
-- Priority: Required, one of LOW, MEDIUM, HIGH, URGENT
-- Due Date: Optional, future date
 
-### Task Validation Endpoint
-- Title: Required, 1-255 characters
-- Description: Optional, max 10000 characters
-- Priority: Optional, must match pattern ^(HIGH|MEDIUM|LOW)$
+- **Title**: Required, 1-255 characters, cannot be whitespace-only
+- **Description**: Optional, max 10,000 characters
+- **User ID**: Required, must be positive
+- **Priority**: Optional, valid values: LOW, MEDIUM, HIGH, URGENT
 
-## Business Rules
+### Task Limits
 
-1. **Task Limit**: Each user can have a maximum of 10,000 tasks
-2. **Status Transitions**: Tasks can move between TO_DO, IN_PROGRESS, and DONE
-3. **Column Counts**: Automatically updated when tasks move between columns
-4. **Concurrent Operations**: Thread-safe in-memory data stores using ConcurrentHashMap
+- Maximum 10,000 tasks per user
+- Validation enforced at service layer
 
-## Testing
+### Status Transitions
 
-Run tests with:
+Valid status transitions:
+- TO_DO → IN_PROGRESS
+- IN_PROGRESS → DONE
+- IN_PROGRESS → TO_DO
+- PENDING → IN_PROGRESS
+- IN_PROGRESS → COMPLETED
 
-```bash
-mvn test
+## Error Handling
+
+The application provides structured error responses:
+
+```json
+{
+  "timestamp": "2024-01-01T10:00:00",
+  "errorCode": "VALIDATION_ERROR",
+  "message": "Validation failed",
+  "details": ["Title is required"]
+}
 ```
-
-Generate coverage report:
-
-```bash
-mvn jacoco:report
-```
-
-Coverage reports are available at `target/site/jacoco/index.html`
 
 ## CI/CD
 
-The project includes a GitHub Actions workflow (`.github/workflows/build.yml`) that:
-- Builds the application
-- Runs tests
-- Generates coverage reports
-- Uploads artifacts
+GitHub Actions workflow is configured for:
+- Building with Maven
+- Running tests
+- Generating JaCoCo coverage reports
+- Uploading test results and coverage artifacts
+
+## Development Notes
+
+### In-Memory Storage
+
+The application uses in-memory concurrent data structures:
+- `ConcurrentHashMap` for thread-safe operations
+- `AtomicLong` for ID generation
+- Pre-initialized with default Kanban columns (To Do, In Progress, Done)
+
+### Future Enhancements
+
+- Database integration (PostgreSQL/MySQL)
+- Authentication and authorization
+- WebSocket support for real-time updates
+- Redis caching
+- Metrics and monitoring
 
 ## License
 
@@ -180,4 +186,4 @@ This project is part of the SCIB Inception Phase Demo.
 
 ## Contact
 
-For questions or issues, please refer to the project documentation or contact the development team.
+For questions or issues, please refer to the project documentation.

@@ -1,26 +1,25 @@
 package com.myproject.utils;
 
-import org.apache.commons.lang3.StringUtils;
-
-import java.nio.charset.StandardCharsets;
-
 public class ValidationUtils {
 
-    public static boolean isValidUTF8(String input) {
-        if (input == null) {
-            return true;
-        }
-        try {
-            byte[] bytes = input.getBytes(StandardCharsets.UTF_8);
-            String decoded = new String(bytes, StandardCharsets.UTF_8);
-            return input.equals(decoded);
-        } catch (Exception e) {
-            return false;
-        }
+    private ValidationUtils() {
+        // Utility class
     }
 
-    public static boolean isBlankOrWhitespace(String input) {
-        return input == null || StringUtils.isBlank(input) || input.trim().isEmpty();
+    public static boolean isNullOrEmpty(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    public static boolean isWhitespaceOnly(String value) {
+        return value != null && value.trim().isEmpty();
+    }
+
+    public static boolean containsSpecialCharacters(String value) {
+        if (value == null) {
+            return false;
+        }
+        // Allow alphanumeric, spaces, and common punctuation
+        return !value.matches("^[a-zA-Z0-9\\s.,!?'-]*$");
     }
 
     public static String sanitizeInput(String input) {
