@@ -4,25 +4,64 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class ErrorResponse {
+
+    private Integer status;
+    private String code;
+    private String message;
+    private List<String> errors;
     private LocalDateTime timestamp;
     private String traceId;
-    private String errorCode;
-    private String message;
     private List<String> details;
 
     public ErrorResponse() {
+        this.timestamp = LocalDateTime.now();
     }
 
-    private ErrorResponse(Builder builder) {
-        this.timestamp = builder.timestamp;
-        this.traceId = builder.traceId;
-        this.errorCode = builder.errorCode;
-        this.message = builder.message;
-        this.details = builder.details;
+    public ErrorResponse(Integer status, String code, String message) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.timestamp = LocalDateTime.now();
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public ErrorResponse(Integer status, String code, String message, List<String> errors) {
+        this.status = status;
+        this.code = code;
+        this.message = message;
+        this.errors = errors;
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public List<String> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(List<String> errors) {
+        this.errors = errors;
     }
 
     public LocalDateTime getTimestamp() {
@@ -41,64 +80,11 @@ public class ErrorResponse {
         this.traceId = traceId;
     }
 
-    public String getErrorCode() {
-        return errorCode;
-    }
-
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
     public List<String> getDetails() {
         return details;
     }
 
     public void setDetails(List<String> details) {
         this.details = details;
-    }
-
-    public static class Builder {
-        private LocalDateTime timestamp;
-        private String traceId;
-        private String errorCode;
-        private String message;
-        private List<String> details;
-
-        public Builder timestamp(LocalDateTime timestamp) {
-            this.timestamp = timestamp;
-            return this;
-        }
-
-        public Builder traceId(String traceId) {
-            this.traceId = traceId;
-            return this;
-        }
-
-        public Builder errorCode(String errorCode) {
-            this.errorCode = errorCode;
-            return this;
-        }
-
-        public Builder message(String message) {
-            this.message = message;
-            return this;
-        }
-
-        public Builder details(List<String> details) {
-            this.details = details;
-            return this;
-        }
-
-        public ErrorResponse build() {
-            return new ErrorResponse(this);
-        }
     }
 }
