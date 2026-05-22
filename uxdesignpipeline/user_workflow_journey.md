@@ -1,702 +1,541 @@
 # User Workflow Journey Documentation
 
-## Experience Overview
+## Project Overview
 
-This document outlines comprehensive user workflows for a digital healthcare platform experience, focusing on patient appointment management and care coordination. The experience encompasses multiple scenarios that balance user needs with business objectives while ensuring accessibility and scalability.
+**Note**: This documentation was generated without access to specific Jira story details due to template parameter issues. This serves as a comprehensive methodology example for UX workflow creation.
 
-## Core Experience: Patient Healthcare Management
+## Experience Definition
 
-### User Profile
-**Primary User:** Adult patients (ages 25-65) seeking healthcare services
-**Context:** Users need to manage their healthcare journey from symptom assessment to appointment completion
-**Technical Proficiency:** Mixed (basic to intermediate digital literacy)
-**Accessibility Needs:** Visual, auditory, motor, and cognitive accessibility support required
+**User**: Healthcare Patient
+**Experience**: Digital Healthcare Management
+**Context**: Patients need to manage their healthcare digitally through appointment scheduling, medical records access, and communication with healthcare providers.
 
 ---
 
-## Scenario 1: New Patient Symptom Assessment and Appointment Booking
+## Scenario 1: New Patient Appointment Booking
 
-### Scenario Context
-Sarah, a 32-year-old marketing professional, has been experiencing persistent headaches for the past week. She's new to the healthcare platform and wants to understand her symptoms and book an appointment with an appropriate specialist quickly and efficiently.
+### User Scenario
+Sarah, a 28-year-old working professional, recently moved to a new city and needs to find a primary care physician. She's experiencing persistent headaches for the past week and wants to book an appointment as soon as possible. She prefers to research doctors, check availability, and book appointments online rather than making phone calls during work hours.
 
 ### User Goal
-Help Sarah identify potential causes of her symptoms and connect her with the right healthcare provider for timely treatment.
+Successfully find and book an appointment with a qualified healthcare provider that fits her schedule and location preferences.
 
 ### Business Goal
-Acquire new patients by providing immediate value through symptom assessment while guiding them toward appropriate care services and building platform trust.
+Acquire new patients through seamless digital onboarding while collecting necessary medical information and insurance details to streamline the appointment process.
 
-### Workflow Design Variation A: Guided Assessment Flow
+### Workflow Design Variation 1: Guided Discovery Flow
 
-#### Screen Documentation
+#### 1.0 Homepage [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Build trust and guide new users toward appropriate healthcare services
+- **Screen Description**:
+  1. Hero section with clear value proposition for new patients
+  2. Symptom checker tool for initial assessment
+  3. Provider search functionality with filters
+  4. Featured specialties and common conditions
+  5. Patient testimonials and trust indicators
+  6. Insurance verification tool
+- **Design Problems**:
+  - HMW help new patients understand what services are available?
+  - HMW build immediate trust with users who are unfamiliar with the platform?
+  - HMW guide users who are unsure about their medical needs?
+- **Design Opportunities**:
+  - What if we could provide personalized recommendations based on symptoms?
+  - What if we could show real-time availability during the search process?
+  - What if we could pre-verify insurance coverage before booking?
 
-**1.0 Homepage [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Build credibility and guide new users toward symptom assessment
-- Screen Description:
-  1. Hero section with symptom checker CTA
-  2. Search functionality for doctors by specialty
-  3. Featured health packages and preventive care options
-  4. Patient testimonials and platform benefits
-  5. Emergency care contact information
-- Design Problems:
-  - HMW help new users quickly understand platform value?
-  - HMW reduce anxiety for users with health concerns?
-  - HMW communicate medical credibility immediately?
-- Design Opportunities:
-  - What if we could provide instant symptom insights?
-  - What if we offered 24/7 virtual triage support?
-  - What if we personalized content based on user location?
+#### 2.0 Provider Search [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item or search from homepage
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Help users find the most suitable healthcare provider based on their specific needs
+- **Screen Description**:
+  1. Advanced search filters (specialty, location, insurance, availability)
+  2. Provider cards with photos, credentials, ratings, and next available appointment
+  3. Map view showing provider locations
+  4. Sort options (distance, rating, earliest availability)
+  5. Save favorites functionality
+  6. Compare providers feature
+- **Design Problems**:
+  - HMW help users make informed decisions about provider selection?
+  - HMW display complex provider information in a digestible format?
+  - HMW handle cases where no providers match the search criteria?
+- **Design Opportunities**:
+  - What if we could show provider communication styles and patient feedback?
+  - What if we could predict which providers would be the best match?
+  - What if we could show estimated wait times for appointments?
 
-**Pu.1 Symptom Assessment Modal [type: modal]**
-- HOW IT IS REACHED: Click "Check Your Symptoms" CTA button on Homepage
-- NAVBAR PRESENCE: No
-- Page Goal: Collect symptom information to provide relevant care recommendations
-- Screen Description:
-  1. Progressive symptom questionnaire with visual body map
-  2. Severity rating scales and duration tracking
-  3. Medical history quick capture
-  4. Symptom timeline builder
-  5. Risk assessment and urgency indicators
-- Design Problems:
-  - HMW make medical questions accessible to non-medical users?
-  - HMW ensure accurate symptom reporting?
-  - HMW handle sensitive health information appropriately?
-- Design Opportunities:
-  - What if we used AI to suggest related symptoms?
-  - What if we provided educational content during assessment?
-  - What if we offered multiple input methods (voice, text, visual)?
+#### 2.0-D Provider Detail [type: detail]
+- **HOW IT IS REACHED**: Clicking on a provider card from Provider Search screen
+- **NAVBAR PRESENCE**: No
+- **Page Goal**: Provide comprehensive information about a specific provider to support booking decision
+- **Screen Description**:
+  1. Provider photo, credentials, and specializations
+  2. Patient reviews and ratings with detailed feedback
+  3. Office location, hours, and contact information
+  4. Insurance accepted and pricing information
+  5. Available appointment slots calendar
+  6. Provider's approach to care and treatment philosophy
+- **Design Problems**:
+  - HMW present detailed provider information without overwhelming the user?
+  - HMW help users understand what to expect from this specific provider?
+  - HMW make the booking process feel seamless from this screen?
+- **Design Opportunities**:
+  - What if we could show video introductions from providers?
+  - What if we could display similar patients' experiences?
+  - What if we could show the provider's typical appointment flow?
 
-**2.0 Assessment Results [type: primary]**
-- HOW IT IS REACHED: Complete symptom assessment in Pu.1 modal
-- NAVBAR PRESENCE: Yes
-- Page Goal: Present personalized care recommendations and facilitate next steps
-- Screen Description:
-  1. Symptom summary with severity indicators
-  2. Recommended specialist types with explanations
-  3. Urgency level and care timeline suggestions
-  4. Available doctors filtered by symptom relevance
-  5. Educational resources about potential conditions
-- Design Problems:
-  - HMW present medical information without causing alarm?
-  - HMW help users choose between multiple specialists?
-  - HMW balance thoroughness with simplicity?
-- Design Opportunities:
-  - What if we showed doctor availability in real-time?
-  - What if we provided cost estimates upfront?
-  - What if we offered virtual consultation options?
+#### Pu.1 Appointment Booking Modal [type: modal]
+- **HOW IT IS REACHED**: Clicking "Book Appointment" CTA button from Provider Detail screen
+- **NAVBAR PRESENCE**: No
+- **Page Goal**: Capture necessary information to schedule an appointment efficiently
+- **Screen Description**:
+  1. Appointment type selection (new patient, follow-up, urgent)
+  2. Available time slots with duration indicators
+  3. Reason for visit (dropdown with common options + free text)
+  4. Patient information form (if new patient)
+  5. Insurance verification and copay information
+  6. Confirmation and calendar integration options
+- **Design Problems**:
+  - HMW collect necessary information without making the form feel lengthy?
+  - HMW handle insurance verification seamlessly?
+  - HMW accommodate urgent vs. routine appointment needs?
+- **Design Opportunities**:
+  - What if we could auto-fill information from previous visits?
+  - What if we could provide estimated appointment costs upfront?
+  - What if we could offer telehealth options when appropriate?
 
-**2.0-D Doctor Profile Detail [type: detail]**
-- HOW IT IS REACHED: Click on doctor card from Assessment Results screen
-- NAVBAR PRESENCE: No
-- Page Goal: Provide comprehensive doctor information to support booking decisions
-- Screen Description:
-  1. Doctor credentials, specializations, and experience
-  2. Patient reviews and ratings with verified badges
-  3. Available appointment slots with time preferences
-  4. Consultation types (in-person, video, phone)
-  5. Insurance acceptance and pricing information
-- Design Problems:
-  - HMW help users evaluate doctor qualifications?
-  - HMW present scheduling options clearly?
-  - HMW handle insurance verification efficiently?
-- Design Opportunities:
-  - What if we showed doctor response times?
-  - What if we offered appointment preparation guidance?
-  - What if we provided language preference matching?
+#### 3.0 Appointment Confirmation [type: primary]
+- **HOW IT IS REACHED**: Direct navigation after successful booking or via sidebar nav item
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Confirm appointment details and provide next steps for the patient
+- **Screen Description**:
+  1. Appointment summary with date, time, provider, and location
+  2. Preparation instructions and what to bring
+  3. Office policies and what to expect
+  4. Calendar integration and reminder setup
+  5. Pre-visit forms and questionnaires
+  6. Contact information for questions or changes
+- **Design Problems**:
+  - HMW ensure patients have all necessary information for their visit?
+  - HMW reduce no-shows through effective preparation?
+  - HMW handle last-minute changes or cancellations?
+- **Design Opportunities**:
+  - What if we could send personalized preparation checklists?
+  - What if we could provide virtual office tours?
+  - What if we could offer pre-visit consultations for complex cases?
 
-**Pu.2 Appointment Booking Modal [type: modal]**
-- HOW IT IS REACHED: Click "Book Appointment" CTA button on Doctor Profile Detail
-- NAVBAR PRESENCE: No
-- Page Goal: Capture appointment details and complete booking process
-- Screen Description:
-  1. Calendar interface with available time slots
-  2. Appointment type selection (consultation, follow-up, procedure)
-  3. Insurance information capture and verification
-  4. Contact preferences and reminder settings
-  5. Pre-appointment questionnaire completion
-- Design Problems:
-  - HMW streamline the booking process for anxious users?
-  - HMW handle insurance verification without delays?
-  - HMW collect necessary information without overwhelming users?
-- Design Opportunities:
-  - What if we offered flexible rescheduling options?
-  - What if we provided appointment preparation checklists?
-  - What if we integrated with user calendars automatically?
+### Workflow Design Variation 2: Quick Booking Flow
 
-**3.0 Booking Confirmation [type: primary]**
-- HOW IT IS REACHED: Complete appointment booking in Pu.2 modal
-- NAVBAR PRESENCE: Yes
-- Page Goal: Confirm appointment details and provide next steps
-- Screen Description:
-  1. Appointment summary with all key details
-  2. Calendar integration options and reminder setup
-  3. Pre-appointment preparation instructions
-  4. Contact information for changes or questions
-  5. Related health resources and educational content
-- Design Problems:
-  - HMW ensure users have all necessary appointment information?
-  - HMW reduce no-show rates through effective preparation?
-  - HMW provide clear paths for appointment modifications?
-- Design Opportunities:
-  - What if we sent personalized preparation reminders?
-  - What if we offered virtual waiting room experiences?
-  - What if we provided post-appointment care coordination?
+#### 1.0 Express Booking [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Enable rapid appointment booking for users who know what they need
+- **Screen Description**:
+  1. Streamlined search with minimal required fields
+  2. "Next Available" appointment suggestions
+  3. One-click booking for returning patients
+  4. Emergency and urgent care options prominently displayed
+  5. Quick filters for common needs (annual checkup, sick visit, follow-up)
+  6. Integration with existing patient records
+- **Design Problems**:
+  - HMW balance speed with necessary information collection?
+  - HMW ensure quality matches despite reduced friction?
+  - HMW handle edge cases in the simplified flow?
+- **Design Opportunities**:
+  - What if we could predict user needs based on history?
+  - What if we could offer instant booking confirmations?
+  - What if we could provide same-day appointment guarantees?
 
-#### Navigation Structure (Sidebar/Navbar - Primary Screens Only):
-1.0 Homepage | 2.0 Assessment Results | 3.0 Booking Confirmation
+#### Pu.2 Quick Booking Confirmation [type: modal]
+- **HOW IT IS REACHED**: Clicking "Book Now" CTA button from Express Booking screen
+- **NAVBAR PRESENCE**: No
+- **Page Goal**: Confirm booking details with minimal friction
+- **Screen Description**:
+  1. Pre-filled patient information (for returning users)
+  2. Appointment details confirmation
+  3. Insurance verification status
+  4. One-click confirmation button
+  5. Alternative time suggestions if preferred slot unavailable
+  6. Immediate calendar integration
+- **Design Problems**:
+  - HMW maintain accuracy while minimizing confirmation steps?
+  - HMW handle conflicts or double-bookings gracefully?
+  - HMW ensure users don't miss important details in the quick flow?
+- **Design Opportunities**:
+  - What if we could offer instant rebooking if conflicts arise?
+  - What if we could provide real-time availability updates?
+  - What if we could automatically handle insurance pre-authorization?
 
-#### User Journey Flow (Full Interaction Sequence):
-1.0 Homepage → [click "Check Your Symptoms"] → Pu.1 Symptom Assessment Modal [type: modal] → [complete assessment] → 2.0 Assessment Results → [click doctor card] → 2.0-D Doctor Profile Detail [type: detail] → [click "Book Appointment"] → Pu.2 Appointment Booking Modal [type: modal] → [submit booking] → 3.0 Booking Confirmation
+### Navigation Structure (Variation 1):
+1.0 Homepage | 2.0 Provider Search | 3.0 Appointment Confirmation
 
-### Workflow Design Variation B: Direct Search Flow
+### User Journey Flow (Variation 1):
+1.0 Homepage → [search providers] → 2.0 Provider Search → [click provider card] → 2.0-D Provider Detail → [click Book Appointment] → Pu.1 Appointment Booking Modal → [submit] → 3.0 Appointment Confirmation
 
-#### Screen Documentation
+### Navigation Structure (Variation 2):
+1.0 Express Booking
 
-**1.0 Homepage [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Enable quick doctor search for users who know their needs
-- Screen Description:
-  1. Prominent search bar with specialty and location filters
-  2. Popular specialties as quick-select options
-  3. Featured doctors and availability indicators
-  4. Insurance network filtering options
-  5. Emergency and urgent care pathways
-- Design Problems:
-  - HMW help users who don't know which specialty they need?
-  - HMW surface the most relevant doctors quickly?
-  - HMW handle location-based search effectively?
-- Design Opportunities:
-  - What if we provided specialty recommendation based on symptoms?
-  - What if we showed real-time availability across all doctors?
-  - What if we offered telehealth options prominently?
-
-**4.0 Search Results [type: primary]**
-- HOW IT IS REACHED: Submit search query from Homepage search bar
-- NAVBAR PRESENCE: Yes
-- Page Goal: Present relevant doctors with filtering and sorting options
-- Screen Description:
-  1. Doctor cards with key information and availability
-  2. Advanced filtering sidebar (specialty, location, insurance, ratings)
-  3. Sorting options (availability, rating, distance, price)
-  4. Map view toggle for location-based selection
-  5. Saved searches and doctor favorites functionality
-- Design Problems:
-  - HMW help users compare multiple doctors effectively?
-  - HMW handle cases where no doctors match criteria?
-  - HMW balance information density with usability?
-- Design Opportunities:
-  - What if we provided AI-powered doctor matching?
-  - What if we showed patient outcome data?
-  - What if we offered group appointment options?
-
-**4.0-D Doctor Profile Detail [type: detail]**
-- HOW IT IS REACHED: Click on doctor card from Search Results screen
-- NAVBAR PRESENCE: No
-- Page Goal: Provide comprehensive doctor information to support booking decisions
-- Screen Description: [Same as Variation A]
-
-**Pu.3 Quick Booking Modal [type: modal]**
-- HOW IT IS REACHED: Click "Quick Book" CTA button on Doctor Profile Detail
-- NAVBAR PRESENCE: No
-- Page Goal: Enable rapid appointment booking for returning users
-- Screen Description:
-  1. Streamlined calendar with next available slots highlighted
-  2. Saved insurance and contact information pre-filled
-  3. Appointment type quick selection
-  4. One-click booking with saved preferences
-  5. Instant confirmation and calendar integration
-- Design Problems:
-  - HMW balance speed with accuracy in booking?
-  - HMW handle conflicts with existing appointments?
-  - HMW ensure all necessary information is captured?
-- Design Opportunities:
-  - What if we offered recurring appointment scheduling?
-  - What if we provided smart scheduling based on user patterns?
-  - What if we integrated with workplace calendars?
-
-**5.0 Quick Confirmation [type: primary]**
-- HOW IT IS REACHED: Complete quick booking in Pu.3 modal
-- NAVBAR PRESENCE: Yes
-- Page Goal: Confirm appointment and provide streamlined next steps
-- Screen Description:
-  1. Minimal appointment confirmation with key details
-  2. Quick actions for calendar integration and reminders
-  3. Fast access to appointment modification options
-  4. Suggested follow-up actions and related services
-  5. Feedback collection for booking experience
-- Design Problems:
-  - HMW provide confidence in quick booking accuracy?
-  - HMW enable easy modifications if needed?
-  - HMW collect feedback without interrupting flow?
-- Design Opportunities:
-  - What if we offered appointment optimization suggestions?
-  - What if we provided contextual health tips?
-  - What if we enabled social sharing of positive experiences?
-
-#### Navigation Structure (Sidebar/Navbar - Primary Screens Only):
-1.0 Homepage | 4.0 Search Results | 5.0 Quick Confirmation
-
-#### User Journey Flow (Full Interaction Sequence):
-1.0 Homepage → [search for doctors] → 4.0 Search Results → [click doctor card] → 4.0-D Doctor Profile Detail [type: detail] → [click "Quick Book"] → Pu.3 Quick Booking Modal [type: modal] → [submit booking] → 5.0 Quick Confirmation
+### User Journey Flow (Variation 2):
+1.0 Express Booking → [click Book Now] → Pu.2 Quick Booking Confirmation → [confirm] → 1.0 Express Booking (updated with confirmation)
 
 ---
 
 ## Scenario 2: Existing Patient Appointment Management
 
-### Scenario Context
-Michael, a 45-year-old existing patient, needs to reschedule his upcoming cardiology appointment due to a work conflict. He wants to quickly view his current appointments and find a new suitable time slot without losing his preferred doctor.
+### User Scenario
+Michael, a 45-year-old patient with diabetes, has been seeing Dr. Johnson for regular check-ups. He needs to reschedule his upcoming appointment due to a work conflict and wants to review his recent lab results. He's comfortable with the platform and wants to manage everything quickly online.
 
 ### User Goal
-Enable Michael to efficiently manage his existing appointments with minimal friction while maintaining continuity of care.
+Efficiently manage existing appointments and access medical information without needing to contact the office directly.
 
 ### Business Goal
-Reduce appointment no-shows and cancellations while maximizing appointment slot utilization and patient satisfaction.
+Reduce administrative burden on staff while maintaining high patient satisfaction and engagement with ongoing care.
 
-### Workflow Design Variation A: Dashboard-Centric Management
+### Workflow Design Variation 1: Comprehensive Dashboard
 
-#### Screen Documentation
-
-**6.0 Patient Dashboard [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item (post-login)
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive overview of patient's healthcare status and upcoming actions
-- Screen Description:
+#### 1.0 Patient Dashboard [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item (default landing for logged-in patients)
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Provide a comprehensive overview of patient's healthcare status and upcoming needs
+- **Screen Description**:
   1. Upcoming appointments with quick action buttons
   2. Recent test results and health metrics
   3. Medication reminders and refill status
   4. Health goals progress tracking
-  5. Recommended preventive care and screenings
-- Design Problems:
-  - HMW prioritize the most important information for each user?
-  - HMW handle users with multiple chronic conditions?
-  - HMW make complex medical information accessible?
-- Design Opportunities:
-  - What if we provided personalized health insights?
-  - What if we offered proactive care recommendations?
-  - What if we integrated with wearable device data?
+  5. Messages from healthcare providers
+  6. Quick access to common actions (book, reschedule, cancel)
+- **Design Problems**:
+  - HMW present complex health information in an understandable way?
+  - HMW prioritize the most important information for each patient?
+  - HMW encourage proactive health management?
+- **Design Opportunities**:
+  - What if we could provide personalized health insights?
+  - What if we could predict when patients need to schedule follow-ups?
+  - What if we could integrate with wearable devices for real-time health data?
 
-**Pu.4 Appointment Management Modal [type: modal]**
-- HOW IT IS REACHED: Click "Manage" button on appointment card in Patient Dashboard
-- NAVBAR PRESENCE: No
-- Page Goal: Enable quick appointment modifications without losing context
-- Screen Description:
-  1. Current appointment details with modification options
-  2. Alternative time slots with same doctor
-  3. Rescheduling impact assessment (conflicts, preparation time)
-  4. Cancellation options with rebooking suggestions
-  5. Communication preferences for appointment changes
-- Design Problems:
-  - HMW minimize disruption when rescheduling appointments?
-  - HMW handle cases where preferred times aren't available?
-  - HMW communicate scheduling constraints clearly?
-- Design Opportunities:
-  - What if we offered automatic rescheduling based on preferences?
-  - What if we provided waitlist options for preferred times?
-  - What if we suggested optimal appointment timing based on condition?
+#### 2.0 Appointments [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Allow comprehensive appointment management with full visibility of appointment history
+- **Screen Description**:
+  1. Calendar view of all appointments (past and future)
+  2. Appointment cards with provider, date, time, and status
+  3. Quick actions for each appointment (reschedule, cancel, add to calendar)
+  4. Appointment history with visit summaries
+  5. Recurring appointment management
+  6. Waitlist signup for earlier appointments
+- **Design Problems**:
+  - HMW make appointment management intuitive for users of all technical levels?
+  - HMW handle complex scheduling scenarios (recurring, multiple providers)?
+  - HMW provide appropriate lead time for changes?
+- **Design Opportunities**:
+  - What if we could automatically suggest optimal appointment times?
+  - What if we could provide appointment preparation based on visit type?
+  - What if we could offer virtual pre-appointment consultations?
 
-**7.0 Appointment History [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide comprehensive view of past appointments and care continuity
-- Screen Description:
-  1. Chronological appointment history with outcomes
-  2. Care provider relationships and referral tracking
-  3. Treatment plan progress and milestone tracking
-  4. Appointment-related documents and notes
-  5. Care coordination between multiple providers
-- Design Problems:
-  - HMW help users understand their care journey over time?
-  - HMW make medical history searchable and useful?
-  - HMW handle privacy concerns with sensitive information?
-- Design Opportunities:
-  - What if we provided care journey visualization?
-  - What if we offered health trend analysis?
-  - What if we enabled easy sharing with new providers?
+#### Pu.3 Reschedule Appointment Modal [type: modal]
+- **HOW IT IS REACHED**: Clicking "Reschedule" CTA button from Appointments screen
+- **NAVBAR PRESENCE**: No
+- **Page Goal**: Enable quick appointment rescheduling with minimal disruption
+- **Screen Description**:
+  1. Current appointment details for reference
+  2. Available alternative time slots
+  3. Reason for rescheduling (optional)
+  4. Impact notification (if rescheduling affects other appointments)
+  5. Confirmation with updated appointment details
+  6. Automatic calendar updates and notifications
+- **Design Problems**:
+  - HMW minimize the impact of rescheduling on both patient and provider?
+  - HMW handle cases where no suitable alternatives are available?
+  - HMW ensure patients understand any implications of rescheduling?
+- **Design Opportunities**:
+  - What if we could offer incentives for rescheduling to less popular times?
+  - What if we could automatically find the best alternative based on patient preferences?
+  - What if we could provide telehealth options as alternatives?
 
-**7.0-D Appointment Detail [type: detail]**
-- HOW IT IS REACHED: Click on specific appointment from Appointment History
-- NAVBAR PRESENCE: No
-- Page Goal: Provide detailed view of specific appointment and related information
-- Screen Description:
-  1. Complete appointment summary with provider notes
-  2. Prescribed treatments and follow-up instructions
-  3. Related test results and imaging
-  4. Follow-up appointment scheduling if needed
-  5. Care plan updates and next steps
-- Design Problems:
-  - HMW make medical notes understandable to patients?
-  - HMW connect appointment outcomes to ongoing care?
-  - HMW handle complex multi-provider care coordination?
-- Design Opportunities:
-  - What if we provided plain-language medical summaries?
-  - What if we offered automated follow-up scheduling?
-  - What if we enabled direct communication with care team?
+#### 3.0 Medical Records [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Provide secure access to comprehensive medical information
+- **Screen Description**:
+  1. Recent test results with trend analysis
+  2. Visit summaries and provider notes
+  3. Medication list with dosages and instructions
+  4. Immunization records
+  5. Allergies and medical conditions
+  6. Download and sharing options for records
+- **Design Problems**:
+  - HMW present complex medical information in patient-friendly language?
+  - HMW ensure data security while maintaining accessibility?
+  - HMW help patients understand what their results mean?
+- **Design Opportunities**:
+  - What if we could provide educational content related to patient's conditions?
+  - What if we could show how current results compare to healthy ranges?
+  - What if we could predict health risks based on trends?
 
-#### Navigation Structure (Sidebar/Navbar - Primary Screens Only):
-6.0 Patient Dashboard | 7.0 Appointment History
+### Workflow Design Variation 2: Action-Focused Interface
 
-#### User Journey Flow (Full Interaction Sequence):
-6.0 Patient Dashboard → [click "Manage" on appointment] → Pu.4 Appointment Management Modal [type: modal] → [reschedule appointment] → 6.0 Patient Dashboard (updated) → [view appointment history] → 7.0 Appointment History → [click specific appointment] → 7.0-D Appointment Detail [type: detail]
+#### 1.0 Quick Actions Hub [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Enable rapid completion of common patient tasks
+- **Screen Description**:
+  1. Large action buttons for common tasks
+  2. Next appointment countdown with quick modify options
+  3. Urgent notifications and alerts
+  4. Recent activity feed
+  5. One-click access to frequently used features
+  6. Contextual help and support options
+- **Design Problems**:
+  - HMW prioritize actions based on individual patient needs?
+  - HMW maintain simplicity while providing comprehensive functionality?
+  - HMW guide patients to the most appropriate actions?
+- **Design Opportunities**:
+  - What if we could learn from patient behavior to customize the interface?
+  - What if we could provide proactive suggestions based on health status?
+  - What if we could integrate with patient's calendar and preferences?
 
-### Workflow Design Variation B: Calendar-Centric Management
+### Navigation Structure (Variation 1):
+1.0 Patient Dashboard | 2.0 Appointments | 3.0 Medical Records
 
-#### Screen Documentation
+### User Journey Flow (Variation 1):
+1.0 Patient Dashboard → [view appointments] → 2.0 Appointments → [click reschedule] → Pu.3 Reschedule Appointment Modal → [confirm new time] → 2.0 Appointments (updated) → [view medical records] → 3.0 Medical Records
 
-**8.0 Appointment Calendar [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide visual calendar interface for appointment management
-- Screen Description:
-  1. Monthly/weekly calendar view with appointments
-  2. Drag-and-drop rescheduling functionality
-  3. Available slot indicators and booking options
-  4. Multiple provider calendar overlay
-  5. Appointment type color coding and filtering
-- Design Problems:
-  - HMW make calendar navigation intuitive for all users?
-  - HMW handle complex scheduling constraints visually?
-  - HMW provide adequate appointment detail in calendar view?
-- Design Opportunities:
-  - What if we offered smart scheduling suggestions?
-  - What if we provided calendar sharing with family members?
-  - What if we integrated with personal calendar applications?
+### Navigation Structure (Variation 2):
+1.0 Quick Actions Hub
 
-**Pu.5 Calendar Booking Modal [type: modal]**
-- HOW IT IS REACHED: Click on available time slot in Appointment Calendar
-- NAVBAR PRESENCE: No
-- Page Goal: Enable quick appointment booking from calendar interface
-- Screen Description:
-  1. Time slot confirmation with duration options
-  2. Provider selection for multi-provider practices
-  3. Appointment type and reason selection
-  4. Conflict checking with existing appointments
-  5. Recurring appointment setup options
-- Design Problems:
-  - HMW prevent double-booking and scheduling conflicts?
-  - HMW handle provider availability changes in real-time?
-  - HMW make recurring appointment setup intuitive?
-- Design Opportunities:
-  - What if we offered intelligent conflict resolution?
-  - What if we provided optimal appointment spacing recommendations?
-  - What if we enabled family appointment coordination?
-
-#### Navigation Structure (Sidebar/Navbar - Primary Screens Only):
-8.0 Appointment Calendar
-
-#### User Journey Flow (Full Interaction Sequence):
-8.0 Appointment Calendar → [drag appointment to new slot] → [confirm rescheduling] → 8.0 Appointment Calendar (updated) → [click available slot] → Pu.5 Calendar Booking Modal [type: modal] → [book new appointment] → 8.0 Appointment Calendar (updated)
+### User Journey Flow (Variation 2):
+1.0 Quick Actions Hub → [click reschedule appointment] → Pu.3 Reschedule Appointment Modal → [confirm] → 1.0 Quick Actions Hub (updated status)
 
 ---
 
-## Scenario 3: Emergency Care Access and Triage
+## Scenario 3: Emergency Care Access
 
-### Scenario Context
-Emily, a 28-year-old teacher, experiences severe chest pain at 10 PM on a weekday. She needs immediate guidance on whether to seek emergency care, urgent care, or schedule a next-day appointment, and wants to access appropriate care quickly and safely.
+### User Scenario
+Jessica, a 32-year-old mother, notices her 5-year-old son has developed a high fever and rash late in the evening. She's concerned but unsure if this requires emergency room attention or if urgent care would be sufficient. She needs immediate guidance and potentially same-day care options.
 
 ### User Goal
-Help Emily quickly assess the urgency of her symptoms and connect her with the most appropriate level of care immediately.
+Quickly assess the severity of the medical situation and access appropriate care options with minimal delay.
 
 ### Business Goal
-Provide appropriate care triage to reduce emergency room overcrowding while ensuring patient safety and capturing urgent care opportunities.
+Direct patients to the most appropriate level of care while providing immediate support and reducing unnecessary emergency room visits.
 
-### Workflow Design Variation A: AI-Powered Triage Flow
+### Workflow Design Variation 1: Triage-First Approach
 
-#### Screen Documentation
+#### 1.0 Emergency Assessment [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item or emergency banner
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Quickly assess medical situation severity and guide to appropriate care
+- **Screen Description**:
+  1. Prominent "Get Help Now" section with emergency contacts
+  2. Symptom checker with urgency assessment
+  3. Immediate care options (ER, urgent care, telehealth)
+  4. Location-based emergency services
+  5. First aid guidance for common emergencies
+  6. Direct connection to nurse hotline
+- **Design Problems**:
+  - HMW quickly assess medical urgency without providing medical advice?
+  - HMW ensure users don't delay seeking appropriate emergency care?
+  - HMW provide helpful guidance while maintaining legal safety?
+- **Design Opportunities**:
+  - What if we could connect users directly with emergency services when needed?
+  - What if we could provide real-time wait times for emergency facilities?
+  - What if we could offer video triage with medical professionals?
 
-**9.0 Emergency Triage [type: primary]**
-- HOW IT IS REACHED: Direct navigation via sidebar nav item or emergency banner
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide immediate symptom assessment and care level recommendations
-- Screen Description:
-  1. Urgent symptom checker with severity indicators
-  2. Emergency warning signs with immediate 911 guidance
-  3. Virtual triage nurse chat interface
-  4. Location-based emergency and urgent care finder
-  5. Telehealth emergency consultation options
-- Design Problems:
-  - HMW provide accurate triage without replacing medical judgment?
-  - HMW handle life-threatening situations appropriately?
-  - HMW reduce user anxiety while gathering information?
-- Design Opportunities:
-  - What if we provided real-time emergency room wait times?
-  - What if we offered video triage with medical professionals?
-  - What if we integrated with emergency services dispatch?
+#### Pu.4 Symptom Assessment Modal [type: modal]
+- **HOW IT IS REACHED**: Clicking "Check Symptoms" CTA button from Emergency Assessment screen
+- **NAVBAR PRESENCE**: No
+- **Page Goal**: Guide users through structured symptom assessment to determine urgency
+- **Screen Description**:
+  1. Step-by-step symptom questionnaire
+  2. Age and condition-specific questions
+  3. Visual aids for symptom identification
+  4. Progress indicator showing assessment completion
+  5. Clear urgency recommendations based on responses
+  6. Direct booking options for recommended care level
+- **Design Problems**:
+  - HMW create accurate assessments without replacing medical judgment?
+  - HMW handle liability concerns while providing helpful guidance?
+  - HMW ensure the assessment is quick enough for emergency situations?
+- **Design Opportunities**:
+  - What if we could use AI to improve assessment accuracy over time?
+  - What if we could integrate with wearable device data for more context?
+  - What if we could provide multilingual support for diverse populations?
 
-**Pu.6 Symptom Urgency Assessment Modal [type: modal]**
-- HOW IT IS REACHED: Click "Assess My Symptoms" CTA button on Emergency Triage
-- NAVBAR PRESENCE: No
-- Page Goal: Quickly determine symptom severity and appropriate care level
-- Screen Description:
-  1. Rapid symptom assessment with yes/no questions
-  2. Pain scale and symptom severity indicators
-  3. Medical history quick reference
-  4. Real-time risk assessment scoring
-  5. Immediate care recommendations with reasoning
-- Design Problems:
-  - HMW balance thoroughness with speed in emergency situations?
-  - HMW handle users who may be in distress or panic?
-  - HMW ensure liability protection while providing guidance?
-- Design Opportunities:
-  - What if we offered voice-activated symptom reporting?
-  - What if we provided family member notification options?
-  - What if we integrated with emergency contact systems?
+#### 2.0 Urgent Care Options [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item or from assessment results
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Present immediate care options with real-time availability
+- **Screen Description**:
+  1. Nearby urgent care centers with wait times
+  2. Emergency room locations and current capacity
+  3. Telehealth options for immediate consultation
+  4. Same-day appointment availability
+  5. Transportation options and directions
+  6. What to expect at each type of facility
+- **Design Problems**:
+  - HMW provide accurate real-time information about facility availability?
+  - HMW help users choose between different care options?
+  - HMW ensure users can access care regardless of insurance status?
+- **Design Opportunities**:
+  - What if we could reserve spots at urgent care facilities?
+  - What if we could provide estimated costs for different care options?
+  - What if we could offer mobile urgent care services?
 
-**10.0 Care Recommendations [type: primary]**
-- HOW IT IS REACHED: Complete symptom assessment in Pu.6 modal
-- NAVBAR PRESENCE: Yes
-- Page Goal: Present clear care pathway recommendations with immediate action options
-- Screen Description:
-  1. Care level recommendation with clear reasoning
-  2. Immediate action steps and contact information
-  3. Available emergency and urgent care locations
-  4. Transportation options and estimated wait times
-  5. Follow-up care coordination and appointment booking
-- Design Problems:
-  - HMW communicate urgency levels without causing panic?
-  - HMW provide actionable next steps for different care levels?
-  - HMW handle situations where multiple care options exist?
-- Design Opportunities:
-  - What if we provided real-time facility capacity information?
-  - What if we offered ride-sharing integration for emergency transport?
-  - What if we enabled automatic check-in at recommended facilities?
+### Workflow Design Variation 2: Direct Access Approach
 
-**10.0-D Facility Detail [type: detail]**
-- HOW IT IS REACHED: Click on specific care facility from Care Recommendations
-- NAVBAR PRESENCE: No
-- Page Goal: Provide detailed facility information to support care decisions
-- Screen Description:
-  1. Facility capabilities and specializations
-  2. Current wait times and capacity status
-  3. Insurance acceptance and cost estimates
-  4. Directions and transportation options
-  5. Pre-registration and check-in options
-- Design Problems:
-  - HMW help users choose between multiple facility options?
-  - HMW provide accurate wait time estimates?
-  - HMW handle insurance verification in emergency situations?
-- Design Opportunities:
-  - What if we offered virtual queuing for urgent care?
-  - What if we provided facility quality ratings and outcomes?
-  - What if we enabled family notification of facility choice?
+#### 1.0 Immediate Care [type: primary]
+- **HOW IT IS REACHED**: Direct navigation via sidebar nav item
+- **NAVBAR PRESENCE**: Yes
+- **Page Goal**: Provide instant access to emergency care options without assessment delays
+- **Screen Description**:
+  1. Emergency services contact (911) prominently displayed
+  2. One-click access to telehealth emergency consultation
+  3. Nearest emergency facilities with directions
+  4. Urgent care centers with immediate booking
+  5. Poison control and crisis hotlines
+  6. Emergency contact management for family members
+- **Design Problems**:
+  - HMW ensure users don't bypass necessary emergency services?
+  - HMW provide immediate access while maintaining appropriate triage?
+  - HMW handle situations where users are too distressed to navigate complex interfaces?
+- **Design Opportunities**:
+  - What if we could automatically detect emergency situations?
+  - What if we could provide voice-activated emergency assistance?
+  - What if we could automatically notify emergency contacts?
 
-#### Navigation Structure (Sidebar/Navbar - Primary Screens Only):
-9.0 Emergency Triage | 10.0 Care Recommendations
+### Navigation Structure (Variation 1):
+1.0 Emergency Assessment | 2.0 Urgent Care Options
 
-#### User Journey Flow (Full Interaction Sequence):
-9.0 Emergency Triage → [click "Assess My Symptoms"] → Pu.6 Symptom Urgency Assessment Modal [type: modal] → [complete assessment] → 10.0 Care Recommendations → [click facility] → 10.0-D Facility Detail [type: detail] → [pre-register] → 10.0 Care Recommendations (updated with confirmation)
+### User Journey Flow (Variation 1):
+1.0 Emergency Assessment → [click Check Symptoms] → Pu.4 Symptom Assessment Modal → [complete assessment] → 2.0 Urgent Care Options → [select care option] → External booking/contact system
 
-### Workflow Design Variation B: Direct Care Access Flow
+### Navigation Structure (Variation 2):
+1.0 Immediate Care
 
-#### Screen Documentation
-
-**11.0 Immediate Care Access [type: primary]**
-- HOW IT IS REACHED: Direct navigation via emergency hotline or urgent care banner
-- NAVBAR PRESENCE: Yes
-- Page Goal: Provide immediate access to care options without assessment delays
-- Screen Description:
-  1. Emergency services direct dial with location sharing
-  2. Urgent care facilities with real-time availability
-  3. Telehealth emergency consultations with immediate connection
-  4. Pharmacy and after-hours clinic locator
-  5. Crisis support and mental health emergency resources
-- Design Problems:
-  - HMW provide immediate care access while ensuring appropriate triage?
-  - HMW handle users who may not be able to navigate complex interfaces?
-  - HMW balance speed with safety in care recommendations?
-- Design Opportunities:
-  - What if we offered one-touch emergency service connection?
-  - What if we provided automatic location sharing with emergency services?
-  - What if we offered multi-language emergency support?
-
-**Pu.7 Emergency Connection Modal [type: modal]**
-- HOW IT IS REACHED: Click emergency service option from Immediate Care Access
-- NAVBAR PRESENCE: No
-- Page Goal: Facilitate immediate connection with appropriate emergency services
-- Screen Description:
-  1. Service type confirmation (911, urgent care, telehealth)
-  2. Location verification and sharing options
-  3. Emergency contact notification settings
-  4. Medical information quick sharing
-  5. Connection status and wait time indicators
-- Design Problems:
-  - HMW ensure accurate location sharing in emergencies?
-  - HMW handle users who may be incapacitated or distressed?
-  - HMW provide necessary medical information quickly?
-- Design Opportunities:
-  - What if we offered automatic medical history sharing?
-  - What if we provided real-time connection with family members?
-  - What if we integrated with wearable device emergency features?
-
-#### Navigation Structure (Sidebar/Navbar - Primary Screens Only):
-11.0 Immediate Care Access
-
-#### User Journey Flow (Full Interaction Sequence):
-11.0 Immediate Care Access → [click emergency service] → Pu.7 Emergency Connection Modal [type: modal] → [connect to service] → [external service connection] → 11.0 Immediate Care Access (updated with connection status)
+### User Journey Flow (Variation 2):
+1.0 Immediate Care → [select appropriate care option] → External emergency services or booking system
 
 ---
 
-## Universal Application Screens
+## Error States and Edge Cases
 
-### Settings and Configuration
+### Er.1 No Available Appointments [type: state]
+- **Screen Description**: Displayed when no appointments match user criteria
+- **Content**: Alternative options, waitlist signup, telehealth alternatives
+- **Recovery Actions**: Modify search criteria, join waitlist, contact office directly
 
-**12.0 Settings [type: settings]**
-- HOW IT IS REACHED: Click settings icon in navigation header
-- NAVBAR PRESENCE: No
-- Page Goal: Centralize all user preferences and accessibility options
-- Screen Description:
-  1. **Accessibility Settings Group:**
-     - Screen reader support toggle (ON/OFF)
-     - High contrast mode toggle (ON/OFF)
-     - Font size adjustment (Small/Medium/Large/Extra Large)
-     - Motor accessibility options (keyboard navigation, extended timeouts)
-     - Cognitive accessibility (simplified language, reduced animations)
-  2. **Notification Preferences Group:**
-     - Appointment reminders (email, SMS, push, phone call)
-     - Health alerts and medication reminders
-     - Marketing communications preferences
-     - Emergency contact notification settings
-  3. **Privacy and Security Group:**
-     - Data sharing preferences with providers
-     - Family member access permissions
-     - Medical information visibility controls
-     - Account security settings and two-factor authentication
-  4. **Display and Interface Group:**
+### Er.2 Insurance Verification Failed [type: state]
+- **Screen Description**: Shown when insurance cannot be verified automatically
+- **Content**: Manual verification options, self-pay alternatives, contact information
+- **Recovery Actions**: Upload insurance card, call insurance company, proceed with self-pay
+
+### Er.3 System Maintenance [type: state]
+- **Screen Description**: Displayed during planned or unplanned system downtime
+- **Content**: Maintenance notification, expected resolution time, alternative contact methods
+- **Recovery Actions**: Phone booking options, emergency contact information
+
+### Er.4 Appointment Conflict [type: state]
+- **Screen Description**: Shown when scheduling conflicts arise
+- **Content**: Conflict explanation, alternative time suggestions, priority options
+- **Recovery Actions**: Choose alternative time, modify existing appointment, contact scheduler
+
+---
+
+## Settings Configuration
+
+### 4.0 Settings [type: settings]
+- **HOW IT IS REACHED**: Settings icon/link in navigation or user menu
+- **NAVBAR PRESENCE**: No
+- **Page Goal**: Centralize all user preferences and accessibility options
+- **Screen Description**:
+  1. **Notification Preferences**
+     - Appointment reminders (email, SMS, push)
+     - Test result notifications
+     - Medication reminders
+     - Marketing communications opt-in/out
+  2. **Accessibility Options**
+     - High contrast mode toggle
+     - Screen reader optimization toggle
+     - Font size adjustment
+     - Motor accessibility features
+  3. **Privacy Settings**
+     - Data sharing preferences
+     - Emergency contact access
+     - Medical information visibility
+  4. **Account Management**
+     - Password change
+     - Two-factor authentication
+     - Account deletion request
+  5. **Communication Preferences**
+     - Preferred contact method
      - Language selection
-     - Time zone and date format preferences
-     - Calendar integration settings
-     - Dashboard customization options
-- Design Problems:
-  - HMW organize complex settings without overwhelming users?
-  - HMW ensure accessibility settings are discoverable?
-  - HMW handle privacy preferences clearly and transparently?
-- Design Opportunities:
-  - What if we provided smart settings recommendations?
-  - What if we offered settings import/export for multiple devices?
-  - What if we provided accessibility assessment tools?
-
-### Error and Empty States
-
-**Er.1 Network Connection Error [type: state]**
-- HOW IT IS REACHED: Automatic when network connectivity is lost
-- NAVBAR PRESENCE: No
-- Page Goal: Inform users of connectivity issues and provide recovery options
-- Screen Description:
-  1. Clear error message with friendly tone
-  2. Offline functionality explanation
-  3. Retry connection options
-  4. Emergency contact information for urgent needs
-  5. Cached information access where available
-
-**Er.2 No Search Results [type: state]**
-- HOW IT IS REACHED: Search query returns no matching doctors or appointments
-- NAVBAR PRESENCE: No
-- Page Goal: Guide users toward alternative search strategies or options
-- Screen Description:
-  1. Search refinement suggestions
-  2. Alternative specialty recommendations
-  3. Expanded geographic search options
-  4. Telehealth provider alternatives
-  5. Contact support for specialized needs
-
-**Er.3 Appointment Booking Conflict [type: state]**
-- HOW IT IS REACHED: Attempt to book appointment that conflicts with existing schedule
-- NAVBAR PRESENCE: No
-- Page Goal: Resolve scheduling conflicts while maintaining user intent
-- Screen Description:
-  1. Conflict explanation with affected appointments
-  2. Alternative time slot suggestions
-  3. Appointment modification options
-  4. Priority-based conflict resolution
-  5. Calendar integration conflict checking
+     - Provider communication style preferences
 
 ---
 
-## Accessibility Notes
+## ACCESSIBILITY NOTES
 
-**Keyboard Navigation:**
-- All primary screens support full keyboard navigation with logical tab order
-- Skip links provided for main content areas on each screen
-- Focus indicators clearly visible with 3px outline in brand color
-- Keyboard shortcuts available for common actions (Alt+S for search, Alt+A for appointments)
+**Keyboard Navigation**: All primary screens support full keyboard navigation with logical tab order. Focus indicators are clearly visible with 3px blue outline. Skip links provided for main content areas.
 
-**ARIA Labels and Landmarks:**
-- Navigation regions marked with role="navigation" and aria-label
-- Main content areas use role="main" landmark
-- Form sections include fieldset and legend elements
-- Dynamic content updates announced via aria-live regions
+**ARIA Labels and Landmarks**: 
+- Navigation regions marked with role="navigation"
+- Main content areas use role="main"
+- Form sections include proper fieldset and legend elements
+- Dynamic content changes announced via aria-live regions
 
-**Screen Reader Announcements:**
+**Screen Reader Announcements**:
 - Page title changes announced on navigation
 - Form validation errors announced immediately
-- Appointment booking confirmations announced with full details
-- Emergency triage results announced with urgency level
+- Appointment booking confirmations announced
+- Emergency assessment results announced with appropriate urgency
 
-**High Contrast Mode:**
-- Toggled via Settings screen, applies CSS class site-wide
-- Maintains WCAG AAA contrast ratios (7:1) for all text
-- Interactive elements have distinct visual states
-- Medical urgency indicators use pattern and color coding
+**High Contrast**: Toggled via Settings screen, applies as CSS class site-wide with WCAG AA compliant color ratios (4.5:1 minimum)
 
-**Focus Indicators:**
-- 3px solid outline in accessible blue (#0066CC) for all interactive elements
-- Focus indicators never removed, only enhanced
-- Focus trap implemented in modal dialogs
-- Focus restoration to triggering element on modal close
+**Focus Indicators**: 3px solid blue outline on all interactive elements, visible against all background colors
 
-**Minimum Touch Targets:**
-- 44px minimum for all interactive elements
-- Adequate spacing between adjacent touch targets
-- Swipe gestures supported with alternative button access
-- Voice input supported for symptom assessment
+**Minimum Touch Targets**: 44px minimum on all interactive elements, with adequate spacing between adjacent targets
+
+**Motor Accessibility**: 
+- Drag and drop interactions have keyboard alternatives
+- Time-sensitive actions (like booking) have extended timeout options
+- Large click targets for users with limited dexterity
 
 ---
 
-## Viewport Behaviour
+## VIEWPORT BEHAVIOUR
 
-**Desktop (1024px+):**
+**Desktop (1024px+)**:
 - Full sidebar navigation with expanded menu items
 - Multi-column layouts for dashboard and search results
-- Hover states and tooltips for enhanced information
-- Calendar views show full month with detailed appointment information
+- Hover states and tooltips for enhanced interaction
+- Modal dialogs centered with backdrop overlay
 
-**Tablet (768px–1023px):**
-- Collapsible sidebar navigation with icon-only collapsed state
-- Two-column layouts adapt to single column for complex forms
-- Touch-optimized interaction areas with increased padding
-- Calendar views show week view as default with month option
+**Tablet (768px–1023px)**:
+- Collapsible sidebar navigation
+- Two-column layouts where appropriate
+- Touch-optimized button sizes and spacing
+- Swipe gestures for calendar navigation
 
-**Mobile (320px–767px):**
-- Bottom navigation bar replaces sidebar for primary screens
-- Single-column layouts throughout application
-- Swipe gestures enabled for calendar navigation and appointment management
+**Mobile (320px–767px)**:
+- Bottom tab navigation replaces sidebar
+- Single-column layouts throughout
+- Full-screen modals for complex forms
+- Thumb-friendly navigation placement
+- Simplified appointment cards with essential information only
 - Emergency access prominently featured in mobile header
-- Voice input prioritized for symptom assessment and search
-- One-handed operation optimized with bottom-aligned primary actions
 
 ---
 
 ## Implementation Notes
 
-### Technical Considerations
-- Progressive Web App (PWA) capabilities for offline emergency information access
-- Real-time synchronization for appointment availability and scheduling
-- HIPAA-compliant data handling and transmission
-- Integration APIs for electronic health records (EHR) systems
-- Multi-language support with medical terminology localization
+This workflow documentation provides the foundation for creating user-centered healthcare management experiences. Each scenario addresses distinct user goals while maintaining consistency in interaction patterns and accessibility standards. The modular approach allows for iterative development and testing of individual workflows while ensuring the overall experience remains cohesive.
 
-### Performance Requirements
-- Emergency triage screens load within 2 seconds on 3G connections
-- Appointment booking completion within 3 clicks from any starting point
-- Offline functionality for viewing existing appointments and emergency contacts
-- Caching strategy for frequently accessed doctor profiles and facility information
+The documentation prioritizes:
+1. **User Safety**: Especially critical in healthcare contexts with emergency scenarios
+2. **Accessibility**: Ensuring all users can access healthcare services regardless of ability
+3. **Efficiency**: Reducing friction in common tasks while maintaining thoroughness where needed
+4. **Scalability**: Designing patterns that can accommodate additional features and user types
 
-### Security and Privacy
-- End-to-end encryption for all medical information transmission
-- Biometric authentication support for sensitive health data access
-- Automatic session timeout with secure logout
-- Audit logging for all medical information access and modifications
-- GDPR compliance for international users with data portability options
-
-This comprehensive workflow documentation provides the foundation for creating accessible, scalable, and user-centered healthcare platform experiences that balance patient needs with business objectives while ensuring regulatory compliance and technical feasibility.
+Next steps should include user testing of these workflows with diverse patient populations, validation with healthcare providers, and iterative refinement based on real-world usage patterns.
